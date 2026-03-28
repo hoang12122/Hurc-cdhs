@@ -1,0 +1,8 @@
+# Settings to manage and configure a Firebase App Hosting backend.
+# https://firebase.google.com/docs/app-hosting/configure
+
+runConfig:
+  # Tăng giá trị này để tự động tạo thêm các máy chủ khi lưu lượng truy cập tăng.
+  maxInstances: 10
+# Cần có ít nhất một instance chạy để tránh cold start.
+# minInstances: 1

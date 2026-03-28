@@ -1,0 +1,231 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../../src/lib/generated/ops"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("OPS_DATABASE_URL")
+}
+
+model SystemLog {
+  id        String   @id @default(cuid())
+  timestamp DateTime @default(now())
+  userId    String
+  userName  String
+  action    String
+  level     String // 'INFO' | 'WARNING' | 'ERROR' | 'CRITICAL'
+  details   String
+  category  String // 'data' | 'network'
+
+  @@map("system_logs")
+}
+
+model ResponsibleUnit {
+  id   String @id
+  name String
+
+  @@map("responsible_units")
+}
+
+model Subsystem {
+  id    String @id
+  label Json // NavItemLabel { en: string, vi: string }
+
+  @@map("subsystems")
+}
+
+model PatrolLocation {
+  id    String @id
+  label String
+
+  @@map("patrol_locations")
+}
+
+model Comment {
+  id         String   @id @default(cuid())
+  entityId   String // ID of the DNF, Hazard, etc.
+  senderId   String
+  senderName String
+  timestamp  DateTime @default(now())
+  content    String
+
+  @@map("comments")
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  message   String
+  type      String // 'info' | 'warning' | 'error'
+  timestamp DateTime @default(now())
+  isRead    Boolean  @default(false)
+  link      String?
+
+  @@map("notifications")
+}
+
+model MaintenanceStandard {
+  id                     String   @id
+  name                   String
+  name_en                String?
+  description            String?
+  frequency              String? // MaintenanceFrequency
+  scheduledTime          String? // HH:mm
+  locationIds            String[] @default([])
+  recipientId            String?
+  abbreviation           String?
+  estimatedDurationHours Float?
+
+  @@map("maintenance_standards")
+}
+
+model MaintenanceStandardItem {
+  id                String  @id
+  standardId        String
+  itemCode          String
+  itemText          String
+  criteria          String?
+  unit              String?
+  standardQuantity  Float?
+  toleranceOperator String? // ToleranceOperator
+  toleranceValue    Float?
+  requiredTools     String?
+
+  @@map("maintenance_standard_items")
+}
+
+model InspectionDetail {
+  id                     String    @id
+  title                  String
+  areaIds                String[]  @default([])
+  inspector              String
+  date                   DateTime
+  status                 String // InspectionStatus
+  checklistTemplateId    String?
+  checklistItems         Json? // Array of ChecklistItem
+  generalNotes           String?
+  approvalComments       String?
+  lastStatusUpdateBy     String?
+  lastStatusUpdateAt     DateTime?
+  scheduledStartDate     DateTime?
+  scheduledFinishDate    DateTime?
+  estimatedDurationHours Float?
+  isArchived             Boolean   @default(false)
+
+  @@map("inspections")
+}
+
+model DnfDocument {
+  id                                     String             @id
+  failureReportNo                        String?
+  locationOfFailure                      String
+  failedComponentEquipmentLRUTrainNumber String?
+  subsystemIds                           String[]           @default([])
+  descriptionOfFailure                   String
+  impactAssessment                       String?
+  staffWhoIdentifiedFailure              String
+  dateTimeOfFailureOccurrence            DateTime
+  methodOfFailureDetection               String
+  hazardLevelId                          String? // 'high' | 'medium' | 'low'
+  status                                 String // DnfStatus
+  attachments                            Json? // ImageAttachment[]
+  createdById                            String
+  createdAt                              DateTime           @default(now())
+  updatedAt                              DateTime           @updatedAt
+  statusHistory                          Json? // StatusHistory[]
+  isArchived                             Boolean            @default(false)
+  resolutionDetails                      String?
+  assignedTo                             String?
+  priority                               String? // 'Cao' | 'Trung bình' | 'Thấp'
+  completedDate                          DateTime?
+  originatingInspectionId                String?
+  originatingFindingId                   String?
+  immediateAction                        String?
+  problemResettable                      Boolean?
+  trainServiceAffected                   Boolean?
+  trainWithdrawn                         Boolean?
+  systemRestoredTime                     DateTime?
+  disruptionDuration                     Float?
+  trainKm                                Float?
+  rectificationParty                     String?
+  correctiveActions                      CorrectiveAction[]
+
+  @@map("dnf_documents")
+}
+
+model CorrectiveAction {
+  id                      String      @id
+  dnfId                   String
+  dnf                     DnfDocument @relation(fields: [dnfId], references: [id], onDelete: Cascade)
+  description             String
+  responsiblePersonOrUnit String
+  createdAt               DateTime    @default(now())
+  updatedAt               DateTime    @updatedAt
+  completedAt             DateTime?
+  status                  String // CorrectiveActionStatus
+  dateTimeNotified        DateTime?
+  dateTimeArrival         DateTime?
+  diagnosisTime           Float?
+  repairTime              Float?
+  verificationTime        Float?
+  totalDownTime           Float?
+
+  @@map("corrective_actions")
+}
+
+model HazardRecord {
+  id                      String    @id
+  description             String
+  systemGroup             String?
+  locationIds             String[]  @default([])
+  source                  String?
+  potentialConsequence    String?
+  identifiedBy            String
+  identificationDate      DateTime
+  severityId              String?
+  likelihoodId            String?
+  riskLevelId             String?
+  currentControls         String
+  proposedActions         String?
+  suggestedActions        String?
+  responsiblePersonOrUnit String?
+  coordinatingUnits       String[]  @default([])
+  dueDate                 DateTime?
+  status                  String // HazardStatus
+  closureDetails          String?
+  verificationDetails     String?
+  attachments             Json? // ImageAttachment[]
+  linkedDnfId             String?
+  createdById             String
+  createdAt               DateTime  @default(now())
+  updatedAt               DateTime  @updatedAt
+  isArchived              Boolean   @default(false)
+  statusHistory           Json? // StatusHistory[]
+
+  @@map("hazard_records")
+}
+
+model Improvement {
+  id              String   @id
+  title           String
+  description     String
+  category        String
+  status          String // ImprovementStatus
+  submittedBy     String
+  createdById     String
+  submissionDate  DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  benefitAnalysis String?
+  estimatedCost   Float?
+  attachments     Json? // ImageAttachment[]
+
+  @@map("improvements")
+}
+
+model SystemState {
+  id               Int       @id @default(1)
+  lastSchedulerRun DateTime?
+  aiModelConfig    String?
+
+  @@map("system_state")
+}

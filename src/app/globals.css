@@ -1,0 +1,173 @@
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  font-family: 'Inter', Arial, Helvetica, sans-serif;
+}
+
+@layer base {
+  :root {
+    /* Light Theme */
+    --background: 220 20% 97%; /* Very light cool gray */
+    --foreground: 220 15% 25%; /* Dark cool gray */
+
+    --card: 0 0% 100%; /* White */
+    --card-foreground: 220 15% 25%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 220 15% 25%;
+
+    --primary: 198 90% 45%; /* #29ABE2 */
+    --primary-foreground: 210 40% 98%;
+
+    --secondary: 220 20% 92%;
+    --secondary-foreground: 220 15% 25%;
+
+    --muted: 220 20% 90%;
+    --muted-foreground: 220 10% 45%;
+
+    --accent: 25 95% 53%; /* #F26419 */
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 220 15% 88%;
+    --input: 220 15% 94%;
+    --ring: 198 90% 45%;
+
+    --chart-1: 198 80% 50%; /* Main blue */
+    --chart-2: 25 90% 55%;  /* Accent orange */
+    --chart-3: 140 60% 45%; /* Green */
+    --chart-4: 260 70% 60%; /* Purple */
+    --chart-5: 0 84.2% 60.2%;  /* Red */
+    --chart-6: 50 95% 55%; /* Yellow */
+
+    --radius: 0.5rem;
+
+    /* Sidebar-specific vars for light theme */
+    --sidebar-background: 220 20% 95%;
+    --sidebar-foreground: 220 15% 35%;
+    --sidebar-border: 220 15% 88%;
+    --sidebar-accent: 198 90% 45%;
+    --sidebar-accent-foreground: 210 40% 98%;
+    --sidebar-ring: 198 90% 45%;
+  }
+
+  .dark {
+    /* High-contrast dark theme from user screenshot */
+    --background: 222 18% 12%; /* Very dark blue-gray */
+    --foreground: 210 40% 96%; /* Light gray */
+
+    --card: 222 18% 18%; /* Slightly lighter than background */
+    --card-foreground: 210 40% 96%;
+
+    --popover: 222 18% 12%;
+    --popover-foreground: 210 40% 96%;
+
+    --primary: 198 85% 55%; /* #29ABE2 */
+    --primary-foreground: 210 20% 98%;
+
+    --secondary: 222 18% 25%;
+    --secondary-foreground: 210 40% 96%;
+
+    --muted: 222 18% 25%;
+    --muted-foreground: 210 40% 75%;
+
+    --accent: 25 90% 60%; /* #F26419 */
+    --accent-foreground: 0 0% 100%;
+    
+    --destructive: 0 70% 55%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 222 18% 25%;
+    --input: 222 18% 20%;
+    --ring: 198 85% 55%;
+    
+    --chart-1: 198 80% 60%; /* Main blue */
+    --chart-2: 25 85% 65%;  /* Accent orange */
+    --chart-3: 140 60% 55%; /* Green */
+    --chart-4: 260 70% 65%; /* Purple */
+    --chart-5: 0 70% 60%;  /* Red */
+    --chart-6: 50 90% 60%; /* Yellow */
+    
+    /* Sidebar-specific vars for dark theme */
+    --sidebar-background: 222 18% 14%;
+    --sidebar-foreground: 210 40% 85%;
+    --sidebar-border: 222 18% 25%;
+    --sidebar-accent: 222 18% 28%;
+    --sidebar-accent-foreground: 210 40% 98%;
+    --sidebar-ring: 198 85% 55%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
+
+@media print {
+  body {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .sidebar,
+  header,
+  .no-print {
+    display: none !important;
+  }
+  
+  main {
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+  
+  @page {
+    size: A4 landscape;
+    margin: 1cm;
+  }
+
+  .card-to-print {
+    box-shadow: none !important;
+    border: none !important;
+    padding: 0 !important;
+  }
+  
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 10pt;
+  }
+
+  th, td {
+    border: 1px solid #ccc;
+    padding: 4px 8px;
+    text-align: left;
+  }
+
+  thead {
+    display: table-header-group; /* ensure header repeats on each page */
+  }
+
+  tr {
+    page-break-inside: avoid;
+  }
+
+  a {
+      text-decoration: none;
+      color: inherit;
+  }
+
+  .badge {
+      border: 1px solid #ccc;
+  }
+}

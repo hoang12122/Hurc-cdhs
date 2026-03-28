@@ -1,0 +1,49 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../../src/lib/generated/metro"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("METRO_DATABASE_URL")
+}
+
+model Asset {
+  id            String   @id @default(cuid())
+  code          String   @unique // e.g., 'STN-L1-A'
+  name          String
+  subsystem     String // 'Signaling', 'Power', 'Track', etc.
+  parentId      String?
+  parent        Asset?   @relation("AssetHierarchy", fields: [parentId], references: [id])
+  children      Asset[]  @relation("AssetHierarchy")
+  criticality   String   @default("Medium") // 'High', 'Medium', 'Low'
+  specification Json? // Dynamic technical specs
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@map("metro_assets")
+}
+
+model TelemetryReading {
+  id        String   @id @default(cuid())
+  assetId   String
+  metric    String // e.g., 'Temperature', 'Voltage', 'Status'
+  value     Float
+  unit      String?
+  timestamp DateTime @default(now())
+
+  @@map("metro_telemetry")
+}
+
+model SnmpConfig {
+  id              String    @id @default(cuid())
+  assetId         String    @unique
+  ip              String
+  community       String    @default("public")
+  oid             String // The OID to poll for this asset
+  metricName      String // The name of the metric (e.g. 'UPS_Voltage')
+  intervalSeconds Int       @default(60)
+  lastPolled      DateTime?
+
+  @@map("metro_snmp_configs")
+}
