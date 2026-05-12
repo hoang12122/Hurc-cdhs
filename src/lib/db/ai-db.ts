@@ -9,8 +9,17 @@ import { DB_CONFIG } from '../config/db-config';
 
 const globalForAi = global as unknown as { aiDb: PrismaClient };
 
-// Prepare URL with timeouts
-const aiUrl = new URL(process.env.AI_DATABASE_URL || DB_CONFIG.postgres.aiUrl || '');
+// Prepare URL with timeouts safely
+const aiUrlStr = process.env.AI_DATABASE_URL || DB_CONFIG.postgres.aiUrl;
+let aiUrl: URL;
+
+try {
+  // Use a placeholder if the URL is missing to prevent build-time crashes (ERR_INVALID_URL)
+  aiUrl = new URL(aiUrlStr || 'postgresql://localhost:5432/unused');
+} catch (e) {
+  aiUrl = new URL('postgresql://localhost:5432/unused');
+}
+
 aiUrl.searchParams.set('connect_timeout', DB_CONFIG.resiliency.ai.connectTimeout.toString());
 aiUrl.searchParams.set('pool_timeout', DB_CONFIG.resiliency.ai.poolTimeout.toString());
 

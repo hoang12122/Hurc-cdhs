@@ -9,8 +9,8 @@ assertDatabaseModeIsSafe();
 export const DB_CONFIG = {
   // PostgreSQL (prisma)
   postgres: {
-    opsUrl: process.env.OPS_DATABASE_URL || process.env.DATABASE_URL,
-    aiUrl: process.env.AI_DATABASE_URL,
+    opsUrl: process.env.OPS_DATABASE_URL || process.env.DATABASE_URL || undefined,
+    aiUrl: process.env.AI_DATABASE_URL || undefined,
   },
   
   // MongoDB (optional for some services)

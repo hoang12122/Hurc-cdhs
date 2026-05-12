@@ -9,8 +9,17 @@ import { DB_CONFIG } from '../config/db-config';
 
 const globalForOps = global as unknown as { opsDb: PrismaClient };
 
-// Prepare URL with timeouts
-const opsUrl = new URL(process.env.OPS_DATABASE_URL || DB_CONFIG.postgres.opsUrl || '');
+// Prepare URL with timeouts safely
+const opsUrlStr = process.env.OPS_DATABASE_URL || DB_CONFIG.postgres.opsUrl;
+let opsUrl: URL;
+
+try {
+  // Use a placeholder if the URL is missing to prevent build-time crashes (ERR_INVALID_URL)
+  opsUrl = new URL(opsUrlStr || 'postgresql://localhost:5432/unused');
+} catch (e) {
+  opsUrl = new URL('postgresql://localhost:5432/unused');
+}
+
 opsUrl.searchParams.set('connect_timeout', DB_CONFIG.resiliency.ops.connectTimeout.toString());
 opsUrl.searchParams.set('pool_timeout', DB_CONFIG.resiliency.ops.poolTimeout.toString());
 

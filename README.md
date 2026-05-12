@@ -53,6 +53,7 @@ Chế độ đầy đủ tính năng, sử dụng PostgreSQL làm cơ sở dữ 
 ### ⚠️ Lưu ý Quan trọng khi Triển khai (Build/Production)
 
 Mặc định, hệ thống sẽ ngăn chặn việc chạy `db.json` trong môi trường Production (`npm run build`) để tránh mất mát dữ liệu. Nếu bạn thực sự muốn chạy Offline trong Production:
+
 1. Đặt `IS_DATABASE_OFFLINE=true`
 2. Đặt `ALLOW_OFFLINE_PRODUCTION=true` trong `.env`
 

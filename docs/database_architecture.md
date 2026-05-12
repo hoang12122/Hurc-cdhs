@@ -1,3 +1,5 @@
+# Database Architecture
+
 **Mục tiêu:** Bảo vệ các thông tin định danh (PII) và tri thức AI nhạy cảm ngay cả khi Database bị rò rỉ.
 
 **Công việc cụ thể:**
