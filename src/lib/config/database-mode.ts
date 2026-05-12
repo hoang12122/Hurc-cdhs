@@ -5,10 +5,19 @@
  * Tránh việc đọc trực tiếp process.env rải rác ở các service khác nhau.
  */
 
+const normalizeBool = (val: any) => {
+  if (typeof val === 'boolean') return val;
+  if (typeof val === 'string') {
+    const s = val.toLowerCase().trim();
+    return s === 'true' || s === '1' || s === 'yes';
+  }
+  return false;
+};
+
 export const IS_DATABASE_OFFLINE =
-  process.env.IS_DATABASE_OFFLINE === "true" ||
-  process.env.DATABASE_OFFLINE === "true" ||
-  process.env.USE_FALLBACK === "true"; // Giữ tương thích với cấu hình cũ
+  normalizeBool(process.env.IS_DATABASE_OFFLINE) ||
+  normalizeBool(process.env.DATABASE_OFFLINE) ||
+  normalizeBool(process.env.USE_FALLBACK); // Keep compatibility with older configs
 
 export const IS_PRODUCTION = process.env.NODE_ENV === "production";
 

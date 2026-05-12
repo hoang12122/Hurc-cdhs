@@ -1,6 +1,7 @@
 // src/lib/db/ai-db.ts
 import { PrismaClient } from '../../../.prisma-runtime/ai';
 import { DB_CONFIG } from '../config/db-config';
+import { IS_DATABASE_OFFLINE } from '../config/database-mode';
 
 /**
  * Singleton instance for AI & Audit Database (aiDb)
@@ -25,26 +26,25 @@ aiUrl.searchParams.set('pool_timeout', DB_CONFIG.resiliency.ai.poolTimeout.toStr
 
 export const aiDb =
   globalForAi.aiDb ||
-  (!DB_CONFIG.useFallback
+  (!IS_DATABASE_OFFLINE
     ? new PrismaClient({
         datasourceUrl: aiUrl.toString(),
-        log: process.env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error'],
+        log: process.env.NODE_ENV === 'development' ? ['error', 'warn'] : ['error'],
       })
     : (null as any));
 
 if (process.env.NODE_ENV !== 'production' && aiDb) globalForAi.aiDb = aiDb;
 
-// Check connection count and log warning if abnormal on startup
-if (process.env.NODE_ENV === 'development' && !DB_CONFIG.useFallback) {
-  aiDb.$connect()
-    .then(() => {
-      console.log('[aiDb] Connected successfully.');
-    })
-    .catch(err => {
-      // Chỉ log lỗi nếu thực sự mong muốn kết nối (không phải fallback)
-      console.error('[aiDb] Connection failed:', err.message);
-    });
-}
+// Check connection count only in ONLINE mode
+ if (process.env.NODE_ENV === 'development' && !IS_DATABASE_OFFLINE && aiDb) {
+   aiDb.$connect()
+     .then(() => {
+       console.log('[aiDb] Connected successfully.');
+     })
+     .catch(err => {
+       console.error('[aiDb] Connection failed:', err.message);
+     });
+ }
 
 export default aiDb;
 

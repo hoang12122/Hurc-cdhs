@@ -1,6 +1,7 @@
 // src/lib/db/ops-db.ts
 import { PrismaClient } from '../../../.prisma-runtime/ops';
 import { DB_CONFIG } from '../config/db-config';
+import { IS_DATABASE_OFFLINE } from '../config/database-mode';
 
 /**
  * Singleton instance for Operations Database (opsDb)
@@ -25,26 +26,25 @@ opsUrl.searchParams.set('pool_timeout', DB_CONFIG.resiliency.ops.poolTimeout.toS
 
 export const opsDb =
   globalForOps.opsDb ||
-  (!DB_CONFIG.useFallback
+  (!IS_DATABASE_OFFLINE
     ? new PrismaClient({
         datasourceUrl: opsUrl.toString(),
-        log: process.env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error'],
+        log: process.env.NODE_ENV === 'development' ? ['error', 'warn'] : ['error'],
       })
     : (null as any));
 
 if (process.env.NODE_ENV !== 'production' && opsDb) globalForOps.opsDb = opsDb;
 
-// Check connection count and log warning if abnormal on startup
-if (process.env.NODE_ENV === 'development' && !DB_CONFIG.useFallback) {
-  opsDb.$connect()
-    .then(() => {
-      console.log('[opsDb] Connected successfully.');
-    })
-    .catch(err => {
-      // Chỉ log lỗi nếu thực sự mong muốn kết nối (không phải fallback)
-      console.error('[opsDb] Connection failed:', err.message);
-    });
-}
+// Check connection count only in ONLINE mode
+ if (process.env.NODE_ENV === 'development' && !IS_DATABASE_OFFLINE && opsDb) {
+   opsDb.$connect()
+     .then(() => {
+       console.log('[opsDb] Connected successfully.');
+     })
+     .catch(err => {
+       console.error('[opsDb] Connection failed:', err.message);
+     });
+ }
 
 export default opsDb;
 

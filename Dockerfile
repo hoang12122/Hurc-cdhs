@@ -1,12 +1,12 @@
-# PHASE 1: Build Dependencies (Alpine for nimbleness)
-FROM node:22-alpine AS deps
+# PHASE 1: Build Dependencies (Alpine for security and speed)
+FROM node:22-alpine3.21 AS deps
 RUN apk add --no-cache libc6-compat openssl && apk upgrade --no-cache
 WORKDIR /app
 COPY package.json package-lock.json* ./
 RUN npm ci && npm cache clean --force
 
 # PHASE 2: Build Application
-FROM node:22-alpine AS builder
+FROM node:22-alpine3.21 AS builder
 RUN apk add --no-cache libc6-compat openssl && apk upgrade --no-cache
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
