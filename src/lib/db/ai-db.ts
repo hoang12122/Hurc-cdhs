@@ -25,12 +25,14 @@ aiUrl.searchParams.set('pool_timeout', DB_CONFIG.resiliency.ai.poolTimeout.toStr
 
 export const aiDb =
   globalForAi.aiDb ||
-  new PrismaClient({
-    datasourceUrl: aiUrl.toString(),
-    log: process.env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error'],
-  });
+  (!DB_CONFIG.useFallback
+    ? new PrismaClient({
+        datasourceUrl: aiUrl.toString(),
+        log: process.env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error'],
+      })
+    : (null as any));
 
-if (process.env.NODE_ENV !== 'production') globalForAi.aiDb = aiDb;
+if (process.env.NODE_ENV !== 'production' && aiDb) globalForAi.aiDb = aiDb;
 
 // Check connection count and log warning if abnormal on startup
 if (process.env.NODE_ENV === 'development' && !DB_CONFIG.useFallback) {

@@ -25,12 +25,14 @@ opsUrl.searchParams.set('pool_timeout', DB_CONFIG.resiliency.ops.poolTimeout.toS
 
 export const opsDb =
   globalForOps.opsDb ||
-  new PrismaClient({
-    datasourceUrl: opsUrl.toString(),
-    log: process.env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error'],
-  });
+  (!DB_CONFIG.useFallback
+    ? new PrismaClient({
+        datasourceUrl: opsUrl.toString(),
+        log: process.env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error'],
+      })
+    : (null as any));
 
-if (process.env.NODE_ENV !== 'production') globalForOps.opsDb = opsDb;
+if (process.env.NODE_ENV !== 'production' && opsDb) globalForOps.opsDb = opsDb;
 
 // Check connection count and log warning if abnormal on startup
 if (process.env.NODE_ENV === 'development' && !DB_CONFIG.useFallback) {

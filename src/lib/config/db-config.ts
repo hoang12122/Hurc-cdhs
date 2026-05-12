@@ -6,6 +6,12 @@ validateEnv();
 logDatabaseMode();
 assertDatabaseModeIsSafe();
 
+// Ensure Prisma doesn't crash during build/runtime if DATABASE_URL is missing from environment
+// but present in schema.prisma. This is required even in offline mode.
+if (!process.env.DATABASE_URL) {
+  process.env.DATABASE_URL = "postgresql://localhost:5432/placeholder_to_satisfy_prisma";
+}
+
 export const DB_CONFIG = {
   // PostgreSQL (prisma)
   postgres: {
