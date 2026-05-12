@@ -1,4 +1,3 @@
-
 "use client";
 
 import * as React from "react";
@@ -6,12 +5,24 @@ import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import { MainHeader } from "@/components/layout/main-header";
 import { DynamicMainSidebar } from "@/components/layout/dynamic-main-sidebar";
 import { RealtimeProvider } from "@/components/providers/realtime-provider";
+import { useAuth } from "@/contexts/auth-context";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 
 export default function AppLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const { user } = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (user?.mustChangePassword) {
+      router.push("/setup-new-password");
+    }
+  }, [user, router]);
+
   return (
     <SidebarProvider defaultOpen={true}>
       <DynamicMainSidebar />

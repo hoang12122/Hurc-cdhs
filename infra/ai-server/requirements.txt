@@ -1,0 +1,14 @@
+transformers
+torch
+accelerate
+fastapi
+uvicorn
+pydantic
+huggingface_hub
+bitsandbytes
+pillow
+psutil
+ultralytics
+opencv-python-headless
+openai-whisper
+scikit-learn

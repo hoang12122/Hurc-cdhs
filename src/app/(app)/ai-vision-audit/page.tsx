@@ -2,6 +2,7 @@
 "use client";
 
 import * as React from "react";
+import Image from "next/image";
 import { useSearchParams, useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -21,11 +22,11 @@ export default function AiVisionAuditPage() {
     
     const [hazard, setHazard] = React.useState<any>(null);
     const [loading, setLoading] = React.useState(true);
-    const [auditResult, setAuditResult] = React.useState<any>(null);
+    const [auditResult, setAuditResult] = React.useState<{ summary: string; forecast: string } | null>(null);
 
     React.useEffect(() => {
         if (hazardId) {
-            getHazardById(hazardId).then(data => {
+            getHazardById(hazardId).then((data: any) => {
                 setHazard(data);
                 setLoading(false);
             });
@@ -34,7 +35,7 @@ export default function AiVisionAuditPage() {
         }
     }, [hazardId]);
 
-    const handleAuditComplete = (result: any) => {
+    const handleAuditComplete = (result: { summary: string; forecast: string }) => {
         setAuditResult(result);
     };
 
@@ -106,13 +107,20 @@ export default function AiVisionAuditPage() {
                         {hazard.potentialConsequence && (
                             <div>
                                 <p className="text-sm font-semibold">Hệ quả tiềm ẩn:</p>
-                                <p className="text-sm text-muted-foreground italic">"{hazard.potentialConsequence}"</p>
+                                <p className="text-sm text-muted-foreground italic">&quot;{hazard.potentialConsequence}&quot;</p>
                             </div>
                         )}
                         
                         {imageUrl ? (
-                            <div className="mt-4 rounded-lg overflow-hidden border border-border bg-muted/20">
-                                <img src={imageUrl} alt="Hazard attachment" className="w-full h-auto object-cover max-h-[400px]" />
+                            <div className="mt-4 rounded-lg overflow-hidden border border-border bg-muted/20 relative min-h-[200px]">
+                                <Image 
+                                    src={imageUrl} 
+                                    alt="Hazard attachment" 
+                                    className="w-full h-auto object-cover max-h-[400px]" 
+                                    width={800}
+                                    height={400}
+                                    unoptimized
+                                />
                                 <div className="p-4">
                                     <AiVisionAudit 
                                         imageUrl={imageUrl} 

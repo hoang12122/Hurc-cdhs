@@ -215,24 +215,7 @@ const ChartTooltipContent = React.forwardRef<
                       <itemConfig.icon />
                     ) : (
                       !hideIndicator && (
-                        <div
-                          className={cn(
-                            "shrink-0 rounded-[2px] border-[--color-border] bg-[--color-bg]",
-                            {
-                              "h-2.5 w-2.5": indicator === "dot",
-                              "w-1": indicator === "line",
-                              "w-0 border-[1.5px] border-dashed bg-transparent":
-                                indicator === "dashed",
-                              "my-0.5": nestLabel && indicator === "dashed",
-                            }
-                          )}
-                          style={
-                            {
-                              "--color-bg": indicatorColor,
-                              "--color-border": indicatorColor,
-                            } as React.CSSProperties
-                          }
-                        />
+                        <IndicatorNode indicator={indicator} indicatorColor={indicatorColor} nestLabel={nestLabel} />
                       )
                     )}
                     <div
@@ -308,12 +291,7 @@ const ChartLegendContent = React.forwardRef<
               {itemConfig?.icon && !hideIcon ? (
                 <itemConfig.icon />
               ) : (
-                <div
-                  className="h-2 w-2 shrink-0 rounded-[2px]"
-                  style={{
-                    backgroundColor: item.color,
-                  }}
-                />
+                <LegendColorBox color={item.color} />
               )}
               {itemConfig?.label}
             </div>
@@ -363,6 +341,42 @@ function getPayloadConfigFromPayload(
     ? config[configLabelKey]
     : config[key as keyof typeof config]
 }
+
+const IndicatorNode = ({ indicator, indicatorColor, nestLabel }: any) => {
+    const ref = React.useRef<HTMLDivElement>(null);
+    React.useEffect(() => {
+        if (ref.current && indicatorColor) {
+            ref.current.style.setProperty("--color-bg", indicatorColor);
+            ref.current.style.setProperty("--color-border", indicatorColor);
+        }
+    }, [indicatorColor]);
+
+    return (
+        <div
+            ref={ref}
+            className={cn(
+                "shrink-0 rounded-[2px] border-[--color-border] bg-[--color-bg]",
+                {
+                    "h-2.5 w-2.5": indicator === "dot",
+                    "w-1": indicator === "line",
+                    "w-0 border-[1.5px] border-dashed bg-transparent": indicator === "dashed",
+                    "my-0.5": nestLabel && indicator === "dashed",
+                }
+            )}
+        />
+    );
+};
+
+const LegendColorBox = ({ color }: { color: string | undefined }) => {
+    const ref = React.useRef<HTMLDivElement>(null);
+    React.useEffect(() => {
+        if (ref.current && color) {
+            ref.current.style.backgroundColor = color;
+        }
+    }, [color]);
+    
+    return <div ref={ref} className="h-2 w-2 shrink-0 rounded-[2px]" />;
+};
 
 export {
   ChartContainer,

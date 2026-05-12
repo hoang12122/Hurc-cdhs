@@ -1,0 +1,10 @@
+# Ignore patterns for Next.js build
+# Prevents scanning system folders in parent or system directories
+C:/Users/**
+C:\\Users\\**
+**/.git/**
+**/node_modules/**
+**/Cookies/**
+**/Local Settings/**
+**/AppData/**
+**/.prisma-runtime/**

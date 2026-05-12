@@ -33,7 +33,7 @@ import {
     LOCKED_INSPECTION_STATUSES_FOR_NON_ADMIN
 } from "@/lib/constants";
 import type { Locale, InspectionDetail, MaintenanceStandard, Subsystem } from "@/lib/types";
-import { getInspections, deleteInspection } from "@/lib/actions/inspection.actions";
+import { getInspectionsPaginated, deleteInspection } from "@/lib/actions/inspection.actions";
 import { getMaintenanceStandards } from "@/lib/actions/maintenance.actions";
 import { getSubsystems } from "@/lib/actions/category.actions";
 import { ExportInspectionsButton } from "@/components/inspections/export-inspections-button";
@@ -164,25 +164,25 @@ const clientComponentTranslations = {
   }
 };
 
-function getStatusBadgeVariant(status: string): "default" | "secondary" | "destructive" | "outline" {
-  switch (status?.toLowerCase()) {
-    case "hoàn thành": return "default";
-    case "hoàn thành (có phát hiện)": return "default";
-    case "đang thực hiện": return "secondary";
-    case "chưa thực hiện": return "outline";
-    case "đã xem xét": return "default";
-    case "cần bổ sung": return "secondary";
-    case "đã duyệt để tạo báo cáo": return "default";
+function getStatusBadgeVariant(status: string): "default" | "secondary" | "destructive" | "outline" | "accent" {
+  switch (status) {
+    case "Mới": return "outline";
+    case "Đánh giá": return "secondary";
+    case "Xử lý": return "default";
+    case "Phản hồi": return "accent";
+    case "Đóng": return "default";
+    case "Hủy": return "destructive";
     default: return "outline";
   }
 }
 
 interface InspectionsPageClientProps {
   initialInspections: InspectionDetail[];
+  initialTotalPages?: number;
   initialMaintenanceStandards: MaintenanceStandard[];
 }
 
-export function InspectionsPageClient({ initialInspections, initialMaintenanceStandards }: InspectionsPageClientProps) {
+export function InspectionsPageClient({ initialInspections, initialTotalPages = 1, initialMaintenanceStandards }: InspectionsPageClientProps) {
   const { locale } = useLanguage(); 
   const t = clientComponentTranslations[locale];
   const { toast } = useToast(); 
@@ -196,17 +196,16 @@ export function InspectionsPageClient({ initialInspections, initialMaintenanceSt
   const [canCreate, setCanCreate] = React.useState(false);
   const [canDelete, setCanDelete] = React.useState(false);
   const [currentPage, setCurrentPage] = React.useState(1);
+  const [totalPages, setTotalPages] = React.useState(initialTotalPages);
   const [isLoading, setIsLoading] = React.useState(false);
 
-  const fetchData = React.useCallback(async () => {
+  // We will declare a memoized fetch function later
+  const refreshData = React.useCallback(async () => {
     setIsLoading(true);
-    const [inspections, standards, fetchedSubsystems] = await Promise.all([
-      getInspections(), 
+    const [standards, fetchedSubsystems] = await Promise.all([
       getMaintenanceStandards(),
       getSubsystems(),
     ]);
-    const sortedData = [...inspections].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-    setInspectionsData(sortedData);
     setMaintenanceStandards(standards);
     setSubsystems(fetchedSubsystems);
     setIsLoading(false);
@@ -218,18 +217,18 @@ export function InspectionsPageClient({ initialInspections, initialMaintenanceSt
     hasPermission('inspections:create').then(setCanCreate);
     hasPermission('inspections:delete').then(setCanDelete);
     if (searchParams.get('refresh')) {
-      fetchData();
+      refreshData();
       const newUrl = window.location.pathname;
       router.replace(newUrl, { scroll: false });
     }
-  }, [searchParams, fetchData, router]);
+  }, [searchParams, refreshData, router]);
 
   const canEditInspectionInList = (inspection: InspectionDetail) => {
     if (inspection.id.startsWith('INS-HM-')) return true;
     if (currentUser.role === ROLE_ADMIN_PKTAT) return true;
     if (LOCKED_INSPECTION_STATUSES_FOR_NON_ADMIN.includes(inspection.status as any)) return false;
     if (currentUser.role === ROLE_L3_SPECIALIST) return true; 
-    if (currentUser.role === ROLE_L2_TECHNICIAN && inspection.status === "Chưa thực hiện") return true;
+    if (currentUser.role === ROLE_L2_TECHNICIAN && inspection.status === "Xử lý") return true;
     return false;
   };
   
@@ -252,43 +251,54 @@ export function InspectionsPageClient({ initialInspections, initialMaintenanceSt
   const [startDate, setStartDate] = React.useState<string>("");
   const [endDate, setEndDate] = React.useState<string>("");
 
-  const filteredInspections = React.useMemo(() => {
-    let inspectionsToFilter = inspectionsData;
+  const fetchPaginatedData = React.useCallback(async (pageToFetch: number = 1) => {
+    setIsLoading(true);
+    try {
+        const reqStatuses = Object.keys(statusFilters).filter(k => statusFilters[k]);
+        const reqSubsystems = Object.keys(subsystemFilters).filter(k => subsystemFilters[k]);
 
-    if (currentUser.role === ROLE_L2_TECHNICIAN && currentUser.assignedSubsystems && currentUser.assignedSubsystems.length > 0) {
-        const userSubsystems = currentUser.assignedSubsystems;
-        inspectionsToFilter = inspectionsData.filter(insp => {
-            const standard = maintenanceStandards.find(std => std.id === insp.checklistTemplateId);
-            if (!standard) return false;
-            const subsystem = subsystems.find(sub => sub.label.vi === standard.name);
-            return subsystem ? userSubsystems.includes(subsystem.id) : false;
+        const response = await getInspectionsPaginated({
+            page: pageToFetch,
+            pageSize: ROWS_PER_PAGE,
+            searchTerm: searchTerm || undefined,
+            statuses: Object.keys(statusFilters).length === reqStatuses.length ? undefined : reqStatuses,
+            subsystems: Object.keys(subsystemFilters).length === reqSubsystems.length ? undefined : reqSubsystems,
+            inspectors: selectedInspector === "all" ? undefined : [selectedInspector],
+            checklistTemplates: selectedChecklistTemplate === "all" ? undefined : [selectedChecklistTemplate],
+            startDate: startDate || undefined,
+            endDate: endDate || undefined,
         });
+
+        // Add additional client-side filtering logic for "assignedSubsystems" if needed
+        // Since we don't have deep nested queries in the paginated action yet for standard/subsystem mapping
+        let records = response.data;
+        if (currentUser.role === ROLE_L2_TECHNICIAN && currentUser.assignedSubsystems && currentUser.assignedSubsystems.length > 0) {
+            const userSubsystems = currentUser.assignedSubsystems;
+            records = records.filter(insp => {
+                const standard = maintenanceStandards.find(std => std.id === insp.checklistTemplateId);
+                if (!standard) return false;
+                const subsystem = subsystems.find(sub => sub.label.vi === standard.name);
+                return subsystem ? userSubsystems.includes(subsystem.id) : false;
+            });
+        }
+
+        setInspectionsData(records);
+        setTotalPages(response.metadata.pages);
+        setCurrentPage(pageToFetch);
+    } catch(e) {
+        toast({ variant: 'destructive', title: 'Error', description: 'Could not fetch paginated data.'});
+    } finally {
+        setIsLoading(false);
     }
+  }, [statusFilters, subsystemFilters, selectedInspector, selectedChecklistTemplate, startDate, endDate, searchTerm, currentUser, maintenanceStandards, subsystems, toast]);
 
-    return inspectionsToFilter.filter(inspection => {
-      const template = maintenanceStandards.find(tmpl => tmpl.id === inspection.checklistTemplateId);
-      const templateName = template?.name || "";
-      const subsystem = subsystems.find(sub => sub.label.vi === templateName);
-      
-      const searchMatch = 
-          inspection.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          inspection.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          (inspection.areaIds || []).join(',').toLowerCase().includes(searchTerm.toLowerCase()) ||
-          templateName.toLowerCase().includes(searchTerm.toLowerCase()) || 
-          inspection.inspector.toLowerCase().includes(searchTerm.toLowerCase());
-
-      const statusMatch = statusFilters[inspection.status] !== false;
-      const subsystemMatch = !subsystem || subsystemFilters[subsystem.id] !== false;
-      const inspectorMatch = selectedInspector === "all" || inspection.inspector === selectedInspector;
-      const templateMatch = selectedChecklistTemplate === "all" || inspection.checklistTemplateId === selectedChecklistTemplate;
-      
-      let dateMatch = true;
-      if (startDate && inspection.date < startDate) dateMatch = false;
-      if (endDate && inspection.date > endDate) dateMatch = false;
-
-      return searchMatch && statusMatch && inspectorMatch && templateMatch && dateMatch && subsystemMatch;
-    });
-  }, [inspectionsData, maintenanceStandards, searchTerm, statusFilters, selectedInspector, selectedChecklistTemplate, startDate, endDate, currentUser, subsystems, subsystemFilters]);
+  React.useEffect(() => {
+     if (!isMounted) return;
+     const timer = setTimeout(() => {
+         fetchPaginatedData(1);
+     }, 400);
+     return () => clearTimeout(timer);
+  }, [statusFilters, subsystemFilters, selectedInspector, selectedChecklistTemplate, searchTerm, startDate, endDate, fetchPaginatedData, isMounted]);
   
   const clearAllFilters = React.useCallback(() => {
     setSearchTerm("");
@@ -303,11 +313,8 @@ export function InspectionsPageClient({ initialInspections, initialMaintenanceSt
   const handleActualDeleteInspection = async (inspectionId: string) => {
     await deleteInspection(inspectionId);
     toast({ title: t.deleteSuccessTitle, description: t.deleteSuccessDesc(inspectionId)});
-    fetchData(); 
+    fetchPaginatedData(currentPage); 
   };
-
-  const totalPages = Math.ceil(filteredInspections.length / ROWS_PER_PAGE);
-  const paginatedInspections = filteredInspections.slice((currentPage - 1) * ROWS_PER_PAGE, currentPage * ROWS_PER_PAGE);
 
   return (
     <div className="flex flex-col gap-6">
@@ -351,7 +358,7 @@ export function InspectionsPageClient({ initialInspections, initialMaintenanceSt
                 </div>
             </div>
             <div className="md:ml-auto flex items-center gap-2">
-                 <Button onClick={fetchData} variant="outline" size="sm" className="h-9 gap-1" disabled={isLoading}>
+                 <Button onClick={() => fetchPaginatedData(currentPage)} variant="outline" size="sm" className="h-9 gap-1" disabled={isLoading}>
                   <RefreshCw className={cn("h-3.5 w-3.5", isLoading && "animate-spin")} />
                 </Button>
                 <DropdownMenu>
@@ -428,7 +435,7 @@ export function InspectionsPageClient({ initialInspections, initialMaintenanceSt
                 </DropdownMenuContent>
                 </DropdownMenu>
                 <ExportInspectionsButton 
-                filteredInspections={filteredInspections}
+                filteredInspections={inspectionsData}
                 maintenanceStandards={maintenanceStandards}
                 translations={{
                     exportCsvButton: t.exportCsvButton,
@@ -459,7 +466,7 @@ export function InspectionsPageClient({ initialInspections, initialMaintenanceSt
                 </TableRow>
             </TableHeader>
             <TableBody>
-                {paginatedInspections.map((inspection) => {
+                {inspectionsData.map((inspection) => {
                 const isEditable = canEditInspectionInList(inspection);
                 const isDeletable = canDeleteInspection(inspection);
                 return (
@@ -512,7 +519,7 @@ export function InspectionsPageClient({ initialInspections, initialMaintenanceSt
                 </TableRow>
                 );
                 })}
-                {filteredInspections.length === 0 && (
+                {inspectionsData.length === 0 && (
                 <TableRow>
                     <TableCell colSpan={8} className="h-24 text-center">
                     {t.noData}
@@ -528,7 +535,7 @@ export function InspectionsPageClient({ initialInspections, initialMaintenanceSt
                 <Button
                 variant="outline"
                 size="sm"
-                onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                onClick={() => fetchPaginatedData(Math.max(1, currentPage - 1))}
                 disabled={currentPage === 1}
                 >
                 {t.previousPage}
@@ -537,8 +544,8 @@ export function InspectionsPageClient({ initialInspections, initialMaintenanceSt
                 <Button
                 variant="outline"
                 size="sm"
-                onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-                disabled={currentPage === totalPages}
+                onClick={() => fetchPaginatedData(Math.min(totalPages, currentPage + 1))}
+                disabled={currentPage === totalPages || totalPages === 0}
                 >
                 {t.nextPage}
                 </Button>

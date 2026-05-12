@@ -30,6 +30,7 @@ import {
     DNF_HAZARD_LEVELS,
     ROLE_L2_TECHNICIAN,
     ROLE_L3_SPECIALIST,
+    ROLE_SUPER_ADMIN,
     ROLE_ADMIN_PKTAT,
     DNF_METHODS_OF_DETECTION,
     type UserRole,
@@ -204,11 +205,10 @@ const translations = {
 function getDnfStatusBadgeVariant(status: DnfDocument['status']): "default" | "secondary" | "destructive" | "outline" | "accent" {
   switch (status) {
     case "Mới": return "outline";
-    case "Đã tiếp nhận": return "secondary";
-    case "Đang điều tra": return "accent";
-    case "Đang xử lý": return "default";
-    case "Chờ xác nhận": return "accent";
-    case "Đã đóng": return "default";
+    case "Đánh giá": return "secondary";
+    case "Xử lý": return "default";
+    case "Phản hồi": return "accent";
+    case "Đóng": return "default";
     case "Hủy": return "destructive";
     default: return "outline";
   }
@@ -279,7 +279,7 @@ export function DnfTableClient({ initialDnfs, initialTotalPages = 1, initialSubs
             searchTerm: searchTerm || undefined,
             statuses: Object.keys(filterStatus).length === reqStatuses.length ? undefined : reqStatuses,
             subsystems: Object.keys(filterSubsystem).length === reqSubsystems.length ? undefined : reqSubsystems,
-            assignedSubsystems: currentUser?.role === ROLE_L2_TECHNICIAN ? currentUser.assignedSubsystems : undefined,
+            assignedSubsystems: (currentUser?.role === ROLE_L2_TECHNICIAN && currentUser?.assignedSubsystems) ? currentUser.assignedSubsystems : undefined,
             hazardLevels: Object.keys(filterHazardLevel).length === reqHazards.length ? undefined : reqHazards,
             startDate: startDate || undefined,
             endDate: endDate || undefined,
@@ -326,11 +326,11 @@ export function DnfTableClient({ initialDnfs, initialTotalPages = 1, initialSubs
         canEditAny: editAny,
         canDeleteAny: deleteAny,
         canExport: exportPerm,
-        canUndo: currentUser?.role === ROLE_ADMIN_PKTAT || currentUser?.role === ROLE_L3_SPECIALIST,
+        canUndo: currentUser?.role === ROLE_SUPER_ADMIN || currentUser?.role === ROLE_ADMIN_PKTAT || currentUser?.role === ROLE_L3_SPECIALIST,
       });
     };
     checkPermissions();
-  }, [isMounted]);
+  }, [isMounted, currentUser]);
 
   React.useEffect(() => {
       if (searchParams.get('refresh')) {
@@ -353,16 +353,16 @@ export function DnfTableClient({ initialDnfs, initialTotalPages = 1, initialSubs
       
       switch (currentUserRole) {
           case ROLE_L3_SPECIALIST:
-            return dnf.status !== "Đã đóng" && dnf.status !== "Hủy";
+            return dnf.status !== "Đóng" && dnf.status !== "Hủy";
           case ROLE_L2_TECHNICIAN:
-            return dnf.status === "Mới" || dnf.status === "Đã tiếp nhận";
+            return dnf.status === "Xử lý";
           default:
               return false;
       }
   };
 
   const canUserDeleteDnf = (dnf: DnfDocument, currentUserRole: UserRole) => {
-    return currentUserRole === ROLE_ADMIN_PKTAT && permissions.canDeleteAny;
+    return (currentUserRole === ROLE_SUPER_ADMIN || currentUserRole === ROLE_ADMIN_PKTAT) && permissions.canDeleteAny;
   };
 
   const getLocationLabel = React.useCallback((locationId: string) => {

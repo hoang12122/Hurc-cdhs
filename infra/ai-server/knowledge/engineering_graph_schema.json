@@ -1,0 +1,92 @@
+{
+  "graph_name": "Hurc1_Engineering_Knowledge_Graph",
+  "version": "1.0",
+  "description": "Đồ thị biểu diễn mối quan hệ kỹ thuật giữa Hệ thống, Thiết bị, Linh kiện, Lỗi và Vật tư cho tuyến Metro số 1.",
+  "nodes": [
+    {
+      "label": "Line",
+      "description": "Tuyến tàu điện",
+      "properties": ["id", "name", "length_km"]
+    },
+    {
+      "label": "Station",
+      "description": "Nhà ga (Ngầm / Trên cao)",
+      "properties": ["id", "name", "type"]
+    },
+    {
+      "label": "System",
+      "description": "Hệ thống kỹ thuật (Signaling, AFC, Rolling Stock...)",
+      "properties": ["id", "name", "category"]
+    },
+    {
+      "label": "Asset",
+      "description": "Thiết bị cụ thể (Cổng soát vé, Tàu 01...)",
+      "properties": ["id", "name", "installation_date", "mtbf"]
+    },
+    {
+      "label": "Component",
+      "description": "Linh kiện cấu thành thiết bị (Vành răng, Cảm biến, Màn hình...)",
+      "properties": ["id", "name", "part_number"]
+    },
+    {
+      "label": "Defect",
+      "description": "Lỗi kỹ thuật hoặc hư hỏng (Kẹt cơ khí, Chập điện...)",
+      "properties": ["id", "name", "severity_level"]
+    },
+    {
+      "label": "SparePart",
+      "description": "Vật tư thay thế",
+      "properties": ["id", "name", "stock_quantity", "supplier"]
+    },
+    {
+      "label": "Document",
+      "description": "Tài liệu O&M (Operation & Maintenance)",
+      "properties": ["id", "title", "url"]
+    }
+  ],
+  "relationships": [
+    {
+      "type": "HAS_STATION",
+      "from": "Line",
+      "to": "Station",
+      "description": "Tuyến bao gồm các Ga"
+    },
+    {
+      "type": "LOCATED_AT",
+      "from": "System",
+      "to": "Station",
+      "description": "Hệ thống được lắp đặt tại Ga"
+    },
+    {
+      "type": "BELONGS_TO_SYSTEM",
+      "from": "Asset",
+      "to": "System",
+      "description": "Thiết bị thuộc Hệ thống nào"
+    },
+    {
+      "type": "CONTAINS_PART",
+      "from": "Asset",
+      "to": "Component",
+      "description": "Thiết bị bao gồm các Linh kiện"
+    },
+    {
+      "type": "HAS_COMMON_DEFECT",
+      "from": "Component",
+      "to": "Defect",
+      "description": "Linh kiện thường gặp các Lỗi này"
+    },
+    {
+      "type": "REQUIRES_SPARE",
+      "from": "Defect",
+      "to": "SparePart",
+      "description": "Khi gặp Lỗi này thì cần Vật tư thay thế nào"
+    },
+    {
+      "type": "REFERENCED_BY",
+      "from": "Asset",
+      "to": "Document",
+      "description": "Thiết bị được hướng dẫn bởi Tài liệu O&M"
+    }
+  ],
+  "integration_strategy": "Sử dụng TrustGraph Client (GraphRAG) để query dữ liệu đồ thị, kết hợp với DocumentRAG (trích xuất text từ tài liệu O&M) để đưa ra câu trả lời toàn diện cho Kỹ sư."
+}

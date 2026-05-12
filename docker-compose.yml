@@ -1,6 +1,4 @@
 
-version: '3.8'
-
 services:
   # == BACKEND ==
   # Đây là ứng dụng Next.js, đóng vai trò là backend.
@@ -43,6 +41,18 @@ services:
     ports:
       - "5432:5432"
 
+  mongo:
+    image: mongo:7.0
+    container_name: hurc_mongo
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_USER:-hurc_mongouser}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD:-hurc_mongopass}
+    ports:
+      - "27017:27017"
+    volumes:
+      - ./data/mongo:/data/db
+
   # == CACHE & QUEUE ==
   redis:
     image: redis:alpine
@@ -69,3 +79,90 @@ services:
       - app
     # Tự động khởi động lại Nginx nếu nó dừng
     restart: unless-stopped
+
+  # == MONITORING & LOGGING (LOKI + GRAFANA) ==
+  loki:
+    image: grafana/loki:latest
+    container_name: hurc_loki
+    ports:
+      - "3100:3100"
+    volumes:
+      - ./infra/loki/loki-config.yaml:/etc/loki/local-config.yaml
+    command: -config.file=/etc/loki/local-config.yaml
+    restart: unless-stopped
+
+  promtail:
+    image: grafana/promtail:latest
+    container_name: hurc_promtail
+    volumes:
+      - /var/log:/var/log
+      - ./infra/promtail/promtail-config.yaml:/etc/promtail/config.yml
+      # Thêm volume để đọc log từ Docker
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+    command: -config.file=/etc/promtail/config.yml
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: hurc_grafana
+    ports:
+      - "3001:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_USERS_ALLOW_SIGN_UP=false
+    volumes:
+      - ./infra/grafana/provisioning:/etc/grafana/provisioning
+      - ./data/grafana:/var/lib/grafana
+    depends_on:
+      - loki
+    restart: unless-stopped
+
+  # == NETWORK MONITORING (CACTI) ==
+  cacti_db:
+    image: mariadb:10.11
+    container_name: hurc_cacti_db
+    environment:
+      - MYSQL_ROOT_PASSWORD=cacti_root
+      - MYSQL_DATABASE=cacti
+      - MYSQL_USER=cactiuser
+      - MYSQL_PASSWORD=cactipassword
+    volumes:
+      - ./data/cacti_db:/var/lib/mysql
+    restart: unless-stopped
+
+  cacti:
+    image: smcline06/cacti:latest
+    container_name: hurc_cacti
+    ports:
+      - "8080:80"
+      - "161:161/udp"
+    environment:
+      - DB_TYPE=mysql
+      - DB_HOST=cacti_db
+      - DB_NAME=cacti
+      - DB_USER=cactiuser
+      - DB_PASSWORD=cactipassword
+      - INITIALIZE_DB=1
+    depends_on:
+      - cacti_db
+    restart: unless-stopped
+
+  # == AI VISION (YOLOv8) ==
+  yolo-service:
+    build:
+      context: ./infra/yolo
+    container_name: hurc_yolo
+    restart: unless-stopped
+    expose:
+      - "5005"
+
+  # == AI AGENT (OLLAMA) ==
+  ollama:
+    image: ollama/ollama:latest
+    container_name: hurc_ollama
+    restart: unless-stopped
+    ports:
+      - "3002:11434" # Mapped to 3002 for direct CRM gateway access
+      - "11434:11434"
+    volumes:
+      - ./data/ollama:/root/.ollama

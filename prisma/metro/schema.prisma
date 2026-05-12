@@ -1,6 +1,7 @@
 generator client {
-  provider = "prisma-client-js"
-  output   = "../../src/lib/generated/metro"
+  provider      = "prisma-client-js"
+  output        = "../../.prisma-runtime/metro"
+  binaryTargets = ["native", "linux-musl"]
 }
 
 datasource db {
@@ -9,7 +10,7 @@ datasource db {
 }
 
 model Asset {
-  id           String   @id @default(cuid())
+  id           String   @id @default(uuid())
   code         String   @unique // e.g., 'STN-L1-A'
   name         String
   subsystem    String   // 'Signaling', 'Power', 'Track', etc.
@@ -19,6 +20,7 @@ model Asset {
   criticality  String   @default("Medium") // 'High', 'Medium', 'Low'
   specification Json?   // Dynamic technical specs
   createdAt    DateTime @default(now())
+  deletedAt    DateTime?
   updatedAt    DateTime @updatedAt
 
   @@index([subsystem])
@@ -28,7 +30,7 @@ model Asset {
 }
 
 model TelemetryReading {
-  id        String   @id @default(cuid())
+  id        String   @id @default(uuid())
   assetId   String
   metric    String   // e.g., 'Temperature', 'Voltage', 'Status'
   value     Float
@@ -41,7 +43,7 @@ model TelemetryReading {
 }
 
 model SnmpConfig {
-  id        String   @id @default(cuid())
+  id        String   @id @default(uuid())
   assetId   String   @unique
   ip        String
   community String   @default("public")

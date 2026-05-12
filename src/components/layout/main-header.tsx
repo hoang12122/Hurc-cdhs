@@ -23,8 +23,9 @@ import { useState, useEffect } from "react";
 import { useLanguage } from '@/contexts/language-context';
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import { getSystemLogs } from "@/lib/actions/system.actions";
+import { getSystemLogs, getDatabaseStatus } from "@/lib/actions/system.actions";
 import { useAuth } from "@/contexts/auth-context";
+import { Activity, Database, ShieldAlert } from "lucide-react";
 
 
 export function MainHeader() {
@@ -34,6 +35,7 @@ export function MainHeader() {
   const [mounted, setMounted] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
   const { locale } = useLanguage();
+  const [dbOffline, setDbOffline] = useState(false);
 
   const tNavItem = (label: NavItemLabel) => label[locale];
 
@@ -84,11 +86,12 @@ export function MainHeader() {
     const fetchLogs = async () => {
       try {
         const logData = await getSystemLogs();
-        const transformedNotifications = logData.slice(0, 5).map(log => ({
+        const logs = Array.isArray(logData) ? logData : [];
+        const transformedNotifications = logs.slice(0, 5).map(log => ({
             id: log.id,
-            title: log.action.replace(/_/g, ' '),
-            message: log.details,
-            time: new Date(log.timestamp).toLocaleString(locale),
+            title: log.action?.replace(/_/g, ' ') || 'System Event',
+            message: log.details || '',
+            time: log.timestamp ? new Date(log.timestamp).toLocaleString(locale) : '',
             read: readNotificationIds.has(log.id),
             link: '/admin/system-logs'
         }));
@@ -99,6 +102,19 @@ export function MainHeader() {
     };
     if(mounted) {
       fetchLogs();
+      const checkDb = async () => {
+        try {
+          const status = await getDatabaseStatus();
+          if (status) {
+            setDbOffline(status.isOffline);
+          }
+        } catch (e) {
+          console.error("Failed to check DB status", e);
+        }
+      };
+      checkDb();
+      const interval = setInterval(checkDb, 30000); // Check every 30s
+      return () => clearInterval(interval);
     }
   }, [locale, readNotificationIds, mounted]);
 
@@ -166,8 +182,17 @@ export function MainHeader() {
       {/* Left side: Hamburger and App Name */}
       <div className="flex items-center gap-2">
         <SidebarTrigger className="md:hidden" />
-        <Link href="/dashboard" className="hidden items-center gap-2 sm:flex">
-          <span className="font-bold text-lg truncate text-foreground">HURC No.1 CDHS</span>
+        <Link href="/dashboard" className="flex items-center gap-2">
+          <span className="font-bold text-lg truncate text-foreground hidden sm:inline">HURC No.1 CDHS</span>
+          <div className={cn(
+            "flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold border transition-all animate-pulse",
+            dbOffline 
+              ? "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/30 dark:text-amber-400 dark:border-amber-800" 
+              : "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/30 dark:text-emerald-400 dark:border-emerald-800"
+          )}>
+            {dbOffline ? <ShieldAlert className="h-3 w-3" /> : <Database className="h-3 w-3" />}
+            {dbOffline ? "LOCAL MODE (JSON)" : "POSTGRES ONLINE"}
+          </div>
         </Link>
       </div>
 

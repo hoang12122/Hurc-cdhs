@@ -33,6 +33,7 @@ import {
     HAZARD_SEVERITY_LEVELS,
     HAZARD_LIKELIHOOD_LEVELS,
     ROLE_ADMIN_PKTAT,
+    ROLE_L2_TECHNICIAN,
     ROLE_L3_SPECIALIST,
     calculateRiskLevelId,
     type UserRole,
@@ -193,10 +194,10 @@ const translations = {
 function getHazardStatusBadgeVariant(status: HazardRecord['status']): "default" | "secondary" | "destructive" | "outline" | "accent" {
   switch (status) {
     case "Mới": return "outline";
-    case "Đang đánh giá": return "secondary";
-    case "Tiếp nhận xử lý": return "default";
-    case "Đã xử lý/Giám sát": return "default";
-    case "Đã đóng": return "default";
+    case "Đánh giá": return "secondary";
+    case "Xử lý": return "default";
+    case "Phản hồi": return "accent";
+    case "Đóng": return "default";
     case "Hủy": return "destructive";
     default: return "outline";
   }
@@ -205,7 +206,10 @@ function getHazardStatusBadgeVariant(status: HazardRecord['status']): "default" 
 const canEditSpecificHazard = (hazard: HazardRecord, currentUserRole: UserRole, editAllPermission: boolean) => {
     if (editAllPermission) return true; // Admin
     if (currentUserRole === ROLE_L3_SPECIALIST) {
-        return hazard.status !== "Đã đóng";
+        return hazard.status !== "Đóng" && hazard.status !== "Hủy";
+    }
+    if (currentUserRole === ROLE_L2_TECHNICIAN) {
+        return hazard.status === "Xử lý";
     }
     return false;
 };
@@ -249,7 +253,7 @@ export function HazardTableClient({ initialHazards, initialTotalPages = 1 }: Haz
       });
     };
     checkPermissions();
-  }, []);
+  }, [currentUser]);
 
   const canCreateHazardPermission = permissions.canCreate;
   const canEditAnyHazardPermission = permissions.canEditAny;
@@ -271,14 +275,6 @@ export function HazardTableClient({ initialHazards, initialTotalPages = 1 }: Haz
   const [currentPage, setCurrentPage] = React.useState(1);
   const [isMounted, setIsMounted] = React.useState(false);
 
-  const initialStatusFilter = React.useMemo(() => Object.fromEntries(HAZARD_STATUSES.map(status => [status, true])), []);
-  const initialRiskLevelFilter = React.useMemo(() => Object.fromEntries(HAZARD_RISK_LEVELS.map(level => [level.id, true])), []);
-
-  const [filterStatus, setFilterStatus] = React.useState<Record<string, boolean>>(initialStatusFilter);
-  const [filterRiskLevel, setFilterRiskLevel] = React.useState<Record<string, boolean>>(initialRiskLevelFilter);
-  const [searchTerm, setSearchTerm] = React.useState("");
-  const [startDate, setStartDate] = React.useState<string>("");
-  const [endDate, setEndDate] = React.useState<string>("");
 
   const fetchHazards = React.useCallback(async (pageToFetch: number = 1) => {
     setIsLoading(true);

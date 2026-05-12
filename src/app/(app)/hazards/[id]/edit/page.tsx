@@ -22,7 +22,7 @@ export default function EditHazardPage() {
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState<ErrorCode | null>(null);
 
-  const t = locale === 'vi' ? {
+  const t = React.useMemo(() => locale === 'vi' ? {
     loading: "Đang tải dữ liệu Mối nguy...",
     notFoundError: (id: string) => `Không tìm thấy Mối nguy với ID: ${id}.`,
     generalError: "Lỗi không xác định khi tải dữ liệu Mối nguy.",
@@ -40,7 +40,7 @@ export default function EditHazardPage() {
     pageTitle: (id: string) => `Edit Hazard Record #${id}`,
     cancelAndBack: "Cancel and Go Back to Details",
     errorTitle: "Error"
-  };
+  }, [locale]);
   
   React.useEffect(() => {
     if (hazardId) {

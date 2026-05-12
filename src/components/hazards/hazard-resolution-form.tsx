@@ -42,7 +42,7 @@ const translations = {
         closureDetailsPlaceholder: "Mô tả các bước đã thực hiện để kiểm soát hoặc loại bỏ mối nguy...",
         verificationDetailsLabel: "Chi tiết Xác minh (nếu có)",
         verificationDetailsPlaceholder: "Mô tả cách thức và kết quả xác minh hiệu quả của biện pháp xử lý...",
-        saveButton: "Lưu & Chuyển sang Giám sát",
+        saveButton: "Lưu & Gửi Phản hồi",
         updateSuccess: "Đã cập nhật thông tin xử lý mối nguy.",
     },
     en: {
@@ -52,7 +52,7 @@ const translations = {
         closureDetailsPlaceholder: "Describe the steps taken to control or eliminate the hazard...",
         verificationDetailsLabel: "Verification Details (optional)",
         verificationDetailsPlaceholder: "Describe how the effectiveness of the resolution was verified...",
-        saveButton: "Save & Move to Monitoring",
+        saveButton: "Save & Send Feedback",
         updateSuccess: "Hazard resolution information updated.",
     },
 };
@@ -77,7 +77,7 @@ export function HazardResolutionForm({ hazard }: HazardResolutionFormProps) {
       ...hazard,
       closureDetails: data.closureDetails,
       verificationDetails: data.verificationDetails,
-      status: 'Đã xử lý/Giám sát', // Transition to the next logical state
+      status: 'Phản hồi', // Transition to the next logical state
       updatedAt: new Date().toISOString(),
     };
     await updateHazardRecord(updatedHazard);

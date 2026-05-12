@@ -35,10 +35,12 @@ import {
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { AiAssistButton } from "@/components/ai/ai-assist-button";
 import { AiVisionAudit } from "@/components/ai/ai-vision-audit";
+import { AiHazardVision } from "@/components/ai/ai-hazard-vision";
+import { VoiceInput } from "@/components/ai/voice-input";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import { UploadCloud, XCircle, FilePlus, RefreshCcw, ChevronsUpDown } from "lucide-react";
+import { UploadCloud, XCircle, FilePlus, RefreshCcw, ChevronsUpDown, Sparkles, Printer } from "lucide-react";
 import {
     HAZARD_STATUSES,
     type HazardStatus,
@@ -62,6 +64,8 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/auth-context";
+import { useNetwork } from "@/components/providers/network-provider";
+import { offlineSync } from "@/lib/services/offline-sync";
 
 const NO_LINKED_DNF_VALUE = "__NO_LINKED_DNF__";
 
@@ -235,6 +239,7 @@ export function HazardForm({ initialData, isEditMode = false, sourceReportId }: 
   const router = useRouter();
   const { locale } = useLanguage();
   const { user: currentUser } = useAuth();
+  const { isOnline } = useNetwork();
   const t = translations[locale];
 
   const [dnfs, setDnfs] = React.useState<DnfDocument[]>([]);
@@ -286,7 +291,7 @@ export function HazardForm({ initialData, isEditMode = false, sourceReportId }: 
       closureDetails: data?.closureDetails || "",
       verificationDetails: data?.verificationDetails || "",
     };
-  }, [defaultIdentificationDate]);
+  }, [defaultIdentificationDate, currentUser?.name]);
 
   const form = useForm<HazardFormValues>({
     resolver: zodResolver(hazardFormSchema),
@@ -360,6 +365,20 @@ export function HazardForm({ initialData, isEditMode = false, sourceReportId }: 
         });
         router.push(`/hazards/${initialData.id}`);
     } else {
+        if (!isOnline) {
+            await offlineSync.addAction({
+                type: 'HAZARD_CREATE',
+                entityType: 'HAZARD',
+                data: hazardRecordData,
+            });
+            toast({
+                title: locale === 'vi' ? "Đã lưu Ngoại tuyến" : "Saved Offline",
+                description: locale === 'vi' ? "Dữ liệu sẽ được tự động đồng bộ khi có mạng." : "Data will be synced automatically when online.",
+            });
+            router.push("/hazards");
+            return;
+        }
+
         const savedHazard = await addHazardRecord({...hazardRecordData, status: 'Mới'});
 
         toast({
@@ -386,13 +405,21 @@ export function HazardForm({ initialData, isEditMode = false, sourceReportId }: 
                 <FormItem>
                   <div className="flex items-center justify-between">
                     <FormLabel>{t.descriptionLabel}</FormLabel>
-                    <AiAssistButton 
-                        context="hazard_description" 
-                        promptText={`Viết một mô tả ngắn gọn và chuyên môn về mối nguy hiểm sau: ${field.value || 'Chưa rõ'}`} 
-                        onResult={(res) => field.onChange(res)} 
-                        buttonText="Làm rõ mô tả"
-                        tooltipText="Sử dụng AI phân tích và viết lại mô tả mối nguy hiểm rõ ràng hơn"
-                    />
+                    <div className="flex items-center gap-2">
+                        <VoiceInput 
+                            onResult={(text) => {
+                                const current = field.value || '';
+                                field.onChange(current ? current + ' ' + text : text);
+                            }} 
+                        />
+                        <AiAssistButton 
+                            context="hazard_description" 
+                            promptText={`Viết một mô tả ngắn gọn và chuyên môn về mối nguy hiểm sau: ${field.value || 'Chưa rõ'}`} 
+                            onResult={(res) => field.onChange(res)} 
+                            buttonText="Làm rõ mô tả"
+                            tooltipText="Sử dụng AI phân tích và viết lại mô tả mối nguy hiểm rõ ràng hơn"
+                        />
+                    </div>
                   </div>
                   <FormControl><Textarea placeholder={t.descriptionPlaceholder} {...field} rows={3} /></FormControl>
                   <FormMessage />
@@ -692,7 +719,8 @@ export function HazardForm({ initialData, isEditMode = false, sourceReportId }: 
                                 <SelectContent>
                                 {HAZARD_STATUSES.map(status => {
                                     const currentStatus = initialData?.status || 'Mới';
-                                    const canTransition = currentUser?.role === ROLE_ADMIN_PKTAT || status === currentStatus || (HAZARD_STATUS_TRANSITIONS[currentStatus as HazardStatus] || []).includes(status as HazardStatus);
+                                    const transitionRule = HAZARD_STATUS_TRANSITIONS[currentStatus as HazardStatus];
+                                    const canTransition = currentUser?.role === ROLE_ADMIN_PKTAT || status === currentStatus || transitionRule.next.includes(status as HazardStatus);
                                     return (
                                     <SelectItem 
                                         key={status} 
@@ -837,11 +865,25 @@ export function HazardForm({ initialData, isEditMode = false, sourceReportId }: 
                         ))}
                     </div>
                     {form.watch("attachments") && form.watch("attachments")!.length > 0 && (
-                        <div className="mt-6">
+                        <div className="mt-6 space-y-4">
+                            {/* NEW: OPEN MODEL AI VISION */}
+                            <AiHazardVision 
+                                imageUrl={form.watch("attachments")![0].url}
+                                onAnalysisComplete={(result: any) => {
+                                    // Structured auto-fill from Open Model (e.g. Llama-3.2 Vision)
+                                    if (result.description) form.setValue("description", result.description);
+                                    if (result.cause) form.setValue("source", result.cause);
+                                    if (result.consequence) form.setValue("potentialConsequence", result.consequence);
+                                    if (result.severityId) form.setValue("severityId", result.severityId);
+                                    if (result.likelihoodId) form.setValue("likelihoodId", result.likelihoodId);
+                                    if (result.suggestedActions) form.setValue("suggestedActions", result.suggestedActions);
+                                }}
+                            />
+
+                            {/* EXISTING: YOLOv8 PPE AUDIT */}
                             <AiVisionAudit 
                                 imageUrl={form.watch("attachments")![0].url} 
                                 onAuditComplete={(result) => {
-                                    // Automatically populate fields based on YOLO vision audit
                                     const currentDesc = form.getValues("description");
                                     if (!currentDesc || currentDesc === "") {
                                         form.setValue("description", `Phát hiện tự động: ${result.summary}`);
@@ -852,10 +894,9 @@ export function HazardForm({ initialData, isEditMode = false, sourceReportId }: 
                                         form.setValue("potentialConsequence", result.forecast);
                                     }
 
-                                    // Auto-adjust severity if multiple PPE violations
                                     if (result.summary.toLowerCase().includes('helmet') || result.summary.toLowerCase().includes('vest')) {
-                                        form.setValue("severityId", "I"); // High severity
-                                        form.setValue("likelihoodId", "B"); // Likely
+                                        form.setValue("severityId", "I"); 
+                                        form.setValue("likelihoodId", "B"); 
                                     }
                                 }}
                             />

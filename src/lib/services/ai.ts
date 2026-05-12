@@ -1,10 +1,13 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
+import { DEFAULT_AI_MODEL } from "../constants";
 import { getTrustGraphClient, TrustGraphError } from "./trustgraph-client";
 import { classifyQueryIntent, suggestCollection, extractQueryFocus, buildFocusedPrompt, type QueryIntent } from "./ai-smart-router";
-import { getNemoClawClient } from "./nemoclaw-client";
+import { getNemoClawClient, type ChatMessage as NcChatMessage } from "./nemoclaw-client";
 import { buildUserContext } from "./user-context";
+import { detectObjects as callYoloService, type YoloResponse } from "./yolo";
+import { crmToolDeclarations, executeCrmTool, openAiToolDeclarations } from "../ai-tools/crm-tools";
 
-export const DEFAULT_AI_MODEL = process.env.NEXT_PUBLIC_HF_MODEL || 'google/gemma-7b-it';
+
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 
 // Initialize Gemini if key exists
@@ -18,8 +21,13 @@ export async function askAI(prompt: string, options: {
     groundingContext?: string,
     forceBackend?: 'nemoclaw' | 'trustgraph' | 'gemini' | 'huggingface',
     userId?: string,
+    image?: { data: string, mimeType: string }, // Added for vision support
 } = {}) {
-    const { model, systemPrompt, groundingContext, forceBackend, userId } = options;
+    const { model, systemPrompt, groundingContext, forceBackend, userId, image } = options;
+
+    if (image) {
+        return askVisionAI(prompt, image, { model, systemPrompt, forceBackend, userId });
+    }
 
     // 0. Try NemoClaw first (highest priority)
     if (!forceBackend || forceBackend === 'nemoclaw') {
@@ -238,18 +246,58 @@ export async function semanticSearch(query: string, options: {
     return [];
 }
 
-// ============ MULTI-TURN AGENT CHAT (NEW) ============
+// ============ CONTEXT MENTIONS (PAPERCLIP STYLE) ============
+
+/**
+ * Quét chuỗi prompt để tìm các thực thể @entity-id và lấy dữ liệu tương ứng.
+ * Hỗ trợ: @dnf-ID, @log-ID, @user-EMAIL
+ */
+async function resolveContextMentions(prompt: string): Promise<string[]> {
+    const mentions = prompt.match(/@([a-zA-Z0-9]+)-([a-zA-Z0-9.@_-]+)/g);
+    if (!mentions) return [];
+
+    const attachments: string[] = [];
+    const { getJsonCollection, readDb } = await import('../json-db-service');
+    const db = readDb();
+
+    for (const mention of mentions) {
+        const [_, type, id] = mention.match(/@([a-zA-Z0-aligned]+)-([a-zA-Z0-9.@_-]+)/)!;
+        
+        try {
+            if (type.toLowerCase() === 'dnf') {
+                const dnfs = db.dnfs || [];
+                const item = dnfs.find((d: any) => d.id === id || d.failureReportNo === id);
+                if (item) attachments.push(`[ATTACHMENT: DNF ${id}]\n${JSON.stringify(item, null, 2)}`);
+            } else if (type.toLowerCase() === 'log') {
+                const logs = db.systemLogs || [];
+                const item = logs.find((l: any) => l.id === id);
+                if (item) attachments.push(`[ATTACHMENT: LOG ${id}]\n${JSON.stringify(item, null, 2)}`);
+            } else if (type.toLowerCase() === 'user') {
+                const users = db.users || [];
+                const item = users.find((u: any) => u.id === id || u.email === id);
+                if (item) attachments.push(`[ATTACHMENT: USER ${id}]\n${JSON.stringify({ ...item, password: '[REDACTED]' }, null, 2)}`);
+            }
+        } catch (e) {
+            console.error(`Lỗi khi trích xuất dữ liệu cho @${type}-${id}:`, e);
+        }
+    }
+
+    return attachments;
+}
+
+// ============ MULTI-TURN AGENT CHAT (NEW, WITH TOOLS) ============
 
 export async function agentChat(question: string, options: {
     state?: any,
     history?: any[],
     collection?: string,
     user?: string,
-} = {}): Promise<{ answer: string; state: any; history: any[]; source: string }> {
+} = {}): Promise<{ answer: string; state: any; history: any[]; source: string; steps?: string[] }> {
     const tg = getTrustGraphClient();
 
+    // 1. Try Legacy TrustGraph Agent if specifically requested
     try {
-        if (await tg.isAvailable()) {
+        if (await tg.isAvailable() && options.collection) {
             const result = await tg.agent({
                 question,
                 state: options.state,
@@ -265,12 +313,83 @@ export async function agentChat(question: string, options: {
             };
         }
     } catch (error) {
-        console.warn("Agent chat failed:", error instanceof Error ? error.message : error);
+        console.warn("TrustGraph Agent chat failed, sliding to Robust Loop:", error instanceof Error ? error.message : error);
     }
 
-    // Fallback to simple Gemini
-    const response = await askAI(question, { forceBackend: 'gemini' });
-    return { answer: response, state: null, history: [], source: 'gemini-fallback' };
+    // 2. Robust NemoClaw Agent Loop (GoClaw Model)
+    const nc = getNemoClawClient();
+    if (await nc.isAvailable()) {
+        try {
+            const result = await runRobustAgentLoop(question, { 
+                history: options.history || [], 
+                user: options.user,
+                collection: options.collection 
+            });
+            return result;
+        } catch (e: any) {
+            console.error("Robust Agent Loop failed, falling back to Gemini:", e);
+        }
+    }
+
+    // 3. Fallback to Gemini if NemoClaw failed or unavailable
+    if (genAI) {
+        try {
+            const model = genAI.getGenerativeModel({
+                model: DEFAULT_AI_MODEL || "gemini-1.5-flash",
+                tools: [{ functionDeclarations: crmToolDeclarations }],
+                systemInstruction: "Bạn là HURC AI - Trợ lý quản trị kỹ thuật đóng vai trò là Cố vấn (Advisor) cho con người. Bạn sẽ KHÔNG được phép tự ý thay đổi hay hành động lên dữ liệu. Nhiệm vụ của bạn là sử dụng CÔNG CỤ (Tools) để đọc dữ liệu hệ thống (ví dụ: tìm DNF, đọc cấu hình mạng), sau đó phân tích và định hướng giải quyết. Hãy luôn cung cấp phân tích khách quan và hướng dẫn người dùng tự thực thi thao tác trên giao diện, hoặc chờ người dùng phê duyệt trước bất kỳ hành động nào. Không bao giờ khẳng định bạn đã xóa/sửa dữ liệu."
+            });
+
+            // Flatten and convert history format for Gemini
+            const geminiHistory = (options.history || []).map(msg => ({
+                role: msg.role === 'model' || msg.role === 'ai' ? 'model' : 'user',
+                parts: [{ text: msg.content || msg.text || '' }] // Prevent breaking gemini SDK
+            })).filter(h => h.parts[0].text);
+
+            const chat = model.startChat({ history: geminiHistory });
+            const result = await chat.sendMessage(question);
+
+            // Reasoning Loop: Check if AI Agent wants to use its Hands
+            const functionCalls = result.response.functionCalls();
+            
+            if (functionCalls && functionCalls.length > 0) {
+                const call = functionCalls[0];
+                console.log(`[AI AGENT] Quyết định gọi công cụ: ${call.name}`, call.args);
+                
+                // Thực thi Tools (Lớp MCP/Hands)
+                const apiResponse = await executeCrmTool(call.name, call.args);
+                
+                // Trả kết quả về cho bộ não sinh ra ngôn ngữ từ nhiên
+                const result2 = await chat.sendMessage([{
+                    functionResponse: {
+                        name: call.name,
+                        response: apiResponse
+                    }
+                }]);
+
+                return { 
+                    answer: result2.response.text(), 
+                    state: options.state, 
+                    history: [...(options.history || []), { role: 'user', content: question }, { role: 'ai', content: result2.response.text(), tool_used: call.name }], 
+                    source: 'gemini-agent-tools' 
+                };
+            }
+
+            // Simple text response (No tools needed)
+            return { 
+                answer: result.response.text(), 
+                state: options.state, 
+                history: [...(options.history || []), { role: 'user', content: question }, { role: 'ai', content: result.response.text() }], 
+                source: 'gemini-agent' 
+            };
+        } catch (e: any) {
+            console.error("Gemini Agent Tools failed:", e);
+        }
+    }
+
+    // 4. Absolute Fallback
+    const response = await askAI(question, { forceBackend: 'huggingface' });
+    return { answer: response, state: null, history: [], source: 'huggingface-fallback' };
 }
 
 // ============ DOCUMENT INGESTION (NEW) ============
@@ -392,78 +511,342 @@ export async function getAIHealthStatus() {
         nemoclaw: nemoClawHealth,
         trustgraph: trustgraphHealth,
         gemini: { available: !!GEMINI_API_KEY },
-        huggingface: { available: !!process.env.HF_API_KEY },
+        huggingface: { available: !!(process.env.HF_API_KEY || process.env.HF_TOKEN) },
         primaryBackend,
     };
 }
 
 // ============ EXISTING FUNCTIONS (Preserved) ============
 
+import { InferenceClient } from "@huggingface/inference";
+
 export async function askHuggingFace(prompt: string, model: string = DEFAULT_AI_MODEL, systemPrompt?: string) {
-    const hfToken = process.env.HF_API_KEY;
+    const hfToken = process.env.HF_API_KEY || process.env.HF_TOKEN;
+    const client = new InferenceClient(hfToken);
     
     const formattedPrompt = systemPrompt ? `${systemPrompt}\n\nHuman: ${prompt}\nAssistant:` : `Human: ${prompt}\nAssistant:`;
 
-    const response = await fetch(`https://api-inference.huggingface.co/models/${model}`, {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-            ...(hfToken ? { "Authorization": `Bearer ${hfToken}` } : {})
-        },
-        signal: AbortSignal.timeout(30000), 
-        body: JSON.stringify({
-            inputs: formattedPrompt,
-            parameters: {
-                max_new_tokens: 500,
-                temperature: 0.7,
-                return_full_text: false
-            }
-        })
-    });
+    try {
+        const result = await client.chatCompletion({
+            model: model,
+            messages: [{ role: "user", content: formattedPrompt }],
+            max_tokens: 500,
+            temperature: 0.7,
+        });
 
-    if (!response.ok) {
-        const errorBody = await response.text().catch(() => '');
-        if (response.status === 503 && errorBody.includes('loading')) {
-            throw new Error('Mô hình AI đang được khởi tạo. Vui lòng thử lại sau 20-30 giây.');
-        }
-        throw new Error(`AI Service Error (${response.status}): ${response.statusText}. ${errorBody.substring(0, 200)}`);
+        return (result.choices[0]?.message?.content || "").trim();
+    } catch (error: any) {
+        throw new Error(`HF Error: ${error.message || error}`);
     }
-
-    const data = await response.json();
-    
-    let resultText = '';
-    if (Array.isArray(data) && data.length > 0 && data[0].generated_text) {
-        resultText = data[0].generated_text;
-    } else if (data.generated_text) {
-        resultText = data.generated_text;
-    } else {
-        resultText = JSON.stringify(data);
-    }
-    
-    return resultText.trim();
 }
 
 export async function detectObjectsHF(imageBuffer: Buffer, model: string = 'keremberke/yolov8n-protective-equipment-detection') {
-    const hfToken = process.env.HF_API_KEY;
+    const hfToken = process.env.HF_API_KEY || process.env.HF_TOKEN;
+    const client = new InferenceClient(hfToken);
 
+    try {
+        const result = await client.objectDetection({
+            model: model,
+            data: imageBuffer.buffer.slice(imageBuffer.byteOffset, imageBuffer.byteOffset + imageBuffer.byteLength) as ArrayBuffer,
+        });
+        return result;
+    } catch (error: any) {
+        console.error("HF Object Detection Error:", error);
+        return [];
+    }
+}
+
+/**
+ * TEXT-TO-IMAGE (HF Implementation)
+ */
+export async function generateImageHF(prompt: string, model: string = 'black-forest-labs/FLUX.1-dev') {
+    const hfToken = process.env.HF_API_KEY || process.env.HF_TOKEN;
     const response = await fetch(`https://api-inference.huggingface.co/models/${model}`, {
         method: "POST",
-        headers: {
-            "Content-Type": "image/jpeg",
-            ...(hfToken ? { "Authorization": `Bearer ${hfToken}` } : {})
+        headers: { 
+            "Content-Type": "application/json", 
+            ...(hfToken ? { "Authorization": `Bearer ${hfToken}` } : {}) 
         },
-        signal: AbortSignal.timeout(60000), // 60 second timeout for vision
-        body: new Uint8Array(imageBuffer)
+        body: JSON.stringify({ inputs: prompt })
     });
 
-    if (!response.ok) {
-        const errorBody = await response.text().catch(() => '');
-        if (response.status === 503 && errorBody.includes('loading')) {
-            throw new Error('Mô hình Vision AI đang được khởi tạo. Vui lòng thử lại sau 30-60 giây.');
+    if (!response.ok) throw new Error(`Image Generation Error: ${response.status}`);
+    
+    const arrayBuffer = await response.arrayBuffer();
+    const base64 = Buffer.from(arrayBuffer).toString('base64');
+    return `data:image/png;base64,${base64}`;
+}
+
+/**
+ * Perform object detection using the local YOLOv8 sidecar service.
+ * Highly recommended for real-time safety and maintenance monitoring.
+ */
+export async function detectObjectsLocal(imageBuffer: Buffer): Promise<YoloResponse | null> {
+    try {
+        return await callYoloService(imageBuffer);
+    } catch (error) {
+        console.error("Local YOLO Error:", error);
+        return null;
+    }
+}
+
+/**
+ * Unified object detection function.
+ * Prioritizes local YOLO service, falls back to Hugging Face.
+ */
+export async function detectObjects(imageBuffer: Buffer, options: { 
+    useLocal?: boolean,
+    hfModel?: string 
+} = { useLocal: true }) {
+    if (options.useLocal) {
+        const localResult = await detectObjectsLocal(imageBuffer);
+        if (localResult) return localResult;
+    }
+    
+    // Fallback to HF
+    return await detectObjectsHF(imageBuffer, options.hfModel);
+}
+
+/**
+ * Ask an Open Multi-modal Model (Vision-Language Model)
+ */
+export async function askVisionAI(prompt: string, image: { data: string, mimeType: string }, options: {
+    model?: string,
+    systemPrompt?: string,
+    forceBackend?: 'nemoclaw' | 'gemini' | 'huggingface' | 'trustgraph',
+    userId?: string,
+} = {}) {
+    const { model, systemPrompt, forceBackend } = options;
+
+    // 1. Try Gemini if available (as fallback/primary depending on ENV)
+    if (forceBackend === 'gemini' || (genAI && !forceBackend)) {
+        try {
+            const geminiModel = genAI!.getGenerativeModel({ model: model || "gemini-1.5-flash" });
+            const result = await geminiModel.generateContent([
+                { text: systemPrompt ? `${systemPrompt}\n\n${prompt}` : prompt },
+                {
+                    inlineData: {
+                        data: image.data,
+                        mimeType: image.mimeType
+                    }
+                }
+            ]);
+            return (await result.response).text().trim();
+        } catch (error) {
+            console.error("Gemini Vision Error:", error);
+            if (forceBackend === 'gemini') throw error;
         }
-        throw new Error(`Vision AI Service Error (${response.status}): ${response.statusText}. ${errorBody.substring(0, 200)}`);
     }
 
-    const data = await response.json();
-    return data;
+    // 2. Default to Hugging Face Open Model (Idefics2 or SmolVLM)
+    const hfModel = model || 'HuggingFaceM4/Idefics2-8b';
+    const hfToken = process.env.HF_API_KEY;
+
+    try {
+        const response = await fetch(`https://api-inference.huggingface.co/models/${hfModel}`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                ...(hfToken ? { "Authorization": `Bearer ${hfToken}` } : {})
+            },
+            body: JSON.stringify({
+                inputs: {
+                    query: prompt,
+                    image: image.data // Base64
+                },
+                parameters: { max_new_tokens: 500 }
+            })
+        });
+
+        if (response.ok) {
+            const data = await response.json();
+            return Array.isArray(data) ? data[0]?.generated_text : data.generated_text;
+        }
+    } catch (error) {
+        console.error("HF Vision Error:", error);
+    }
+
+    return "Không thể phân tích hình ảnh bằng các model Open lúc này.";
+}
+
+// ============ AGENT LOOP MANAGEMENT (GO-CLAW IMPLEMENTATION) ============
+
+const MAX_AGENT_ITERATIONS = 12; // Mặc định từ user
+const CONTEXT_WINDOW_THRESHOLD = 30000; // Ngưỡng ký tự (ước lượng cho local LLM)
+
+/**
+ * Robust Agent Loop — Triển khai mô hình GoClaw giúp Agent hoạt động ổn định, 
+ * tránh vòng lặp và tối ưu hóa ngữ cảnh hội thoại.
+ */
+async function runRobustAgentLoop(question: string, options: {
+    history: any[],
+    user?: string,
+    collection?: string
+}): Promise<{ answer: string; state: any; history: any[]; source: string; steps?: string[] }> {
+    const nc = getNemoClawClient();
+    const steps: string[] = [];
+    let currentHistory: NcChatMessage[] = [...options.history.map(h => ({
+        role: (h.role === 'ai' || h.role === 'model') ? 'assistant' : h.role,
+        content: h.content || h.text || ''
+    }))];
+    
+    // Thêm câu hỏi hiện tại vào lịch sử
+    currentHistory.push({ role: 'user', content: question });
+
+    // --- PHASE 0: RESOLVE MENTIONS (Paperclip Style) ---
+    const attachments = await resolveContextMentions(question);
+    if (attachments.length > 0) {
+        console.log(`[AI THOUGHT] Phát hiện ${attachments.length} attachments từ @mentions.`);
+        steps.push(`Đã đính kèm (clipped) ${attachments.length} thực thể từ @mentions.`);
+        currentHistory.push({ 
+            role: 'system', 
+            content: `Dưới đây là các dữ liệu thực thể bạn vừa "kẹp" (clipped) vào hội thoại thông qua @mention:\n\n${attachments.join('\n\n')}` 
+        });
+    }
+
+    let iterations = 0;
+    const toolLoopState = new Map<string, number>(); // Tracking identical calls
+
+    while (iterations < MAX_AGENT_ITERATIONS) {
+        iterations++;
+        
+        // --- PHASE 1 & 2: CONTEXT DEFENSE ---
+        currentHistory = manageAgentContext(currentHistory);
+
+        console.log(`[AI THOUGHT] Bắt đầu vòng lặp #${iterations}. Ngữ cảnh hiện tại: ${estimateTokens(currentHistory)} tokens.`);
+
+        // --- PHASE 2.5: Inject Project Context (Claw-Code Style) ---
+        const projectContext = `
+[PROJECT CONTEXT]
+- CWD: ${process.cwd()}
+- DATE: ${new Date().toLocaleString()}
+- ROLE: Bạn là HURC AI Technical Agent (Claw). 
+- MISSION: Giúp người dùng phân tích, tìm kiếm và hiểu mã nguồn dự án HURC1-CRM.
+- TOOLS: Bạn có các công cụ 'claw_ls', 'claw_read', 'claw_grep' để tự mình khám phá code. Đừng bao giờ phỏng đoán logic nếu bạn có thể tự đọc file.
+`.trim();
+
+        // --- STEP 1: Build filtered tools & Send request ---
+        const response = await nc.chatCompletion({
+            messages: [
+                { role: 'system', content: `Bạn là HURC AI - Trợ lý quản trị kỹ thuật chuyên nghiệp. \n\n${projectContext}\n\nHãy sử dụng các công cụ có sẵn để lấy dữ liệu trước khi trả lời. Ưu tiên sử dụng 'claw_ls' để xem cấu trúc và 'claw_read' để hiểu logic.` },
+                ...currentHistory
+            ],
+            tools: openAiToolDeclarations,
+            tool_choice: 'auto',
+            user: options.user
+        });
+
+        const choice = response.choices?.[0];
+        const message = choice?.message;
+        
+        if (!message) throw new Error("Agent không phản hồi.");
+
+        // Thêm phản hồi của AI (assistant) vào lịch sử
+        currentHistory.push({
+            role: 'assistant',
+            content: message.content,
+            tool_calls: message.tool_calls
+        });
+
+        // --- STEP 2: Check if loop stops (No tool calls) ---
+        if (!message.tool_calls || message.tool_calls.length === 0) {
+            console.log(`[AI THOUGHT] Agent hoàn thành nhiệm vụ tại vòng lặp #${iterations}.`);
+            steps.push("Đã hoàn thành phân tích và chuẩn bị câu trả lời.");
+            return {
+                answer: message.content || "Tôi đã xử lý xong yêu cầu của bạn.",
+                state: null,
+                history: currentHistory,
+                source: 'nemoclaw-robust-agent',
+                steps
+            };
+        }
+
+        // --- STEP 3: Parallel Tool Execution ---
+        console.log(`[AI THOUGHT] Agent quyết định gọi ${message.tool_calls.length} công cụ song song.`);
+        
+        const toolResults = await Promise.all(message.tool_calls.map(async (call) => {
+            const toolId = call.id;
+            const functionName = call.function.name;
+            const args = JSON.parse(call.function.arguments || '{}');
+            
+            // --- LOOP SAFETY CHECK ---
+            const callFingerprint = `${functionName}:${JSON.stringify(args)}`;
+            const callCount = (toolLoopState.get(callFingerprint) || 0) + 1;
+            toolLoopState.set(callFingerprint, callCount);
+
+            if (callCount >= 5) {
+                console.warn(`[AI THOUGHT] PHÁT HIỆN STUCK LOOP: Công cụ ${functionName} bị gọi lặp lại 5 lần.`);
+                return {
+                    role: 'tool' as const,
+                    tool_call_id: toolId,
+                    content: "LỖI: Hệ thống phát hiện vòng lặp vô tận. Vui lòng dừng gọi công cụ này và báo cáo kết quả hiện tại cho người dùng."
+                } as NcChatMessage;
+            }
+
+            if (callCount >= 3) {
+                console.log(`[AI THOUGHT] CẢNH BÁO: Phât hiện vòng lặp tiềm năng cho ${functionName}.`);
+            }
+
+            // Execute
+            steps.push(`Đang thực thi công cụ: ${functionName} (${JSON.stringify(args)})`);
+            const result = await executeCrmTool(functionName, args);
+            return {
+                role: 'tool' as const,
+                tool_call_id: toolId,
+                name: functionName,
+                content: JSON.stringify(result)
+            } as NcChatMessage;
+        }));
+
+        // Thêm kết quả tool vào lịch sử
+        currentHistory.push(...toolResults);
+    }
+
+    return {
+        answer: "Xin lỗi, tôi đã đạt giới hạn suy nghĩ tối đa (12 bước) cho yêu cầu này nhưng vẫn chưa hoàn thành. Đây là những gì tôi biết: " + (currentHistory[currentHistory.length-1]?.content || ""),
+        state: null,
+        history: currentHistory,
+        source: 'nemoclaw-robust-agent-timeout',
+        steps
+    };
+}
+
+/**
+ * Quản lý ngữ cảnh: Cắt tỉa (Prune) và Nén (Compact) tự động.
+ */
+function manageAgentContext(history: NcChatMessage[]): NcChatMessage[] {
+    const totalChars = history.reduce((acc, msg) => acc + (msg.content?.length || 0), 0);
+    
+    // Phase 2: Compact (Nén lịch sử khi vượt 100% threshold)
+    if (totalChars > CONTEXT_WINDOW_THRESHOLD) {
+        console.log(`[AI THOUGHT] CONTEXT DEFENSE (Phase 2): Vượt ngưỡng ${CONTEXT_WINDOW_THRESHOLD} chars. Tiến hành nén lịch sử...`);
+        const systemMsg = history.find(m => m.role === 'system');
+        const recentMsgs = history.slice(-5); // Giữ lại 5 tin nhắn gần nhất
+        const toCompact = history.slice(systemMsg ? 1 : 0, -5);
+        
+        const summary = ` tóm tắt các bước trước đó: Agent đã thực hiện ${toCompact.filter(m => m.role === 'tool').length} lần gọi công cụ và phân tích dữ liệu DNF/Health.`;
+        
+        return [
+            ...(systemMsg ? [systemMsg] : []),
+            { role: 'assistant', content: "[Hệ thống tự động nén ngữ cảnh]: " + summary },
+            ...recentMsgs
+        ];
+    }
+    
+    // Phase 1: Soft Prune (Cắt tỉa nhẹ khi vượt 70%)
+    if (totalChars > CONTEXT_WINDOW_THRESHOLD * 0.7) {
+        console.log(`[AI THOUGHT] CONTEXT DEFENSE (Phase 1): Ngữ cảnh đang phình to. Cắt tỉa các phản hồi tool quá dài.`);
+        return history.map(msg => {
+            if (msg.role === 'tool' && (msg.content?.length || 0) > 2000) {
+                return { ...msg, content: msg.content!.substring(0, 1000) + "... [Dữ liệu đã được cắt tỉa để tối ưu ngữ cảnh]" };
+            }
+            return msg;
+        });
+    }
+
+    return history;
+}
+
+function estimateTokens(history: NcChatMessage[]): number {
+    return Math.floor(history.reduce((acc, m) => acc + (m.content?.length || 0), 0) / 4);
 }

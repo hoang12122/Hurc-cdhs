@@ -5,7 +5,7 @@ import * as React from "react";
 import { useLanguage } from "@/contexts/language-context";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { LOG_LEVELS, type SystemLog, MOCK_CURRENT_USER, ROLE_ADMIN_PKTAT, type User, type SystemLogCategory } from "@/lib/constants";
+import { LOG_LEVELS, type SystemLog, MOCK_CURRENT_USER, ROLE_SUPER_ADMIN, type User, type SystemLogCategory } from "@/lib/constants";
 import { getSystemLogs } from "@/lib/actions/system.actions";
 import { getUsers } from "@/lib/actions/user.actions";
 import { History, Search, Filter, AlertTriangle, AlertCircle, Info, XCircle as IconXCircle, FileDown, RefreshCw, Database, RadioTower } from "lucide-react";
@@ -13,12 +13,14 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
+import { useRouter, useSearchParams } from "next/navigation";
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuCheckboxItem, DropdownMenuRadioGroup, DropdownMenuRadioItem } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
 import { useToast } from "@/hooks/use-toast";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { NetworkMonitor } from "./network-monitor";
 
 const ROWS_PER_PAGE = 50;
 
@@ -138,22 +140,26 @@ export function SystemLogsClient({ initialLogs, initialUsers }: SystemLogsClient
     const { locale } = useLanguage();
     const t = translations[locale];
     const { toast } = useToast();
-    const currentUserRole = MOCK_CURRENT_USER.role;
+    const searchParams = useSearchParams();
+    const router = useRouter();
+    
+    // States
+    const isFirstRender = React.useRef(true);
     const [isMounted, setIsMounted] = React.useState(false);
     const [currentTab, setCurrentTab] = React.useState<SystemLogCategory>("data");
-
-    const initialLevelFilters = React.useMemo(() => Object.fromEntries(LOG_LEVELS.map(level => [level, true])), []);
-
     const [logs, setLogs] = React.useState<SystemLog[]>(initialLogs);
     const [users, setUsers] = React.useState<User[]>(initialUsers);
     const [isLoading, setIsLoading] = React.useState(false);
     const [searchTerm, setSearchTerm] = React.useState("");
     const [startDate, setStartDate] = React.useState("");
     const [endDate, setEndDate] = React.useState("");
+    const initialLevelFilters = React.useMemo(() => Object.fromEntries(LOG_LEVELS.map(level => [level, true])), []);
     const [levelFilters, setLevelFilters] = React.useState<Record<string, boolean>>(initialLevelFilters);
     const [selectedUser, setSelectedUser] = React.useState('all');
     const [selectedAction, setSelectedAction] = React.useState('all');
     const [currentPage, setCurrentPage] = React.useState(1);
+
+    const currentUserRole = MOCK_CURRENT_USER.role;
 
     const fetchData = React.useCallback(async () => {
         setIsLoading(true);
@@ -181,7 +187,6 @@ export function SystemLogsClient({ initialLogs, initialUsers }: SystemLogsClient
         setUsers([...initialUsers].sort((a, b) => a.name.localeCompare(b.name)));
     }, [initialLogs, initialUsers]);
 
-
     React.useEffect(() => {
         setIsMounted(true);
         window.addEventListener('focus', fetchData);
@@ -190,23 +195,17 @@ export function SystemLogsClient({ initialLogs, initialUsers }: SystemLogsClient
         };
     }, [fetchData]);
 
+    // Handle search params for deep linking (e.g. from Users page)
+    React.useEffect(() => {
+        if (!isFirstRender.current) return;
+        
+        const userId = searchParams.get('userId');
+        if (userId) {
+            setSelectedUser(userId);
+        }
+        isFirstRender.current = false;
+    }, [searchParams]);
 
-    if (currentUserRole !== ROLE_ADMIN_PKTAT) {
-      return (
-        <div className="flex flex-col items-center justify-center h-full">
-          <Card className="w-full max-w-md p-8 text-center">
-            <CardTitle className="text-2xl text-destructive mb-4">{t.accessDenied}</CardTitle>
-            <CardDescription>{locale === 'vi' ? `Chỉ Quản trị viên (P.KTAT) mới có quyền truy cập trang này.` : `Only Administrators (P.KTAT) can access this page.`}</CardDescription>
-             <Button asChild className="mt-6">
-              <Link href="/dashboard">
-                {t.backToDashboard}
-              </Link>
-            </Button>
-          </Card>
-        </div>
-      );
-    }
-    
     const { filteredLogs, paginatedLogs, totalPages, uniqueActions } = React.useMemo(() => {
         const categoryLogs = logs.filter(log => log.category === currentTab);
         
@@ -246,6 +245,22 @@ export function SystemLogsClient({ initialLogs, initialUsers }: SystemLogsClient
       setCurrentPage(1); // Reset page when filters change
       setSelectedAction('all'); // Reset action filter when tab changes
     }, [currentTab]);
+
+    if (currentUserRole !== ROLE_SUPER_ADMIN) {
+      return (
+        <div className="flex flex-col items-center justify-center h-full">
+          <Card className="w-full max-w-md p-8 text-center">
+            <CardTitle className="text-2xl text-destructive mb-4">{t.accessDenied}</CardTitle>
+            <CardDescription>{locale === 'vi' ? `Chỉ Quản trị viên cấp cao mới có quyền truy cập trang này.` : `Only Super Administrators can access this page.`}</CardDescription>
+             <Button asChild className="mt-6">
+              <Link href="/dashboard">
+                {t.backToDashboard}
+              </Link>
+            </Button>
+          </Card>
+        </div>
+      );
+    }
 
     const clearAllFilters = () => {
         setSearchTerm("");
@@ -395,7 +410,7 @@ export function SystemLogsClient({ initialLogs, initialUsers }: SystemLogsClient
                     </div>
                 </div>
 
-                <Tabs defaultValue="data" onValueChange={(value) => setCurrentTab(value as SystemLogCategory)}>
+                <Tabs defaultValue="data" onValueChange={(value: string) => setCurrentTab(value as SystemLogCategory)}>
                     <TabsList className="grid w-full grid-cols-2 md:w-[600px] mb-4">
                         <TabsTrigger value="data"><Database className="mr-2 h-4 w-4"/> {t.dataLogsTab}</TabsTrigger>
                         <TabsTrigger value="network"><RadioTower className="mr-2 h-4 w-4"/> {t.networkLogsTab}</TabsTrigger>
@@ -475,11 +490,11 @@ export function SystemLogsClient({ initialLogs, initialUsers }: SystemLogsClient
                             </div>
                         </CardHeader>
                         <CardContent className="p-0">
-                           <TabsContent value="data" className="mt-0">
+                            <TabsContent value="data" className="mt-0">
                                 {renderLogTable(paginatedLogs)}
                             </TabsContent>
-                            <TabsContent value="network" className="mt-0">
-                                {renderLogTable(paginatedLogs)}
+                            <TabsContent value="network" className="mt-0 p-6">
+                                <NetworkMonitor />
                             </TabsContent>
                         </CardContent>
                     </Card>

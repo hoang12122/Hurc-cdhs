@@ -71,25 +71,29 @@ export const APP_NAME: Record<Locale, string> = {
   vi: "HURC No.1 CDHS"
 };
 
+export const DEFAULT_AI_MODEL = process.env.NEXT_PUBLIC_HF_MODEL || 'google/gemma-4-31b';
+
 // ==========================================================================
 // USER & ROLE MANAGEMENT CONSTANTS
 // ==========================================================================
-export const ROLE_CLIENT = "Client";
-export const ROLE_L2_TECHNICIAN = "L2 Technician";
-export const ROLE_L3_SPECIALIST = "L3 Specialist";
+export const ROLE_SUPER_ADMIN = "SUPER_ADMIN";
 export const ROLE_ADMIN_PKTAT = "Admin (P.KTAT)";
-export const ROLE_EXECUTIVE = "Executive";
+export const ROLE_L3_SPECIALIST = "Chuyên viên (L3)";
+export const ROLE_L2_TECHNICIAN = "Kỹ thuật viên (L2)";
+export const ROLE_L1_OPERATOR = "Nhân viên (L1)";
+export const ROLE_CLIENT = "Client";
 
 // This is a stand-in for a proper user session management.
 // In a real app, this would be derived from a cookie, JWT, or session store.
 export const MOCK_CURRENT_USER: User = {
-    id: "002",
-    name: "Nguyễn Huy Hoàng",
-    email: "hoanghuy1212200@gmail.com",
-    role: ROLE_ADMIN_PKTAT,
+    id: "user-admin-2026",
+    name: "Supper Admin",
+    email: "nhhoang@hurc.vn",
+    role: ROLE_SUPER_ADMIN,
     status: "active",
-    department: "Phòng Kỹ thuật-An toàn (KTAT)",
+    department: "Ban Quản trị Hệ thống",
     isVerified: true,
+    mustChangePassword: false,
     passwordLastChangedAt: "2025-07-01T00:00:00.000Z",
     permissions: [
         "inspections:create",
@@ -104,18 +108,6 @@ export const MOCK_CURRENT_USER: User = {
         "corrective_actions:delete",
         "corrective_actions:assign",
         "corrective_actions:verify",
-        "dnf:create",
-        "dnf:view_all",
-        "dnf:edit_all",
-        "dnf:delete",
-        "dnf:manage_status",
-        "dnf:import",
-        "hazard:create",
-        "hazard:view_all",
-        "hazard:assess",
-        "hazard:edit_all",
-        "hazard:delete",
-        "hazard:manage_status",
         "improvements:create",
         "improvements:view_all",
         "improvements:edit_all",
@@ -171,35 +163,34 @@ export const FINDING_TYPES = [
   { id: 'other', label: 'Khác' },
 ];
 
-export const INSPECTION_STATUSES: InspectionStatus[] = [
-  "Hoàn thành", 
-  "Đang thực hiện", 
-  "Chưa thực hiện", 
-  "Hoàn thành (Có phát hiện)",
-  "Đã xem xét",
-  "Cần bổ sung",
-  "Đã duyệt để tạo báo cáo"
-];
 
-// Define statuses that lock editing for non-admins
-export const LOCKED_INSPECTION_STATUSES_FOR_NON_ADMIN: InspectionStatus[] = [
-  "Đã xem xét",
-  "Đã duyệt để tạo báo cáo"
-];
+export const INSPECTION_STATUSES: InspectionStatus[] = ["Mới", "Đánh giá", "Xử lý", "Phản hồi", "Đóng", "Hủy"];
+export const LOCKED_INSPECTION_STATUSES_FOR_NON_ADMIN: InspectionStatus[] = ["Đóng", "Hủy"];
 
-export const DNF_STATUSES: DnfStatus[] = ["Mới", "Đã tiếp nhận", "Đang điều tra", "Cần L3 xử lý", "Đang xử lý", "Chờ xác nhận", "Đã đóng", "Hủy"];
+export const INSPECTION_STATUS_TRANSITIONS: Record<InspectionStatus, {
+  next: InspectionStatus[],
+  roles?: Partial<Record<UserRole, InspectionStatus[]>>
+}> = {
+    "Mới": { next: ["Đánh giá", "Hủy"], roles: { [ROLE_SUPER_ADMIN]: ["Đánh giá", "Hủy"] } },
+    "Đánh giá": { next: ["Xử lý", "Hủy"], roles: { [ROLE_SUPER_ADMIN]: ["Xử lý", "Hủy"] } },
+    "Xử lý": { next: ["Phản hồi", "Hủy"] }, 
+    "Phản hồi": { next: ["Đóng", "Xử lý"], roles: { [ROLE_SUPER_ADMIN]: ["Đóng", "Xử lý"] } },
+    "Đóng": { next: [] },
+    "Hủy": { next: [] },
+};
+
+export const DNF_STATUSES: DnfStatus[] = ["Mới", "Đánh giá", "Xử lý", "Phản hồi", "Đóng", "Hủy"];
+export const LOCKED_DNF_STATUSES_FOR_NON_ADMIN: DnfStatus[] = ["Đóng", "Hủy"];
 
 export const DNF_STATUS_TRANSITIONS: Record<DnfStatus, {
   next: DnfStatus[],
   roles?: Partial<Record<UserRole, DnfStatus[]>>
 }> = {
-    "Mới": { next: ["Đã tiếp nhận", "Hủy"], roles: { [ROLE_L2_TECHNICIAN]: ["Đã tiếp nhận"], [ROLE_L3_SPECIALIST]: ["Đã tiếp nhận"] } },
-    "Đã tiếp nhận": { next: ["Đang điều tra", "Đang xử lý", "Hủy"], roles: { [ROLE_L2_TECHNICIAN]: ["Đang xử lý"], [ROLE_L3_SPECIALIST]: ["Đang điều tra", "Đang xử lý"] } },
-    "Đang điều tra": { next: ["Đang xử lý", "Hủy"], roles: { [ROLE_L3_SPECIALIST]: ["Đang xử lý"] } },
-    "Đang xử lý": { next: ["Chờ xác nhận", "Hủy", "Cần L3 xử lý"], roles: { [ROLE_L2_TECHNICIAN]: ["Chờ xác nhận", "Cần L3 xử lý"], [ROLE_L3_SPECIALIST]: ["Chờ xác nhận"] } },
-    "Cần L3 xử lý": { next: ["Đang điều tra", "Đang xử lý", "Hủy"], roles: { [ROLE_L3_SPECIALIST]: ["Đang điều tra", "Đang xử lý"] } },
-    "Chờ xác nhận": { next: ["Đã đóng", "Đang xử lý"], roles: { [ROLE_CLIENT]: ["Đã đóng", "Đang xử lý"], [ROLE_L3_SPECIALIST]: ["Đã đóng"] } },
-    "Đã đóng": { next: [] },
+    "Mới": { next: ["Đánh giá", "Hủy"], roles: { [ROLE_SUPER_ADMIN]: ["Đánh giá", "Hủy"] } },
+    "Đánh giá": { next: ["Xử lý", "Hủy"], roles: { [ROLE_SUPER_ADMIN]: ["Xử lý", "Hủy"] } },
+    "Xử lý": { next: ["Phản hồi", "Hủy"] },
+    "Phản hồi": { next: ["Đóng", "Xử lý"], roles: { [ROLE_SUPER_ADMIN]: ["Đóng", "Xử lý"] } },
+    "Đóng": { next: [] },
     "Hủy": { next: [] },
 };
 
@@ -221,15 +212,19 @@ export const DNF_METHODS_OF_DETECTION: { id: string; label: NavItemLabel }[] = [
   { id: 'other', label: { vi: 'Khác', en: 'Other' } },
 ];
 
-export const HAZARD_STATUSES: HazardStatus[] = ["Mới", "Đang đánh giá", "Tiếp nhận xử lý", "Đã xử lý/Giám sát", "Đã đóng", "Hủy"];
+export const HAZARD_STATUSES: HazardStatus[] = ["Mới", "Đánh giá", "Xử lý", "Phản hồi", "Đóng", "Hủy"];
+export const LOCKED_HAZARD_STATUSES_FOR_NON_ADMIN: HazardStatus[] = ["Đóng", "Hủy"];
 
-export const HAZARD_STATUS_TRANSITIONS: Record<string, HazardStatus[]> = {
-  "Mới": ["Đang đánh giá", "Hủy"],
-  "Đang đánh giá": ["Tiếp nhận xử lý", "Hủy"],
-  "Tiếp nhận xử lý": ["Đã xử lý/Giám sát", "Hủy"],
-  "Đã xử lý/Giám sát": ["Đã đóng", "Hủy"],
-  "Đã đóng": [],
-  "Hủy": [],
+export const HAZARD_STATUS_TRANSITIONS: Record<HazardStatus, {
+  next: HazardStatus[],
+  roles?: Partial<Record<UserRole, HazardStatus[]>>
+}> = {
+    "Mới": { next: ["Đánh giá", "Hủy"], roles: { [ROLE_SUPER_ADMIN]: ["Đánh giá", "Hủy"] } },
+    "Đánh giá": { next: ["Xử lý", "Hủy"], roles: { [ROLE_SUPER_ADMIN]: ["Xử lý", "Hủy"] } },
+    "Xử lý": { next: ["Phản hồi", "Hủy"] },
+    "Phản hồi": { next: ["Đóng", "Xử lý"], roles: { [ROLE_SUPER_ADMIN]: ["Đóng", "Xử lý"] } },
+    "Đóng": { next: [] },
+    "Hủy": { next: [] },
 };
 
 export const HAZARD_SEVERITY_LEVELS: { id: string; label: NavItemLabel; description: NavItemLabel; value: number }[] = [

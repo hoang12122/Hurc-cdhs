@@ -21,38 +21,41 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { useToast } from "@/hooks/use-toast";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
 import { useLanguage } from "@/contexts/language-context";
+import { Checkbox } from "@/components/ui/checkbox";
 import { login } from '@/lib/actions/auth.actions';
 import { useAuth } from "@/contexts/auth-context";
 
 const translations = {
     vi: {
-        formDescription: "Đăng nhập vào tài khoản của bạn",
-        emailLabel: "Email",
+        formDescription: "Đăng nhập vào hệ thống HURC CDHS",
+        emailLabel: "Địa chỉ Email",
         passwordLabel: "Mật khẩu",
+        rememberMeLabel: "Ghi nhớ đăng nhập",
         loginButton: "Đăng nhập",
-        loginProgress: "Đang đăng nhập...",
+        loginProgress: "Đang xác thực...",
         loginSuccessTitle: "Đăng nhập thành công",
         loginSuccessDesc: (name: string) => `Chào mừng trở lại, ${name}!`,
         loginErrorTitle: "Đăng nhập thất bại",
-        loginErrorDesc: "Email hoặc mật khẩu không đúng. Vui lòng thử lại.",
+        loginErrorDesc: "Email hoặc mật khẩu không chính xác. Vui lòng thử lại.",
         togglePassword: "Hiện/Ẩn mật khẩu",
         forgotPasswordLink: "Quên mật khẩu?",
         validation: {
-            emailRequired: "Email không được để trống.",
-            emailInvalid: "Địa chỉ email không hợp lệ.",
-            passwordRequired: "Mật khẩu không được để trống.",
+            emailRequired: "Vui lòng nhập email.",
+            emailInvalid: "Email không hợp lệ.",
+            passwordRequired: "Vui lòng nhập mật khẩu.",
         }
     },
     en: {
-        formDescription: "Login to your account",
-        emailLabel: "Email",
+        formDescription: "Login to HURC CDHS System",
+        emailLabel: "Email Address",
         passwordLabel: "Password",
-        loginButton: "Login",
-        loginProgress: "Logging in...",
+        rememberMeLabel: "Remember me",
+        loginButton: "Sign In",
+        loginProgress: "Authenticating...",
         loginSuccessTitle: "Login Successful",
         loginSuccessDesc: (name: string) => `Welcome back, ${name}!`,
         loginErrorTitle: "Login Failed",
-        loginErrorDesc: "Incorrect email or password. Please try again.",
+        loginErrorDesc: "Invalid email or password. Please try again.",
         togglePassword: "Show/Hide password",
         forgotPasswordLink: "Forgot password?",
         validation: {
@@ -66,6 +69,7 @@ const translations = {
 const createLoginSchema = (t: any) => z.object({
   email: z.string().min(1, { message: t.validation.emailRequired }).email({ message: t.validation.emailInvalid }),
   password: z.string().min(1, { message: t.validation.passwordRequired }),
+  rememberMe: z.boolean().default(false),
 });
 
 type LoginFormValues = z.infer<ReturnType<typeof createLoginSchema>>;
@@ -85,20 +89,40 @@ export function LoginForm() {
     defaultValues: {
       email: "",
       password: "",
+      rememberMe: false,
     },
   });
 
   const onSubmit = async (data: LoginFormValues) => {
     try {
-      const user = await login(data.email, data.password);
+      const result = await login(data.email, data.password, data.rememberMe);
+      
+      if (result.error) {
+          toast({
+              variant: "destructive",
+              title: t.loginErrorTitle,
+              description: result.error,
+          });
+          return;
+      }
+
+      const user = result.user;
       if (user) {
         setAuthInfo({ user });
         
+        // Priority 1: Verify OTP (Not yet verified)
         if (user.isVerified === false) {
             router.push('/verify-otp?reason=first_login');
             return;
         }
 
+        // Priority 2: Mandatory Password Change (Admin set or New user)
+        if (user.mustChangePassword) {
+            router.push('/setup-new-password');
+            return;
+        }
+
+        // Priority 3: Expired Password (6 months)
         if (user.passwordLastChangedAt) {
             const passwordExpiryDate = new Date(user.passwordLastChangedAt);
             passwordExpiryDate.setMonth(passwordExpiryDate.getMonth() + 6);
@@ -108,25 +132,19 @@ export function LoginForm() {
             }
         }
 
-
         toast({
           title: t.loginSuccessTitle,
           description: t.loginSuccessDesc(user.name),
         });
-        await new Promise(resolve => setTimeout(resolve, 500));
+        
+        await new Promise(resolve => setTimeout(resolve, 800));
         router.push("/dashboard");
-      } else {
-        toast({
-          variant: "destructive",
-          title: t.loginErrorTitle,
-          description: t.loginErrorDesc,
-        });
       }
     } catch (error) {
        toast({
           variant: "destructive",
           title: t.loginErrorTitle,
-          description: "An unexpected error occurred.",
+          description: "Đã xảy ra lỗi không xác định. Vui lòng thử lại sau.",
         });
     }
   };
@@ -167,6 +185,7 @@ export function LoginForm() {
                   <div className="relative">
                     <FormControl>
                       <Input
+                        id="password"
                         type={showPassword ? "text" : "password"}
                         placeholder="••••••••"
                         className="pr-10"
@@ -186,7 +205,26 @@ export function LoginForm() {
                 </FormItem>
               )}
             />
-            <Button type="submit" className="w-full" disabled={form.formState.isSubmitting}>
+            
+            <FormField
+              control={form.control}
+              name="rememberMe"
+              render={({ field }) => (
+                <FormItem className="flex flex-row items-center space-x-2 space-y-0">
+                  <FormControl>
+                    <Checkbox
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
+                  </FormControl>
+                  <FormLabel className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer">
+                    {t.rememberMeLabel}
+                  </FormLabel>
+                </FormItem>
+              )}
+            />
+            
+            <Button type="submit" className="w-full h-11 text-base" disabled={form.formState.isSubmitting}>
               {form.formState.isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               {form.formState.isSubmitting ? t.loginProgress : t.loginButton}
             </Button>

@@ -1,6 +1,7 @@
 generator client {
-  provider = "prisma-client-js"
-  output   = "../../src/lib/generated/auth"
+  provider      = "prisma-client-js"
+  output        = "../../.prisma-runtime/auth"
+  binaryTargets = ["native", "linux-musl"]
 }
 
 datasource db {
@@ -9,7 +10,7 @@ datasource db {
 }
 
 model User {
-  id                    String    @id
+  id                    String    @id @default(uuid())
   name                  String
   email                 String    @unique
   password              String?
@@ -25,6 +26,7 @@ model User {
   otpExpiry             DateTime?
   
   createdAt             DateTime  @default(now())
+  deletedAt             DateTime?
   updatedAt             DateTime  @updatedAt
 
   @@index([role])
@@ -34,7 +36,7 @@ model User {
 }
 
 model Role {
-  id          String   @id
+  id          String   @id @default(uuid())
   name        String
   description String
   permissions String[] @default([])
@@ -43,7 +45,7 @@ model Role {
 }
 
 model PasswordResetRequest {
-  id          String   @id
+  id          String   @id @default(uuid())
   userId      String
   userEmail   String
   userName    String

@@ -255,3 +255,37 @@ export function buildFocusedPrompt(originalQuery: string, queryFocus: { focus: Q
     return parts.join('\n');
 }
 
+// ============ VOICE TO FORM (TASK 2.3) ============
+
+export const VOICE_TO_FORM_PROMPT = `
+Bạn là AI hỗ trợ điền biểu mẫu bảo trì kỹ thuật cho hệ thống tàu điện Metro (Hurc1CRM).
+Người dùng (kỹ sư hiện trường) vừa nói một câu để báo cáo sự cố qua giọng nói.
+Nhiệm vụ của bạn là trích xuất thông tin từ đoạn văn bản (speech-to-text) và chuyển thành định dạng JSON để tự động điền vào form (Form DNF/Hazard).
+
+YÊU CẦU:
+1. Đọc hiểu đoạn văn bản.
+2. Trích xuất các trường thông tin:
+   - "location": Vị trí xảy ra sự cố (ví dụ: Ga Bến Thành, Depot, Cột số 5...).
+   - "asset": Tên thiết bị hoặc bộ phận bị hỏng (ví dụ: Cổng soát vé, vành răng, cáp tín hiệu...).
+   - "defect_category": Nhóm lỗi (ví dụ: Kẹt cơ khí, nứt, rỉ sét, đứt cáp...).
+   - "description": Tóm tắt lại sự cố một cách chuyên nghiệp, ngắn gọn (chỉnh sửa lại từ ngữ nói thành văn viết).
+   - "severity": Mức độ nghiêm trọng dự đoán (Low, Medium, High, Critical) dựa trên văn cảnh.
+3. CHỈ TRẢ VỀ JSON, KHÔNG CÓ BẤT KỲ VĂN BẢN NÀO KHÁC (để hệ thống parse trực tiếp).
+
+VÍ DỤ ĐẦU VÀO: 
+"À ừm, tôi đang đứng ở cổng soát vé số 2 ga Bến Thành, thấy nó bị kẹt cơ vành răng rồi, kêu kẹt kẹt ghê lắm, không cho khách qua được."
+
+JSON ĐẦU RA MONG MUỐN:
+{
+  "location": "Ga Bến Thành",
+  "asset": "Cổng soát vé số 2",
+  "defect_category": "Kẹt cơ khí",
+  "description": "Cổng soát vé số 2 phát ra tiếng kêu bất thường và bị kẹt cơ vành răng, gây gián đoạn luồng hành khách.",
+  "severity": "High"
+}
+
+---
+VĂN BẢN ĐẦU VÀO TỪ KỸ SƯ:
+"{transcript}"
+`;
+

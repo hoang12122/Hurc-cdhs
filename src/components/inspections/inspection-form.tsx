@@ -50,6 +50,8 @@ import { useLanguage } from "@/contexts/language-context";
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuCheckboxItem, DropdownMenuLabel, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/contexts/auth-context";
+import { useNetwork } from "@/components/providers/network-provider";
+import { offlineSync } from "@/lib/services/offline-sync";
 
 const NO_TEMPLATE_VALUE = "---no-template---";
 
@@ -256,6 +258,7 @@ export function InspectionForm({ initialData, isEditMode = false }: InspectionFo
   const router = useRouter();
   const { locale } = useLanguage();
   const { user: currentUser } = useAuth();
+  const { isOnline } = useNetwork();
   const t = translations[locale];
 
   const [maintenanceStandards, setMaintenanceStandards] = React.useState<MaintenanceStandard[]>([]);
@@ -312,7 +315,7 @@ export function InspectionForm({ initialData, isEditMode = false }: InspectionFo
       scheduledFinishDate: data?.scheduledFinishDate,
       estimatedDurationHours: data?.estimatedDurationHours,
     };
-  }, [defaultInspectionDate]);
+  }, [defaultInspectionDate, currentUser?.name]);
 
   const form = useForm<InspectionFormValues>({
     resolver: zodResolver(inspectionFormSchema),
@@ -467,11 +470,7 @@ export function InspectionForm({ initialData, isEditMode = false }: InspectionFo
 
 
   const onSubmit = async (data: InspectionFormValues) => {
-    const finalStatus: InspectionDetail['status'] = data.checklistItems.some(item => item.status === "fail") 
-        ? "Hoàn thành (Có phát hiện)" 
-        : data.checklistItems.every(item => item.status === "pass") 
-            ? "Hoàn thành" 
-            : "Đang thực hiện";
+    const finalStatus: InspectionDetail['status'] = "Mới";
             
     if (isEditMode && initialData?.id) {
         const inspectionRecord: InspectionDetail = {
@@ -508,6 +507,21 @@ export function InspectionForm({ initialData, isEditMode = false }: InspectionFo
             scheduledFinishDate: data.scheduledFinishDate,
             estimatedDurationHours: data.estimatedDurationHours
         };
+
+        if (!isOnline) {
+            await offlineSync.addAction({
+                type: 'INSPECTION_CREATE',
+                entityType: 'INSPECTION',
+                data: inspectionRecord,
+            });
+            toast({
+                title: locale === 'vi' ? "Đã lưu Ngoại tuyến" : "Saved Offline",
+                description: locale === 'vi' ? "Dữ liệu sẽ được tự động đồng bộ khi có mạng." : "Data will be synced automatically when online.",
+            });
+            router.push("/inspections");
+            return;
+        }
+
         await addInspection(inspectionRecord);
         toast({
             title: t.saveSuccessTitle,
@@ -988,7 +1002,7 @@ export function InspectionForm({ initialData, isEditMode = false }: InspectionFo
                                         <FormControl><Input placeholder={t.linkedDnfPlaceholder} {...field} /></FormControl>
                                         {!field.value && (
                                             <Button type="button" variant="outline" size="sm" asChild>
-                                            <Link href={`/dnf/new?originatingInspectionId=${initialData?.id || 'new'}&originatingFindingId=${form.getValues(`checklistItems.${checklistIndex}.findings.${findingIndex}.id`)}&description=${encodeURIComponent(form.getValues(`checklistItems.${checklistIndex}.findings.${findingIndex}.description`))}&locationOfFailure=${encodeURIComponent(form.getValues('areaIds').join(','))}&staffWhoIdentifiedFailure=${encodeURIComponent(form.getValues('inspectorName'))}`}>
+                                            <Link href={`/dnf/new?originatingInspectionId=${initialData?.id || 'new'}&originatingFindingId=${form.getValues(`checklistItems.${checklistIndex}.findings.${findingIndex}.id`) || ''}&description=${encodeURIComponent(form.getValues(`checklistItems.${checklistIndex}.findings.${findingIndex}.description`) || '')}&locationOfFailure=${encodeURIComponent((form.getValues('areaIds') || []).join(','))}&staffWhoIdentifiedFailure=${encodeURIComponent(form.getValues('inspectorName') || '')}`}>
                                                     <FilePlus className="mr-2 h-4 w-4"/>
                                                     {t.createDnfButton}
                                                 </Link>

@@ -23,7 +23,7 @@ export default function EditImprovementPage() {
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState<ErrorCode | null>(null);
 
-  const t = locale === 'vi' ? {
+  const t = React.useMemo(() => locale === 'vi' ? {
     loading: "Đang tải dữ liệu Cải tiến...",
     notFoundError: (id: string) => `Không tìm thấy Đề xuất Cải tiến với ID: ${id}.`,
     generalError: "Lỗi không xác định khi tải dữ liệu.",
@@ -41,7 +41,7 @@ export default function EditImprovementPage() {
     pageTitle: (id: string) => `Edit Improvement #${id}`,
     cancelAndBack: "Cancel and Go Back to Details",
     errorTitle: "Error"
-  };
+  }, [locale]);
 
   React.useEffect(() => {
     if (improvementId) {

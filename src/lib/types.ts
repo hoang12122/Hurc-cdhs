@@ -26,6 +26,8 @@ export interface ImageAttachment {
   id: string;
   url: string;
   name: string;
+  size?: number;
+  type?: string; // 'image' | 'pdf' | 'doc' | etc.
   'data-ai-hint'?: string;
 }
 
@@ -42,7 +44,7 @@ export interface GeoLocation {
     longitude: number;
 }
 
-export type UserRole = "Client" | "L2 Technician" | "L3 Specialist" | "Admin (P.KTAT)" | "Executive";
+export type UserRole = "SUPER_ADMIN" | "MANAGER" | "TECHNICIAN" | "Admin (P.KTAT)" | "Chuyên viên (L3)" | "Kỹ thuật viên (L2)" | "Nhân viên (L1)" | "Client";
 
 export interface SystemPermission {
     id: string;
@@ -60,11 +62,18 @@ export interface User {
   department?: string;
   isVerified: boolean;
   passwordLastChangedAt?: string;
+  mustChangePassword?: boolean;
   permissions?: string[];
   assignedSubsystems?: string[];
   avatarUrl?: string;
   verificationOtp?: string;
   otpExpiry?: string;
+  failedLoginAttempts?: number;
+  lockoutUntil?: string;
+  lastLoginAt?: string;
+  lastLoginIp?: string;
+  passwordHistory?: string[];
+  sessionVersion?: number;
 }
 
 export interface Role {
@@ -75,7 +84,7 @@ export interface Role {
 }
 
 export type LogLevel = 'INFO' | 'WARNING' | 'ERROR' | 'CRITICAL';
-export type SystemLogCategory = 'data' | 'network';
+export type SystemLogCategory = 'data' | 'network' | 'security' | 'system' | 'maintenance';
 
 export interface SystemLog {
     id: string;
@@ -129,6 +138,54 @@ export interface DbData {
   notifications: Notification[];
   systemState: SystemState;
   passwordResetRequests: PasswordResetRequest[];
+  todos: TodoTask[];
+}
+
+// ============== TODO & WORK PROGRESS TYPES =================
+
+export type TodoStatus = 'New' | 'To Do' | 'In Progress' | 'In Review' | 'Done' | 'On Hold' | 'Cancelled';
+export type TodoPriority = 'High' | 'Medium' | 'Low';
+export type TodoVisibility = 'private' | 'public';
+
+export type TaskAction = 'CREATED' | 'STATUS_CHANGED' | 'ASSIGNEE_CHANGED' | 'PRIORITY_CHANGED' | 'COMMENT_ADDED' | 'ATTACHMENT_ADDED' | 'PROGRESS_UPDATED' | 'TIME_LOGGED' | 'WATCHER_TOGGLED';
+
+export interface TaskActivity {
+  id: string;
+  timestamp: string;
+  userId: string;
+  userName: string;
+  action: TaskAction;
+  details: string;
+}
+
+export interface TodoTask {
+  id: string;
+  title: string;
+  description?: string;
+  status: TodoStatus;
+  priority: TodoPriority;
+  dueDate: string; // ISO
+  deadline?: string; // ISO, optional deadline for conflict resolution
+  progress: number; // 0-100
+  createdById: string;
+  createdByName: string;
+  assignedToId?: string; // If public, can be assigned
+  assignedToName?: string;
+  visibility: TodoVisibility;
+  createdAt: string;
+  updatedAt: string;
+  isNotified24h?: boolean;
+  comments?: Comment[];
+  attachments?: ImageAttachment[];
+  /** Hierarchical fields */
+  parentId?: string;
+  todoType?: 'Task' | 'WorkPackage' | 'Milestone';
+  department?: string;
+  startDate?: string; // ISO
+  estimatedHours?: number;
+  spentHours?: number;
+  watchers?: string[]; // Array of User IDs
+  activityHistory?: TaskActivity[];
 }
 
 // ============== CATEGORY TYPES =================
@@ -156,6 +213,7 @@ export interface Comment {
     senderName: string;
     timestamp: string;
     content: string;
+    isInternal?: boolean; // For secret level-to-level communication
 }
 
 
@@ -193,7 +251,7 @@ export interface MaintenanceStandardItem {
 
 // ============ INSPECTION TYPES ============
 
-export type InspectionStatus = "Hoàn thành" | "Đang thực hiện" | "Chưa thực hiện" | "Hoàn thành (Có phát hiện)" | "Đã xem xét" | "Cần bổ sung" | "Đã duyệt để tạo báo cáo";
+export type InspectionStatus = "Mới" | "Đánh giá" | "Xử lý" | "Phản hồi" | "Đóng" | "Hủy";
 
 export interface Finding {
   id: string;
@@ -264,7 +322,7 @@ export interface CorrectiveAction {
 }
 
 
-export type DnfStatus = "Mới" | "Đã tiếp nhận" | "Đang điều tra" | "Cần L3 xử lý" | "Đang xử lý" | "Chờ xác nhận" | "Đã đóng" | "Hủy";
+export type DnfStatus = "Mới" | "Đánh giá" | "Xử lý" | "Phản hồi" | "Đóng" | "Hủy";
 
 export interface DnfDocument {
   id: string;
@@ -306,7 +364,7 @@ export interface DnfDocument {
 
 // ============ HAZARD TYPES ============
 
-export type HazardStatus = "Mới" | "Đang đánh giá" | "Tiếp nhận xử lý" | "Đã xử lý/Giám sát" | "Đã đóng" | "Hủy";
+export type HazardStatus = "Mới" | "Đánh giá" | "Xử lý" | "Phản hồi" | "Đóng" | "Hủy";
 
 export interface HazardRecord {
   id: string;
@@ -369,3 +427,11 @@ export interface UnifiedTask {
   priority?: 'Cao' | 'Trung bình' | 'Thấp';
   location?: string;
 }
+
+export type SecurityStats = {
+  totalLoginAttempts: number;
+  failedLoginAttempts: number;
+  rateLimitHits: number;
+  lastBackupStatus: string;
+  databaseIntegrity: string;
+};

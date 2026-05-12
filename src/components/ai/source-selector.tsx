@@ -33,33 +33,37 @@ export function SourceSelector({ onSelectionChange }: SourceSelectorProps) {
     React.useEffect(() => {
         async function loadData() {
             try {
-                const [dnfs, hazards, snippets] = await Promise.all([
-                    getDnfShortList(),
-                    getHazardShortList(),
-                    getKnowledgeSnippets()
+                const [rawDnfs, rawHazards, rawSnippets] = await Promise.all([
+                    getDnfShortList().catch(() => []),
+                    getHazardShortList().catch(() => []),
+                    getKnowledgeSnippets().catch(() => [])
                 ]);
 
+                const dnfs = Array.isArray(rawDnfs) ? rawDnfs : [];
+                const hazards = Array.isArray(rawHazards) ? rawHazards : [];
+                const snippets = Array.isArray(rawSnippets) ? rawSnippets : [];
+
                 const formatted: Source[] = [
-                    ...dnfs.map(d => ({
+                    ...dnfs.map((d: any) => ({
                         id: d.id,
                         type: 'dnf' as const,
-                        title: d.failureReportNo || d.id,
-                        description: d.descriptionOfFailure,
-                        date: new Date(d.createdAt)
+                        title: d.failureReportNo || d.id || 'N/A',
+                        description: d.descriptionOfFailure || '',
+                        date: new Date(d.createdAt || Date.now())
                     })),
-                    ...hazards.map(h => ({
+                    ...hazards.map((h: any) => ({
                         id: h.id,
                         type: 'hazard' as const,
-                        title: (h as any).failureReportNo || h.id,
-                        description: h.description,
-                        date: new Date(h.createdAt)
+                        title: h.failureReportNo || h.id || 'N/A',
+                        description: h.description || '',
+                        date: new Date(h.createdAt || Date.now())
                     })),
-                    ...snippets.map(s => ({
+                    ...snippets.map((s: any) => ({
                         id: s.id,
                         type: 'snippet' as const,
-                        title: s.source,
-                        description: s.content,
-                        date: new Date(s.createdAt)
+                        title: s.source || 'Snippet',
+                        description: s.content || '',
+                        date: new Date(s.createdAt || Date.now())
                     }))
                 ];
                 setSources(formatted.sort((a, b) => b.date.getTime() - a.date.getTime()));
@@ -90,10 +94,13 @@ export function SourceSelector({ onSelectionChange }: SourceSelectorProps) {
         onSelectionChange(selectedArr, selectedTypes as any);
     };
 
-    const filteredSources = sources.filter(s => 
-        s.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        s.description.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    const filteredSources = sources.filter(s => {
+        const isArchived = s.title.includes('[DỮ LIỆU ĐÃ LƯU TRỮ]') || s.description.includes('[DỮ LIỆU ĐÃ LƯU TRỮ]');
+        const matchesSearch = s.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            s.description.toLowerCase().includes(searchTerm.toLowerCase());
+        
+        return matchesSearch && !isArchived;
+    });
 
     return (
         <Card className="h-full border-indigo-100 dark:border-indigo-900/50 shadow-sm overflow-hidden flex flex-col">
@@ -124,9 +131,20 @@ export function SourceSelector({ onSelectionChange }: SourceSelectorProps) {
                 <ScrollArea className="h-[450px]">
                     <div className="p-2 space-y-1">
                         {isLoading ? (
-                            <div className="p-4 text-center text-muted-foreground text-sm">Đang tải dữ liệu...</div>
+                            <div className="p-4 text-center text-muted-foreground text-sm flex flex-col items-center gap-2">
+                                <span className="animate-spin h-5 w-5 border-2 border-indigo-500 border-t-transparent rounded-full" />
+                                Đang tải dữ liệu...
+                            </div>
                         ) : filteredSources.length === 0 ? (
-                            <div className="p-4 text-center text-muted-foreground text-sm">Không tìm thấy dữ liệu phù hợp.</div>
+                            <div className="p-8 text-center space-y-3">
+                                <Database className="h-10 w-10 text-slate-200 mx-auto" />
+                                <div className="space-y-1">
+                                    <p className="text-sm font-medium text-slate-600">Không tìm thấy dữ liệu</p>
+                                    <p className="text-xs text-slate-400 max-w-[200px] mx-auto">
+                                        Vui lòng kiểm tra lại kết nối Database hoặc thử import dữ liệu mẫu từ Backup.
+                                    </p>
+                                </div>
+                            </div>
                         ) : (
                             filteredSources.map((source) => (
                                 <div 

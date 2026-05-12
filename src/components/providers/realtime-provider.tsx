@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 
 export function RealtimeProvider({ children }: { children: React.ReactNode }) {
     const { toast } = useToast();

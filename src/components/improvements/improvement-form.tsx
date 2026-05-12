@@ -293,7 +293,7 @@ export function ImprovementForm({ initialData, isEditMode = false }: Improvement
                         ))}
                       </SelectContent>
                     </Select>
-                    {!isEditMode && <FormDescription>Trạng thái ban đầu sẽ là 'Mới'.</FormDescription>}
+                    {!isEditMode && <FormDescription>Trạng thái ban đầu sẽ là &apos;Mới&apos;.</FormDescription>}
                     <FormMessage />
                   </FormItem>
                 )}

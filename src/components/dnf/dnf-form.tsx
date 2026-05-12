@@ -55,6 +55,8 @@ import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { BarcodeScannerDialog } from "@/components/common/barcode-scanner-dialog";
 import { useAuth } from "@/contexts/auth-context";
+import { useNetwork } from "@/components/providers/network-provider";
+import { offlineSync } from "@/lib/services/offline-sync";
 
 const NO_HAZARD_LEVEL_VALUE = "__NO_HAZARD_LEVEL__";
 const NO_LINKED_DNF_VALUE = "__NO_LINKED_DNF__";
@@ -114,6 +116,7 @@ export function DnfForm({ initialData, isEditMode = false }: DnfFormProps) {
   const router = useRouter();
   const { locale } = useLanguage();
   const { user: currentUser } = useAuth();
+  const { isOnline } = useNetwork();
   const t = locale === 'vi' ? {
     // VI
     formTitleCreate: "Tạo Báo cáo sự cố (DNF)",
@@ -305,7 +308,7 @@ export function DnfForm({ initialData, isEditMode = false }: DnfFormProps) {
       trainKm: data?.trainKm,
       rectificationParty: data?.rectificationParty,
     };
-  }, [defaultDateTimeForForm]);
+  }, [defaultDateTimeForForm, currentUser?.name]);
 
 
   const form = useForm<DnfFormValues>({
@@ -388,6 +391,21 @@ export function DnfForm({ initialData, isEditMode = false }: DnfFormProps) {
             originatingInspectionId: data.originatingInspectionId || undefined,
             originatingFindingId: data.originatingFindingId || undefined,
         };
+
+        if (!isOnline) {
+            await offlineSync.addAction({
+                type: 'DNF_CREATE',
+                entityType: 'DNF',
+                data: dnfRecord,
+            });
+            toast({
+                title: locale === 'vi' ? "Đã lưu Ngoại tuyến" : "Saved Offline",
+                description: locale === 'vi' ? "Dữ liệu sẽ được tự động đồng bộ khi có mạng." : "Data will be synced automatically when online.",
+            });
+            router.push("/dnf");
+            return;
+        }
+
         await addDnf(dnfRecord); 
         toast({
             title: t.saveSuccessTitle,

@@ -8,20 +8,21 @@ import * as React from "react";
 import { useSearchParams } from "next/navigation";
 import { type HazardRecord, MOCK_CURRENT_USER } from "@/lib/constants";
 
+const pageTranslations = {
+  vi: { 
+      title: "Tạo Phiếu Ghi Mối Nguy Mới",
+      sourceFromAi: (id: string) => `Phân tích AI từ báo cáo #${id}`,
+  },
+  en: { 
+      title: "Create New Hazard Record",
+      sourceFromAi: (id: string) => `AI Analysis from report #${id}`,
+  }
+};
+
 export default function NewHazardPage() {
   const { locale } = useLanguage();
   const searchParams = useSearchParams();
 
-  const pageTranslations = {
-    vi: { 
-        title: "Tạo Phiếu Ghi Mối Nguy Mới",
-        sourceFromAi: (id: string) => `Phân tích AI từ báo cáo #${id}`,
-    },
-    en: { 
-        title: "Create New Hazard Record",
-        sourceFromAi: (id: string) => `AI Analysis from report #${id}`,
-    }
-  };
   const currentTitle = pageTranslations[locale].title;
 
   const [initialData, setInitialData] = React.useState<Partial<HazardRecord>>({});

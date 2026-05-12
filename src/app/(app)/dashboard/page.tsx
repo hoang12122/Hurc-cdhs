@@ -8,24 +8,23 @@ import Link from "next/link";
 import { 
     ArrowLeft, ClipboardList, AlertTriangle, CheckCircle2, Clock, PlusCircle, 
     BarChart3, PieChart as PieChartIcon, Users, ListChecks, FileWarning, Lightbulb, ArrowRight,
-    ListTodo, ShieldAlert, History, TrendingUp, Eye
+    ListTodo, ShieldAlert, History, TrendingUp, Eye, Sparkles, Printer, Zap, Trophy, Activity, ShieldCheck
 } from "lucide-react";
 import Image from "next/image";
 import { useLanguage } from "@/contexts/language-context";
 import { 
     type DnfDocument, type SystemLog, type PatrolLocation
 } from "@/lib/constants";
-import { getDnfs } from "@/lib/actions/dnf.actions";
+import { getDnfRecords } from "@/lib/actions/dnf.actions";
 import { getInspections } from "@/lib/actions/inspection.actions";
 import { getLocations } from "@/lib/actions/category.actions";
 import { getHazardRecords } from "@/lib/actions/hazard.actions";
 import { runSystemScheduler } from "@/lib/actions/system.actions";
-import { getExecutiveSummary } from "@/lib/actions/ai.actions";
+import { getExecutiveSummary, generateStrategicExecutiveSummary } from "@/lib/actions/ai.actions";
 import { getSystemHealthOverview } from "@/lib/actions/analytics.actions";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { BarChart, Bar, XAxis, YAxis, PieChart, Pie, Cell, Tooltip as RechartsTooltip, Legend, ResponsiveContainer, CartesianGrid } from "recharts";
-import { Zap, Trophy, Activity, ShieldCheck } from "lucide-react";
 import {
   ChartContainer,
   ChartTooltip as CustomChartTooltip,
@@ -35,6 +34,10 @@ import {
   type ChartConfig,
 } from "@/components/ui/chart";
 import { cn } from "@/lib/utils";
+import { 
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger, DialogFooter
+} from "@/components/ui/dialog";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 
 const translations = {
@@ -77,6 +80,9 @@ const translations = {
     mttrLabel: "MTTR Trung bình",
     subsystemHealthTitle: "Hiệu suất Hệ thống con",
     riskAssetsTitle: "Thiết bị rủi ro",
+    strategicReportBtn: "Tổng hợp Báo cáo Chiến lược",
+    strategicReportTitle: "BÁO CÁO CHIẾN LƯỢC QUẢN TRỊ (AI GENERATED)",
+    strategicReportLoading: "Đang tổng hợp dữ liệu toàn hệ thống...",
   },
   en: {
     title: 'Dashboard - HURC No.1 CDHS',
@@ -111,21 +117,39 @@ const translations = {
     safetyForecastTitle: "AI Safety Forecasting (YOLO)",
     safetyForecastDesc: "Infrastructure-wide safety predictions.",
     noSafetyAudit: "No AI safety audit data found.",
+    strategicReportBtn: "Strategic Executive Summary",
+    strategicReportTitle: "STRATEGIC GOVERNANCE REPORT (AI GENERATED)",
+    strategicReportLoading: "Compiling system-wide strategic data...",
   },
 };
 
 const getDnfStatusBadgeVariant = (status: DnfDocument['status']): "default" | "secondary" | "destructive" | "outline" | "accent" => {
   switch (status) {
     case "Mới": return "outline";
-    case "Đã tiếp nhận": return "secondary";
-    case "Đang điều tra": return "accent";
-    case "Đang xử lý": return "default";
-    case "Chờ xác nhận": return "accent";
-    case "Đã đóng": return "default";
+    case "Đánh giá": return "secondary";
+    case "Xử lý": return "default";
+    case "Phản hồi": return "accent";
+    case "Đóng": return "default";
     case "Hủy": return "destructive";
     default: return "outline";
   }
 }
+
+const statusColors: Record<string, string> = {
+  "Mới": "hsl(var(--chart-4))",
+  "Đánh giá": "hsl(var(--chart-1))",
+  "Xử lý": "hsl(var(--chart-6))",
+  "Phản hồi": "hsl(var(--chart-5))",
+  "Đóng": "hsl(var(--chart-3))",
+  "Hủy": "hsl(var(--muted-foreground))",
+};
+
+const priorityColors: Record<string, string> = {
+  "Cao": "hsl(var(--chart-5))",
+  "Trung bình": "hsl(var(--chart-4))",
+  "Thấp": "hsl(var(--chart-1))",
+  "Không ưu tiên": "hsl(var(--muted-foreground))",
+};
 
 export default function DashboardPage() {
   const { locale } = useLanguage();
@@ -139,26 +163,32 @@ export default function DashboardPage() {
   const [aiSummary, setAiSummary] = React.useState<string | null>(null);
   const [isLoadingAi, setIsLoadingAi] = React.useState(false);
   const [reliabilityStats, setReliabilityStats] = React.useState<any[]>([]);
+  const [strategicReport, setStrategicReport] = React.useState<string | null>(null);
+  const [isGeneratingStrategic, setIsGeneratingStrategic] = React.useState(false);
+  const [showStrategicDialog, setShowStrategicDialog] = React.useState(false);
 
   React.useEffect(() => {
     // This simulates a cron job that runs when a user visits the dashboard.
     // In a real production app, this would be a separate, scheduled server process.
-    runSystemScheduler();
+    runSystemScheduler().catch(err => {
+        // Silently ignore unauthorized errors from the scheduler as it's just a background task
+        console.debug("Background scheduler task skipped: ", err.message);
+    });
   }, []);
 
   const fetchData = React.useCallback(async () => {
     const [incidentData, inspectionData, locationData, hazardData, reliabilityData] = await Promise.all([
-      getDnfs(),
+      getDnfRecords(),
       getInspections(),
       getLocations(),
       getHazardRecords(),
       getSystemHealthOverview(),
     ]);
-    setIncidents(incidentData);
-    setInspections(inspectionData);
-    setLocations(locationData);
-    setHazards(hazardData);
-    setReliabilityStats(reliabilityData);
+    setIncidents(incidentData || []);
+    setInspections(inspectionData || []);
+    setLocations(locationData || []);
+    setHazards(hazardData || []);
+    setReliabilityStats(reliabilityData || []);
   }, []);
 
   React.useEffect(() => {
@@ -190,10 +220,23 @@ export default function DashboardPage() {
      }
   }, [isMounted, incidents, aiSummary, fetchAiSummary]);
 
+  const handleGenerateStrategicReport = async () => {
+    setIsGeneratingStrategic(true);
+    setShowStrategicDialog(true);
+    try {
+        const report = await generateStrategicExecutiveSummary();
+        setStrategicReport(report);
+    } catch (error) {
+        console.error("Failed to generate strategic report:", error);
+    } finally {
+        setIsGeneratingStrategic(false);
+    }
+  };
+
   const healthIndex = React.useMemo(() => {
     if (!incidents.length) return 100;
-    const criticalOpen = incidents.filter(d => d.priority === 'Cao' && !['Đã đóng', 'Hủy'].includes(d.status)).length;
-    const totalOpen = incidents.filter(d => !['Đã đóng', 'Hủy'].includes(d.status)).length;
+    const criticalOpen = incidents.filter(d => d.priority === 'Cao' && !['Đóng', 'Hủy'].includes(d.status)).length;
+    const totalOpen = incidents.filter(d => !['Đóng', 'Hủy'].includes(d.status)).length;
     if (totalOpen === 0) return 100;
     // Health drops 10% for each critical open incident, down to 20% min
     return Math.max(20, 100 - (criticalOpen * 15));
@@ -202,12 +245,12 @@ export default function DashboardPage() {
   const summaryStatsData = React.useMemo(() => {
     if (!incidents || !inspections) return [];
     
-    const pendingIncidents = incidents.filter(d => !['Đã đóng', 'Hủy'].includes(d.status)).length;
-    const criticalIncidents = incidents.filter(d => d.priority === 'Cao' && !['Đã đóng', 'Hủy'].includes(d.status)).length;
+    const pendingIncidents = incidents.filter(d => !['Đóng', 'Hủy'].includes(d.status)).length;
+    const criticalIncidents = incidents.filter(d => d.priority === 'Cao' && !['Đóng', 'Hủy'].includes(d.status)).length;
     
     const now = new Date();
     const completedThisMonth = incidents.filter(d => {
-      if (d.status !== 'Đã đóng' || !d.completedDate) return false;
+      if (d.status !== 'Đóng' || !d.completedDate) return false;
       const completedDate = new Date(d.completedDate);
       return completedDate.getMonth() === now.getMonth() && completedDate.getFullYear() === now.getFullYear();
     }).length;
@@ -224,22 +267,6 @@ export default function DashboardPage() {
     return locations.find(l => l.id === locationId)?.label || locationId;
   }, [locations]);
 
-  const statusColors: Record<string, string> = {
-    "Mới": "hsl(var(--chart-4))",
-    "Đã tiếp nhận": "hsl(var(--chart-1))",
-    "Đang điều tra": "hsl(var(--chart-2))",
-    "Đang xử lý": "hsl(var(--chart-6))",
-    "Chờ xác nhận": "hsl(var(--chart-5))",
-    "Đã đóng": "hsl(var(--chart-3))",
-    "Hủy": "hsl(var(--muted-foreground))",
-  };
-
-  const priorityColors: Record<string, string> = {
-    "Cao": "hsl(var(--chart-5))",
-    "Trung bình": "hsl(var(--chart-4))",
-    "Thấp": "hsl(var(--chart-1))",
-    "Không ưu tiên": "hsl(var(--muted-foreground))",
-  };
 
   const incidentStatusData = React.useMemo(() => {
     if (!incidents) return [];
@@ -254,7 +281,7 @@ export default function DashboardPage() {
       count: count,
       fill: statusColors[status] || "hsl(var(--muted))"
     }));
-  }, [incidents, locale, statusColors]);
+  }, [incidents, locale]);
 
   const statusChartConfig = {
     count: { label: t.chartIncidentsLabel, },
@@ -274,7 +301,7 @@ export default function DashboardPage() {
       count: count,
       fill: priorityColors[priority] || "hsl(var(--muted))"
     }));
-  }, [incidents, locale, priorityColors]);
+  }, [incidents, locale]);
 
   const priorityChartConfig = {
      count: { label: t.chartIncidentsLabel, },
@@ -285,7 +312,7 @@ export default function DashboardPage() {
     if (!reliabilityStats.length) return null;
     const avgMtbf = Math.round(reliabilityStats.reduce((acc, s) => acc + s.mtbf, 0) / reliabilityStats.length);
     const avgMttr = Math.round((reliabilityStats.reduce((acc, s) => acc + s.mttr, 0) / reliabilityStats.length) * 10) / 10;
-    const criticalAssets = reliabilityStats.filter(s => s.mtbf < 100).length;
+    const criticalAssets = reliabilityStats.filter(s => s.mtbf > 0 && s.mtbf < 100).length;
 
     const subsystemData = Array.from(new Set(reliabilityStats.map(s => s.subsystem))).map(sub => {
         const subStats = reliabilityStats.filter(s => s.subsystem === sub);
@@ -307,13 +334,98 @@ export default function DashboardPage() {
             <h1 className="text-3xl font-bold font-headline text-primary">{t.welcomeTitle}</h1>
             <p className="text-muted-foreground">{t.welcomeDescription}</p>
         </div>
-        <Link href="/dnf/new">
-            <Button>
-            <PlusCircle className="mr-2 h-5 w-5" />
-            {t.newIncidentButton}
+        <div className="flex gap-2">
+            <Button 
+                variant="outline"
+                className="rounded-full bg-white text-primary border-primary hover:bg-primary/5 shadow-sm px-6 no-print"
+                onClick={handleGenerateStrategicReport}
+                disabled={isGeneratingStrategic}
+            >
+                {isGeneratingStrategic ? (
+                    <Clock className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                    <Sparkles className="mr-2 h-4 w-4" />
+                )}
+                {t.strategicReportBtn}
+                <div className="ml-2 bg-primary/10 px-1.5 py-0.5 rounded text-[8px] font-bold">AI</div>
             </Button>
-        </Link>
+            <Link href="/dnf/new">
+                <Button className="rounded-full shadow-lg">
+                <PlusCircle className="mr-2 h-5 w-5" />
+                {t.newIncidentButton}
+                </Button>
+            </Link>
+        </div>
       </div>
+
+      <Dialog open={showStrategicDialog} onOpenChange={setShowStrategicDialog}>
+          <DialogContent className="max-w-4xl max-h-[90vh] flex flex-col p-0 overflow-hidden border-none shadow-2xl">
+              <DialogHeader className="p-6 bg-gradient-to-r from-primary to-primary/80 text-primary-foreground">
+                  <DialogTitle className="text-2xl font-black italic tracking-tight flex items-center gap-3">
+                      <Sparkles className="h-6 w-6" />
+                      {t.strategicReportTitle}
+                  </DialogTitle>
+                  <DialogDescription className="text-primary-foreground/80 font-medium">
+                      Phân tích thông minh giúp tối ưu hóa vận hành và quản trị rủi ro hạ tầng.
+                  </DialogDescription>
+              </DialogHeader>
+
+              <ScrollArea className="flex-1 p-8 bg-white text-black print:p-0">
+                  {isGeneratingStrategic ? (
+                      <div className="flex flex-col items-center justify-center py-24 gap-4">
+                          <div className="relative">
+                            <Activity className="h-16 w-16 text-primary animate-pulse" />
+                            <div className="absolute inset-0 bg-primary/20 rounded-full animate-ping"></div>
+                          </div>
+                          <p className="text-lg font-bold italic text-primary animate-bounce">
+                              {t.strategicReportLoading}
+                          </p>
+                      </div>
+                  ) : strategicReport ? (
+                      <div className="prose prose-slate max-w-none strategic-report-content print:text-black">
+                         <div className="flex justify-between items-center border-b-2 border-primary pb-4 mb-8 print:flex">
+                            <div className="text-primary font-black italic text-xl">HURC No.1 CDHS</div>
+                            <div className="text-right">
+                                <p className="text-xs font-bold uppercase">Báo cáo Chiến lược AI</p>
+                                <p className="text-[10px] text-muted-foreground">{new Date().toLocaleString(locale)}</p>
+                            </div>
+                         </div>
+                          <div className="whitespace-pre-wrap font-sans text-sm leading-relaxed text-slate-800">
+                            {strategicReport}
+                          </div>
+                          
+                          <div className="mt-12 pt-8 border-t border-slate-200 grid grid-cols-2 gap-8 signature-section-dashboard no-break">
+                                <div className="text-center">
+                                    <p className="font-bold text-xs uppercase mb-12">Phê duyệt bởi CEO/CTO</p>
+                                    <div className="h-0.5 w-32 bg-slate-300 mx-auto border-t border-dotted border-black"></div>
+                                </div>
+                                <div className="text-center">
+                                    <p className="font-bold text-xs uppercase mb-12">Xác nhận Hệ thống AI</p>
+                                    <div className="h-0.5 w-32 bg-slate-300 mx-auto border-t border-dotted border-black"></div>
+                                    <p className="text-[8px] text-slate-400 mt-2 italic italic">MetroExpert AI Intelligence Engine</p>
+                                </div>
+                          </div>
+                      </div>
+                  ) : (
+                      <p className="text-center py-10 text-muted-foreground italic">Lỗi khi tải báo cáo.</p>
+                  )}
+              </ScrollArea>
+
+              <DialogFooter className="p-4 bg-slate-50 border-t flex justify-between gap-4 no-print sm:justify-between items-center">
+                  <div className="text-[10px] text-muted-foreground italic font-medium">
+                      CONFIDENTIAL - METRO CRM ADVANCED ANALYTICS MODULE v2.1
+                  </div>
+                  <div className="flex gap-2">
+                    <Button variant="outline" onClick={() => setShowStrategicDialog(false)} className="rounded-full">
+                        Đóng
+                    </Button>
+                    <Button disabled={!strategicReport} onClick={() => window.print()} className="rounded-full shadow-md">
+                        <Printer className="mr-2 h-4 w-4" /> Xuất PDF
+                    </Button>
+                  </div>
+              </DialogFooter>
+          </DialogContent>
+      </Dialog>
 
       <div className="grid gap-6 md:grid-cols-3">
           <Card className="md:col-span-1 bg-primary/5 border-primary/20 shadow-lg">
@@ -363,7 +475,7 @@ export default function DashboardPage() {
                       </div>
                   ) : (
                       <p className="text-sm leading-relaxed italic text-foreground/80 font-medium">
-                          "{aiSummary || (locale === 'vi' ? 'Sẵn sàng phân tích dữ liệu hệ thống...' : 'Ready to analyze system data...')}"
+                          &quot;{aiSummary || (locale === 'vi' ? 'Sẵn sàng phân tích dữ liệu hệ thống...' : 'Ready to analyze system data...')}&quot;
                       </p>
                   )}
               </CardContent>
@@ -454,7 +566,7 @@ export default function DashboardPage() {
                 <div className="absolute -right-20 -bottom-20 h-64 w-64 bg-white/5 rounded-full blur-3xl" />
             </Card>
 
-            <Card className="md:col-span-2 border-none shadow-xl bg-white rounded-[40px] p-8">
+            <Card className="md:col-span-2 border-none shadow-xl bg-card rounded-[40px] p-8">
                 <CardHeader className="p-0 mb-6">
                     <CardTitle className="text-xl font-black flex items-center gap-2">
                         <BarChart3 className="h-5 w-5 text-indigo-600" /> 
@@ -464,7 +576,7 @@ export default function DashboardPage() {
                 <div className="h-64">
                     <ResponsiveContainer width="100%" height="100%">
                         <BarChart data={reliabilityMetrics.subsystemData}>
-                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="currentColor" opacity={0.1} />
                             <XAxis dataKey="name" fontSize={10} axisLine={false} tickLine={false} />
                             <YAxis axisLine={false} tickLine={false} fontSize={10} />
                             <RechartsTooltip cursor={{fill: '#f8fafc'}} contentStyle={{ borderRadius: '15px', border: 'none', boxShadow: '0 20px 25px -5px rgb(0 0 0 / 0.1)' }} />
@@ -474,7 +586,7 @@ export default function DashboardPage() {
                 </div>
             </Card>
 
-            <Card className="md:col-span-2 border-none shadow-xl bg-white rounded-[40px] p-8">
+            <Card className="md:col-span-2 border-none shadow-xl bg-card rounded-[40px] p-8">
                 <div className="flex items-center justify-between mb-6">
                     <h3 className="text-xl font-black flex items-center gap-2">
                         <Zap className="h-5 w-5 text-amber-500" />
@@ -484,19 +596,19 @@ export default function DashboardPage() {
                 </div>
                 <div className="space-y-4">
                     {reliabilityStats.sort((a,b) => a.mtbf - b.mtbf).slice(0, 4).map(asset => (
-                        <div key={asset.id} className="flex items-center justify-between p-3 bg-slate-50 rounded-2xl">
+                        <div key={asset.id} className="flex items-center justify-between p-3 bg-muted/30 rounded-2xl">
                             <div className="flex items-center gap-3">
                                 <div className="h-8 w-8 flex items-center justify-center bg-white rounded-lg shadow-sm">
                                     <Activity className="h-4 w-4 text-indigo-500" />
                                 </div>
                                 <div>
-                                    <p className="text-xs font-bold text-slate-900">{asset.name}</p>
-                                    <p className="text-[10px] font-medium text-slate-400 capitalize">{asset.subsystem}</p>
+                                    <p className="text-xs font-bold text-foreground">{asset.name}</p>
+                                    <p className="text-[10px] font-medium text-muted-foreground capitalize">{asset.subsystem}</p>
                                 </div>
                             </div>
                             <div className="text-right">
                                 <p className="text-xs font-black text-red-500">{asset.mtbf}h</p>
-                                <p className="text-[9px] font-medium text-slate-400 uppercase tracking-tighter">MTBF</p>
+                                <p className="text-[9px] font-medium text-muted-foreground uppercase tracking-tighter">MTBF</p>
                             </div>
                         </div>
                     ))}

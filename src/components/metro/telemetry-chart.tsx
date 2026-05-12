@@ -19,21 +19,21 @@ export function TelemetryChart({ assetId, assetName }: TelemetryChartProps) {
     const [isAnalyzing, setIsAnalyzing] = React.useState(false);
     const [isLoading, setIsLoading] = React.useState(true);
 
-    const loadData = async () => {
+    const loadData = React.useCallback(async () => {
         const history = await getAssetTelemetry(assetId);
-        setData(history.reverse().map(h => ({
+        setData(history.reverse().map((h: { timestamp: string | Date; value: number; unit?: string | null }) => ({
             time: new Date(h.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
             value: h.value,
             unit: h.unit
         })));
         setIsLoading(false);
-    };
+    }, [assetId]);
 
     React.useEffect(() => {
         loadData();
         const interval = setInterval(loadData, 30000); // Update every 30s
         return () => clearInterval(interval);
-    }, [assetId]);
+    }, [loadData]);
 
     const handleAnalyze = async () => {
         setIsAnalyzing(true);

@@ -32,7 +32,7 @@ export default async function HazardDetailPage({ params }: HazardDetailPageProps
       <div className="container mx-auto py-8 text-center">
         <AlertTriangle className="mx-auto h-12 w-12 text-destructive mb-4" />
         <h1 className="text-2xl font-bold">Mối nguy không tồn tại</h1>
-        <p className="text-muted-foreground mb-4">Mối nguy với ID "{id}" không tồn tại hoặc đã bị xóa.</p>
+        <p className="text-muted-foreground mb-4">Mối nguy với ID &quot;{id}&quot; không tồn tại hoặc đã bị xóa.</p>
         <Button variant="outline" asChild>
           <Link href="/hazards">
             <ArrowLeft className="mr-2 h-4 w-4" /> Quay lại danh sách

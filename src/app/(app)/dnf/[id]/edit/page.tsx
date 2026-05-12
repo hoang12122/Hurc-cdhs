@@ -21,7 +21,7 @@ export default function EditDnfPage() {
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState<ErrorCode | null>(null);
 
-  const t = locale === 'vi' ? {
+  const t = React.useMemo(() => locale === 'vi' ? {
     loading: "Đang tải dữ liệu Khiếm khuyết...",
     notFoundError: (id: string) => `Không tìm thấy Khiếm khuyết (Defect) với ID: ${id}.`,
     generalError: "Lỗi không xác định khi tải dữ liệu Khiếm khuyết.",
@@ -39,7 +39,7 @@ export default function EditDnfPage() {
     pageTitle: (id: string) => `Edit Defect #${id}`,
     cancelAndBack: "Cancel and Go Back to Details",
     errorTitle: "Error"
-  };
+  }, [locale]);
   
   React.useEffect(() => {
     if (dnfId) {

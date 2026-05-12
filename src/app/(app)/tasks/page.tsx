@@ -25,6 +25,9 @@ import type { UnifiedTask, } from "@/lib/constants";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuCheckboxItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger, DropdownMenuRadioGroup, DropdownMenuRadioItem } from "@/components/ui/dropdown-menu";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { TodoList } from "@/components/tasks/todo-list";
+import { checkTodoDeadlines } from "@/lib/actions/todo.actions";
 
 const translations = {
   vi: {
@@ -73,6 +76,10 @@ const translations = {
         total: "Tổng cộng",
         inProgress: "Đang thực hiện",
         completed: "Hoàn thành",
+    },
+    tabs: {
+        system: "Nhiệm vụ Hệ thống",
+        todos: "Việc cần làm (Todo List)"
     }
   },
   en: {
@@ -121,6 +128,10 @@ const translations = {
         total: "Total",
         inProgress: "In Progress",
         completed: "Completed",
+    },
+    tabs: {
+        system: "System Tasks",
+        todos: "To-Do List"
     }
   },
 };
@@ -237,6 +248,7 @@ export default function TaskManagementPage() {
     setIsMounted(true);
     document.title = t.pageTitle;
     fetchData();
+    checkTodoDeadlines(); // Check for overdue todos on load
   }, [t.pageTitle, fetchData]);
   
   const clearFilters = () => {
@@ -423,60 +435,79 @@ export default function TaskManagementPage() {
             </CardContent>
         </Card>
 
-        <div className="space-y-4">
-        {processedTasks.length > 0 ? (
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {processedTasks.map(task => {
-                    const statusLabel = t.taskStatusLabels[task.derivedStatus.labelKey];
-                    const { icon: TaskIcon, color: taskColor, label: taskTypeLabel } = task.derivedType;
+        <Tabs defaultValue="system" className="w-full">
+            <TabsList className="grid w-full max-w-[400px] grid-cols-2 mb-6">
+                <TabsTrigger value="system" className="gap-2">
+                    <ShieldAlert className="h-4 w-4" />
+                    {t.tabs.system}
+                </TabsTrigger>
+                <TabsTrigger value="todos" className="gap-2">
+                    <CheckCircle className="h-4 w-4" />
+                    {t.tabs.todos}
+                </TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="system" className="space-y-6">
+                <div className="space-y-4">
+                {processedTasks.length > 0 ? (
+                    <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {processedTasks.map(task => {
+                            const statusLabel = t.taskStatusLabels[task.derivedStatus.labelKey];
+                            const { icon: TaskIcon, color: taskColor, label: taskTypeLabel } = task.derivedType;
 
-                    return (
-                    <Card key={task.id} className={cn("overflow-hidden hover:shadow-md transition-shadow", task.derivedStatus.variant === 'destructive' && 'border-destructive/50')}>
-                        <CardHeader className="p-4 flex flex-row items-start bg-muted/50 gap-4">
-                            <div className={cn("p-2 rounded-lg", taskColor)}>
-                                <TaskIcon className="h-6 w-6" />
-                            </div>
-                            <div className="grid gap-1">
-                                <CardTitle className="text-base">{taskTypeLabel}</CardTitle>
-                                <CardDescription className="text-xs">
-                                    {t.dueDate}: {isMounted ? new Date(task.dueDate).toLocaleDateString(locale) : '...'}
-                                </CardDescription>
-                            </div>
-                            <div className="ml-auto flex flex-col items-end gap-1">
-                                <Badge variant={task.derivedStatus.variant} className="w-fit whitespace-nowrap">
-                                    {task.derivedStatus.variant === 'destructive' && <AlertTriangle className="mr-1.5 h-3.5 w-3.5" />}
-                                    {statusLabel}
-                                </Badge>
-                                {task.priority && <PriorityBadge priority={task.priority} />}
-                            </div>
-                        </CardHeader>
-                        <CardContent className="p-4 space-y-2">
-                            <p className="font-semibold" title={task.title}>{task.title}</p>
-                            <p className="text-sm text-muted-foreground flex items-center gap-2"><MapPin className="h-4 w-4"/> {task.location || 'N/A'}</p>
-                            <p className="text-sm text-muted-foreground"><strong className="font-medium">{t.taskStatus}:</strong> {task.status}</p>
+                            return (
+                            <Card key={task.id} className={cn("overflow-hidden hover:shadow-md transition-shadow", task.derivedStatus.variant === 'destructive' && 'border-destructive/50')}>
+                                <CardHeader className="p-4 flex flex-row items-start bg-muted/50 gap-4">
+                                    <div className={cn("p-2 rounded-lg", taskColor)}>
+                                        <TaskIcon className="h-6 w-6" />
+                                    </div>
+                                    <div className="grid gap-1">
+                                        <CardTitle className="text-base">{taskTypeLabel}</CardTitle>
+                                        <CardDescription className="text-xs">
+                                            {t.dueDate}: {isMounted ? new Date(task.dueDate).toLocaleDateString(locale) : '...'}
+                                        </CardDescription>
+                                    </div>
+                                    <div className="ml-auto flex flex-col items-end gap-1">
+                                        <Badge variant={task.derivedStatus.variant} className="w-fit whitespace-nowrap">
+                                            {task.derivedStatus.variant === 'destructive' && <AlertTriangle className="mr-1.5 h-3.5 w-3.5" />}
+                                            {statusLabel}
+                                        </Badge>
+                                        {task.priority && <PriorityBadge priority={task.priority} />}
+                                    </div>
+                                </CardHeader>
+                                <CardContent className="p-4 space-y-2">
+                                    <p className="font-semibold" title={task.title}>{task.title}</p>
+                                    <p className="text-sm text-muted-foreground flex items-center gap-2"><MapPin className="h-4 w-4"/> {task.location || 'N/A'}</p>
+                                    <p className="text-sm text-muted-foreground"><strong className="font-medium">{t.taskStatus}:</strong> {task.status}</p>
+                                </CardContent>
+                                <CardFooter className="p-4 pt-0">
+                                    <Button asChild variant="outline" size="sm" className="w-full">
+                                        <Link href={task.link || "#"}>
+                                            {t.viewDetailsTask} <ArrowRight className="ml-2 h-4 w-4" />
+                                        </Link>
+                                    </Button>
+                                </CardFooter>
+                            </Card>
+                            );
+                        })
+                    }
+                    </div>
+                ) : (
+                    <Card className="shadow-lg">
+                        <CardContent className="pt-6">
+                            <p className="text-center text-muted-foreground py-10">
+                                {tasks.length > 0 ? t.noFilteredTasks : t.noTasks}
+                            </p>
                         </CardContent>
-                        <CardFooter className="p-4 pt-0">
-                            <Button asChild variant="outline" size="sm" className="w-full">
-                                <Link href={task.link || "#"}>
-                                    {t.viewDetailsTask} <ArrowRight className="ml-2 h-4 w-4" />
-                                </Link>
-                            </Button>
-                        </CardFooter>
                     </Card>
-                    );
-                })
-            }
-            </div>
-        ) : (
-            <Card className="shadow-lg">
-                <CardContent className="pt-6">
-                    <p className="text-center text-muted-foreground py-10">
-                        {tasks.length > 0 ? t.noFilteredTasks : t.noTasks}
-                    </p>
-                </CardContent>
-            </Card>
-        )}
-        </div>
+                )}
+                </div>
+            </TabsContent>
+            
+            <TabsContent value="todos">
+                <TodoList />
+            </TabsContent>
+        </Tabs>
     </div>
   );
 }

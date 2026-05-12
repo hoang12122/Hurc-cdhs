@@ -5,6 +5,21 @@ type RateLimitInfo = {
 
 const store = new Map<string, RateLimitInfo>();
 
+// Clean up expired entries periodically to prevent memory leaks
+// Moved inside a lazy-init function to prevent build-time side-effects
+let cleanupInterval: NodeJS.Timeout | null = null;
+function startCleanup() {
+    if (cleanupInterval) return;
+    cleanupInterval = setInterval(() => {
+        const now = Date.now();
+        for (const [key, value] of store.entries()) {
+            if (now > value.resetTime) {
+                store.delete(key);
+            }
+        }
+    }, 5 * 60 * 1000).unref();
+}
+
 /**
  * Basic in-memory rate limiter
  * @param identifier The unique identifier for the user (e.g. IP address or email)
@@ -13,6 +28,8 @@ const store = new Map<string, RateLimitInfo>();
  * @returns boolean - true if allowed, false if rate limited
  */
 export function checkRateLimit(identifier: string, limit: number = 5, windowMs: number = 60000): boolean {
+  if (typeof window === 'undefined') startCleanup();
+  
   const now = Date.now();
   const info = store.get(identifier);
 
@@ -30,13 +47,3 @@ export function checkRateLimit(identifier: string, limit: number = 5, windowMs: 
   info.count++;
   return true;
 }
-
-// Clean up expired entries periodically to prevent memory leaks
-setInterval(() => {
-  const now = Date.now();
-  for (const [key, value] of store.entries()) {
-    if (now > value.resetTime) {
-      store.delete(key);
-    }
-  }
-}, 5 * 60 * 1000).unref();

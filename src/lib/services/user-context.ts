@@ -171,19 +171,19 @@ async function getUserActivitySummary(userId: string): Promise<UserActivitySumma
         ]);
 
         return {
-            recentDnfs: recentDnfs.map(d => ({
+            recentDnfs: recentDnfs.map((d: any) => ({
                 id: d.id,
                 description: d.descriptionOfFailure.substring(0, 60),
                 status: d.status,
                 priority: d.priority,
             })),
-            recentInspections: recentInspections.map(i => ({
+            recentInspections: recentInspections.map((i: any) => ({
                 id: i.id,
                 title: i.title,
                 status: i.status,
                 date: i.date,
             })),
-            recentHazards: recentHazards.map(h => ({
+            recentHazards: recentHazards.map((h: any) => ({
                 id: h.id,
                 description: h.description.substring(0, 60),
                 status: h.status,

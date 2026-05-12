@@ -36,7 +36,7 @@ export default function ReliabilityDashboard() {
 
     const avgMtbf = Math.round(stats.reduce((acc, s) => acc + s.mtbf, 0) / stats.length);
     const avgMttr = Math.round((stats.reduce((acc, s) => acc + s.mttr, 0) / stats.length) * 10) / 10;
-    const criticalAssets = stats.filter(s => s.mtbf < 100).length;
+    const criticalAssets = stats.filter(s => s.mtbf > 0 && s.mtbf < 100).length;
 
     const subsystemData = Array.from(new Set(stats.map(s => s.subsystem))).map(sub => {
         const subStats = stats.filter(s => s.subsystem === sub);

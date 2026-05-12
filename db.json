@@ -1,6 +1,72 @@
 {
-  "maintenanceStandards": [
+  "equipment": [
     {
+      "id": "EQ-SIG-BT-001",
+      "name": "Máy chuyển ghi #101",
+      "stationId": "001",
+      "systemId": "signaling"
+    },
+    {
+      "id": "EQ-TEL-BT-001",
+      "name": "Tủ Rack trung tâm P1",
+      "stationId": "001",
+      "systemId": "telecom"
+    },
+    {
+      "id": "EQ-POW-SH-001",
+      "name": "Máy biến áp T1",
+      "stationId": "002",
+      "systemId": "power"
+    },
+    {
+      "id": "EQ-AFC-CP-001",
+      "name": "Cổng soát vé G1",
+      "stationId": "003",
+      "systemId": "afc"
+    },
+    {
+      "id": "EQ-RS-T1-M1",
+      "name": "Động cơ kéo tàu T1-M1",
+      "stationId": "depot",
+      "systemId": "rolling-stock"
+    }
+  ],
+  "assets": [
+    {
+      "id": "EQ-SIG-BT-001",
+      "name": "Máy chuyển ghi #101",
+      "stationId": "001",
+      "systemId": "signaling"
+    },
+    {
+      "id": "EQ-TEL-BT-001",
+      "name": "Tủ Rack trung tâm P1",
+      "stationId": "001",
+      "systemId": "telecom"
+    },
+    {
+      "id": "EQ-POW-SH-001",
+      "name": "Máy biến áp T1",
+      "stationId": "002",
+      "systemId": "power"
+    },
+    {
+      "id": "EQ-AFC-CP-001",
+      "name": "Cổng soát vé G1",
+      "stationId": "003",
+      "systemId": "afc"
+    },
+    {
+      "id": "EQ-RS-T1-M1",
+      "name": "Động cơ kéo tàu T1-M1",
+      "stationId": "depot",
+      "systemId": "rolling-stock"
+    }
+  ],
+  "tasks": [],
+  "maintenance_standards": [
+    {
+      "id": "MS-1773411304732",
       "name": "Thông tin - Tín hiệu",
       "name_en": "Telecom",
       "description": "Checklist tuần của nhà ga",
@@ -25,10 +91,36 @@
       ],
       "recipientId": "",
       "abbreviation": "T",
-      "id": "MS-1773411304732"
+      "createdAt": "2026-03-30T10:00:00.000Z",
+      "updatedAt": "2026-03-30T10:00:00.000Z"
     }
   ],
-  "maintenanceStandardItems": [],
+  "maintenance_standard_items": [
+    {
+      "id": "MS-1773411304732-ITM-001",
+      "standardId": "MS-1773411304732",
+      "itemCode": "ITM-001",
+      "itemText": "Kiểm tra tình trạng vật lý của tủ Rack",
+      "criteria": "Sạch sẽ, không gỉ sét, đóng mở dễ dàng",
+      "unit": "OK/NG",
+      "standardQuantity": 1,
+      "toleranceOperator": "==",
+      "toleranceValue": 1,
+      "requiredTools": "Khăn lau"
+    },
+    {
+      "id": "MS-1773411304732-ITM-002",
+      "standardId": "MS-1773411304732",
+      "itemCode": "ITM-002",
+      "itemText": "Đo nhiệt độ phòng máy",
+      "criteria": "Nhiệt độ trong khoảng 20-25 độ C",
+      "unit": "Degree C",
+      "standardQuantity": 22.5,
+      "toleranceOperator": "range",
+      "toleranceValue": 2.5,
+      "requiredTools": "Nhiệt kế"
+    }
+  ],
   "inspections": [
     {
       "id": "INS-AT-T-140326-0001",
@@ -51,181 +143,64 @@
         "009"
       ],
       "checklistTemplateId": "MS-1773411304732",
-      "date": "2026-03-13",
+      "date": "2026-03-13T00:00:00.000Z",
       "scheduledStartDate": "2026-03-13T17:00:00.000Z",
       "scheduledFinishDate": "2026-03-20T17:00:00.000Z",
       "status": "Chưa thực hiện",
       "inspector": "L2 Technician",
       "generalNotes": "Automatically generated based on weekly schedule.",
-      "checklistItems": []
+      "checklist_items": [],
+      "createdAt": "2026-03-13T10:00:00.000Z",
+      "updatedAt": "2026-03-13T10:00:00.000Z"
     }
   ],
-  "correctiveActions": [],
-  "dnfs": [
+  "checklist_items": [],
+  "findings": [],
+  "dnf_documents": [
     {
-      "failureReportNo": "",
-      "failedComponentEquipmentLRUTrainNumber": "PGSS01",
-      "subsystemIds": [
-        "004"
-      ],
-      "subsystemOther": "",
-      "descriptionOfFailure": "ko quét được thẻ",
-      "impactAssessment": "",
-      "staffWhoIdentifiedFailure": "Loan",
-      "dateTimeOfFailureOccurrence": "2025-08-15T02:19:00.000Z",
-      "methodOfFailureDetection": "visual",
-      "status": "Mới",
-      "attachments": [],
-      "locationOfFailure": "001",
-      "id": "DNF-004-0001",
-      "createdAt": "2025-08-15T09:20:52.133Z",
-      "updatedAt": "2025-08-15T09:20:52.133Z",
-      "createdById": "002",
-      "statusHistory": [],
-      "correctiveActions": [],
-      "isArchived": false
-    },
-    {
-      "failureReportNo": "",
-      "locationOfFailure": "008",
-      "failedComponentEquipmentLRUTrainNumber": "ATO ID003",
-      "subsystemIds": [
-        "003"
-      ],
-      "subsystemOther": "",
-      "descriptionOfFailure": "Bị mất tính hiệu tạm thời ",
-      "impactAssessment": "Tạm thời đang ở bãi đậu tàu chờ sửa chữa ",
-      "staffWhoIdentifiedFailure": "Hồ Đạt Thế",
-      "dateTimeOfFailureOccurrence": "2025-08-13T00:40:00.000Z",
-      "methodOfFailureDetection": "test_equipment",
-      "hazardLevelId": "high",
-      "status": "Đã tiếp nhận",
-      "attachments": [],
-      "assignedTo": "XNBD",
-      "priority": "Cao",
-      "id": "DNF-003-0001",
-      "createdAt": "2025-08-13T08:04:26.256Z",
-      "updatedAt": "2025-09-23T07:29:09.326Z",
-      "createdById": "002",
-      "statusHistory": [
-        {
-          "from": "Mới",
-          "to": "Đã tiếp nhận",
-          "timestamp": "2025-09-23T07:29:09.326Z",
-          "userId": "002",
-          "userName": "Nguyễn Huy Hoàng"
-        }
-      ],
-      "correctiveActions": [],
-      "isArchived": false
-    },
-    {
-      "failureReportNo": "",
-      "locationOfFailure": "004",
-      "failedComponentEquipmentLRUTrainNumber": "PG002011",
-      "subsystemIds": [
-        "001"
-      ],
-      "subsystemOther": "",
-      "descriptionOfFailure": "Cửa PG hiện đang có vấn đề không đóng được cửa",
-      "impactAssessment": "Hiện đang tạm ngưng",
-      "staffWhoIdentifiedFailure": "Trịnh Thùy Chi",
-      "dateTimeOfFailureOccurrence": "2025-08-13T00:34:00.000Z",
-      "methodOfFailureDetection": "visual",
-      "status": "Đã tiếp nhận",
-      "attachments": [],
-      "id": "DNF-001-0002",
-      "createdAt": "2025-08-13T07:35:38.830Z",
-      "updatedAt": "2025-08-31T10:57:34.945Z",
-      "createdById": "002",
-      "statusHistory": [
-        {
-          "from": "Mới",
-          "to": "Đã tiếp nhận",
-          "timestamp": "2025-08-31T10:57:34.945Z",
-          "userId": "002",
-          "userName": "Nguyễn Huy Hoàng"
-        }
-      ],
-      "correctiveActions": [
-        {
-          "description": "Ãdcfc",
-          "responsiblePersonOrUnit": "Nguyễn Huy Hoàng",
-          "id": "CA-1756637867754",
-          "dnfId": "DNF-001-0002",
-          "createdAt": "2025-08-31T10:57:47.754Z",
-          "status": "Mới"
-        }
-      ],
-      "isArchived": false
-    },
-    {
+      "id": "DNF-001-0001",
+      "code": "DNF-001-0001",
+      "title": "[DỮ LIỆU ĐÃ LƯU TRỮ]",
+      "description": "[DỮ LIỆU ĐÃ LƯU TRỮ]",
+      "stationId": "003",
+      "equipmentId": "SS01PG023",
+      "createdBy": "002",
       "failureReportNo": "",
       "locationOfFailure": "003",
       "failedComponentEquipmentLRUTrainNumber": "SS01PG023",
       "subsystemIds": [
         "001"
       ],
-      "subsystemOther": "",
       "descriptionOfFailure": "[DỮ LIỆU ĐÃ LƯU TRỮ]",
       "impactAssessment": "[DỮ LIỆU ĐÃ LƯU TRỮ]",
       "staffWhoIdentifiedFailure": "Vũ Minh Bảo",
       "dateTimeOfFailureOccurrence": "2025-08-13T00:20:00.000Z",
       "methodOfFailureDetection": "report_from_other",
       "status": "Đã đóng",
-      "attachments": [],
-      "assignedTo": "user-1755069083240",
-      "priority": "Trung bình",
-      "id": "DNF-001-0001",
+      "createdById": "002",
       "createdAt": "2025-08-13T07:31:23.113Z",
       "updatedAt": "2025-09-16T06:59:14.745Z",
-      "createdById": "002",
-      "statusHistory": [
-        {
-          "from": "Mới",
-          "to": "Đã tiếp nhận",
-          "timestamp": "2025-08-13T07:33:42.390Z",
-          "userId": "002",
-          "userName": "Nguyễn Huy Hoàng"
-        },
-        {
-          "from": "Đang điều tra",
-          "to": "Đang xử lý",
-          "timestamp": "2025-08-31T11:11:45.810Z",
-          "userId": "002",
-          "userName": "Nguyễn Huy Hoàng"
-        },
-        {
-          "from": "Đang xử lý",
-          "to": "Chờ xác nhận",
-          "timestamp": "2025-09-16T02:13:54.881Z",
-          "userId": "002",
-          "userName": "Nguyễn Huy Hoàng"
-        },
-        {
-          "from": "Chờ xác nhận",
-          "to": "Đã đóng",
-          "timestamp": "2025-09-16T06:59:14.744Z",
-          "userId": "002",
-          "userName": "Nguyễn Huy Hoàng"
-        }
-      ],
-      "correctiveActions": [
-        {
-          "description": "Tđtzgfxfyx",
-          "responsiblePersonOrUnit": "Nguyễn Huy Hoàng",
-          "id": "CA-1756638714185",
-          "dnfId": "DNF-001-0001",
-          "createdAt": "2025-08-31T11:11:54.185Z",
-          "status": "Mới"
-        }
-      ],
+      "assignedTo": "user-1755069083240",
+      "priority": "Trung bình",
       "isArchived": true,
-      "resolutionDetails": "[DỮ LIỆU ĐÃ LƯU TRỮ]"
+      "resolutionDetails": "[DỮ LIỆU ĐÃ LƯU TRỮ]",
+      "statusHistory": "[{\"from\": \"Mới\", \"to\": \"Đã tiếp nhận\", \"timestamp\": \"2025-08-13T07:33:42.390Z\", \"userId\": \"002\", \"userName\": \"Nguyễn Huy Hoàng\"}]"
     }
   ],
-  "hazardRecords": [
+  "corrective_actions": [
     {
+      "id": "CA-1756638714185",
+      "dnfId": "DNF-001-0001",
+      "description": "Tđtzgfxfyx",
+      "responsiblePersonOrUnit": "Nguyễn Huy Hoàng",
+      "createdAt": "2025-08-31T11:11:54.185Z",
+      "updatedAt": "2025-08-31T11:11:54.185Z",
+      "status": "Mới"
+    }
+  ],
+  "hazards": [
+    {
+      "id": "HAZ-003-001",
       "description": "[DỮ LIỆU ĐÃ LƯU TRỮ]",
       "systemGroup": "003",
       "locationIds": [
@@ -237,6 +212,7 @@
       "identificationDate": "2025-08-15T00:00:00.000Z",
       "severityId": "I",
       "likelihoodId": "B",
+      "riskLevelId": "R1",
       "currentControls": "[DỮ LIỆU ĐÃ LƯU TRỮ]",
       "proposedActions": "[DỮ LIỆU ĐÃ LƯU TRỮ]",
       "suggestedActions": "[DỮ LIỆU ĐÃ LƯU TRỮ]",
@@ -246,265 +222,32 @@
       ],
       "dueDate": "2025-08-22T00:00:00.000Z",
       "status": "Đã đóng",
-      "attachments": [],
       "linkedDnfId": null,
       "closureDetails": "[DỮ LIỆU ĐÃ LƯU TRỮ]",
       "verificationDetails": "[DỮ LIỆU ĐÃ LƯU TRỮ]",
-      "id": "HAZ-003-001",
+      "createdById": "002",
       "createdAt": "2025-08-15T09:24:28.341Z",
       "updatedAt": "2025-09-04T08:33:17.835Z",
-      "riskLevelId": "R1",
       "isArchived": true
     }
   ],
   "improvements": [],
-  "users": [
-    {
-      "id": "user-ceo-1773408335984",
-      "name": "Chief Executive Officer",
-      "email": "ceo@hurc.cdhs",
-      "password": "$2a$10$TLyfseTSedptr/RQCJeGx.hcsJwFSie1Bwov6eaSJOFgK8sWtTKoG",
-      "role": "Executive",
-      "status": "active",
-      "department": "Board of Directors",
-      "isVerified": true,
-      "passwordLastChangedAt": "2026-03-14T00:05:09.304Z"
-    },
-    {
-      "id": "user-superadmin-1773411039000",
-      "name": "Super Admin",
-      "email": "superadmin@hurc.cdhs",
-      "password": "$2a$10$leV1byEK/CWX/s2MdhSCTeuqLBoftO0NgIHxdA7OuPcgK5I9HAEEO",
-      "role": "Admin (P.KTAT)",
-      "status": "active",
-      "department": "IT Operations",
-      "isVerified": true,
-      "passwordLastChangedAt": "2026-03-14T00:06:06.403Z"
-    },
-    {
-      "id": "user-bod-1773411039001",
-      "name": "Hội đồng quản trị",
-      "email": "bod@hurc.cdhs",
-      "password": "$2a$10$sbEkiyp/AxnUOshtZKJH8uA9QCkOli7.wlN.i/ui7B03d7ozSvNCe",
-      "role": "Executive",
-      "status": "active",
-      "department": "Board of Directors",
-      "isVerified": true,
-      "passwordLastChangedAt": "2026-03-13T14:05:00.001Z"
-    },
-    {
-      "id": "user-new-1773452345915",
-      "name": "Admin Mới",
-      "email": "admin.new@hurc.cdhs",
-      "password": "$2a$10$j2/8llohuyiG1trK0fOUoeXfqIZK9yr7.Zy8mB9vZHHMLMYEcwvRC",
-      "role": "Admin (P.KTAT)",
-      "status": "active",
-      "department": "Management",
-      "isVerified": true,
-      "passwordLastChangedAt": "2026-03-14T01:39:05.915Z"
-    }
-  ],
-  "roles": [
-    {
-      "id": "Client",
-      "name": "Client",
-      "description": "Người dùng cuối, báo cáo sự cố.",
-      "permissions": [
-        "dnf:create",
-        "dnf:view_all",
-        "hazard:create",
-        "hazard:view_all"
-      ]
-    },
-    {
-      "id": "L2 Technician",
-      "name": "L2 Technician",
-      "description": "Kỹ thuật viên cấp 2, xử lý sự cố cơ bản.",
-      "permissions": [
-        "inspections:create",
-        "corrective_actions:create",
-        "dnf:create",
-        "dnf:view_all",
-        "dnf:edit_all",
-        "dnf:manage_status",
-        "hazard:create",
-        "hazard:view_all",
-        "hazard:assess"
-      ]
-    },
-    {
-      "id": "L3 Specialist",
-      "name": "L3 Specialist",
-      "description": "Chuyên gia cấp 3, xử lý sự cố phức tạp.",
-      "permissions": [
-        "inspections:create",
-        "inspections:delete",
-        "inspections:approve",
-        "corrective_actions:create",
-        "corrective_actions:verify",
-        "corrective_actions:delete",
-        "dnf:create",
-        "dnf:view_all",
-        "dnf:edit_all",
-        "dnf:manage_status",
-        "dnf:delete",
-        "dnf:import",
-        "reports:view",
-        "hazard:create",
-        "hazard:view_all",
-        "hazard:assess",
-        "hazard:manage_status",
-        "hazard:edit_all",
-        "hazard:delete",
-        "improvements:create",
-        "improvements:view_all",
-        "improvements:edit_all",
-        "improvements:delete",
-        "checklist_templates:manage"
-      ]
-    },
-    {
-      "id": "Admin (P.KTAT)",
-      "name": "Admin (P.KTAT)",
-      "description": "Quản trị viên, quản lý hệ thống và toàn bộ dữ liệu.",
-      "permissions": [
-        "inspections:create",
-        "inspections:view_all",
-        "inspections:edit_all",
-        "inspections:delete",
-        "inspections:assign",
-        "inspections:approve",
-        "corrective_actions:create",
-        "corrective_actions:view_all",
-        "corrective_actions:edit_all",
-        "corrective_actions:delete",
-        "corrective_actions:assign",
-        "corrective_actions:verify",
-        "dnf:create",
-        "dnf:view_all",
-        "dnf:edit_all",
-        "dnf:delete",
-        "dnf:manage_status",
-        "dnf:import",
-        "hazard:create",
-        "hazard:view_all",
-        "hazard:assess",
-        "hazard:edit_all",
-        "hazard:delete",
-        "hazard:manage_status",
-        "improvements:create",
-        "improvements:view_all",
-        "improvements:edit_all",
-        "improvements:delete",
-        "reports:view",
-        "reports:manage",
-        "users:manage",
-        "roles:manage",
-        "checklist_templates:manage",
-        "settings:manage"
-      ]
-    },
-    {
-      "id": "Executive",
-      "name": "Executive (CEO/CTO)",
-      "description": "High-level administrative account for CEO/CTO",
-      "permissions": [
-        "reports:view",
-        "reports:manage",
-        "ai:use",
-        "ai:vision",
-        "inspections:view_all",
-        "dnf:view_all",
-        "hazard:view_all",
-        "improvements:view_all"
-      ]
-    }
-  ],
-  "responsibleUnits": [
-    {
-      "name": "XNVN",
-      "id": "unit-1755068520536"
-    },
-    {
-      "name": "XNBD",
-      "id": "unit-1755068526301"
-    },
-    {
-      "name": "P.KT-AT",
-      "id": "unit-1755068534344"
-    },
-    {
-      "name": "TTC",
-      "id": "unit-1755068542504"
-    },
-    {
-      "name": "FIS",
-      "id": "unit-1755068546266"
-    },
-    {
-      "name": "VECC",
-      "id": "unit-1755068558956"
-    }
-  ],
-  "subsystems": [
+  "notifications": [],
+  "comments": [],
+  "responsible_units": [],
+  "sub_systems": [
     {
       "id": "001",
-      "label": {
-        "vi": "Thanh toán tự động",
-        "en": "AFC"
-      }
+      "label_vi": "Thanh toán tự động",
+      "label_en": "AFC"
     },
     {
       "id": "002",
-      "label": {
-        "vi": "Công trình ray ",
-        "en": "Rolling Stock"
-      }
-    },
-    {
-      "id": "003",
-      "label": {
-        "vi": "Đầu máy toa xe",
-        "en": "(Chưa có)"
-      }
-    },
-    {
-      "id": "004",
-      "label": {
-        "vi": "Hệ thống thanh toán tự động",
-        "en": "AFC (CP04)"
-      }
-    },
-    {
-      "id": "005",
-      "label": {
-        "vi": "Thiết bị nhà Ga ",
-        "en": "TBNG"
-      }
-    },
-    {
-      "id": "006",
-      "label": {
-        "vi": "Thông tin - Tín hiệu",
-        "en": "Telecom"
-      }
-    },
-    {
-      "id": "007",
-      "label": {
-        "vi": "Điện",
-        "en": "(Chưa có)"
-      }
-    },
-    {
-      "id": "008",
-      "label": {
-        "vi": "Cơ",
-        "en": "(Chưa có)"
-      }
+      "label_vi": "Công trình ray",
+      "label_en": "Rolling Stock"
     }
   ],
-  "patrolLocations": [
+  "patrol_locations": [
     {
       "id": "001",
       "label": "Depot Long Bình"
@@ -512,1735 +255,103 @@
     {
       "id": "002",
       "label": "Ga Bến Thành"
-    },
-    {
-      "id": "003",
-      "label": "Ga Nhà hát Thành phố"
-    },
-    {
-      "id": "004",
-      "label": "Ga Ba Son"
-    },
-    {
-      "id": "005",
-      "label": "Ga Công viên Văn Thánh"
-    },
-    {
-      "id": "006",
-      "label": "Ga Tân Cảng"
-    },
-    {
-      "id": "007",
-      "label": "Ga Thảo Điền"
-    },
-    {
-      "id": "008",
-      "label": "Ga An Phú"
-    },
-    {
-      "id": "009",
-      "label": "Ga Rạch Chiếc "
-    },
-    {
-      "id": "010",
-      "label": "Ga Phước Long"
-    },
-    {
-      "id": "011",
-      "label": "Ga Bình Thái "
-    },
-    {
-      "id": "012",
-      "label": "Ga Thủ Đức"
-    },
-    {
-      "id": "013",
-      "label": "Ga Công nghệ cao "
-    },
-    {
-      "id": "014",
-      "label": "Ga Đại học Quốc Gia "
-    },
-    {
-      "id": "015",
-      "label": "Ga Bến xe Suối Tiên"
     }
   ],
-  "systemLogs": [
+  "users": [
     {
-      "id": "log-1773446766420",
-      "timestamp": "2026-03-14T00:06:06.420Z",
-      "userId": "user-superadmin-1773411039000",
-      "userName": "Super Admin",
-      "action": "ADMIN_RESET_PASSWORD",
-      "level": "WARNING",
-      "details": "Admin reset password for user: Super Admin (ID: user-superadmin-1773411039000)",
-      "category": "data"
-    },
+      "id": "user-admin-2026",
+      "name": "Supper Admin",
+      "email": "nhhoang@hurc.vn",
+      "password": "$2b$10$v4s09aSjFKj.JnZGRRYPFuElSZoTnEXkCorhYgEEHJ/LbhYgKj92q",
+      "role": "SUPER_ADMIN",
+      "status": "active",
+      "createdAt": "2026-04-01T14:00:00.000Z",
+      "updatedAt": "2026-05-10T06:39:41.714Z",
+      "failedLoginAttempts": 0,
+      "lockoutUntil": null,
+      "lastLoginAt": "2026-05-10T06:39:41.459Z",
+      "lastLoginIp": "unknown"
+    }
+  ],
+  "roles": [
     {
-      "id": "log-1773446709315",
-      "timestamp": "2026-03-14T00:05:09.315Z",
-      "userId": "user-superadmin-1773411039000",
-      "userName": "Super Admin",
-      "action": "ADMIN_RESET_PASSWORD",
-      "level": "WARNING",
-      "details": "Admin reset password for user: Chief Executive Officer (ID: user-ceo-1773408335984)",
-      "category": "data"
-    },
+      "id": "SUPER_ADMIN",
+      "name": "Supper Admin",
+      "description": "Toàn quyền hệ thống",
+      "permissions": [
+        "*"
+      ]
+    }
+  ],
+  "ai_agents": [],
+  "ai_knowledge_snippets": [],
+  "ai_conversations": [],
+  "ai_conversation_messages": [],
+  "ai_insights": [],
+  "ai_sync_logs": [],
+  "ai_verification_logs": [],
+  "ai_safety_logs": [],
+  "ai_request_logs": [],
+  "trust_graph_nodes": [],
+  "trust_graph_edges": [],
+  "system_logs": [
     {
-      "id": "log-1773446638367",
-      "timestamp": "2026-03-14T00:03:58.367Z",
-      "userId": "user-superadmin-1773411039000",
-      "userName": "Super Admin",
-      "action": "LOGIN_SUCCESS",
+      "id": "log-1778244552081-xysuh",
+      "timestamp": "2026-05-08T12:49:12.081Z",
+      "userId": "user-admin-2026",
+      "userName": "Supper Admin",
+      "action": "SCHEDULER_RUN",
       "level": "INFO",
-      "details": "User logged in successfully: superadmin@hurc.cdhs",
+      "details": "Manual scheduler execution triggered",
       "category": "data"
     },
     {
-      "id": "log-1773446612839",
-      "timestamp": "2026-03-14T00:03:32.839Z",
-      "userId": "system",
-      "userName": "System",
-      "action": "LOGIN_SUCCESS",
-      "level": "INFO",
-      "details": "User logged in successfully: superadmin@hurc.cdhs",
-      "category": "data"
-    },
-    {
-      "id": "log-1773446484019",
-      "timestamp": "2026-03-14T00:01:24.019Z",
-      "userId": "system",
-      "userName": "System",
-      "action": "PASSWORD_RESET_REQUEST",
-      "level": "INFO",
-      "details": "Password reset request submitted for email: hoanghuy1212200@gmail.com",
-      "category": "data"
-    },
-    {
-      "id": "log-1773443316869",
-      "timestamp": "2026-03-13T23:08:36.869Z",
-      "userId": "user-superadmin-1773411039000",
-      "userName": "Super Admin",
-      "action": "DELETE_USER",
-      "level": "WARNING",
-      "details": "User Super Admin deleted user: Admin (ID: user-1755073805620)",
-      "category": "data"
-    },
-    {
-      "id": "log-1773413531174",
-      "timestamp": "2026-03-13T14:52:11.174Z",
-      "userId": "user-superadmin-1773411039000",
-      "userName": "Super Admin",
-      "action": "DELETE_USER",
-      "level": "WARNING",
-      "details": "User Super Admin deleted user: Admin (ID: user-1755222796243)",
-      "category": "data"
-    },
-    {
-      "id": "log-1773413524442",
-      "timestamp": "2026-03-13T14:52:04.442Z",
-      "userId": "user-superadmin-1773411039000",
-      "userName": "Super Admin",
-      "action": "DELETE_USER",
-      "level": "WARNING",
-      "details": "User Super Admin deleted user: Admin (ID: user-1755222807536)",
-      "category": "data"
-    },
-    {
-      "id": "log-1773413513742",
-      "timestamp": "2026-03-13T14:51:53.742Z",
-      "userId": "user-superadmin-1773411039000",
-      "userName": "Super Admin",
-      "action": "DELETE_USER",
-      "level": "WARNING",
-      "details": "User Super Admin deleted user: Nguyễn Huy Hoàng (ID: 002)",
-      "category": "data"
-    },
-    {
-      "id": "log-1773413460340",
-      "timestamp": "2026-03-13T14:51:00.340Z",
-      "userId": "user-superadmin-1773411039000",
-      "userName": "Super Admin",
-      "action": "DELETE_USER",
-      "level": "WARNING",
-      "details": "User Super Admin deleted user: Vũ Minh Bảo (ID: user-1755069083240)",
-      "category": "data"
-    },
-    {
-      "id": "log-1773413454445",
-      "timestamp": "2026-03-13T14:50:54.446Z",
-      "userId": "user-superadmin-1773411039000",
-      "userName": "Super Admin",
-      "action": "DELETE_USER",
-      "level": "WARNING",
-      "details": "User Super Admin deleted user: Nguyễn Minh Thành (ID: user-1755068955402)",
-      "category": "data"
-    },
-    {
-      "id": "log-1773413442504",
-      "timestamp": "2026-03-13T14:50:42.504Z",
-      "userId": "user-superadmin-1773411039000",
-      "userName": "Super Admin",
-      "action": "DELETE_USER",
-      "level": "WARNING",
-      "details": "User Super Admin deleted user: Nguyễn Huy Hoàng (ID: 001)",
-      "category": "data"
-    },
-    {
-      "id": "log-1773411304746",
-      "timestamp": "2026-03-13T14:15:04.746Z",
-      "userId": "user-superadmin-1773411039000",
-      "userName": "Super Admin",
-      "action": "CREATE_MAINTENANCE_STANDARD",
-      "level": "INFO",
-      "details": "Created maintenance standard: Thông tin - Tín hiệu",
-      "category": "data"
-    },
-    {
-      "id": "log-1773410683302",
-      "timestamp": "2026-03-13T14:04:43.302Z",
-      "userId": "user-superadmin-1773411039000",
-      "userName": "Super Admin",
-      "action": "DELETE_ROLE",
-      "level": "WARNING",
-      "details": "Deleted role: Long",
-      "category": "data"
-    },
-    {
-      "id": "log-1773410517538",
-      "timestamp": "2026-03-13T14:01:57.538Z",
-      "userId": "system",
-      "userName": "System",
-      "action": "LOGIN_SUCCESS",
-      "level": "INFO",
-      "details": "User logged in successfully: superadmin@hurc.cdhs",
-      "category": "data"
-    },
-    {
-      "id": "log-1773410239133",
-      "timestamp": "2026-03-13T13:57:19.133Z",
-      "userId": "user-ceo-1773408335984",
-      "userName": "Chief Executive Officer",
-      "action": "PERMISSION_DENIED",
-      "level": "WARNING",
-      "details": "User Chief Executive Officer (user-ceo-1773408335984) denied access to permission 'settings:manage'.",
-      "category": "data"
-    },
-    {
-      "id": "log-1773410239077",
-      "timestamp": "2026-03-13T13:57:19.077Z",
-      "userId": "user-ceo-1773408335984",
-      "userName": "Chief Executive Officer",
-      "action": "PERMISSION_DENIED",
-      "level": "WARNING",
-      "details": "User Chief Executive Officer (user-ceo-1773408335984) denied access to permission 'settings:manage'.",
-      "category": "data"
-    },
-    {
-      "id": "log-1773410239001",
-      "timestamp": "2026-03-13T13:57:19.001Z",
-      "userId": "user-ceo-1773408335984",
-      "userName": "Chief Executive Officer",
-      "action": "PERMISSION_DENIED",
-      "level": "WARNING",
-      "details": "User Chief Executive Officer (user-ceo-1773408335984) denied access to permission 'settings:manage'.",
-      "category": "data"
-    },
-    {
-      "id": "log-1773410238877",
-      "timestamp": "2026-03-13T13:57:18.877Z",
-      "userId": "user-ceo-1773408335984",
-      "userName": "Chief Executive Officer",
-      "action": "PERMISSION_DENIED",
-      "level": "WARNING",
-      "details": "User Chief Executive Officer (user-ceo-1773408335984) denied access to permission 'checklist_templates:manage'.",
-      "category": "data"
-    },
-    {
-      "id": "log-1773410238816",
-      "timestamp": "2026-03-13T13:57:18.816Z",
-      "userId": "user-ceo-1773408335984",
-      "userName": "Chief Executive Officer",
-      "action": "PERMISSION_DENIED",
-      "level": "WARNING",
-      "details": "User Chief Executive Officer (user-ceo-1773408335984) denied access to permission 'roles:manage'.",
-      "category": "data"
-    },
-    {
-      "id": "log-1773410238754",
-      "timestamp": "2026-03-13T13:57:18.754Z",
-      "userId": "user-ceo-1773408335984",
-      "userName": "Chief Executive Officer",
-      "action": "PERMISSION_DENIED",
-      "level": "WARNING",
-      "details": "User Chief Executive Officer (user-ceo-1773408335984) denied access to permission 'users:manage'.",
-      "category": "data"
-    },
-    {
-      "id": "log-1773410238693",
-      "timestamp": "2026-03-13T13:57:18.693Z",
-      "userId": "user-ceo-1773408335984",
-      "userName": "Chief Executive Officer",
-      "action": "PERMISSION_DENIED",
-      "level": "WARNING",
-      "details": "User Chief Executive Officer (user-ceo-1773408335984) denied access to permission 'settings:manage'.",
-      "category": "data"
-    },
-    {
-      "id": "log-1773410238626",
-      "timestamp": "2026-03-13T13:57:18.626Z",
-      "userId": "user-ceo-1773408335984",
-      "userName": "Chief Executive Officer",
-      "action": "PERMISSION_DENIED",
-      "level": "WARNING",
-      "details": "User Chief Executive Officer (user-ceo-1773408335984) denied access to permission 'settings:manage'.",
-      "category": "data"
-    },
-    {
-      "id": "log-1773410238560",
-      "timestamp": "2026-03-13T13:57:18.560Z",
-      "userId": "user-ceo-1773408335984",
-      "userName": "Chief Executive Officer",
-      "action": "PERMISSION_DENIED",
-      "level": "WARNING",
-      "details": "User Chief Executive Officer (user-ceo-1773408335984) denied access to permission 'settings:manage'.",
-      "category": "data"
-    },
-    {
-      "id": "log-1773410238489",
-      "timestamp": "2026-03-13T13:57:18.489Z",
-      "userId": "user-ceo-1773408335984",
-      "userName": "Chief Executive Officer",
-      "action": "PERMISSION_DENIED",
-      "level": "WARNING",
-      "details": "User Chief Executive Officer (user-ceo-1773408335984) denied access to permission 'settings:manage'.",
-      "category": "data"
-    },
-    {
-      "id": "log-1773410238416",
-      "timestamp": "2026-03-13T13:57:18.416Z",
-      "userId": "user-ceo-1773408335984",
-      "userName": "Chief Executive Officer",
-      "action": "PERMISSION_DENIED",
-      "level": "WARNING",
-      "details": "User Chief Executive Officer (user-ceo-1773408335984) denied access to permission 'settings:manage'.",
-      "category": "data"
-    },
-    {
-      "id": "log-1773410238354",
-      "timestamp": "2026-03-13T13:57:18.354Z",
-      "userId": "user-ceo-1773408335984",
-      "userName": "Chief Executive Officer",
-      "action": "PERMISSION_DENIED",
-      "level": "WARNING",
-      "details": "User Chief Executive Officer (user-ceo-1773408335984) denied access to permission 'checklist_templates:manage'.",
-      "category": "data"
-    },
-    {
-      "id": "log-1773410238286",
-      "timestamp": "2026-03-13T13:57:18.286Z",
-      "userId": "user-ceo-1773408335984",
-      "userName": "Chief Executive Officer",
-      "action": "PERMISSION_DENIED",
-      "level": "WARNING",
-      "details": "User Chief Executive Officer (user-ceo-1773408335984) denied access to permission 'roles:manage'.",
-      "category": "data"
-    },
-    {
-      "id": "log-1773410238214",
-      "timestamp": "2026-03-13T13:57:18.214Z",
-      "userId": "user-ceo-1773408335984",
-      "userName": "Chief Executive Officer",
-      "action": "PERMISSION_DENIED",
-      "level": "WARNING",
-      "details": "User Chief Executive Officer (user-ceo-1773408335984) denied access to permission 'users:manage'.",
-      "category": "data"
-    },
-    {
-      "id": "log-1773410238096",
-      "timestamp": "2026-03-13T13:57:18.096Z",
-      "userId": "user-ceo-1773408335984",
-      "userName": "Chief Executive Officer",
-      "action": "PERMISSION_DENIED",
-      "level": "WARNING",
-      "details": "User Chief Executive Officer (user-ceo-1773408335984) denied access to permission 'settings:manage'.",
-      "category": "data"
-    },
-    {
-      "id": "log-1773410238029",
-      "timestamp": "2026-03-13T13:57:18.029Z",
-      "userId": "user-ceo-1773408335984",
-      "userName": "Chief Executive Officer",
-      "action": "PERMISSION_DENIED",
-      "level": "WARNING",
-      "details": "User Chief Executive Officer (user-ceo-1773408335984) denied access to permission 'settings:manage'.",
-      "category": "data"
-    },
-    {
-      "id": "log-1773410236002",
-      "timestamp": "2026-03-13T13:57:16.002Z",
-      "userId": "user-ceo-1773408335984",
-      "userName": "Chief Executive Officer",
-      "action": "PERMISSION_DENIED",
-      "level": "WARNING",
-      "details": "User Chief Executive Officer (user-ceo-1773408335984) denied access to permission 'settings:manage'.",
-      "category": "data"
-    },
-    {
-      "id": "log-1773410229200",
-      "timestamp": "2026-03-13T13:57:09.200Z",
-      "userId": "system",
-      "userName": "System",
-      "action": "LOGIN_SUCCESS",
-      "level": "INFO",
-      "details": "User logged in successfully: ceo@hurc.cdhs",
-      "category": "data"
-    },
-    {
-      "id": "log-1773233834267",
-      "timestamp": "2026-03-11T12:57:14.267Z",
-      "userId": "002",
-      "userName": "Nguyễn Huy Hoàng",
-      "action": "LOGIN_SUCCESS",
-      "level": "INFO",
-      "details": "User logged in successfully: admin@hurc.cdhs",
-      "category": "data"
-    },
-    {
-      "id": "log-1773233369549",
-      "timestamp": "2026-03-11T12:49:29.549Z",
-      "userId": "002",
-      "userName": "Nguyễn Huy Hoàng",
-      "action": "LOGIN_FAILED",
-      "level": "WARNING",
-      "details": "Login attempt failed for user: admin@hurc.cdhs (Incorrect password).",
-      "category": "data"
-    },
-    {
-      "id": "log-1773233369360",
-      "timestamp": "2026-03-11T12:49:29.360Z",
-      "userId": "002",
-      "userName": "Nguyễn Huy Hoàng",
-      "action": "LOGIN_FAILED",
-      "level": "WARNING",
-      "details": "Login attempt failed for user: admin@hurc.cdhs (Incorrect password).",
-      "category": "data"
-    },
-    {
-      "id": "log-1773233369172",
-      "timestamp": "2026-03-11T12:49:29.172Z",
-      "userId": "002",
-      "userName": "Nguyễn Huy Hoàng",
-      "action": "LOGIN_FAILED",
-      "level": "WARNING",
-      "details": "Login attempt failed for user: admin@hurc.cdhs (Incorrect password).",
-      "category": "data"
-    },
-    {
-      "id": "log-1773233368972",
-      "timestamp": "2026-03-11T12:49:28.972Z",
-      "userId": "002",
-      "userName": "Nguyễn Huy Hoàng",
-      "action": "LOGIN_FAILED",
-      "level": "WARNING",
-      "details": "Login attempt failed for user: admin@hurc.cdhs (Incorrect password).",
-      "category": "data"
-    },
-    {
-      "id": "log-1773233368770",
-      "timestamp": "2026-03-11T12:49:28.770Z",
-      "userId": "002",
-      "userName": "Nguyễn Huy Hoàng",
-      "action": "LOGIN_FAILED",
-      "level": "WARNING",
-      "details": "Login attempt failed for user: admin@hurc.cdhs (Incorrect password).",
-      "category": "data"
-    },
-    {
-      "id": "log-1773233368501",
-      "timestamp": "2026-03-11T12:49:28.501Z",
-      "userId": "002",
-      "userName": "Nguyễn Huy Hoàng",
-      "action": "LOGIN_FAILED",
-      "level": "WARNING",
-      "details": "Login attempt failed for user: admin@hurc.cdhs (Incorrect password).",
-      "category": "data"
-    },
-    {
-      "id": "log-1773233368227",
-      "timestamp": "2026-03-11T12:49:28.227Z",
-      "userId": "002",
-      "userName": "Nguyễn Huy Hoàng",
-      "action": "LOGIN_FAILED",
-      "level": "WARNING",
-      "details": "Login attempt failed for user: admin@hurc.cdhs (Incorrect password).",
-      "category": "data"
-    },
-    {
-      "id": "log-1773233368007",
-      "timestamp": "2026-03-11T12:49:28.007Z",
-      "userId": "002",
-      "userName": "Nguyễn Huy Hoàng",
-      "action": "LOGIN_FAILED",
-      "level": "WARNING",
-      "details": "Login attempt failed for user: admin@hurc.cdhs (Incorrect password).",
-      "category": "data"
-    },
-    {
-      "id": "log-1773233366871",
-      "timestamp": "2026-03-11T12:49:26.871Z",
-      "userId": "002",
-      "userName": "Nguyễn Huy Hoàng",
-      "action": "LOGIN_FAILED",
-      "level": "WARNING",
-      "details": "Login attempt failed for user: admin@hurc.cdhs (Incorrect password).",
-      "category": "data"
-    },
-    {
-      "id": "log-1773233362756",
-      "timestamp": "2026-03-11T12:49:22.759Z",
-      "userId": "002",
-      "userName": "Nguyễn Huy Hoàng",
-      "action": "LOGIN_FAILED",
-      "level": "WARNING",
-      "details": "Login attempt failed for user: admin@hurc.cdhs (Incorrect password).",
-      "category": "data"
-    },
-    {
-      "id": "log-1773232663652",
-      "timestamp": "2026-03-11T12:37:43.652Z",
-      "userId": "002",
-      "userName": "Nguyễn Huy Hoàng",
+      "id": "log-1778246052897-82qp7",
+      "timestamp": "2026-05-08T13:14:12.897Z",
+      "userId": "user-admin-2026",
+      "userName": "Supper Admin",
       "action": "AI_ASSISTANT_ERROR",
       "level": "ERROR",
-      "details": "AI request failed: AI Service Error (410): Gone",
+      "details": "AI request failed: HF Error: 401",
       "category": "data"
     },
     {
-      "id": "log-1758612678946",
-      "timestamp": "2025-09-23T07:31:18.946Z",
-      "userId": "002",
-      "userName": "Nguyễn Huy Hoàng",
-      "action": "CREATE_ROLE",
-      "level": "INFO",
-      "details": "Created new role: Long",
-      "category": "data"
-    },
-    {
-      "id": "log-1758612678657",
-      "timestamp": "2025-09-23T07:31:18.657Z",
-      "userId": "002",
-      "userName": "Nguyễn Huy Hoàng",
-      "action": "CREATE_ROLE",
-      "level": "INFO",
-      "details": "Created new role: Long",
-      "category": "data"
-    },
-    {
-      "id": "log-1758612610009",
-      "timestamp": "2025-09-23T07:30:10.009Z",
-      "userId": "002",
-      "userName": "Nguyễn Huy Hoàng",
-      "action": "DELETE_MAINTENANCE_STANDARD",
-      "level": "WARNING",
-      "details": "Deleted maintenance standard: Đầu máy toa xe and all its items",
-      "category": "data"
-    },
-    {
-      "id": "log-1758612549333",
-      "timestamp": "2025-09-23T07:29:09.333Z",
-      "userId": "002",
-      "userName": "Nguyễn Huy Hoàng",
-      "action": "UPDATE_DNF",
-      "level": "INFO",
-      "details": "Updated DNF with ID: DNF-003-0001",
-      "category": "data"
-    },
-    {
-      "id": "log-1758005954767",
-      "timestamp": "2025-09-16T06:59:14.767Z",
-      "userId": "002",
-      "userName": "Nguyễn Huy Hoàng",
-      "action": "UPDATE_DNF",
-      "level": "INFO",
-      "details": "Updated DNF with ID: DNF-001-0001",
-      "category": "data"
-    },
-    {
-      "id": "log-1758004346820",
-      "timestamp": "2025-09-16T06:32:26.820Z",
-      "userId": "002",
-      "userName": "Nguyễn Huy Hoàng",
-      "action": "SNMP_SCAN_COMPLETE",
-      "level": "INFO",
-      "details": "Scan finished. Discovered 0 devices.",
-      "category": "network"
-    },
-    {
-      "id": "log-1758004342592",
-      "timestamp": "2025-09-16T06:32:22.592Z",
-      "userId": "002",
-      "userName": "Nguyễn Huy Hoàng",
-      "action": "SNMP_SCAN_STARTED",
-      "level": "INFO",
-      "details": "Starting SNMP scan for subnets: 192.168.1.0/24",
-      "category": "network"
-    },
-    {
-      "id": "log-1757988834893",
-      "timestamp": "2025-09-16T02:13:54.893Z",
-      "userId": "002",
-      "userName": "Nguyễn Huy Hoàng",
-      "action": "UPDATE_DNF",
-      "level": "INFO",
-      "details": "Updated DNF with ID: DNF-001-0001",
-      "category": "data"
-    },
-    {
-      "id": "log-1756974797840",
-      "timestamp": "2025-09-04T08:33:17.841Z",
-      "userId": "002",
-      "userName": "Nguyễn Huy Hoàng",
-      "action": "UPDATE_HAZARD",
-      "level": "INFO",
-      "details": "Updated hazard record with ID: HAZ-003-001",
-      "category": "data"
-    },
-    {
-      "id": "log-1756974777874",
-      "timestamp": "2025-09-04T08:32:57.874Z",
-      "userId": "002",
-      "userName": "Nguyễn Huy Hoàng",
-      "action": "UPDATE_HAZARD",
-      "level": "INFO",
-      "details": "Updated hazard record with ID: HAZ-003-001",
-      "category": "data"
-    },
-    {
-      "id": "log-1756974765470",
-      "timestamp": "2025-09-04T08:32:45.470Z",
-      "userId": "002",
-      "userName": "Nguyễn Huy Hoàng",
-      "action": "UPDATE_HAZARD",
-      "level": "INFO",
-      "details": "Updated hazard record with ID: HAZ-003-001",
-      "category": "data"
-    },
-    {
-      "id": "log-1756974757121",
-      "timestamp": "2025-09-04T08:32:37.121Z",
-      "userId": "002",
-      "userName": "Nguyễn Huy Hoàng",
-      "action": "UPDATE_HAZARD",
-      "level": "INFO",
-      "details": "Updated hazard record with ID: HAZ-003-001",
-      "category": "data"
-    },
-    {
-      "id": "log-1756974748150",
-      "timestamp": "2025-09-04T08:32:28.150Z",
-      "userId": "002",
-      "userName": "Nguyễn Huy Hoàng",
-      "action": "UPDATE_HAZARD",
-      "level": "INFO",
-      "details": "Updated hazard record with ID: HAZ-003-001",
-      "category": "data"
-    },
-    {
-      "id": "log-1756974743097",
-      "timestamp": "2025-09-04T08:32:23.097Z",
-      "userId": "002",
-      "userName": "Nguyễn Huy Hoàng",
-      "action": "UPDATE_HAZARD",
-      "level": "INFO",
-      "details": "Updated hazard record with ID: HAZ-003-001",
-      "category": "data"
-    },
-    {
-      "id": "log-1756638746235",
-      "timestamp": "2025-08-31T11:12:26.235Z",
-      "userId": "002",
-      "userName": "Nguyễn Huy Hoàng",
-      "action": "ADD_COMMENT",
-      "level": "INFO",
-      "details": "User Nguyễn Huy Hoàng added a comment to entity DNF-001-0001",
-      "category": "data"
-    },
-    {
-      "id": "log-1756638714194",
-      "timestamp": "2025-08-31T11:11:54.194Z",
-      "userId": "002",
-      "userName": "Nguyễn Huy Hoàng",
-      "action": "CREATE_CORRECTIVE_ACTION",
-      "level": "INFO",
-      "details": "Created Corrective Action for DNF DNF-001-0001",
-      "category": "data"
-    },
-    {
-      "id": "log-1756638705820",
-      "timestamp": "2025-08-31T11:11:45.820Z",
-      "userId": "002",
-      "userName": "Nguyễn Huy Hoàng",
-      "action": "UPDATE_DNF",
-      "level": "INFO",
-      "details": "Updated DNF with ID: DNF-001-0001",
-      "category": "data"
-    },
-    {
-      "id": "log-1756638699465",
-      "timestamp": "2025-08-31T11:11:39.465Z",
-      "userId": "002",
-      "userName": "Nguyễn Huy Hoàng",
-      "action": "UPDATE_DNF",
-      "level": "INFO",
-      "details": "Updated DNF with ID: DNF-001-0001",
-      "category": "data"
-    },
-    {
-      "id": "log-1756637867762",
-      "timestamp": "2025-08-31T10:57:47.762Z",
-      "userId": "002",
-      "userName": "Nguyễn Huy Hoàng",
-      "action": "CREATE_CORRECTIVE_ACTION",
-      "level": "INFO",
-      "details": "Created Corrective Action for DNF DNF-001-0002",
-      "category": "data"
-    },
-    {
-      "id": "log-1756637854953",
-      "timestamp": "2025-08-31T10:57:34.953Z",
-      "userId": "002",
-      "userName": "Nguyễn Huy Hoàng",
-      "action": "UPDATE_DNF",
-      "level": "INFO",
-      "details": "Updated DNF with ID: DNF-001-0002",
-      "category": "data"
-    },
-    {
-      "id": "log-1756634009264",
-      "timestamp": "2025-08-31T09:53:29.264Z",
-      "userId": "002",
-      "userName": "Nguyễn Huy Hoàng",
-      "action": "CREATE_MAINTENANCE_STANDARD",
-      "level": "INFO",
-      "details": "Created maintenance standard: Đầu máy toa xe",
-      "category": "data"
-    },
-    {
-      "id": "log-1755249868358",
-      "timestamp": "2025-08-15T09:24:28.358Z",
-      "userId": "002",
-      "userName": "Nguyễn Huy Hoàng",
-      "action": "CREATE_HAZARD",
-      "level": "INFO",
-      "details": "Created new hazard record with ID: HAZ-003-001",
-      "category": "data"
-    },
-    {
-      "id": "log-1755249652160",
-      "timestamp": "2025-08-15T09:20:52.160Z",
-      "userId": "002",
-      "userName": "Nguyễn Huy Hoàng",
-      "action": "CREATE_DNF",
-      "level": "INFO",
-      "details": "Created DNF with ID: DNF-004-0001",
-      "category": "data"
-    },
-    {
-      "id": "log-1755247713460",
-      "timestamp": "2025-08-15T08:48:33.460Z",
-      "userId": "002",
-      "userName": "Nguyễn Huy Hoàng",
-      "action": "LOGIN_FAILED",
-      "level": "WARNING",
-      "details": "Login attempt failed for user: admin@hurc.cdhs (Incorrect password).",
-      "category": "data"
-    },
-    {
-      "id": "log-1755247457807",
-      "timestamp": "2025-08-15T08:44:17.807Z",
-      "userId": "002",
-      "userName": "Nguyễn Huy Hoàng",
-      "action": "LOGIN_FAILED",
-      "level": "WARNING",
-      "details": "Login attempt failed for user: admin@hurc.cdhs (Incorrect password).",
-      "category": "data"
-    },
-    {
-      "id": "log-1755247110585",
-      "timestamp": "2025-08-15T08:38:30.585Z",
-      "userId": "002",
-      "userName": "Nguyễn Huy Hoàng",
-      "action": "LOGIN_FAILED",
-      "level": "WARNING",
-      "details": "Login attempt failed for user: hoanghuy1212200@gmail.com (Incorrect password).",
-      "category": "data"
-    },
-    {
-      "id": "log-1755246875834",
-      "timestamp": "2025-08-15T08:34:35.834Z",
-      "userId": "002",
-      "userName": "Nguyễn Huy Hoàng",
-      "action": "LOGIN_FAILED",
-      "level": "WARNING",
-      "details": "Login attempt failed for user: hoanghuy1212200@gmail.com (Incorrect password).",
-      "category": "data"
-    },
-    {
-      "id": "log-1755246340718",
-      "timestamp": "2025-08-15T08:25:40.718Z",
-      "userId": "002",
-      "userName": "Nguyễn Huy Hoàng",
-      "action": "LOGIN_FAILED",
-      "level": "WARNING",
-      "details": "Login attempt failed for user: nguyenhoang1212200@gmail.com (Incorrect password).",
-      "category": "data"
-    },
-    {
-      "id": "log-1755222855710",
-      "timestamp": "2025-08-15T01:54:15.710Z",
-      "userId": "002",
-      "userName": "Nguyễn Huy Hoàng",
-      "action": "VERIFY_USER_ACCOUNT",
-      "level": "INFO",
-      "details": "User account verified: Admin",
-      "category": "data"
-    },
-    {
-      "id": "log-1755222831419",
-      "timestamp": "2025-08-15T01:53:51.419Z",
-      "userId": "002",
-      "userName": "Nguyễn Huy Hoàng",
+      "id": "log-1778395181777-zqbq2",
+      "timestamp": "2026-05-10T06:39:41.777Z",
+      "userId": "user-admin-2026",
+      "userName": "Supper Admin",
       "action": "LOGIN_SUCCESS",
       "level": "INFO",
-      "details": "User logged in successfully: loanlkt@hurc.vn",
-      "category": "data"
+      "details": "RememberMe: false",
+      "category": "security",
+      "createdAt": "2026-05-10T06:39:42.230Z",
+      "updatedAt": "2026-05-10T06:39:42.230Z"
     },
     {
-      "id": "log-1755222807543",
-      "timestamp": "2025-08-15T01:53:27.543Z",
-      "userId": "002",
-      "userName": "Nguyễn Huy Hoàng",
-      "action": "CREATE_USER",
+      "id": "log-1778407258841-pvhq4",
+      "timestamp": "2026-05-10T10:00:58.841Z",
+      "userId": "user-admin-2026",
+      "userName": "Supper Admin",
+      "action": "SCHEDULER_RUN",
       "level": "INFO",
-      "details": "Created new user: Admin",
-      "category": "data"
+      "details": "Manual scheduler execution triggered",
+      "category": "data",
+      "createdAt": "2026-05-10T10:00:59.347Z",
+      "updatedAt": "2026-05-10T10:00:59.347Z"
     },
     {
-      "id": "log-1755222796248",
-      "timestamp": "2025-08-15T01:53:16.248Z",
-      "userId": "002",
-      "userName": "Nguyễn Huy Hoàng",
-      "action": "CREATE_USER",
+      "id": "log-1778407262766-f3la7",
+      "timestamp": "2026-05-10T10:01:02.766Z",
+      "userId": "user-admin-2026",
+      "userName": "Supper Admin",
+      "action": "SCHEDULER_RUN",
       "level": "INFO",
-      "details": "Created new user: Admin",
-      "category": "data"
-    },
-    {
-      "id": "log-1755080812482",
-      "timestamp": "2025-08-13T10:26:52.482Z",
-      "userId": "002",
-      "userName": "Nguyễn Huy Hoàng",
-      "action": "PERMISSION_DENIED",
-      "level": "WARNING",
-      "details": "User Vũ Minh Bảo (user-1755069083240) denied access to permission 'settings:manage'.",
-      "category": "data"
-    },
-    {
-      "id": "log-1755080812318",
-      "timestamp": "2025-08-13T10:26:52.318Z",
-      "userId": "002",
-      "userName": "Nguyễn Huy Hoàng",
-      "action": "PERMISSION_DENIED",
-      "level": "WARNING",
-      "details": "User Vũ Minh Bảo (user-1755069083240) denied access to permission 'settings:manage'.",
-      "category": "data"
-    },
-    {
-      "id": "log-1755080812148",
-      "timestamp": "2025-08-13T10:26:52.148Z",
-      "userId": "002",
-      "userName": "Nguyễn Huy Hoàng",
-      "action": "PERMISSION_DENIED",
-      "level": "WARNING",
-      "details": "User Vũ Minh Bảo (user-1755069083240) denied access to permission 'settings:manage'.",
-      "category": "data"
-    },
-    {
-      "id": "log-1755080811978",
-      "timestamp": "2025-08-13T10:26:51.978Z",
-      "userId": "002",
-      "userName": "Nguyễn Huy Hoàng",
-      "action": "PERMISSION_DENIED",
-      "level": "WARNING",
-      "details": "User Vũ Minh Bảo (user-1755069083240) denied access to permission 'checklist_templates:manage'.",
-      "category": "data"
-    },
-    {
-      "id": "log-1755080811822",
-      "timestamp": "2025-08-13T10:26:51.822Z",
-      "userId": "002",
-      "userName": "Nguyễn Huy Hoàng",
-      "action": "PERMISSION_DENIED",
-      "level": "WARNING",
-      "details": "User Vũ Minh Bảo (user-1755069083240) denied access to permission 'roles:manage'.",
-      "category": "data"
-    },
-    {
-      "id": "log-1755080811659",
-      "timestamp": "2025-08-13T10:26:51.659Z",
-      "userId": "002",
-      "userName": "Nguyễn Huy Hoàng",
-      "action": "PERMISSION_DENIED",
-      "level": "WARNING",
-      "details": "User Vũ Minh Bảo (user-1755069083240) denied access to permission 'users:manage'.",
-      "category": "data"
-    },
-    {
-      "id": "log-1755080811455",
-      "timestamp": "2025-08-13T10:26:51.455Z",
-      "userId": "002",
-      "userName": "Nguyễn Huy Hoàng",
-      "action": "PERMISSION_DENIED",
-      "level": "WARNING",
-      "details": "User Vũ Minh Bảo (user-1755069083240) denied access to permission 'settings:manage'.",
-      "category": "data"
-    },
-    {
-      "id": "log-1755080811276",
-      "timestamp": "2025-08-13T10:26:51.276Z",
-      "userId": "002",
-      "userName": "Nguyễn Huy Hoàng",
-      "action": "PERMISSION_DENIED",
-      "level": "WARNING",
-      "details": "User Vũ Minh Bảo (user-1755069083240) denied access to permission 'settings:manage'.",
-      "category": "data"
-    },
-    {
-      "id": "log-1755080811079",
-      "timestamp": "2025-08-13T10:26:51.079Z",
-      "userId": "002",
-      "userName": "Nguyễn Huy Hoàng",
-      "action": "PERMISSION_DENIED",
-      "level": "WARNING",
-      "details": "User Vũ Minh Bảo (user-1755069083240) denied access to permission 'settings:manage'.",
-      "category": "data"
-    },
-    {
-      "id": "log-1755080810889",
-      "timestamp": "2025-08-13T10:26:50.889Z",
-      "userId": "002",
-      "userName": "Nguyễn Huy Hoàng",
-      "action": "PERMISSION_DENIED",
-      "level": "WARNING",
-      "details": "User Vũ Minh Bảo (user-1755069083240) denied access to permission 'checklist_templates:manage'.",
-      "category": "data"
-    },
-    {
-      "id": "log-1755080810716",
-      "timestamp": "2025-08-13T10:26:50.716Z",
-      "userId": "002",
-      "userName": "Nguyễn Huy Hoàng",
-      "action": "PERMISSION_DENIED",
-      "level": "WARNING",
-      "details": "User Vũ Minh Bảo (user-1755069083240) denied access to permission 'roles:manage'.",
-      "category": "data"
-    },
-    {
-      "id": "log-1755080810545",
-      "timestamp": "2025-08-13T10:26:50.545Z",
-      "userId": "002",
-      "userName": "Nguyễn Huy Hoàng",
-      "action": "PERMISSION_DENIED",
-      "level": "WARNING",
-      "details": "User Vũ Minh Bảo (user-1755069083240) denied access to permission 'users:manage'.",
-      "category": "data"
-    },
-    {
-      "id": "log-1755078618669",
-      "timestamp": "2025-08-13T09:50:18.669Z",
-      "userId": "002",
-      "userName": "Nguyễn Huy Hoàng",
-      "action": "PERMISSION_DENIED",
-      "level": "WARNING",
-      "details": "User Vũ Minh Bảo (user-1755069083240) denied access to permission 'settings:manage'.",
-      "category": "data"
-    },
-    {
-      "id": "log-1755078618528",
-      "timestamp": "2025-08-13T09:50:18.528Z",
-      "userId": "002",
-      "userName": "Nguyễn Huy Hoàng",
-      "action": "PERMISSION_DENIED",
-      "level": "WARNING",
-      "details": "User Vũ Minh Bảo (user-1755069083240) denied access to permission 'settings:manage'.",
-      "category": "data"
-    },
-    {
-      "id": "log-1755078618120",
-      "timestamp": "2025-08-13T09:50:18.120Z",
-      "userId": "002",
-      "userName": "Nguyễn Huy Hoàng",
-      "action": "PERMISSION_DENIED",
-      "level": "WARNING",
-      "details": "User Vũ Minh Bảo (user-1755069083240) denied access to permission 'settings:manage'.",
-      "category": "data"
-    },
-    {
-      "id": "log-1755078617968",
-      "timestamp": "2025-08-13T09:50:17.968Z",
-      "userId": "002",
-      "userName": "Nguyễn Huy Hoàng",
-      "action": "PERMISSION_DENIED",
-      "level": "WARNING",
-      "details": "User Vũ Minh Bảo (user-1755069083240) denied access to permission 'settings:manage'.",
-      "category": "data"
-    },
-    {
-      "id": "log-1755078617589",
-      "timestamp": "2025-08-13T09:50:17.589Z",
-      "userId": "002",
-      "userName": "Nguyễn Huy Hoàng",
-      "action": "PERMISSION_DENIED",
-      "level": "WARNING",
-      "details": "User Vũ Minh Bảo (user-1755069083240) denied access to permission 'settings:manage'.",
-      "category": "data"
-    },
-    {
-      "id": "log-1755078617435",
-      "timestamp": "2025-08-13T09:50:17.435Z",
-      "userId": "002",
-      "userName": "Nguyễn Huy Hoàng",
-      "action": "PERMISSION_DENIED",
-      "level": "WARNING",
-      "details": "User Vũ Minh Bảo (user-1755069083240) denied access to permission 'settings:manage'.",
-      "category": "data"
-    },
-    {
-      "id": "log-1755078617027",
-      "timestamp": "2025-08-13T09:50:17.027Z",
-      "userId": "002",
-      "userName": "Nguyễn Huy Hoàng",
-      "action": "PERMISSION_DENIED",
-      "level": "WARNING",
-      "details": "User Vũ Minh Bảo (user-1755069083240) denied access to permission 'checklist_templates:manage'.",
-      "category": "data"
-    },
-    {
-      "id": "log-1755078616872",
-      "timestamp": "2025-08-13T09:50:16.872Z",
-      "userId": "002",
-      "userName": "Nguyễn Huy Hoàng",
-      "action": "PERMISSION_DENIED",
-      "level": "WARNING",
-      "details": "User Vũ Minh Bảo (user-1755069083240) denied access to permission 'checklist_templates:manage'.",
-      "category": "data"
-    },
-    {
-      "id": "log-1755078616491",
-      "timestamp": "2025-08-13T09:50:16.491Z",
-      "userId": "002",
-      "userName": "Nguyễn Huy Hoàng",
-      "action": "PERMISSION_DENIED",
-      "level": "WARNING",
-      "details": "User Vũ Minh Bảo (user-1755069083240) denied access to permission 'roles:manage'.",
-      "category": "data"
-    },
-    {
-      "id": "log-1755078616327",
-      "timestamp": "2025-08-13T09:50:16.327Z",
-      "userId": "002",
-      "userName": "Nguyễn Huy Hoàng",
-      "action": "PERMISSION_DENIED",
-      "level": "WARNING",
-      "details": "User Vũ Minh Bảo (user-1755069083240) denied access to permission 'roles:manage'.",
-      "category": "data"
-    },
-    {
-      "id": "log-1755078615881",
-      "timestamp": "2025-08-13T09:50:15.881Z",
-      "userId": "002",
-      "userName": "Nguyễn Huy Hoàng",
-      "action": "PERMISSION_DENIED",
-      "level": "WARNING",
-      "details": "User Vũ Minh Bảo (user-1755069083240) denied access to permission 'users:manage'.",
-      "category": "data"
-    },
-    {
-      "id": "log-1755078615708",
-      "timestamp": "2025-08-13T09:50:15.708Z",
-      "userId": "002",
-      "userName": "Nguyễn Huy Hoàng",
-      "action": "PERMISSION_DENIED",
-      "level": "WARNING",
-      "details": "User Vũ Minh Bảo (user-1755069083240) denied access to permission 'users:manage'.",
-      "category": "data"
-    },
-    {
-      "id": "log-1755078185854",
-      "timestamp": "2025-08-13T09:43:05.854Z",
-      "userId": "002",
-      "userName": "Nguyễn Huy Hoàng",
-      "action": "PERMISSION_DENIED",
-      "level": "WARNING",
-      "details": "User Vũ Minh Bảo (user-1755069083240) denied access to permission 'settings:manage'.",
-      "category": "data"
-    },
-    {
-      "id": "log-1755078185688",
-      "timestamp": "2025-08-13T09:43:05.688Z",
-      "userId": "002",
-      "userName": "Nguyễn Huy Hoàng",
-      "action": "PERMISSION_DENIED",
-      "level": "WARNING",
-      "details": "User Vũ Minh Bảo (user-1755069083240) denied access to permission 'settings:manage'.",
-      "category": "data"
-    },
-    {
-      "id": "log-1755078185238",
-      "timestamp": "2025-08-13T09:43:05.238Z",
-      "userId": "002",
-      "userName": "Nguyễn Huy Hoàng",
-      "action": "PERMISSION_DENIED",
-      "level": "WARNING",
-      "details": "User Vũ Minh Bảo (user-1755069083240) denied access to permission 'settings:manage'.",
-      "category": "data"
-    },
-    {
-      "id": "log-1755078185053",
-      "timestamp": "2025-08-13T09:43:05.053Z",
-      "userId": "002",
-      "userName": "Nguyễn Huy Hoàng",
-      "action": "PERMISSION_DENIED",
-      "level": "WARNING",
-      "details": "User Vũ Minh Bảo (user-1755069083240) denied access to permission 'settings:manage'.",
-      "category": "data"
-    },
-    {
-      "id": "log-1755078184609",
-      "timestamp": "2025-08-13T09:43:04.609Z",
-      "userId": "002",
-      "userName": "Nguyễn Huy Hoàng",
-      "action": "PERMISSION_DENIED",
-      "level": "WARNING",
-      "details": "User Vũ Minh Bảo (user-1755069083240) denied access to permission 'settings:manage'.",
-      "category": "data"
-    },
-    {
-      "id": "log-1755078184440",
-      "timestamp": "2025-08-13T09:43:04.440Z",
-      "userId": "002",
-      "userName": "Nguyễn Huy Hoàng",
-      "action": "PERMISSION_DENIED",
-      "level": "WARNING",
-      "details": "User Vũ Minh Bảo (user-1755069083240) denied access to permission 'settings:manage'.",
-      "category": "data"
-    },
-    {
-      "id": "log-1755078183982",
-      "timestamp": "2025-08-13T09:43:03.982Z",
-      "userId": "002",
-      "userName": "Nguyễn Huy Hoàng",
-      "action": "PERMISSION_DENIED",
-      "level": "WARNING",
-      "details": "User Vũ Minh Bảo (user-1755069083240) denied access to permission 'checklist_templates:manage'.",
-      "category": "data"
-    },
-    {
-      "id": "log-1755078183823",
-      "timestamp": "2025-08-13T09:43:03.823Z",
-      "userId": "002",
-      "userName": "Nguyễn Huy Hoàng",
-      "action": "PERMISSION_DENIED",
-      "level": "WARNING",
-      "details": "User Vũ Minh Bảo (user-1755069083240) denied access to permission 'checklist_templates:manage'.",
-      "category": "data"
-    },
-    {
-      "id": "log-1755078183348",
-      "timestamp": "2025-08-13T09:43:03.349Z",
-      "userId": "002",
-      "userName": "Nguyễn Huy Hoàng",
-      "action": "PERMISSION_DENIED",
-      "level": "WARNING",
-      "details": "User Vũ Minh Bảo (user-1755069083240) denied access to permission 'roles:manage'.",
-      "category": "data"
-    },
-    {
-      "id": "log-1755078183178",
-      "timestamp": "2025-08-13T09:43:03.178Z",
-      "userId": "002",
-      "userName": "Nguyễn Huy Hoàng",
-      "action": "PERMISSION_DENIED",
-      "level": "WARNING",
-      "details": "User Vũ Minh Bảo (user-1755069083240) denied access to permission 'roles:manage'.",
-      "category": "data"
-    },
-    {
-      "id": "log-1755078182696",
-      "timestamp": "2025-08-13T09:43:02.696Z",
-      "userId": "002",
-      "userName": "Nguyễn Huy Hoàng",
-      "action": "PERMISSION_DENIED",
-      "level": "WARNING",
-      "details": "User Vũ Minh Bảo (user-1755069083240) denied access to permission 'users:manage'.",
-      "category": "data"
-    },
-    {
-      "id": "log-1755078182511",
-      "timestamp": "2025-08-13T09:43:02.511Z",
-      "userId": "002",
-      "userName": "Nguyễn Huy Hoàng",
-      "action": "PERMISSION_DENIED",
-      "level": "WARNING",
-      "details": "User Vũ Minh Bảo (user-1755069083240) denied access to permission 'users:manage'.",
-      "category": "data"
-    },
-    {
-      "id": "log-1755078165128",
-      "timestamp": "2025-08-13T09:42:45.128Z",
-      "userId": "002",
-      "userName": "Nguyễn Huy Hoàng",
-      "action": "PERMISSION_DENIED",
-      "level": "WARNING",
-      "details": "User Vũ Minh Bảo (user-1755069083240) denied access to permission 'settings:manage'.",
-      "category": "data"
-    },
-    {
-      "id": "log-1755078164951",
-      "timestamp": "2025-08-13T09:42:44.951Z",
-      "userId": "002",
-      "userName": "Nguyễn Huy Hoàng",
-      "action": "PERMISSION_DENIED",
-      "level": "WARNING",
-      "details": "User Vũ Minh Bảo (user-1755069083240) denied access to permission 'settings:manage'.",
-      "category": "data"
-    },
-    {
-      "id": "log-1755078164600",
-      "timestamp": "2025-08-13T09:42:44.600Z",
-      "userId": "002",
-      "userName": "Nguyễn Huy Hoàng",
-      "action": "PERMISSION_DENIED",
-      "level": "WARNING",
-      "details": "User Vũ Minh Bảo (user-1755069083240) denied access to permission 'settings:manage'.",
-      "category": "data"
-    },
-    {
-      "id": "log-1755078164476",
-      "timestamp": "2025-08-13T09:42:44.476Z",
-      "userId": "002",
-      "userName": "Nguyễn Huy Hoàng",
-      "action": "PERMISSION_DENIED",
-      "level": "WARNING",
-      "details": "User Vũ Minh Bảo (user-1755069083240) denied access to permission 'settings:manage'.",
-      "category": "data"
-    },
-    {
-      "id": "log-1755078164136",
-      "timestamp": "2025-08-13T09:42:44.136Z",
-      "userId": "002",
-      "userName": "Nguyễn Huy Hoàng",
-      "action": "PERMISSION_DENIED",
-      "level": "WARNING",
-      "details": "User Vũ Minh Bảo (user-1755069083240) denied access to permission 'settings:manage'.",
-      "category": "data"
-    },
-    {
-      "id": "log-1755078164012",
-      "timestamp": "2025-08-13T09:42:44.012Z",
-      "userId": "002",
-      "userName": "Nguyễn Huy Hoàng",
-      "action": "PERMISSION_DENIED",
-      "level": "WARNING",
-      "details": "User Vũ Minh Bảo (user-1755069083240) denied access to permission 'settings:manage'.",
-      "category": "data"
-    },
-    {
-      "id": "log-1755078163690",
-      "timestamp": "2025-08-13T09:42:43.690Z",
-      "userId": "002",
-      "userName": "Nguyễn Huy Hoàng",
-      "action": "PERMISSION_DENIED",
-      "level": "WARNING",
-      "details": "User Vũ Minh Bảo (user-1755069083240) denied access to permission 'checklist_templates:manage'.",
-      "category": "data"
-    },
-    {
-      "id": "log-1755078163566",
-      "timestamp": "2025-08-13T09:42:43.566Z",
-      "userId": "002",
-      "userName": "Nguyễn Huy Hoàng",
-      "action": "PERMISSION_DENIED",
-      "level": "WARNING",
-      "details": "User Vũ Minh Bảo (user-1755069083240) denied access to permission 'checklist_templates:manage'.",
-      "category": "data"
-    },
-    {
-      "id": "log-1755078163243",
-      "timestamp": "2025-08-13T09:42:43.243Z",
-      "userId": "002",
-      "userName": "Nguyễn Huy Hoàng",
-      "action": "PERMISSION_DENIED",
-      "level": "WARNING",
-      "details": "User Vũ Minh Bảo (user-1755069083240) denied access to permission 'roles:manage'.",
-      "category": "data"
-    },
-    {
-      "id": "log-1755078163125",
-      "timestamp": "2025-08-13T09:42:43.125Z",
-      "userId": "002",
-      "userName": "Nguyễn Huy Hoàng",
-      "action": "PERMISSION_DENIED",
-      "level": "WARNING",
-      "details": "User Vũ Minh Bảo (user-1755069083240) denied access to permission 'roles:manage'.",
-      "category": "data"
-    },
-    {
-      "id": "log-1755078162783",
-      "timestamp": "2025-08-13T09:42:42.783Z",
-      "userId": "002",
-      "userName": "Nguyễn Huy Hoàng",
-      "action": "PERMISSION_DENIED",
-      "level": "WARNING",
-      "details": "User Vũ Minh Bảo (user-1755069083240) denied access to permission 'users:manage'.",
-      "category": "data"
-    },
-    {
-      "id": "log-1755078162659",
-      "timestamp": "2025-08-13T09:42:42.659Z",
-      "userId": "002",
-      "userName": "Nguyễn Huy Hoàng",
-      "action": "PERMISSION_DENIED",
-      "level": "WARNING",
-      "details": "User Vũ Minh Bảo (user-1755069083240) denied access to permission 'users:manage'.",
-      "category": "data"
-    },
-    {
-      "id": "log-1755074807606",
-      "timestamp": "2025-08-13T08:46:47.606Z",
-      "userId": "002",
-      "userName": "Nguyễn Huy Hoàng",
-      "action": "DELETE_USER",
-      "level": "WARNING",
-      "details": "User Nguyễn Huy Hoàng deleted user: Admin (ID: user-1755073751027)",
-      "category": "data"
-    },
-    {
-      "id": "log-1755073862758",
-      "timestamp": "2025-08-13T08:31:02.758Z",
-      "userId": "002",
-      "userName": "Nguyễn Huy Hoàng",
-      "action": "VERIFY_USER_ACCOUNT",
-      "level": "INFO",
-      "details": "User account verified: Admin",
-      "category": "data"
-    },
-    {
-      "id": "log-1755073846809",
-      "timestamp": "2025-08-13T08:30:46.809Z",
-      "userId": "002",
-      "userName": "Nguyễn Huy Hoàng",
-      "action": "VERIFY_USER_ACCOUNT",
-      "level": "INFO",
-      "details": "User account verified: Admin",
-      "category": "data"
-    },
-    {
-      "id": "log-1755073805641",
-      "timestamp": "2025-08-13T08:30:05.641Z",
-      "userId": "002",
-      "userName": "Nguyễn Huy Hoàng",
-      "action": "CREATE_USER",
-      "level": "INFO",
-      "details": "Created new user: Admin",
-      "category": "data"
-    },
-    {
-      "id": "log-1755073751032",
-      "timestamp": "2025-08-13T08:29:11.032Z",
-      "userId": "002",
-      "userName": "Nguyễn Huy Hoàng",
-      "action": "CREATE_USER",
-      "level": "INFO",
-      "details": "Created new user: Admin",
-      "category": "data"
-    },
-    {
-      "id": "log-1755072266331",
-      "timestamp": "2025-08-13T08:04:26.331Z",
-      "userId": "002",
-      "userName": "Nguyễn Huy Hoàng",
-      "action": "CREATE_DNF",
-      "level": "INFO",
-      "details": "Created DNF with ID: DNF-003-0001",
-      "category": "data"
-    },
-    {
-      "id": "log-1755070538856",
-      "timestamp": "2025-08-13T07:35:38.856Z",
-      "userId": "002",
-      "userName": "Nguyễn Huy Hoàng",
-      "action": "CREATE_DNF",
-      "level": "INFO",
-      "details": "Created DNF with ID: DNF-001-0002",
-      "category": "data"
-    },
-    {
-      "id": "log-1755070422406",
-      "timestamp": "2025-08-13T07:33:42.406Z",
-      "userId": "002",
-      "userName": "Nguyễn Huy Hoàng",
-      "action": "UPDATE_DNF",
-      "level": "INFO",
-      "details": "Updated DNF with ID: DNF-001-0001",
-      "category": "data"
-    },
-    {
-      "id": "log-1755070283141",
-      "timestamp": "2025-08-13T07:31:23.141Z",
-      "userId": "002",
-      "userName": "Nguyễn Huy Hoàng",
-      "action": "CREATE_DNF",
-      "level": "INFO",
-      "details": "Created DNF with ID: DNF-001-0001",
-      "category": "data"
-    },
-    {
-      "id": "log-1755069283748",
-      "timestamp": "2025-08-13T07:14:43.748Z",
-      "userId": "002",
-      "userName": "Nguyễn Huy Hoàng",
-      "action": "VERIFY_USER_ACCOUNT",
-      "level": "INFO",
-      "details": "User account verified: Vũ Minh Bảo",
-      "category": "data"
-    },
-    {
-      "id": "log-1755069083272",
-      "timestamp": "2025-08-13T07:11:23.272Z",
-      "userId": "002",
-      "userName": "Nguyễn Huy Hoàng",
-      "action": "CREATE_USER",
-      "level": "INFO",
-      "details": "Created new user: Vũ Minh Bảo",
-      "category": "data"
-    },
-    {
-      "id": "log-1755068955414",
-      "timestamp": "2025-08-13T07:09:15.414Z",
-      "userId": "002",
-      "userName": "Nguyễn Huy Hoàng",
-      "action": "CREATE_USER",
-      "level": "INFO",
-      "details": "Created new user: Nguyễn Minh Thành",
-      "category": "data"
-    },
-    {
-      "id": "log-1755068825409",
-      "timestamp": "2025-08-13T07:07:05.409Z",
-      "userId": "002",
-      "userName": "Nguyễn Huy Hoàng",
-      "action": "CREATE_SUBSYSTEM",
-      "level": "INFO",
-      "details": "Created new subsystem: Cơ (ID: 008)",
-      "category": "data"
-    },
-    {
-      "id": "log-1755068805901",
-      "timestamp": "2025-08-13T07:06:45.901Z",
-      "userId": "002",
-      "userName": "Nguyễn Huy Hoàng",
-      "action": "CREATE_SUBSYSTEM",
-      "level": "INFO",
-      "details": "Created new subsystem: Điện (ID: 007)",
-      "category": "data"
-    },
-    {
-      "id": "log-1755068778420",
-      "timestamp": "2025-08-13T07:06:18.420Z",
-      "userId": "002",
-      "userName": "Nguyễn Huy Hoàng",
-      "action": "CREATE_SUBSYSTEM",
-      "level": "INFO",
-      "details": "Created new subsystem: Thông tin - Tín hiệu (ID: 006)",
-      "category": "data"
-    },
-    {
-      "id": "log-1755068735855",
-      "timestamp": "2025-08-13T07:05:35.855Z",
-      "userId": "002",
-      "userName": "Nguyễn Huy Hoàng",
-      "action": "CREATE_SUBSYSTEM",
-      "level": "INFO",
-      "details": "Created new subsystem: Thiết bị nhà Ga  (ID: 005)",
-      "category": "data"
-    },
-    {
-      "id": "log-1755068707260",
-      "timestamp": "2025-08-13T07:05:07.260Z",
-      "userId": "002",
-      "userName": "Nguyễn Huy Hoàng",
-      "action": "CREATE_SUBSYSTEM",
-      "level": "INFO",
-      "details": "Created new subsystem: Hệ thống thanh toán tự động (ID: 004)",
-      "category": "data"
-    },
-    {
-      "id": "log-1755068672107",
-      "timestamp": "2025-08-13T07:04:32.107Z",
-      "userId": "002",
-      "userName": "Nguyễn Huy Hoàng",
-      "action": "CREATE_SUBSYSTEM",
-      "level": "INFO",
-      "details": "Created new subsystem: Đầu máy toa xe (ID: 003)",
-      "category": "data"
-    },
-    {
-      "id": "log-1755068646252",
-      "timestamp": "2025-08-13T07:04:06.252Z",
-      "userId": "002",
-      "userName": "Nguyễn Huy Hoàng",
-      "action": "CREATE_SUBSYSTEM",
-      "level": "INFO",
-      "details": "Created new subsystem: Công trình ray  (ID: 002)",
-      "category": "data"
-    },
-    {
-      "id": "log-1755068613698",
-      "timestamp": "2025-08-13T07:03:33.698Z",
-      "userId": "002",
-      "userName": "Nguyễn Huy Hoàng",
-      "action": "CREATE_SUBSYSTEM",
-      "level": "INFO",
-      "details": "Created new subsystem: Thanh toán tự động (ID: 001)",
-      "category": "data"
-    },
-    {
-      "id": "log-1755068558988",
-      "timestamp": "2025-08-13T07:02:38.988Z",
-      "userId": "002",
-      "userName": "Nguyễn Huy Hoàng",
-      "action": "CREATE_RESPONSIBLE_UNIT",
-      "level": "INFO",
-      "details": "Created new responsible unit: VECC (ID: unit-1755068558956)",
-      "category": "data"
-    },
-    {
-      "id": "log-1755068546287",
-      "timestamp": "2025-08-13T07:02:26.287Z",
-      "userId": "002",
-      "userName": "Nguyễn Huy Hoàng",
-      "action": "CREATE_RESPONSIBLE_UNIT",
-      "level": "INFO",
-      "details": "Created new responsible unit: FIS (ID: unit-1755068546266)",
-      "category": "data"
-    },
-    {
-      "id": "log-1755068542517",
-      "timestamp": "2025-08-13T07:02:22.517Z",
-      "userId": "002",
-      "userName": "Nguyễn Huy Hoàng",
-      "action": "CREATE_RESPONSIBLE_UNIT",
-      "level": "INFO",
-      "details": "Created new responsible unit: TTC (ID: unit-1755068542504)",
-      "category": "data"
-    },
-    {
-      "id": "log-1755068534367",
-      "timestamp": "2025-08-13T07:02:14.367Z",
-      "userId": "002",
-      "userName": "Nguyễn Huy Hoàng",
-      "action": "CREATE_RESPONSIBLE_UNIT",
-      "level": "INFO",
-      "details": "Created new responsible unit: P.KT-AT (ID: unit-1755068534344)",
-      "category": "data"
-    },
-    {
-      "id": "log-1755068526324",
-      "timestamp": "2025-08-13T07:02:06.324Z",
-      "userId": "002",
-      "userName": "Nguyễn Huy Hoàng",
-      "action": "CREATE_RESPONSIBLE_UNIT",
-      "level": "INFO",
-      "details": "Created new responsible unit: XNBD (ID: unit-1755068526301)",
-      "category": "data"
-    },
-    {
-      "id": "log-1755068520545",
-      "timestamp": "2025-08-13T07:02:00.545Z",
-      "userId": "002",
-      "userName": "Nguyễn Huy Hoàng",
-      "action": "CREATE_RESPONSIBLE_UNIT",
-      "level": "INFO",
-      "details": "Created new responsible unit: XNVN (ID: unit-1755068520536)",
-      "category": "data"
-    },
-    {
-      "id": "log-1755068503597",
-      "timestamp": "2025-08-13T07:01:43.597Z",
-      "userId": "002",
-      "userName": "Nguyễn Huy Hoàng",
-      "action": "CREATE_LOCATION",
-      "level": "INFO",
-      "details": "Created new location: Ga Bến xe Suối Tiên (ID: 015)",
-      "category": "data"
-    },
-    {
-      "id": "log-1755068481620",
-      "timestamp": "2025-08-13T07:01:21.620Z",
-      "userId": "002",
-      "userName": "Nguyễn Huy Hoàng",
-      "action": "CREATE_LOCATION",
-      "level": "INFO",
-      "details": "Created new location: Ga Đại học Quốc Gia  (ID: 014)",
-      "category": "data"
-    },
-    {
-      "id": "log-1755068455481",
-      "timestamp": "2025-08-13T07:00:55.481Z",
-      "userId": "002",
-      "userName": "Nguyễn Huy Hoàng",
-      "action": "CREATE_LOCATION",
-      "level": "INFO",
-      "details": "Created new location: Ga Công nghệ cao  (ID: 013)",
-      "category": "data"
-    },
-    {
-      "id": "log-1755068426180",
-      "timestamp": "2025-08-13T07:00:26.180Z",
-      "userId": "002",
-      "userName": "Nguyễn Huy Hoàng",
-      "action": "CREATE_LOCATION",
-      "level": "INFO",
-      "details": "Created new location: Ga Thủ Đức (ID: 012)",
-      "category": "data"
-    },
-    {
-      "id": "log-1755068385112",
-      "timestamp": "2025-08-13T06:59:45.112Z",
-      "userId": "002",
-      "userName": "Nguyễn Huy Hoàng",
-      "action": "CREATE_LOCATION",
-      "level": "INFO",
-      "details": "Created new location: Ga Bình Thái  (ID: 011)",
-      "category": "data"
-    },
-    {
-      "id": "log-1755068356149",
-      "timestamp": "2025-08-13T06:59:16.149Z",
-      "userId": "002",
-      "userName": "Nguyễn Huy Hoàng",
-      "action": "CREATE_LOCATION",
-      "level": "INFO",
-      "details": "Created new location: Ga Phước Long (ID: 010)",
-      "category": "data"
-    },
-    {
-      "id": "log-1755068301208",
-      "timestamp": "2025-08-13T06:58:21.208Z",
-      "userId": "002",
-      "userName": "Nguyễn Huy Hoàng",
-      "action": "CREATE_LOCATION",
-      "level": "INFO",
-      "details": "Created new location: Ga Rạch Chiếc  (ID: 009)",
-      "category": "data"
-    },
-    {
-      "id": "log-1755068277999",
-      "timestamp": "2025-08-13T06:57:57.999Z",
-      "userId": "002",
-      "userName": "Nguyễn Huy Hoàng",
-      "action": "CREATE_LOCATION",
-      "level": "INFO",
-      "details": "Created new location: Ga An Phú (ID: 008)",
-      "category": "data"
-    },
-    {
-      "id": "log-1755068264792",
-      "timestamp": "2025-08-13T06:57:44.792Z",
-      "userId": "002",
-      "userName": "Nguyễn Huy Hoàng",
-      "action": "CREATE_LOCATION",
-      "level": "INFO",
-      "details": "Created new location: Ga Thảo Điền (ID: 007)",
-      "category": "data"
-    },
-    {
-      "id": "log-1755068248958",
-      "timestamp": "2025-08-13T06:57:28.958Z",
-      "userId": "002",
-      "userName": "Nguyễn Huy Hoàng",
-      "action": "CREATE_LOCATION",
-      "level": "INFO",
-      "details": "Created new location: Ga Tân Cảng (ID: 006)",
-      "category": "data"
-    },
-    {
-      "id": "log-1755068233377",
-      "timestamp": "2025-08-13T06:57:13.377Z",
-      "userId": "002",
-      "userName": "Nguyễn Huy Hoàng",
-      "action": "CREATE_LOCATION",
-      "level": "INFO",
-      "details": "Created new location: Ga Công viên Văn Thánh (ID: 005)",
-      "category": "data"
-    },
-    {
-      "id": "log-1755068211334",
-      "timestamp": "2025-08-13T06:56:51.334Z",
-      "userId": "002",
-      "userName": "Nguyễn Huy Hoàng",
-      "action": "CREATE_LOCATION",
-      "level": "INFO",
-      "details": "Created new location: Ga Ba Son (ID: 004)",
-      "category": "data"
-    },
-    {
-      "id": "log-1755068192042",
-      "timestamp": "2025-08-13T06:56:32.042Z",
-      "userId": "002",
-      "userName": "Nguyễn Huy Hoàng",
-      "action": "CREATE_LOCATION",
-      "level": "INFO",
-      "details": "Created new location: Ga Nhà hát Thành phố (ID: 003)",
-      "category": "data"
-    },
-    {
-      "id": "log-1755068175220",
-      "timestamp": "2025-08-13T06:56:15.220Z",
-      "userId": "002",
-      "userName": "Nguyễn Huy Hoàng",
-      "action": "CREATE_LOCATION",
-      "level": "INFO",
-      "details": "Created new location: Ga Bến Thành (ID: 002)",
-      "category": "data"
-    },
-    {
-      "id": "log-1755068159313",
-      "timestamp": "2025-08-13T06:55:59.313Z",
-      "userId": "002",
-      "userName": "Nguyễn Huy Hoàng",
-      "action": "CREATE_LOCATION",
-      "level": "INFO",
-      "details": "Created new location: Depot Long Bình (ID: 001)",
-      "category": "data"
+      "details": "Manual scheduler execution triggered",
+      "category": "data",
+      "createdAt": "2026-05-10T10:01:02.847Z",
+      "updatedAt": "2026-05-10T10:01:02.847Z"
     }
   ],
-  "comments": [
-    {
-      "id": "comment-1756638746218",
-      "entityId": "DNF-001-0001",
-      "senderId": "002",
-      "senderName": "Nguyễn Huy Hoàng",
-      "timestamp": "2025-08-31T11:12:26.218Z",
-      "content": "Xfg gfxyfxtrx"
-    }
-  ],
-  "notifications": [],
-  "systemState": {
-    "lastSchedulerRun": "2026-03-14T00:04:02.676Z"
-  },
-  "passwordResetRequests": []
+  "password_reset_requests": [],
+  "test_collection_tmp": []
 }

@@ -3,6 +3,7 @@
 
 import * as React from "react";
 import { Button } from "@/components/ui/button";
+import Link from "next/link";
 import {
   Table,
   TableBody,
@@ -581,12 +582,17 @@ export default function CategoriesPage() {
 
     if (!hasAccess) {
         return (
-            <Card className="w-full max-w-md mx-auto mt-10">
-                <CardHeader>
-                    <CardTitle>{t.accessDenied.title}</CardTitle>
-                    <CardDescription>{t.accessDenied.description}</CardDescription>
-                </CardHeader>
-            </Card>
+            <div className="flex flex-col items-center justify-center h-full">
+                <Card className="w-full max-w-md p-8 text-center">
+                    <CardTitle className="text-2xl text-destructive mb-4">{t.accessDenied.title}</CardTitle>
+                    <CardDescription>{locale === 'vi' ? `Chỉ Quản trị viên cấp cao mới có quyền truy cập trang này.` : `Only Super Administrators can access this page.`}</CardDescription>
+                    <Button asChild className="mt-6">
+                        <Link href="/dashboard">
+                            {locale === 'vi' ? 'Quay lại Bảng điều khiển' : 'Back to Dashboard'}
+                        </Link>
+                    </Button>
+                </Card>
+            </div>
         );
     }
     

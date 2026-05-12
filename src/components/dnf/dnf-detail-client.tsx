@@ -1,12 +1,11 @@
 
-
 "use client";
 
 import * as React from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { ArrowLeft, Edit, Paperclip, User, CalendarDays, AlertTriangle, CheckCircle, Info, Clock, Eye, Settings, Tag, ListChecks, Image as ImageIcon, Save, FileDown, MapPin, Construction, ShieldPlus, Trash2, History, FilePlus, UserCheck, Shield, Archive, Network } from "lucide-react";
+import { ArrowLeft, Edit, Paperclip, User, CalendarDays, AlertTriangle, CheckCircle, Info, Clock, Eye, Settings, Tag, ListChecks, Image as ImageIcon, Save, FileDown, MapPin, Construction, ShieldPlus, Trash2, History, FilePlus, UserCheck, Shield, Archive, Network, Wrench, Printer } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import Image from "next/image";
 import { Separator } from "@/components/ui/separator";
@@ -18,6 +17,7 @@ import {
     DNF_STATUS_TRANSITIONS,
     ROLE_L2_TECHNICIAN,
     ROLE_L3_SPECIALIST,
+    ROLE_SUPER_ADMIN,
     ROLE_ADMIN_PKTAT,
     ROLE_CLIENT,
 } from "@/lib/constants";
@@ -32,6 +32,9 @@ import { cn } from '@/lib/utils';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { CorrectiveActionPanel } from '@/components/dnf/corrective-action-panel';
 import { CommentPanel } from '@/components/dnf/comment-panel';
+import { useNetwork } from '@/components/providers/network-provider';
+import { offlineSync } from '@/lib/services/offline-sync';
+import { ReportLayout } from '@/components/shared/report-layout';
 
 
 const translations = {
@@ -98,9 +101,20 @@ const translations = {
     priority: "Mức độ ưu tiên",
     archivedRecord: "Bản ghi đã được lưu trữ",
     archivedRecordDesc: "Đây là bản ghi chỉ đọc. Dữ liệu gốc được hiển thị cho mục đích tham khảo.",
+    noRelatedIncidents: "Không có sự cố liên quan nào khác được tìm thấy.",
     relatedIncidentsTitle: "Sự cố Liên quan cùng Hệ thống",
     relatedIncidentsDesc: "Các sự cố khác được ghi nhận trong cùng hệ thống.",
-    noRelatedIncidents: "Không có sự cố liên quan nào khác được tìm thấy.",
+    workflowTitle: "Các bước tiếp theo",
+    workflowDescription: "Thực hiện hành động tiếp theo trong quy trình xử lý sự cố.",
+    btnIdentify: "Bắt đầu Đánh giá",
+    btnAnalyze: "Tiếp nhận Xử lý",
+    btnResolve: "Gửi Phản hồi",
+    btnClose: "Phê duyệt & Đóng",
+    noFurtherActions: (status: string) => `Không có hành động nào cho trạng thái: ${status}`,
+    noPermissionForWorkflow: "Bạn không có quyền thực hiện các bước tiếp theo.",
+    closeSuccess: "Đã phê duyệt và đóng sự cố thành công.",
+    printReport: "In Báo cáo PDF",
+    reportSubtitle: "BÁO CÁO CHI TIẾT SỰ CỐ VÀ HỎNG HÓC (DNF)"
   },
   en: {
     titlePrefix: "Incident Details",
@@ -165,22 +179,29 @@ const translations = {
     priority: "Priority",
     archivedRecord: "Archived Record",
     archivedRecordDesc: "This is a read-only record. Original data is shown for reference.",
+    noRelatedIncidents: "No other related incidents found.",
     relatedIncidentsTitle: "Related Incidents in System",
     relatedIncidentsDesc: "Other recorded incidents within the same system.",
-    noRelatedIncidents: "No other related incidents found.",
+    workflowTitle: "Next Steps",
+    workflowDescription: "Perform the next action in the incident resolution workflow.",
+    btnIdentify: "Start Assessment",
+    btnAnalyze: "Accept for Resolution",
+    btnResolve: "Send Feedback",
+    btnClose: "Approve & Close",
+    noFurtherActions: (status: string) => `No further actions available for status: ${status}`,
+    noPermissionForWorkflow: "You do not have permission to perform next steps.",
+    printReport: "Print PDF Report",
+    reportSubtitle: "DEFECT / NON-FAILURE (DNF) DETAIL REPORT"
   },
 };
 
-function getDnfStatusBadgeVariant(status: DnfDocument['status']): "default" | "secondary" | "destructive" | "outline" | "accent" {
+function getDnfStatusBadgeVariant(status: DnfStatus): "default" | "secondary" | "destructive" | "outline" | "accent" {
   switch (status) {
     case "Mới": return "outline";
-    case "Đã tiếp nhận": return "secondary";
-    case "Đang điều tra": return "accent";
-    case "Cần L3 xử lý": return "accent";
-    case "Đang xử lý": return "default";
-    case "Chờ xác nhận": return "accent";
-    case "Đã đóng": return "default";
-    case "Hủy": return "destructive";
+    case "Đánh giá": return "secondary";
+    case "Xử lý": return "default";
+    case "Phản hồi": return "accent";
+    case "Đóng": return "default";
     default: return "outline";
   }
 }
@@ -204,11 +225,10 @@ export function DnfDetailClient({ initialDnf, allDnfs, initialSubsystems, initia
   const { locale } = useLanguage();
   const t = translations[locale];
   const { toast } = useToast();
-
+  const { isOnline } = useNetwork();
   const [dnf, setDnf] = React.useState<DnfDocument>(initialDnf);
   const [subsystems, setSubsystems] = React.useState<Subsystem[]>(initialSubsystems);
   const [locations, setLocations] = React.useState<PatrolLocation[]>(initialLocations);
-  const [selectedNewStatus, setSelectedNewStatus] = React.useState<DnfStatus | "">(initialDnf.status);
   const [isMounted, setIsMounted] = React.useState(false);
 
   const [permissions, setPermissions] = React.useState({
@@ -221,11 +241,20 @@ export function DnfDetailClient({ initialDnf, allDnfs, initialSubsystems, initia
   });
 
   const canTransitionToStatus = React.useCallback((currentStatus: DnfStatus, newStatus: DnfStatus, userRole: UserRole): boolean => {
-      if (userRole === ROLE_ADMIN_PKTAT) {
-          return true;
+      if (userRole === ROLE_SUPER_ADMIN || userRole === ROLE_ADMIN_PKTAT) {
+          return true; // Admin can do any transition
       }
-      const validTransitions = DNF_STATUS_TRANSITIONS[currentStatus]?.roles?.[userRole] || [];
-      return validTransitions.includes(newStatus);
+      const transitionRule = DNF_STATUS_TRANSITIONS[currentStatus];
+      if (!transitionRule) return false;
+      
+      if (transitionRule.roles) {
+          const allowedForRole = (transitionRule.roles as any)[userRole];
+          if (allowedForRole) {
+              return (allowedForRole as string[]).includes(newStatus);
+          }
+      }
+      
+      return (transitionRule.next as string[]).includes(newStatus);
   }, []);
 
   const handleUpdate = async () => {
@@ -254,17 +283,15 @@ export function DnfDetailClient({ initialDnf, allDnfs, initialSubsystems, initia
       let canEditCurrent = false;
       if (dnf.isArchived) { // Archived records cannot be edited
           canEditCurrent = false;
-      } else if (editAll) {
-          canEditCurrent = true;
-      } else if (currentUser.role === ROLE_L3_SPECIALIST) {
-          canEditCurrent = dnf.status !== "Đã đóng" && dnf.status !== "Hủy";
+      } else if (editAll || currentUser?.role === ROLE_SUPER_ADMIN || currentUser?.role === ROLE_ADMIN_PKTAT || currentUser?.role === ROLE_L3_SPECIALIST) {
+          canEditCurrent = dnf.status !== "Đóng";
       } else if (currentUser.role === ROLE_L2_TECHNICIAN) {
-          canEditCurrent = dnf.status === "Mới";
+          canEditCurrent = dnf.status === "Mới" || dnf.status === "Đánh giá";
       }
       
       setPermissions({
         canEdit: canEditCurrent,
-        canDelete: deletePerm && !dnf.isArchived && currentUser.role === ROLE_ADMIN_PKTAT,
+        canDelete: deletePerm && (currentUser?.role === ROLE_SUPER_ADMIN || currentUser?.role === ROLE_ADMIN_PKTAT) && !dnf.isArchived,
         canManageStatus: manageStatus && !dnf.isArchived,
         canResolve: createCorrectiveActionPerm && !dnf.isArchived,
         canViewAll: viewAll,
@@ -288,19 +315,31 @@ export function DnfDetailClient({ initialDnf, allDnfs, initialSubsystems, initia
   }, [dnf.id, t.titlePrefix]);
 
 
-  const handleSaveStatus = async () => {
-    if (!dnf || !selectedNewStatus || selectedNewStatus === dnf.status) return;
+  const handleStatusUpdate = async (newStatus: DnfStatus) => {
+    if (!dnf) return;
 
-    const canPerformTransition = canTransitionToStatus(dnf.status, selectedNewStatus, MOCK_CURRENT_USER.role);
+    const canPerformTransition = canTransitionToStatus(dnf.status, newStatus, MOCK_CURRENT_USER.role);
 
     if (!canPerformTransition) {
         toast({ variant: "destructive", title: "Lỗi", description: t.statusUpdateFailed });
         return;
     }
 
-    const updatedDnfData = { ...dnf, status: selectedNewStatus };
+    const updatedDnfData = { ...dnf, status: newStatus, updatedAt: new Date().toISOString() };
+    
+    if (!isOnline) {
+        await offlineSync.addAction({
+            type: 'STATUS_UPDATE',
+            entityType: 'DNF',
+            data: updatedDnfData
+        });
+        setDnf(updatedDnfData);
+        toast({ title: "Đã lưu ngoại tuyến", description: "Trạng thái sẽ được cập nhật khi có mạng." });
+        return;
+    }
+
     await updateMockDnf(updatedDnfData);
-    setDnf(updatedDnfData); // Update local state to reflect change immediately
+    setDnf(updatedDnfData);
 
     toast({ title: "Thành công", description: t.statusUpdateSuccess });
   };
@@ -401,6 +440,7 @@ export function DnfDetailClient({ initialDnf, allDnfs, initialSubsystems, initia
   const updatedAtDate = isMounted ? new Date(dnf.updatedAt).toLocaleString(locale) : '...';
 
   const hazardLevelInfo = DNF_HAZARD_LEVELS.find(hl => hl.id === dnf.hazardLevelId);
+  const hazardLevelLabel = hazardLevelInfo?.label[locale] || dnf.hazardLevelId;
   const HazardIcon = hazardLevelInfo?.icon || Info;
 
   return (
@@ -442,7 +482,10 @@ export function DnfDetailClient({ initialDnf, allDnfs, initialSubsystems, initia
               </AlertDialogContent>
             </AlertDialog>
           )}
-          <Button onClick={handleExportDnfCsv}>
+           <Button variant="outline" onClick={() => window.print()} className="no-print">
+            <Printer className="mr-2 h-4 w-4" /> {t.printReport}
+          </Button>
+          <Button onClick={handleExportDnfCsv} className="no-print">
             <FileDown className="mr-2 h-4 w-4" /> {t.exportCsv}
           </Button>
         </div>
@@ -543,48 +586,49 @@ export function DnfDetailClient({ initialDnf, allDnfs, initialSubsystems, initia
             </CardContent>
           </Card>
           
-          {canUserResolve && dnf && !["Mới", "Hủy", "Đã đóng"].includes(dnf.status) && (
+          {canUserResolve && dnf && (dnf.status === "Xử lý") && (
             <CorrectiveActionPanel dnf={dnf} onUpdate={handleUpdate} />
           )}
 
         </div>
 
         <div className="lg:col-span-1 space-y-6">
-          { canUserManageStatus && dnf && (dnf.status !== "Đã đóng" && dnf.status !== "Hủy") && (
+          { canUserManageStatus && dnf && dnf.status !== "Đóng" && (
             <Card>
                 <CardHeader>
-                    <CardTitle>{t.manageStatusTitle}</CardTitle>
+                    <CardTitle>{t.workflowTitle}</CardTitle>
+                    <CardDescription>{t.workflowDescription}</CardDescription>
                 </CardHeader>
-                <CardContent className="flex items-end gap-4">
-                    <div className="flex-grow">
-                        <label htmlFor="newStatusSelect" className="text-sm font-medium">{t.selectNewStatus}</label>
-                        <Select
-                            value={selectedNewStatus}
-                            onValueChange={(value) => setSelectedNewStatus(value as DnfStatus)}
-                        >
-                            <SelectTrigger id="newStatusSelect" className="mt-1">
-                                <SelectValue placeholder={t.selectNewStatus} />
-                            </SelectTrigger>
-                            <SelectContent>
-                            {DNF_STATUSES.map(statusValue => {
-                                const canMakeTransition = canTransitionToStatus(dnf.status, statusValue, MOCK_CURRENT_USER.role);
-                                const isDisabled = statusValue !== dnf.status && !canMakeTransition;
-
+                <CardContent>
+                    {(() => {
+                        switch (dnf.status) {
+                            case 'Mới':
                                 return (
-                                    <SelectItem key={statusValue} value={statusValue} disabled={isDisabled}>
-                                        {statusValue}
-                                    </SelectItem>
+                                    <Button onClick={() => handleStatusUpdate('Đánh giá')}>
+                                        <ListChecks className="mr-2 h-4 w-4" />
+                                        {t.btnIdentify}
+                                    </Button>
                                 );
-                            })}
-                            </SelectContent>
-                        </Select>
-                    </div>
-                    <Button
-                        onClick={handleSaveStatus}
-                        disabled={!selectedNewStatus || selectedNewStatus === dnf.status}
-                    >
-                        <Save className="mr-2 h-4 w-4" /> {t.saveStatus}
-                    </Button>
+                            case 'Đánh giá':
+                                return (
+                                    <Button onClick={() => handleStatusUpdate('Xử lý')}>
+                                        <Wrench className="mr-2 h-4 w-4" />
+                                        {t.btnAnalyze}
+                                    </Button>
+                                );
+                            case 'Xử lý':
+                                return <p className="text-sm text-muted-foreground">{t.noFurtherActions(dnf.status)} (Sử dụng Panel bên dưới)</p>;
+                            case 'Phản hồi':
+                                return (
+                                    <Button onClick={() => handleStatusUpdate('Đóng')}>
+                                        <CheckCircle className="mr-2 h-4 w-4" />
+                                        {t.btnClose}
+                                    </Button>
+                                );
+                            default:
+                                return <p className="text-sm text-muted-foreground">{t.noFurtherActions(dnf.status)}</p>;
+                        }
+                    })()}
                 </CardContent>
             </Card>
           )}
@@ -655,10 +699,66 @@ export function DnfDetailClient({ initialDnf, allDnfs, initialSubsystems, initia
             </Card>
         </div>
       </div>
+
+      {/* ============ PRINT REPORT LAYOUT ============ */}
+      <ReportLayout 
+        title={`${t.titlePrefix} #${dnf.id}`} 
+        documentId={dnf.id}
+        subtitle={t.reportSubtitle}
+      >
+        <div className="space-y-6">
+            <table className="w-full border-collapse border border-black">
+                <tbody>
+                    <tr>
+                        <th className="w-1/4 bg-gray-100 p-2 border border-black font-bold uppercase text-[10px]">{t.status}</th>
+                        <td className="w-1/4 p-2 border border-black font-bold text-primary">{dnf.status}</td>
+                        <th className="w-1/4 bg-gray-100 p-2 border border-black font-bold uppercase text-[10px]">{t.priority}</th>
+                        <td className="w-1/4 p-2 border border-black">{dnf.priority || 'N/A'}</td>
+                    </tr>
+                    <tr>
+                        <th className="bg-gray-100 p-2 border border-black font-bold uppercase text-[10px]">{t.failureReportNo}</th>
+                        <td className="p-2 border border-black font-mono">{dnf.failureReportNo || 'N/A'}</td>
+                        <th className="bg-gray-100 p-2 border border-black font-bold uppercase text-[10px]">{t.hazardLevel}</th>
+                        <td className="p-2 border border-black">{hazardLevelLabel || 'N/A'}</td>
+                    </tr>
+                    <tr>
+                        <th className="bg-gray-100 p-2 border border-black font-bold uppercase text-[10px]">{t.location}</th>
+                        <td className="p-2 border border-black" colSpan={3}>{locationLabel}</td>
+                    </tr>
+                    <tr>
+                        <th className="bg-gray-100 p-2 border border-black font-bold uppercase text-[10px]">{t.subsystem}</th>
+                        <td className="p-2 border border-black">{subsystemLabels}</td>
+                        <th className="bg-gray-100 p-2 border border-black font-bold uppercase text-[10px]">{t.failedComponent}</th>
+                        <td className="p-2 border border-black">{dnf.failedComponentEquipmentLRUTrainNumber}</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div className="no-break border border-black p-4 rounded-sm mt-4">
+                <h3 className="font-bold border-b border-black pb-1 mb-2 uppercase text-xs">{t.description}</h3>
+                <p className="text-sm whitespace-pre-wrap">{dnf.descriptionOfFailure}</p>
+            </div>
+
+            <div className="no-break border border-black p-4 rounded-sm mt-4">
+                <h3 className="font-bold border-b border-black pb-1 mb-2 uppercase text-xs">{t.impactAssessmentLabel}</h3>
+                <p className="text-sm whitespace-pre-wrap">{dnf.impactAssessment || 'Chưa đánh giá.'}</p>
+            </div>
+
+            {dnf.attachments && dnf.attachments.length > 0 && (
+                <div className="mt-8">
+                    <h3 className="font-bold border-b-2 border-primary pb-1 mb-4 uppercase text-xs">{t.attachments}</h3>
+                    <div className="grid grid-cols-2 gap-4">
+                        {dnf.attachments.map((img: any, idx: number) => (
+                            <div key={idx} className="border border-gray-300 p-1 flex flex-col items-center no-break relative min-h-[200px]">
+                                <Image src={img.url} alt={`attachment-${idx}`} fill className="object-contain" />
+                                <p className="text-[8pt] text-gray-500 mt-1 italic absolute bottom-1">{img.name || `Hình ảnh ${idx + 1}`}</p>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
+        </div>
+      </ReportLayout>
     </div>
   );
 }
-
-
-
-

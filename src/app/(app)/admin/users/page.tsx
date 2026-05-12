@@ -13,9 +13,9 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { PlusCircle, Search, Edit, Trash2, CheckCircle, XCircle, Eye, EyeOff, Undo2, ChevronsUpDown, KeyRound, Bell, Check, X } from "lucide-react";
+import { PlusCircle, Search, Edit, Trash2, CheckCircle, XCircle, Eye, EyeOff, Undo2, ChevronsUpDown, KeyRound, Bell, Check, X, Activity } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { ROLE_ADMIN_PKTAT, type User, type Role, type ResponsibleUnit, type Subsystem, type PasswordResetRequest } from "@/lib/constants";
+import { ROLE_SUPER_ADMIN, type User, type Role, type ResponsibleUnit, type Subsystem, type PasswordResetRequest } from "@/lib/constants";
 import { useLanguage } from "@/contexts/language-context";
 import { useAuth } from "@/contexts/auth-context";
 import Link from "next/link";
@@ -240,26 +240,6 @@ export default function UserManagementPage() {
     setSubsystems(fetchedSubsystems);
   }, []);
 
-  React.useEffect(() => {
-    fetchData();
-  }, [fetchData]);
-
-  if (currentUserRole !== ROLE_ADMIN_PKTAT) {
-    return (
-      <div className="flex flex-col items-center justify-center h-full">
-        <Card className="w-full max-w-md p-8 text-center">
-          <CardTitle className="text-2xl text-destructive mb-4">{t.accessDenied}</CardTitle>
-          <CardDescription>{locale === 'vi' ? `Chỉ Quản trị viên (P.KTAT) mới có quyền truy cập trang này.` : `Only Administrators (P.KTAT) can access this page.`}</CardDescription>
-           <Button asChild className="mt-6">
-            <Link href="/dashboard">
-              {locale === 'vi' ? 'Quay lại Bảng điều khiển' : 'Back to Dashboard'}
-            </Link>
-          </Button>
-        </Card>
-      </div>
-    );
-  }
-
   const handleOpenAddUserDialog = React.useCallback(() => {
     setEditingUser(null);
     setShowPassword(false);
@@ -292,26 +272,26 @@ export default function UserManagementPage() {
   }, [editingUser, usersData, t, toast, fetchData]);
 
   const handleDeleteUser = React.useCallback(async (userId: string) => {
-    const result = await deleteUser(userId);
-    if (result.success) {
+    const result: any = await deleteUser(userId);
+    if (result && result.success) {
         toast({ title: t.userDeleted });
         fetchData();
     } else {
         toast({
             variant: "destructive",
             title: t.deleteFailedTitle,
-            description: result.message,
+            description: result?.message || "Unknown error",
         });
     }
   }, [t, toast, fetchData]);
   
   const handleUndo = async () => {
-    const success = await undoLastChange('User');
-    if (success) {
-      toast({ title: t.undoSuccess });
+    const result: any = await undoLastChange('User');
+    if (result && result.success) {
+      toast({ title: t.undoSuccess, description: result.message });
       fetchData();
     } else {
-      toast({ title: t.undoNothing, variant: "default" });
+      toast({ title: t.undoNothing, description: result?.message, variant: "default" });
     }
   };
 
@@ -348,17 +328,16 @@ export default function UserManagementPage() {
   }, [fetchResetRequests]);
 
   const handleApproveRequest = React.useCallback(async () => {
-    if (!approveRequestId || !approvePassword) return;
+    if (!approveRequestId) return;
     try {
-      await approvePasswordResetRequest(approveRequestId, approvePassword);
+      await approvePasswordResetRequest(approveRequestId);
       toast({ title: t.approveSuccess });
       setApproveRequestId(null);
-      setApprovePassword("");
       await fetchResetRequests();
     } catch (error: any) {
       toast({ variant: "destructive", title: t.resetPasswordError, description: error.message });
     }
-  }, [approveRequestId, approvePassword, t, toast, fetchResetRequests]);
+  }, [approveRequestId, t, toast, fetchResetRequests]);
 
   const handleRejectRequest = React.useCallback(async (requestId: string) => {
     try {
@@ -370,7 +349,6 @@ export default function UserManagementPage() {
     }
   }, [t, toast, fetchResetRequests]);
 
-
   const filteredUsers = React.useMemo(() => 
     usersData.filter(user => 
       user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -378,6 +356,26 @@ export default function UserManagementPage() {
       user.role.toLowerCase().includes(searchTerm.toLowerCase()) ||
       (user.department && user.department.toLowerCase().includes(searchTerm.toLowerCase()))
     ), [usersData, searchTerm]);
+
+  React.useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  if (currentUserRole !== ROLE_SUPER_ADMIN) {
+    return (
+      <div className="flex flex-col items-center justify-center h-full">
+        <Card className="w-full max-w-md p-8 text-center">
+          <CardTitle className="text-2xl text-destructive mb-4">{t.accessDenied}</CardTitle>
+          <CardDescription>{locale === 'vi' ? `Chỉ Quản trị viên cấp cao mới có quyền truy cập trang này.` : `Only Super Administrators can access this page.`}</CardDescription>
+           <Button asChild className="mt-6">
+            <Link href="/dashboard">
+              {locale === 'vi' ? 'Quay lại Bảng điều khiển' : 'Back to Dashboard'}
+            </Link>
+          </Button>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col gap-6">
@@ -670,25 +668,15 @@ export default function UserManagementPage() {
                       {approveRequestId === req.id && (
                         <TableRow>
                           <TableCell colSpan={4}>
-                            <div className="flex items-center gap-2 py-2">
-                              <div className="relative flex-1">
-                                <Input
-                                  type={showApprovePassword ? "text" : "password"}
-                                  placeholder={t.newPasswordPlaceholder}
-                                  className="pr-10"
-                                  value={approvePassword}
-                                  onChange={(e) => setApprovePassword(e.target.value)}
-                                />
-                                <button
-                                  type="button"
-                                  onClick={() => setShowApprovePassword(!showApprovePassword)}
-                                  className="absolute inset-y-0 right-0 flex items-center px-3 text-muted-foreground"
-                                >
-                                  {showApprovePassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                                </button>
+                            <div className="flex items-center justify-between bg-primary/5 p-4 rounded-b-lg border-x border-b">
+                              <p className="text-sm font-medium text-primary flex items-center gap-2">
+                                <Activity className="h-4 w-4 animate-spin" />
+                                {locale === 'vi' ? 'Hệ thống sẽ tạo mật khẩu ngẫu nhiên và gửi tới người dùng.' : 'System will generate a random password and email the user.'}
+                              </p>
+                              <div className="flex gap-2">
+                                <Button size="sm" onClick={handleApproveRequest}>{t.approve}</Button>
+                                <Button size="sm" variant="outline" onClick={() => setApproveRequestId(null)}>{t.cancel}</Button>
                               </div>
-                              <Button size="sm" onClick={handleApproveRequest} disabled={!approvePassword}>{t.approve}</Button>
-                              <Button size="sm" variant="outline" onClick={() => setApproveRequestId(null)}>{t.cancel}</Button>
                             </div>
                           </TableCell>
                         </TableRow>
@@ -770,6 +758,11 @@ export default function UserManagementPage() {
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex gap-1 justify-end">
+                      <Button variant="ghost" size="icon" title={locale === 'vi' ? 'Xem Nhật ký' : 'View Logs'} asChild>
+                        <Link href={`/admin/system-logs?userId=${user.id}`}>
+                          <Activity className="h-4 w-4" />
+                        </Link>
+                      </Button>
                       <Button variant="ghost" size="icon" title={t.resetPassword} onClick={() => handleOpenResetPasswordDialog(user)}>
                         <KeyRound className="h-4 w-4" />
                       </Button>

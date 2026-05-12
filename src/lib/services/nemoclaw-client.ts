@@ -13,13 +13,27 @@ const NEMOCLAW_API_KEY = process.env.NEMOCLAW_API_KEY || '';
 const NEMOCLAW_MODEL = process.env.NEMOCLAW_MODEL || 'nvidia/nemotron-3-super-120b-a12b';
 
 interface ChatMessage {
-    role: 'system' | 'user' | 'assistant';
-    content: string;
+    role: 'system' | 'user' | 'assistant' | 'tool';
+    content: string | null;
+    name?: string;
+    tool_calls?: any[];
+    tool_call_id?: string;
+}
+
+interface ChatCompletionTool {
+    type: 'function';
+    function: {
+        name: string;
+        description?: string;
+        parameters?: any;
+    };
 }
 
 interface ChatCompletionRequest {
     model?: string;
     messages: ChatMessage[];
+    tools?: ChatCompletionTool[];
+    tool_choice?: 'auto' | 'none' | { type: 'function', function: { name: string } };
     temperature?: number;
     max_tokens?: number;
     stream?: boolean;
@@ -79,6 +93,14 @@ class NemoClawClient {
             max_tokens: request.max_tokens ?? 2048,
             stream: false,
         };
+
+        if (request.tools) {
+            body.tools = request.tools;
+        }
+
+        if (request.tool_choice) {
+            body.tool_choice = request.tool_choice;
+        }
 
         if (request.user) {
             body.user = request.user;
@@ -143,7 +165,7 @@ class NemoClawClient {
         }
 
         return {
-            content: choice.message.content.trim(),
+            content: (choice.message.content || '').trim(),
             model: result.model,
             usage: result.usage,
         };
@@ -275,4 +297,4 @@ export function getNemoClawClient(): NemoClawClient {
     return _instance;
 }
 
-export type { ChatMessage, ChatCompletionResponse, NemoClawHealthStatus };
+export type { ChatMessage, ChatCompletionResponse, NemoClawHealthStatus, ChatCompletionRequest, ChatCompletionTool };

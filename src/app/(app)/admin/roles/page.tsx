@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { PlusCircle, Edit, Trash2, ShieldCheck, Undo2 } from "lucide-react";
-import { MOCK_CURRENT_USER, ROLE_ADMIN_PKTAT, SYSTEM_PERMISSIONS, type SystemPermission, type NavItemLabel, type Role } from "@/lib/constants";
+import { MOCK_CURRENT_USER, ROLE_SUPER_ADMIN, SYSTEM_PERMISSIONS, type SystemPermission, type NavItemLabel, type Role } from "@/lib/constants";
 import { addRole, updateRole, deleteRole, getRoles } from "@/lib/actions/role.actions";
 import { getUsers } from "@/lib/actions/user.actions";
 import { undoLastChange } from "@/lib/actions/system.actions";
@@ -136,30 +136,10 @@ export default function RoleManagementPage() {
     setUsersData(users);
   }, []);
 
-  React.useEffect(() => {
-    fetchData();
-  }, [fetchData]);
-
   const roleForm = useForm<z.infer<typeof roleSchema>>({
     resolver: zodResolver(roleSchema),
     defaultValues: { id: "", name: "", description: "", permissions: [] },
   });
-
-  if (currentUserRole !== ROLE_ADMIN_PKTAT) {
-    return (
-      <div className="flex flex-col items-center justify-center h-full">
-        <Card className="w-full max-w-md p-8 text-center">
-          <CardTitle className="text-2xl text-destructive mb-4">{t.accessDenied}</CardTitle>
-          <CardDescription>{locale === 'vi' ? `Chỉ Quản trị viên (P.KTAT) mới có quyền truy cập trang này.` : `Only Administrators (P.KTAT) can access this page.`}</CardDescription>
-           <Button asChild className="mt-6">
-            <Link href="/dashboard">
-              {locale === 'vi' ? 'Quay lại Bảng điều khiển' : 'Back to Dashboard'}
-            </Link>
-          </Button>
-        </Card>
-      </div>
-    );
-  }
 
   const handleOpenAddRoleDialog = React.useCallback(() => {
     setEditingRole(null);
@@ -239,6 +219,26 @@ export default function RoleManagementPage() {
       return acc;
     }, {} as Record<string, SystemPermission[]>), 
   [locale]);
+
+  React.useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  if (currentUserRole !== ROLE_SUPER_ADMIN) {
+    return (
+      <div className="flex flex-col items-center justify-center h-full">
+        <Card className="w-full max-w-md p-8 text-center">
+          <CardTitle className="text-2xl text-destructive mb-4">{t.accessDenied}</CardTitle>
+          <CardDescription>{locale === 'vi' ? `Chỉ Quản trị viên cấp cao mới có quyền truy cập trang này.` : `Only Super Administrators can access this page.`}</CardDescription>
+           <Button asChild className="mt-6">
+            <Link href="/dashboard">
+              {locale === 'vi' ? 'Quay lại Bảng điều khiển' : 'Back to Dashboard'}
+            </Link>
+          </Button>
+        </Card>
+      </div>
+    );
+  }
 
 
   return (

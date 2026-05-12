@@ -1,6 +1,5 @@
 import * as snmp from 'net-snmp';
-import { metroDb } from '@/lib/prisma';
-import { logTelemetry } from '@/lib/actions/telemetry.actions';
+import { metroDb, IS_DATABASE_OFFLINE } from '../prisma';
 
 async function pollDevice(config: {
     ip: string;
@@ -39,13 +38,17 @@ async function pollDevice(config: {
 }
 
 export async function runTelemetryPoller() {
+    if (IS_DATABASE_OFFLINE) {
+        // Skip background polling in offline mode to avoid errors and db.json bloat
+        return;
+    }
     console.log("Starting Telemetry Poller...");
     const now = new Date();
     
     // Get all configs that are due for polling
     const configs = await metroDb.snmpConfig.findMany();
     
-    const polls = configs.filter(config => {
+    const polls = configs.filter((config: any) => {
         if (!config.lastPolled) return true;
         const secondsSinceLastPoll = (now.getTime() - config.lastPolled.getTime()) / 1000;
         return secondsSinceLastPoll >= config.intervalSeconds;
@@ -64,7 +67,15 @@ export async function runTelemetryPoller() {
             });
 
             if (value !== null) {
-                await logTelemetry(config.assetId, config.metricName, value);
+                // Direct DB write to avoid importing Server Actions into a Service
+                await metroDb.telemetryReading.create({
+                    data: {
+                        assetId: config.assetId,
+                        metric: config.metricName,
+                        value: value,
+                        unit: ''
+                    }
+                });
                 
                 await metroDb.snmpConfig.update({
                     where: { id: config.id },

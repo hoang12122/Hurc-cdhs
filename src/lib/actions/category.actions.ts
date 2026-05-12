@@ -2,134 +2,97 @@
 
 import { revalidatePath } from 'next/cache';
 import { type ResponsibleUnit, type Subsystem, type PatrolLocation } from '@/lib/constants';
-import { logSystemEvent } from './system.actions';
-import { opsDb } from '@/lib/prisma';
-import { cache, CACHE_KEYS, TTL_REFERENCE } from '@/lib/cache';
+import { internalLogSystemEvent as logSystemEvent } from '../services/log-service';
+import { requirePermission, requireAuth } from '@/lib/auth-enforcer';
+import { 
+    getInternalResponsibleUnits, 
+    getInternalSubsystems, 
+    getInternalLocations,
+    createInternalResponsibleUnit,
+    updateInternalResponsibleUnit,
+    deleteInternalResponsibleUnit,
+    createInternalSubsystem,
+    updateInternalSubsystem,
+    deleteInternalSubsystem,
+    createInternalLocation,
+    updateInternalLocation,
+    deleteInternalLocation
+} from '../services/category-service';
 
-// ============ Responsible Units (T3: Reference Data — Cached) ============
-
+// ============ Responsible Units ============
 export async function getResponsibleUnits(): Promise<ResponsibleUnit[]> {
-    return cache.getOrFetch(
-        CACHE_KEYS.RESPONSIBLE_UNITS,
-        async () => {
-            const units = await opsDb.responsibleUnit.findMany();
-            return units as ResponsibleUnit[];
-        },
-        TTL_REFERENCE
-    );
+    await requireAuth();
+    return await getInternalResponsibleUnits();
 }
 
 export async function addResponsibleUnit(unit: Omit<ResponsibleUnit, 'id'>): Promise<ResponsibleUnit> {
-    const newRecord = await opsDb.responsibleUnit.create({
-        data: { id: `unit-${Date.now()}`, name: unit.name }
-    });
-    cache.invalidate(CACHE_KEYS.RESPONSIBLE_UNITS);
+    await requirePermission('settings:manage');
+    const record = await createInternalResponsibleUnit(unit.name);
     revalidatePath('/admin/categories');
-    return newRecord as ResponsibleUnit;
+    return record as ResponsibleUnit;
 }
 
 export async function updateResponsibleUnit(updatedUnit: ResponsibleUnit): Promise<void> {
-    await opsDb.responsibleUnit.update({
-        where: { id: updatedUnit.id },
-        data: { name: updatedUnit.name }
-    });
-    cache.invalidate(CACHE_KEYS.RESPONSIBLE_UNITS);
-    await logSystemEvent('UPDATE_RESPONSIBLE_UNIT', 'INFO', `Updated responsible unit: ${updatedUnit.name} (ID: ${updatedUnit.id})`);
+    await requirePermission('settings:manage');
+    await updateInternalResponsibleUnit(updatedUnit.id, updatedUnit.name);
+    await logSystemEvent('UPDATE_RESPONSIBLE_UNIT', 'INFO', `Updated unit: ${updatedUnit.name}`);
     revalidatePath('/admin/categories');
 }
 
 export async function deleteResponsibleUnit(unitId: string): Promise<void> {
-    const toDelete = await opsDb.responsibleUnit.findUnique({ where: { id: unitId } });
-    if (toDelete) {
-        await opsDb.responsibleUnit.delete({ where: { id: unitId } });
-        await logSystemEvent('DELETE_RESPONSIBLE_UNIT', 'WARNING', `Deleted responsible unit: ${toDelete.name} (ID: ${unitId})`);
-    }
-    cache.invalidate(CACHE_KEYS.RESPONSIBLE_UNITS);
+    await requirePermission('settings:manage');
+    await deleteInternalResponsibleUnit(unitId);
+    await logSystemEvent('DELETE_RESPONSIBLE_UNIT', 'WARNING', `Deleted unit: ${unitId}`);
     revalidatePath('/admin/categories');
 }
 
-// ============ Subsystems (T3: Reference Data — Cached) ============
-
+// ============ Subsystems ============
 export async function getSubsystems(): Promise<Subsystem[]> {
-    return cache.getOrFetch(
-        CACHE_KEYS.SUBSYSTEMS,
-        async () => {
-            const subsystems = await opsDb.subsystem.findMany();
-            return subsystems as unknown as Subsystem[];
-        },
-        TTL_REFERENCE
-    );
+    await requireAuth();
+    return await getInternalSubsystems();
 }
 
 export async function addSubsystem(subsystem: Subsystem): Promise<Subsystem> {
-    const newRecord = await opsDb.subsystem.create({
-        data: { id: subsystem.id, label: subsystem.label as any }
-    });
-    cache.invalidate(CACHE_KEYS.SUBSYSTEMS);
-    await logSystemEvent('CREATE_SUBSYSTEM', 'INFO', `Created new subsystem: ${(newRecord.label as any).vi} (ID: ${newRecord.id})`);
+    await requirePermission('settings:manage');
+    const record = await createInternalSubsystem(subsystem.id, subsystem.label);
+    await logSystemEvent('CREATE_SUBSYSTEM', 'INFO', `Created subsystem: ${subsystem.id}`);
     revalidatePath('/admin/categories');
-    return newRecord as unknown as Subsystem;
+    return record as unknown as Subsystem;
 }
 
 export async function updateSubsystem(updatedSubsystem: Subsystem): Promise<void> {
-    await opsDb.subsystem.update({
-        where: { id: updatedSubsystem.id },
-        data: { label: updatedSubsystem.label as any }
-    });
-    cache.invalidate(CACHE_KEYS.SUBSYSTEMS);
-    await logSystemEvent('UPDATE_SUBSYSTEM', 'INFO', `Updated subsystem: ${updatedSubsystem.label.vi} (ID: ${updatedSubsystem.id})`);
+    await requirePermission('settings:manage');
+    await updateInternalSubsystem(updatedSubsystem.id, updatedSubsystem.label);
     revalidatePath('/admin/categories');
 }
 
 export async function deleteSubsystem(subsystemId: string): Promise<void> {
-    const toDelete = await opsDb.subsystem.findUnique({ where: { id: subsystemId } });
-    if (toDelete) {
-        await opsDb.subsystem.delete({ where: { id: subsystemId } });
-        await logSystemEvent('DELETE_SUBSYSTEM', 'WARNING', `Deleted subsystem: ${(toDelete.label as any).vi} (ID: ${subsystemId})`);
-    }
-    cache.invalidate(CACHE_KEYS.SUBSYSTEMS);
+    await requirePermission('settings:manage');
+    await deleteInternalSubsystem(subsystemId);
     revalidatePath('/admin/categories');
 }
 
-// ============ Locations (T3: Reference Data — Cached) ============
-
+// ============ Locations ============
 export async function getLocations(): Promise<PatrolLocation[]> {
-    return cache.getOrFetch(
-        CACHE_KEYS.LOCATIONS,
-        async () => {
-            const locations = await opsDb.patrolLocation.findMany();
-            return locations as PatrolLocation[];
-        },
-        TTL_REFERENCE
-    );
+    await requireAuth();
+    return await getInternalLocations();
 }
 
 export async function addLocation(location: PatrolLocation): Promise<PatrolLocation> {
-    const newRecord = await opsDb.patrolLocation.create({
-        data: { id: location.id, label: location.label }
-    });
-    cache.invalidate(CACHE_KEYS.LOCATIONS);
-    await logSystemEvent('CREATE_LOCATION', 'INFO', `Created new location: ${newRecord.label} (ID: ${newRecord.id})`);
+    await requirePermission('settings:manage');
+    const record = await createInternalLocation(location.id, location.label);
     revalidatePath('/admin/categories');
-    return newRecord as PatrolLocation;
+    return record as PatrolLocation;
 }
 
 export async function updateLocation(updatedLocation: PatrolLocation): Promise<void> {
-    await opsDb.patrolLocation.update({
-        where: { id: updatedLocation.id },
-        data: { label: updatedLocation.label }
-    });
-    cache.invalidate(CACHE_KEYS.LOCATIONS);
-    await logSystemEvent('UPDATE_LOCATION', 'INFO', `Updated location: ${updatedLocation.label} (ID: ${updatedLocation.id})`);
+    await requirePermission('settings:manage');
+    await updateInternalLocation(updatedLocation.id, updatedLocation.label);
     revalidatePath('/admin/categories');
 }
 
 export async function deleteLocation(locationId: string): Promise<void> {
-    const toDelete = await opsDb.patrolLocation.findUnique({ where: { id: locationId } });
-    if (toDelete) {
-        await opsDb.patrolLocation.delete({ where: { id: locationId } });
-        await logSystemEvent('DELETE_LOCATION', 'WARNING', `Deleted location: ${toDelete.label} (ID: ${locationId})`);
-    }
-    cache.invalidate(CACHE_KEYS.LOCATIONS);
+    await requirePermission('settings:manage');
+    await deleteInternalLocation(locationId);
     revalidatePath('/admin/categories');
 }

@@ -1,14 +1,12 @@
 /**
  * CENTRALIZED AUTHENTICATION & AUTHORIZATION ENFORCER
- * This utility ensures that Server Actions are only executed by authorized users.
+ * Refactored to avoid higher-order function wrappers that confuse the Next.js Flight manifest generator.
  */
 
-import { getCurrentUser } from './actions/auth.actions';
+import { getSessionUser } from './services/auth-service';
 import { hasPermission } from './auth';
+import { redirect } from 'next/navigation';
 
-/**
- * Standard Error for Unauthorized Access
- */
 export class UnauthorizedError extends Error {
     constructor(message = "Unauthorized: Access denied") {
         super(message);
@@ -17,20 +15,14 @@ export class UnauthorizedError extends Error {
 }
 
 /**
- * Higher-order function to wrap server actions with security checks.
- * Logs out unauthenticated users automatically (at browser level via throw).
- * 
- * @param permission Optional permission required for this action.
- * @param action The function to execute if authorized.
+ * Procedural check for authentication and permission.
+ * Call this inside any Server Action or Server Component.
  */
-export async function protectedAction<T>(
-    permission: string | null,
-    action: (user: any) => Promise<T>
-): Promise<T> {
-    const user = await getCurrentUser();
+export async function requirePermission(permission: string | null = null) {
+    const user = await getSessionUser();
     
     if (!user) {
-        throw new UnauthorizedError("Vui lòng đăng nhập để thực hiện tác vụ này.");
+        redirect("/login");
     }
 
     if (permission) {
@@ -39,19 +31,17 @@ export async function protectedAction<T>(
             throw new UnauthorizedError(`Bạn không có quyền thực hiện: ${permission}`);
         }
     }
-
-    // Execute the actual work
-    return await action(user);
+    
+    return user;
 }
 
 /**
- * Helper specifically for read-only actions that might not need granular permissions
- * but still require a valid login.
+ * Basic login check.
  */
-export async function authenticatedAction<T>(
-    action: (user: any) => Promise<T>
-): Promise<T> {
-    const user = await getCurrentUser();
-    if (!user) throw new UnauthorizedError();
-    return await action(user);
+export async function requireAuth() {
+    const user = await getSessionUser();
+    if (!user) {
+        redirect("/login");
+    }
+    return user;
 }

@@ -14,7 +14,7 @@ import {
     type MaintenanceStandard,
     type MaintenanceStandardItem,
     MOCK_CURRENT_USER, 
-    ROLE_ADMIN_PKTAT 
+    ROLE_SUPER_ADMIN 
 } from "@/lib/constants";
 import {
     addMaintenanceStandard,
@@ -186,12 +186,12 @@ export default function MaintenanceStandardImportPage() {
   [parsedItems, errorsToDisplay]);
 
   // Role check
-  if (currentUserRole !== ROLE_ADMIN_PKTAT) {
+  if (currentUserRole !== ROLE_SUPER_ADMIN) {
     return (
       <div className="flex flex-col items-center justify-center h-full">
         <Card className="w-full max-w-md p-8 text-center">
           <CardTitle className="text-2xl text-destructive mb-4">{t.accessDenied}</CardTitle>
-          <CardDescription>{locale === 'vi' ? `Chỉ Quản trị viên (P.KTAT) mới có quyền truy cập trang này.` : `Only Administrators (P.KTAT) can access this page.`}</CardDescription>
+          <CardDescription>{locale === 'vi' ? `Chỉ Quản trị viên cấp cao mới có quyền truy cập trang này.` : `Only Super Administrators can access this page.`}</CardDescription>
            <Button asChild className="mt-6">
             <Link href="/admin/maintenance-standards">
               {t.backToList}

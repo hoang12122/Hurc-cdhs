@@ -103,12 +103,7 @@ export function AiGraphExplorer() {
                                                         <p className="text-sm font-medium truncate">{entity.entity || entity.label || entity.value || 'Entity'}</p>
                                                         {entity.score && (
                                                             <div className="flex items-center gap-1 mt-1">
-                                                                <div className="h-1.5 flex-grow bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
-                                                                    <div
-                                                                        className="h-full bg-gradient-to-r from-purple-500 to-indigo-500 rounded-full"
-                                                                        style={{ width: `${Math.round(entity.score * 100)}%` }}
-                                                                    />
-                                                                </div>
+                                                                <ScoreBar score={entity.score} />
                                                                 <span className="text-[10px] text-muted-foreground shrink-0">
                                                                     {Math.round(entity.score * 100)}%
                                                                 </span>
@@ -164,6 +159,21 @@ export function AiGraphExplorer() {
                     </div>
                 </div>
             )}
+        </div>
+    );
+}
+
+function ScoreBar({ score }: { score: number }) {
+    const ref = React.useRef<HTMLDivElement>(null);
+    React.useEffect(() => {
+        if (ref.current) {
+            ref.current.style.width = `${Math.round(score * 100)}%`;
+        }
+    }, [score]);
+
+    return (
+        <div className="h-1.5 flex-grow bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+            <div ref={ref} className="h-full bg-gradient-to-r from-purple-500 to-indigo-500 rounded-full" />
         </div>
     );
 }

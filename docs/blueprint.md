@@ -1,6 +1,6 @@
 # **App Name**: Metro Inspect Pro
 
-## Core Features:
+## Core Features
 
 - Tạo Checklist Động: Hiển thị checklist động dựa trên "Danh mục định mức bảo trì" và Khu vực kiểm tra được chọn.
 - Tải Ảnh cho Phát Hiện: Cho phép tải lên hình ảnh với mỗi phát hiện để tăng cường tính rõ ràng và tài liệu.
@@ -9,7 +9,7 @@
 - Tìm Kiếm và Lọc: Thanh tìm kiếm cho phép người dùng tìm kiếm nhanh chóng qua các báo cáo trước đó.
 - Kiểm Soát Truy Cập Dựa Trên Vai Trò: Truy cập của người dùng dựa trên vai trò (Thanh tra, P.KTAT, XNBD, Ban QLĐSĐT).
 
-## Style Guidelines:
+## Style Guidelines
 
 - Màu chính: Xanh lam sống động (#29ABE2) để truyền tải sự tin cậy và chuyên môn kỹ thuật.
 - Màu nền: Xám nhạt (#F0F4F8) để đảm bảo giao diện sạch sẽ, chuyên nghiệp.

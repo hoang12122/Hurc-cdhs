@@ -1,0 +1,43 @@
+{
+  "metadata": {
+    "created_at": "2026-05-08T13:43:30.965768",
+    "total_dnf": 2,
+    "total_inspections": 2
+  },
+  "dnf_history": [
+    {
+      "id": "DNF-001",
+      "asset_id": "GATE-02",
+      "location": "Ga Bến Thành",
+      "defect_type": "Kẹt cơ khí",
+      "identification_date": "2026-05-01T00:00:00",
+      "resolution_date": null,
+      "source": "DNF"
+    },
+    {
+      "id": "DNF-002",
+      "asset_id": "TRAIN-01",
+      "location": "Ga Suối Tiên",
+      "defect_type": "Hư hỏng",
+      "identification_date": "2026-05-05T00:00:00",
+      "resolution_date": null,
+      "source": "DNF"
+    }
+  ],
+  "inspection_history": [
+    {
+      "id": "INS-001",
+      "asset_id": "GATE-02",
+      "inspection_date": "2026-04-20T00:00:00",
+      "status": "Normal",
+      "source": "INSPECTION"
+    },
+    {
+      "id": "INS-002",
+      "asset_id": "TRAIN-01",
+      "inspection_date": "2026-05-02T00:00:00",
+      "status": "Warning",
+      "source": "INSPECTION"
+    }
+  ]
+}

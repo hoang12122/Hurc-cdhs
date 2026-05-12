@@ -1,45 +1,33 @@
 'use server';
 
-import { metroDb } from '@/lib/prisma';
-import { revalidatePath } from 'next/cache';
+import { requireAuth } from '../auth-enforcer';
+import { 
+    logTelemetryInternal, 
+    getAssetTelemetryInternal, 
+    getLatestTelemetryInternal, 
+    getSnmpConfigInternal, 
+    upsertSnmpConfigInternal 
+} from '../services/telemetry-service';
 
 export async function logTelemetry(assetId: string, metric: string, value: number, unit?: string) {
-    const reading = await metroDb.telemetryReading.create({
-        data: {
-            assetId,
-            metric,
-            value,
-            unit
-        }
-    });
-    return reading;
+    // Usually called by background tasks, but if called by UI, require auth
+    await requireAuth();
+    return await logTelemetryInternal(assetId, metric, value, unit);
 }
 
 export async function getAssetTelemetry(assetId: string, metric?: string, limit: number = 20) {
-    return await metroDb.telemetryReading.findMany({
-        where: {
-            assetId,
-            ...(metric ? { metric } : {})
-        },
-        orderBy: {
-            timestamp: 'desc'
-        },
-        take: limit
-    });
+    await requireAuth();
+    return await getAssetTelemetryInternal(assetId, metric, limit);
 }
 
 export async function getLatestTelemetry() {
-    return await metroDb.telemetryReading.findMany({
-        orderBy: {
-            timestamp: 'desc'
-        },
-        take: 50
-    });
+    await requireAuth();
+    return await getLatestTelemetryInternal();
 }
+
 export async function getSnmpConfig(assetId: string) {
-    return await metroDb.snmpConfig.findUnique({
-        where: { assetId }
-    });
+    await requireAuth();
+    return await getSnmpConfigInternal(assetId);
 }
 
 export async function upsertSnmpConfig(data: {
@@ -50,10 +38,6 @@ export async function upsertSnmpConfig(data: {
     metricName: string;
     intervalSeconds: number;
 }) {
-    const config = await metroDb.snmpConfig.upsert({
-        where: { assetId: data.assetId },
-        update: data,
-        create: data
-    });
-    return config;
+    await requireAuth();
+    return await upsertSnmpConfigInternal(data);
 }

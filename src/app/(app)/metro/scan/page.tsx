@@ -5,7 +5,6 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Activity, AlertTriangle, CheckCircle, ArrowLeft, Loader2, Settings2, Smartphone } from 'lucide-react';
-import { metroDb } from '@/lib/prisma'; // This won't work on client, need action
 import { getAssets } from '@/lib/actions/asset.actions';
 
 export default function TechnicianScanPage() {
@@ -19,7 +18,7 @@ export default function TechnicianScanPage() {
         if (assetId) {
             // Find asset in list (simple for now)
             getAssets().then(all => {
-                const found = all.find(a => a.id === assetId);
+                const found = (all as any[]).find((a: any) => a.id === assetId);
                 setAsset(found);
                 setLoading(false);
             });

@@ -1,0 +1,268 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Task {
+  id              String   @id @default(uuid())
+  title           String
+  description     String?
+  status          String
+  priority        String
+  dueDate         DateTime
+  deadline        DateTime?
+  progress        Int      @default(0)
+  createdById     String
+  createdByName   String
+  assignedToId    String?
+  assignedToName  String?
+  visibility      String   @default("private")
+  createdAt       DateTime @default(now())
+  deletedAt       DateTime?
+  updatedAt       DateTime @updatedAt
+  isNotified24h   Boolean  @default(false)
+  parentId        String?
+  todoType        String?
+  department      String?
+  startDate       DateTime?
+  estimatedHours  Float?
+  spentHours      Float?
+  // Stores JSON string arrays for these:
+  watchers        String?
+  activityHistory String?
+  attachments     String?
+}
+
+model MaintenanceStandard {
+  id                     String   @id @default(uuid())
+  name                   String
+  name_en                String?
+  description            String?
+  frequency              String?
+  scheduledTime          String?
+  locationIds            String?  // JSON string array
+  recipientId            String?
+  abbreviation           String?
+  estimatedDurationHours Float?
+  deletedAt              DateTime?
+  items                  MaintenanceStandardItem[]
+}
+
+model MaintenanceStandardItem {
+  id                String   @id @default(uuid())
+  standardId        String
+  itemCode          String
+  itemText          String
+  criteria          String?
+  unit              String?
+  standardQuantity  Float?
+  toleranceOperator String?
+  toleranceValue    Float?
+  requiredTools     String?
+  standard          MaintenanceStandard @relation(fields: [standardId], references: [id], onDelete: Cascade)
+}
+
+model InspectionDetail {
+  id                     String   @id @default(uuid())
+  title                  String
+  areaIds                String?  // JSON string array
+  inspector              String
+  date                   DateTime
+  status                 String
+  checklistTemplateId    String?
+  generalNotes           String?
+  approvalComments       String?
+  lastStatusUpdateBy     String?
+  lastStatusUpdateAt     DateTime?
+  scheduledStartDate     DateTime?
+  scheduledFinishDate    DateTime?
+  estimatedDurationHours Float?
+  isArchived             Boolean  @default(false)
+  deletedAt              DateTime?
+  checklistItems         ChecklistItem[]
+}
+
+model ChecklistItem {
+  id                 String   @id @default(uuid())
+  inspectionId       String
+  text               String
+  status             String
+  isCustom           Boolean  @default(false)
+  criteria           String?
+  unit               String?
+  standardQuantity   Float?
+  toleranceOperator  String?
+  toleranceValue     Float?
+  actualQuantity     Float?
+  requiredTools      String?
+  images             String?  // JSON
+  inspection         InspectionDetail @relation(fields: [inspectionId], references: [id], onDelete: Cascade)
+  findings           Finding[]
+}
+
+model Finding {
+  id              String   @id @default(uuid())
+  checklistItemId String
+  description     String
+  severity        String?
+  type            String?
+  recommendation  String?
+  linkedDnfId     String?
+  quantity        Float?
+  latitude        Float?
+  longitude       Float?
+  images          String?  // JSON
+  checklistItem   ChecklistItem @relation(fields: [checklistItemId], references: [id], onDelete: Cascade)
+}
+
+model DnfDocument {
+  id                                     String   @id @default(uuid())
+  failureReportNo                        String?
+  locationOfFailure                      String
+  failedComponentEquipmentLRUTrainNumber String?
+  subsystemIds                           String?  // JSON
+  descriptionOfFailure                   String
+  impactAssessment                       String?
+  staffWhoIdentifiedFailure              String
+  dateTimeOfFailureOccurrence            DateTime
+  methodOfFailureDetection               String
+  hazardLevelId                          String?
+  status                                 String
+  createdById                            String
+  createdAt                              DateTime @default(now())
+  updatedAt                              DateTime @updatedAt
+  isArchived                             Boolean  @default(false)
+  resolutionDetails                      String?
+  assignedTo                             String?
+  priority                               String?
+  completedDate                          DateTime?
+  originatingInspectionId                String?
+  originatingFindingId                   String?
+  immediateAction                        String?
+  problemResettable                      Boolean?
+  trainServiceAffected                   Boolean?
+  trainWithdrawn                         Boolean?
+  systemRestoredTime                     DateTime?
+  disruptionDuration                     Int?
+  trainKm                                Float?
+  rectificationParty                     String?
+  attachments                            String?  // JSON
+  statusHistory                          String?  // JSON
+  correctiveActions                      CorrectiveAction[]
+}
+
+model CorrectiveAction {
+  id                      String   @id @default(uuid())
+  dnfId                   String
+  description             String
+  responsiblePersonOrUnit String
+  createdAt               DateTime @default(now())
+  updatedAt               DateTime @updatedAt
+  completedAt             DateTime?
+  status                  String
+  dateTimeNotified        DateTime?
+  dateTimeArrival         DateTime?
+  diagnosisTime           Int?
+  repairTime              Int?
+  verificationTime        Int?
+  totalDownTime           Int?
+  dnf                     DnfDocument @relation(fields: [dnfId], references: [id], onDelete: Cascade)
+}
+
+model HazardRecord {
+  id                      String   @id @default(uuid())
+  description             String
+  systemGroup             String?
+  locationIds             String?  // JSON
+  source                  String?
+  potentialConsequence    String?
+  identifiedBy            String
+  identificationDate      DateTime
+  severityId              String?
+  likelihoodId            String?
+  riskLevelId             String?
+  currentControls         String
+  proposedActions         String?
+  suggestedActions        String?
+  responsiblePersonOrUnit String?
+  coordinatingUnits       String?  // JSON
+  dueDate                 DateTime?
+  status                  String
+  closureDetails          String?
+  verificationDetails     String?
+  linkedDnfId             String?
+  createdById             String
+  createdAt               DateTime @default(now())
+  updatedAt               DateTime @updatedAt
+  isArchived              Boolean  @default(false)
+  attachments             String?  // JSON
+  statusHistory           String?  // JSON
+}
+
+model Improvement {
+  id              String   @id @default(uuid())
+  title           String
+  description     String
+  category        String
+  status          String
+  submittedBy     String
+  createdById     String
+  submissionDate  DateTime
+  deletedAt       DateTime?
+  updatedAt       DateTime @updatedAt
+  benefitAnalysis String?
+  estimatedCost   Float?
+  attachments     String?  // JSON
+}
+
+model SystemLog {
+  id          String   @id @default(uuid())
+  timestamp   DateTime @default(now())
+  userId      String
+  userName    String
+  action      String
+  level       String
+  details     String
+  category    String
+}
+
+model Notification {
+  id          String   @id @default(uuid())
+  message     String
+  type        String
+  timestamp   DateTime @default(now())
+  isRead      Boolean  @default(false)
+  link        String?
+}
+
+model Comment {
+  id          String   @id @default(uuid())
+  entityId    String
+  senderId    String
+  senderName  String
+  timestamp   DateTime @default(now())
+  content     String
+  isInternal  Boolean  @default(false)
+}
+
+model ResponsibleUnit {
+  id          String   @id @default(uuid())
+  name        String
+}
+
+model Subsystem {
+  id          String   @id @default(uuid())
+  label_en    String
+  label_vi    String
+  deletedAt   DateTime?
+}
+
+model PatrolLocation {
+  id          String   @id @default(uuid())
+  label       String
+  deletedAt   DateTime?
+}

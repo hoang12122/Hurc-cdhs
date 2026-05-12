@@ -8,15 +8,9 @@ export default function HomePage() {
   const { user } = useAuth();
   
   useEffect(() => {
-    // If user is not "logged in", redirect to login.
-    if (!user) {
-      router.replace('/login');
-    } 
-    // Otherwise, redirect to the dashboard.
-    else {
-      router.replace('/dashboard');
-    }
-  }, [router, user]);
+    // Always redirect to dashboard in bypass mode
+    router.replace('/dashboard');
+  }, [router]);
 
   return (
     <div className="flex h-screen w-full items-center justify-center">

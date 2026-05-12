@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 import { DnfTableClient } from '@/components/dnf/dnf-table-client';
 import { getDnfsPaginated } from '@/lib/actions/dnf.actions';
 import { getSubsystems, getLocations, getResponsibleUnits } from '@/lib/actions/category.actions';

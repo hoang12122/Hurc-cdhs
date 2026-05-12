@@ -1,0 +1,8 @@
+﻿
+> nextn@0.1.0 typecheck
+> tsc --noEmit
+
+src/components/hazards/hazard-form.tsx(347,15): error TS2322: Type '{ id: string; createdAt: string; updatedAt: string; locationIds: string[]; description: string; systemGroup?: string; source?: string; potentialConsequence?: string; identifiedBy: string; ... 17 more ...; createdById?: string | undefined; }' is not assignable to type 'HazardRecord'.
+  Types of property 'createdById' are incompatible.
+    Type 'string | undefined' is not assignable to type 'string'.
+      Type 'undefined' is not assignable to type 'string'.

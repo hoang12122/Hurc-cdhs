@@ -61,6 +61,9 @@ import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { HazardResolutionForm } from '@/components/hazards/hazard-resolution-form';
+import { useNetwork } from '@/components/providers/network-provider';
+import { offlineSync } from '@/lib/services/offline-sync';
+import { ReportLayout } from '@/components/shared/report-layout';
 
 
 const translations = {
@@ -109,15 +112,19 @@ const translations = {
     statusUpdateFailed: "Không thể cập nhật trạng thái. Không có quyền hoặc chuyển đổi không hợp lệ.",
     workflowTitle: "Các bước tiếp theo",
     workflowDescription: "Thực hiện hành động tiếp theo trong quy trình xử lý mối nguy.",
-    assessHazardButton: "Bắt đầu Đánh giá",
-    acceptForResolutionButton: "Tiếp nhận Xử lý",
-    noFurtherActions: (status: string) => `Không có hành động nào cho trạng thái: ${status}`,
     noPermissionForWorkflow: "Bạn không có quyền thực hiện các bước tiếp theo.",
+    btnIdentify: "Bắt đầu Đánh giá",
+    btnAnalyze: "Tiếp nhận Xử lý",
+    btnResolve: "Gửi Phản hồi",
+    btnClose: "Phê duyệt & Đóng",
+    noFurtherActions: (status: string) => `Không có hành động nào cho trạng thái: ${status}`,
     relatedHazardsTitle: "Mối nguy Liên quan cùng Hệ thống",
     relatedHazardsDesc: "Các mối nguy khác được ghi nhận trong cùng hệ thống.",
     noRelatedHazards: "Không có mối nguy liên quan nào khác được tìm thấy.",
+    relatedHazardsDesc2: "Các mối nguy khác đã ghi nhận trong cùng hệ thống.",
     statusHistory: "Lịch sử Trạng thái",
     statusChangeDetails: (to: string, by: string, time: string) => `Chuyển thành '${to}' bởi ${by} lúc ${time}`,
+    reportSubtitle: "BÁO CÁO CHI TIẾT MỐI NGUY VỀ AN TOÀN (HAZARD)"
   },
   en: {
     titlePrefix: 'Hazard Record Details',
@@ -164,28 +171,30 @@ const translations = {
     statusUpdateFailed: "Failed to update status. No permission or invalid transition.",
     workflowTitle: "Next Steps",
     workflowDescription: "Perform the next action in the hazard resolution workflow.",
-    assessHazardButton: "Start Assessment",
-    acceptForResolutionButton: "Accept for Resolution",
-    noFurtherActions: (status: string) => `No further actions available for status: ${status}`,
     noPermissionForWorkflow: "You do not have permission to perform next steps.",
+    btnIdentify: "Start Assessment",
+    btnAnalyze: "Accept for Resolution",
+    btnResolve: "Send Feedback",
+    btnClose: "Approve & Close",
+    noFurtherActions: (status: string) => `No further actions available for status: ${status}`,
     relatedHazardsTitle: "Related Hazards in System",
     relatedHazardsDesc: "Other recorded hazards within the same system.",
     noRelatedHazards: "No other related hazards found.",
     statusHistory: "Status History",
     statusChangeDetails: (to: string, by: string, time: string) => `Changed to '${to}' by ${by} at ${time}`,
+    reportSubtitle: "SAFETY HAZARD RECORD DETAIL REPORT"
   }
 };
 
 function getHazardStatusBadgeVariant(
-  status: HazardRecord['status']
+  status: HazardStatus
 ): 'default' | 'secondary' | 'destructive' | 'outline' | 'accent' {
   switch (status) {
     case 'Mới': return 'outline';
-    case 'Đang đánh giá': return 'secondary';
-    case "Tiếp nhận xử lý": return "default";
-    case 'Đã xử lý/Giám sát': return 'default';
-    case 'Đã đóng': return 'default';
-    case 'Hủy': return 'destructive';
+    case 'Đánh giá': return 'secondary';
+    case 'Xử lý': return 'default';
+    case 'Phản hồi': return 'accent';
+    case 'Đóng': return 'default';
     default: return 'outline';
   }
 }
@@ -203,6 +212,7 @@ export function HazardDetailClient({ initialHazard, allHazards, subsystems, resp
   const { locale } = useLanguage();
   const t = translations[locale];
   const { toast } = useToast();
+  const { isOnline } = useNetwork();
 
   const [hazard, setHazard] = React.useState<HazardRecord>(initialHazard);
   
@@ -222,8 +232,17 @@ export function HazardDetailClient({ initialHazard, allHazards, subsystems, resp
       if (userRole === ROLE_ADMIN_PKTAT) {
           return true; // Admin can do any transition
       }
-      const validTransitions = HAZARD_STATUS_TRANSITIONS[currentStatus] || [];
-      return validTransitions.includes(newStatus);
+      const transitionRule = HAZARD_STATUS_TRANSITIONS[currentStatus];
+      if (!transitionRule) return false;
+      
+      if (transitionRule.roles) {
+          const allowedForRole = transitionRule.roles[userRole];
+          if (allowedForRole) {
+              return allowedForRole.includes(newStatus);
+          }
+      }
+      
+      return transitionRule.next.includes(newStatus);
   }, []);
   
   const handleStatusUpdate = async (newStatus: HazardStatus) => {
@@ -237,6 +256,18 @@ export function HazardDetailClient({ initialHazard, allHazards, subsystems, resp
     }
 
     const updatedHazardData: HazardRecord = { ...hazard, status: newStatus, updatedAt: new Date().toISOString() };
+    
+    if (!isOnline) {
+        await offlineSync.addAction({
+            type: 'STATUS_UPDATE',
+            entityType: 'HAZARD',
+            data: updatedHazardData
+        });
+        setHazard(updatedHazardData);
+        toast({ title: "Đã lưu ngoại tuyến", description: "Trạng thái sẽ được cập nhật khi có mạng." });
+        return;
+    }
+
     await updateHazardRecord(updatedHazardData);
     setHazard(updatedHazardData);
 
@@ -255,12 +286,12 @@ export function HazardDetailClient({ initialHazard, allHazards, subsystems, resp
       let canEdit = false;
       if (editAll) canEdit = true;
       else if (MOCK_CURRENT_USER.role === ROLE_L3_SPECIALIST) {
-        canEdit = hazard.status !== "Đã đóng";
+        canEdit = hazard.status !== "Đóng";
       }
 
       setPermissions({
         canEdit: canEdit,
-        canDelete: del, // This now correctly reflects the user's direct permission
+        canDelete: del, 
         canManageStatus: manageStatus,
         canViewAll: viewAll,
       });
@@ -314,25 +345,25 @@ export function HazardDetailClient({ initialHazard, allHazards, subsystems, resp
     switch (hazard.status) {
       case 'Mới':
         return (
-          <Button onClick={() => handleStatusUpdate('Đang đánh giá')}>
+          <Button onClick={() => handleStatusUpdate('Đánh giá')}>
             <CheckSquare className="mr-2 h-4 w-4" />
-            {t.assessHazardButton}
+            {t.btnIdentify}
           </Button>
         );
-      case 'Đang đánh giá':
+      case 'Đánh giá':
         return (
-          <Button onClick={() => handleStatusUpdate('Tiếp nhận xử lý')}>
+          <Button onClick={() => handleStatusUpdate('Xử lý')}>
             <Wrench className="mr-2 h-4 w-4" />
-            {t.acceptForResolutionButton}
+            {t.btnAnalyze}
           </Button>
         );
-      case 'Tiếp nhận xử lý':
+      case 'Xử lý':
         return <HazardResolutionForm hazard={hazard} />;
-      case 'Đã xử lý/Giám sát':
+      case 'Phản hồi':
         return (
-          <Button onClick={() => handleStatusUpdate('Đã đóng')}>
+          <Button onClick={() => handleStatusUpdate('Đóng')}>
             <CheckCircleIcon className="mr-2 h-4 w-4" />
-            {t.closeHazardButton}
+            {t.btnClose}
           </Button>
         );
       default:
@@ -357,11 +388,9 @@ export function HazardDetailClient({ initialHazard, allHazards, subsystems, resp
               </Link>
             </Button>
           )}
-           <Button variant="outline" asChild>
-              <Link href={`/hazards/${hazard.id}/report`} target="_blank">
-                  <Printer className="mr-2 h-4 w-4" /> {t.printReport}
-              </Link>
-          </Button>
+           <Button variant="outline" onClick={() => window.print()} className="no-print">
+               <Printer className="mr-2 h-4 w-4" /> {t.printReport}
+           </Button>
            {userCanDeleteCurrentHazard && (
             <AlertDialog>
               <AlertDialogTrigger asChild>
@@ -404,8 +433,13 @@ export function HazardDetailClient({ initialHazard, allHazards, subsystems, resp
                   </Badge>
                   {riskLevelInfo ? (
                     <Badge
-                      style={{ backgroundColor: riskLevelInfo.color, color: riskLevelInfo.textColor }}
-                      className="text-sm px-3 py-1 flex items-center"
+                        variant="outline"
+                        className={cn("text-sm px-3 py-1 flex items-center shadow-sm font-semibold border-2", 
+                            riskLevelInfo.id === 'R1' ? "border-red-500 text-red-700 bg-red-50" :
+                            riskLevelInfo.id === 'R2' ? "border-orange-500 text-orange-700 bg-orange-50" :
+                            riskLevelInfo.id === 'R3' ? "border-yellow-500 text-yellow-700 bg-yellow-50" :
+                            "border-green-500 text-green-700 bg-green-50"
+                        )}
                     >
                       <RiskIconToUse className="mr-1.5 h-4 w-4" />
                       {`${hazard.riskLevelId || 'N/A'} - ${riskLevelInfo.label[locale]}`}
@@ -532,7 +566,7 @@ export function HazardDetailClient({ initialHazard, allHazards, subsystems, resp
                     </div>
                 )}
 
-                {(hazard.status === 'Đã đóng') && hazard.closureDetails && (
+                {(hazard.status === 'Đóng') && hazard.closureDetails && (
                     <>
                         <Separator />
                         <div>
@@ -541,7 +575,7 @@ export function HazardDetailClient({ initialHazard, allHazards, subsystems, resp
                         </div>
                     </>
                 )}
-                {(hazard.status === 'Đã xử lý/Giám sát' || hazard.status === 'Đã đóng') && hazard.verificationDetails && (
+                {(hazard.status === 'Phản hồi' || hazard.status === 'Đóng') && hazard.verificationDetails && (
                     <>
                         <Separator />
                         <div>
@@ -554,7 +588,7 @@ export function HazardDetailClient({ initialHazard, allHazards, subsystems, resp
           </Card>
         </div>
         <div className="lg:col-span-1 space-y-6">
-          {hazard.status !== 'Đã đóng' && hazard.status !== 'Hủy' && (
+          {hazard.status !== 'Đóng' && (
             <Card>
                 <CardHeader>
                     <CardTitle>{t.workflowTitle}</CardTitle>
@@ -614,7 +648,12 @@ export function HazardDetailClient({ initialHazard, allHazards, subsystems, resp
                                             </div>
                                             <p className="text-xs text-muted-foreground font-mono mt-1">{rel.id}</p>
                                             {relRiskLevel && (
-                                                <div className="flex items-center text-xs mt-1" style={{ color: relRiskLevel.color }}>
+                                                <div className={cn("flex items-center text-xs mt-1 font-medium", 
+                                                    relRiskLevel.id === 'R1' ? "text-red-600" :
+                                                    relRiskLevel.id === 'R2' ? "text-orange-600" :
+                                                    relRiskLevel.id === 'R3' ? "text-yellow-600" :
+                                                    "text-green-600"
+                                                )}>
                                                     <relRiskLevel.icon className="h-3 w-3 mr-1" />
                                                     <span>{relRiskLevel.label[locale]}</span>
                                                 </div>
@@ -631,6 +670,84 @@ export function HazardDetailClient({ initialHazard, allHazards, subsystems, resp
             </Card>
         </div>
       </div>
+
+      {/* ============ PRINT REPORT LAYOUT ============ */}
+      <ReportLayout 
+        title={`${t.titlePrefix} #${hazard.id}`} 
+        documentId={hazard.id}
+        subtitle={t.reportSubtitle}
+      >
+        <div className="space-y-6">
+            <table className="w-full border-collapse border border-black">
+                <tbody>
+                    <tr>
+                        <th className="w-1/4 bg-gray-100 p-2 border border-black font-bold uppercase text-[10px]">{t.status}</th>
+                        <td className="w-1/4 p-2 border border-black font-bold text-primary">{hazard.status}</td>
+                        <th className="w-1/4 bg-gray-100 p-2 border border-black font-bold uppercase text-[10px]">{t.riskLevel}</th>
+                        <td className="w-1/4 p-2 border border-black font-bold">
+                            {hazard.riskLevelId ? `${hazard.riskLevelId} - ${riskLevelInfo?.label[locale]}` : 'N/A'}
+                        </td>
+                    </tr>
+                    <tr>
+                        <th className="bg-gray-100 p-2 border border-black font-bold uppercase text-[10px]">{t.severity}</th>
+                        <td className="p-2 border border-black">{hazard.severityId || 'N/A'}</td>
+                        <th className="bg-gray-100 p-2 border border-black font-bold uppercase text-[10px]">{t.likelihood}</th>
+                        <td className="p-2 border border-black">{hazard.likelihoodId || 'N/A'}</td>
+                    </tr>
+                    <tr>
+                        <th className="bg-gray-100 p-2 border border-black font-bold uppercase text-[10px]">{t.location}</th>
+                        <td className="p-2 border border-black" colSpan={3}>{locationLabels || 'N/A'}</td>
+                    </tr>
+                    <tr>
+                        <th className="bg-gray-100 p-2 border border-black font-bold uppercase text-[10px]">{t.systemGroup}</th>
+                        <td className="p-2 border border-black">{systemGroupLabel}</td>
+                        <th className="bg-gray-100 p-2 border border-black font-bold uppercase text-[10px]">{t.identifiedBy}</th>
+                        <td className="p-2 border border-black">{hazard.identifiedBy}</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div className="no-break border border-black p-4 rounded-sm mt-4">
+                <h3 className="font-bold border-b border-black pb-1 mb-2 uppercase text-xs">{t.description}</h3>
+                <p className="text-sm whitespace-pre-wrap">{hazard.description}</p>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4 mt-6">
+                 <div className="border border-black p-3 rounded-sm no-break">
+                    <h3 className="font-bold text-xs uppercase mb-1 border-b border-black pb-1">{t.source}</h3>
+                    <p className="text-sm">{hazard.source || 'N/A'}</p>
+                 </div>
+                 <div className="border border-black p-3 rounded-sm no-break">
+                    <h3 className="font-bold text-xs uppercase mb-1 border-b border-black pb-1">{t.potentialConsequence}</h3>
+                    <p className="text-sm">{hazard.potentialConsequence || 'N/A'}</p>
+                 </div>
+            </div>
+
+            <div className="no-break border border-black p-4 rounded-sm mt-4">
+                <h3 className="font-bold border-b border-black pb-1 mb-2 uppercase text-xs">{t.currentControls}</h3>
+                <p className="text-sm whitespace-pre-wrap">{hazard.currentControls || 'N/A'}</p>
+            </div>
+
+            <div className="no-break border border-black p-4 rounded-sm mt-4">
+                <h3 className="font-bold border-b border-black pb-1 mb-2 uppercase text-xs">{t.suggestedActions}</h3>
+                <p className="text-sm whitespace-pre-wrap">{hazard.suggestedActions || 'N/A'}</p>
+            </div>
+
+            {hazard.attachments && hazard.attachments.length > 0 && (
+                <div className="mt-8">
+                    <h3 className="font-bold border-b-2 border-primary pb-1 mb-4 uppercase text-xs">{t.attachments}</h3>
+                    <div className="grid grid-cols-2 gap-4">
+                        {hazard.attachments.map((img, idx) => (
+                            <div key={idx} className="border border-gray-300 p-1 flex flex-col items-center no-break relative min-h-[200px]">
+                                <Image src={img.url} alt={`attachment-${idx}`} fill className="object-contain" />
+                                <p className="text-[8pt] text-gray-500 mt-1 italic absolute bottom-1">{img.name || `Hình ảnh ${idx + 1}`}</p>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
+        </div>
+      </ReportLayout>
     </div>
   );
 }

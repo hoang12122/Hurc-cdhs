@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 import { HazardTableClient } from '@/components/hazards/hazard-table-client';
 import { getHazardRecordsPaginated } from '@/lib/actions/hazard.actions';
 

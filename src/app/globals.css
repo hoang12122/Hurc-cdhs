@@ -112,62 +112,135 @@ body {
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
+
+  .chart-bar-dynamic {
+    height: var(--bar-height, 0px);
+  }
 }
 
 @media print {
+  @page {
+    size: A4 portrait;
+    margin: 1.5cm;
+  }
+
   body {
+    background-color: white !important;
+    color: black !important;
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
   }
 
-  .sidebar,
+  /* Hide UI elements */
+  .no-print,
+  nav,
   header,
-  .no-print {
+  footer:not(.report-footer),
+  aside,
+  button:not(.print-button-hidden),
+  .sidebar-trigger,
+  .breadcrumb,
+  [role="status"] {
     display: none !important;
   }
-  
+
+  /* Layout adjustments */
   main {
     padding: 0 !important;
     margin: 0 !important;
-  }
-  
-  @page {
-    size: A4 landscape;
-    margin: 1cm;
+    width: 100% !important;
   }
 
-  .card-to-print {
-    box-shadow: none !important;
-    border: none !important;
+  .container {
+    max-width: none !important;
+    width: 100% !important;
     padding: 0 !important;
   }
-  
+
+  /* Show print-only elements */
+  .print-only {
+    display: block !important;
+  }
+
+  /* Table styling */
   table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 10pt;
+    width: 100% !important;
+    border-collapse: collapse !important;
+    margin-bottom: 1rem !important;
+    font-size: 10pt !important;
   }
 
   th, td {
-    border: 1px solid #ccc;
-    padding: 4px 8px;
-    text-align: left;
+    border: 1px solid #333 !important;
+    padding: 6px 10px !important;
+    text-align: left !important;
+    word-break: break-word !important;
   }
 
-  thead {
-    display: table-header-group; /* ensure header repeats on each page */
+  th {
+    background-color: #f0f0f0 !important;
+    font-weight: bold !important;
   }
 
-  tr {
+  /* Report Specifics */
+  .report-header {
+    border-bottom: 2px solid #29ABE2;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+  }
+
+  .report-title {
+    font-size: 18pt;
+    font-weight: bold;
+    text-transform: uppercase;
+    text-align: center;
+    margin: 20px 0;
+  }
+
+  .signature-section {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 50px;
     page-break-inside: avoid;
   }
 
-  a {
-      text-decoration: none;
-      color: inherit;
+  .signature-box {
+    text-align: center;
+    width: 200px;
   }
 
-  .badge {
-      border: 1px solid #ccc;
+  .signature-space {
+    height: 80px;
   }
+
+  .page-break {
+    page-break-before: always;
+  }
+
+  .no-break {
+    page-break-inside: avoid;
+  }
+
+  /* Card styling for print */
+  .card {
+    border: 1px solid #ddd !important;
+    box-shadow: none !important;
+    margin-bottom: 15px !important;
+  }
+
+  .card-header, .card-content {
+    padding: 10px !important;
+  }
+
+  /* Image sizing for print */
+  img {
+    max-width: 100% !important;
+    height: auto !important;
+    page-break-inside: avoid;
+  }
+}
+
+/* Base print-only state (hidden on web) */
+.print-only {
+  display: none;
 }

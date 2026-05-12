@@ -23,7 +23,7 @@ export default function EditInspectionPage() {
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState<ErrorCode | null>(null);
 
-  const t = locale === 'vi' ? {
+  const t = React.useMemo(() => locale === 'vi' ? {
     pageTitle: (id: string) => `Chỉnh sửa Phiếu Kiểm Tra #${id}`,
     loadingMessage: "Đang tải dữ liệu kiểm tra...",
     errorMessage: "Lỗi khi tải dữ liệu kiểm tra.",
@@ -41,7 +41,7 @@ export default function EditInspectionPage() {
     backToList: "Back to list",
     cancelAndBack: "Cancel and Go Back",
     errorTitle: "Error"
-  };
+  }, [locale]);
 
   React.useEffect(() => {
     if (inspectionId) {

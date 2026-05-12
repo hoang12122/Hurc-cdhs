@@ -1,0 +1,103 @@
+generator client {
+  provider      = "prisma-client-js"
+  output        = "../../.prisma-runtime/ai"
+  binaryTargets = ["native", "linux-musl"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("AI_DATABASE_URL")
+}
+
+model AiAgent {
+  id           String   @id @default(cuid())
+  name         String
+  subsystem    String // 'Signaling', 'Power', 'Track', etc.
+  systemPrompt String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([subsystem])
+  @@map("ai_agents")
+}
+
+model AiKnowledgeSnippet {
+  id        String   @id @default(cuid())
+  content   String
+  source    String // e.g., 'Manual', 'Email', 'LocalSend'
+  tags      String[] @default([])
+  createdAt DateTime @default(now())
+  agentId   String? // Optional: link to a specific agent
+
+  @@index([source])
+  @@index([agentId])
+  @@index([createdAt])
+  @@map("ai_knowledge_snippets")
+}
+
+// Conversation history for multi-turn AI chats
+model AiConversation {
+  id        String                  @id @default(cuid())
+  title     String?
+  userId    String
+  agentId   String?
+  state     Json? // TrustGraph agent state for continuity
+  mode      String                  @default("agent") // 'agent', 'document_rag', 'graph_rag'
+  createdAt DateTime                @default(now())
+  updatedAt DateTime                @updatedAt
+  messages  AiConversationMessage[]
+
+  @@index([userId])
+  @@index([agentId])
+  @@index([createdAt])
+  @@map("ai_conversations")
+}
+
+model AiConversationMessage {
+  id             String         @id @default(cuid())
+  conversationId String
+  conversation   AiConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  role           String // 'user' | 'assistant' | 'system'
+  content        String
+  source         String? // 'trustgraph-agent', 'trustgraph-graph-rag', 'gemini-fallback', etc.
+  metadata       Json? // intent, entities, sources referenced
+  createdAt      DateTime       @default(now())
+
+  @@index([conversationId])
+  @@index([createdAt])
+  @@map("ai_conversation_messages")
+}
+
+// Cached AI insights and predictions
+model AiInsight {
+  id        String    @id @default(cuid())
+  category  String // 'risk_prediction', 'trend_analysis', 'cross_reference', 'anomaly'
+  title     String
+  content   String
+  severity  String    @default("info") // 'info', 'warning', 'critical'
+  source    String // 'trustgraph', 'gemini', 'analysis'
+  metadata  Json? // related record IDs, confidence scores, etc.
+  expiresAt DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([category])
+  @@index([severity])
+  @@index([createdAt])
+  @@index([expiresAt])
+  @@map("ai_insights")
+}
+
+// TrustGraph sync tracking
+model AiSyncLog {
+  id            String   @id @default(cuid())
+  syncType      String // 'dnf', 'hazard', 'inspection', 'dnf,hazard,inspection'
+  recordsSynced Int      @default(0)
+  recordsFailed Int      @default(0)
+  status        String   @default("PENDING") // 'PENDING', 'SUCCESS', 'PARTIAL', 'FAILED'
+  errorMessage  String?
+  createdAt     DateTime @default(now())
+
+  @@index([status])
+  @@index([createdAt])
+  @@map("ai_sync_logs")
+}

@@ -5,14 +5,18 @@ import { SourceSelector } from '@/components/ai/source-selector';
 import { AiKnowledgeTerminal } from '@/components/ai/ai-knowledge-terminal';
 import { AiGraphExplorer } from '@/components/ai/ai-graph-explorer';
 import { AiInsightsPanel } from '@/components/ai/ai-insights-panel';
-import { Sparkles, Info, BookOpen, Lightbulb, Network, TrendingUp, MessageSquare, Settings2 } from 'lucide-react';
+import { AiVisionLab } from '@/components/ai/ai-vision-lab';
+import { McpConsole } from '@/components/ai/mcp-console';
+import { Sparkles, Info, BookOpen, Lightbulb, Network, TrendingUp, MessageSquare, Settings2, Eye, Bug } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
-type TabId = 'chat' | 'graph' | 'insights';
+type TabId = 'chat' | 'graph' | 'vision' | 'insights' | 'debug';
 
 const TABS = [
     { id: 'chat' as TabId, label: 'Chat & RAG', icon: <MessageSquare className="h-4 w-4" />, description: 'Knowledge Terminal' },
     { id: 'graph' as TabId, label: 'Graph Explorer', icon: <Network className="h-4 w-4" />, description: 'GraphRAG Analysis' },
+    { id: 'vision' as TabId, label: 'Vision (YOLO)', icon: <Eye className="h-4 w-4" />, description: 'Object Detection' },
+    { id: 'debug' as TabId, label: 'Debug Flow (MCP)', icon: <Bug className="h-4 w-4" />, description: 'Remote Tools Debugging' },
     { id: 'insights' as TabId, label: 'Insights & Status', icon: <TrendingUp className="h-4 w-4" />, description: 'AI Predictions' },
 ];
 
@@ -27,8 +31,8 @@ export default function AiLabPage() {
     };
 
     return (
-        <div className="flex flex-col h-[calc(100vh-80px)] p-6 space-y-6">
-            <header className="flex flex-col space-y-3">
+        <div className="flex flex-col min-h-[calc(100vh-160px)] p-6 space-y-6">
+            <header className="flex flex-col space-y-3 shrink-0">
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                         <h1 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-slate-100">HURC AI Knowledge Lab</h1>
@@ -59,16 +63,16 @@ export default function AiLabPage() {
             </header>
 
             {/* Tab Content */}
-            <div className="flex-grow overflow-hidden">
+            <div className="flex-grow">
                 {activeTab === 'chat' && (
-                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 h-full">
+                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 min-h-[600px]">
                         {/* Left Panel: Sources */}
-                        <div className="lg:col-span-4 h-full">
+                        <div className="lg:col-span-4 min-h-[500px]">
                             <SourceSelector onSelectionChange={handleSelectionChange} />
                         </div>
 
                         {/* Right Panel: Chat Terminal */}
-                        <div className="lg:col-span-8 h-full bg-white dark:bg-slate-950/40 rounded-3xl p-6 border border-indigo-100 dark:border-indigo-900/30 flex flex-col">
+                        <div className="lg:col-span-8 min-h-[500px] bg-white dark:bg-slate-950/40 rounded-3xl p-6 border border-indigo-100 dark:border-indigo-900/30 flex flex-col">
                             {selectedIds.length === 0 && (
                                 <div className="mb-4">
                                     <Alert className="bg-amber-50 dark:bg-amber-950/20 border-amber-200 dark:border-amber-800 text-amber-900 dark:text-amber-100">
@@ -81,7 +85,7 @@ export default function AiLabPage() {
                                 </div>
                             )}
                             
-                            <div className="flex-grow">
+                            <div className="flex-grow min-h-[400px]">
                                 <AiKnowledgeTerminal 
                                     selectedIds={selectedIds} 
                                     selectedTypes={selectedTypes} 
@@ -97,15 +101,27 @@ export default function AiLabPage() {
                     </div>
                 )}
 
+                {activeTab === 'vision' && (
+                    <div className="h-full bg-white dark:bg-slate-950/40 rounded-3xl p-6 border border-indigo-100 dark:border-indigo-900/30 overflow-hidden">
+                        <AiVisionLab />
+                    </div>
+                )}
+
                 {activeTab === 'insights' && (
                     <div className="h-full bg-white dark:bg-slate-950/40 rounded-3xl p-6 border border-emerald-100 dark:border-emerald-900/30 overflow-auto">
                         <AiInsightsPanel />
                     </div>
                 )}
+
+                {activeTab === 'debug' && (
+                    <div className="h-full">
+                        <McpConsole />
+                    </div>
+                )}
             </div>
 
             {/* Quick Tips Footer */}
-            <footer className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <footer className="grid grid-cols-1 md:grid-cols-4 gap-4 shrink-0">
                 <TipCard
                     icon={<BookOpen className="h-4 w-4 text-indigo-600" />}
                     title="Grounding (Đặt gốc)"

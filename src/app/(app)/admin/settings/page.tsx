@@ -17,7 +17,7 @@ import {
 } from "@/components/ui/select";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
-import { Users, ShieldCheck, ExternalLink, Settings as SettingsIcon, Database, KeySquare, Loader2, Cpu, Archive, RadioTower } from "lucide-react";
+import { Users, ShieldCheck, ExternalLink, Settings as SettingsIcon, Database, KeySquare, Loader2, Cpu, Archive, RadioTower, Activity, ShieldAlert } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -32,7 +32,7 @@ import { type Role } from "@/lib/constants";
 import { getRoles } from "@/lib/actions/role.actions";
 import { createSystemBackup, restoreSystemFromBackup, runSnmpDeviceScan, runSystemScheduler, getSystemState, updateAiModelConfig } from "@/lib/actions/system.actions";
 import { hasPermission } from '@/lib/auth';
-import { DEFAULT_AI_MODEL } from '@/lib/services/ai';
+import { DEFAULT_AI_MODEL } from '@/lib/constants';
 
 const translations = {
   vi: {
@@ -95,6 +95,13 @@ const translations = {
     aiSettingsDesc: "Lựa chọn mô hình ngôn ngữ lớn (LLM) để AI hỗ trợ điền mẫu.",
     aiModelLabel: "Mô hình HuggingFace",
     aiModelSaved: "Đã lưu cấu hình AI thành công.",
+    maintenanceTitle: "Bảo trì Hệ thống (JSON)",
+    dbSize: "Dung lượng dữ liệu: ",
+    resetLogs: "Xóa Toàn bộ Nhật ký",
+    resetLogsDesc: "Hành động này sẽ xóa sạch lịch sử hệ thống. Không thể hoàn tác.",
+    downloadDb: "Tải tệp Dữ liệu (JSON)",
+    downloadDbDesc: "Tải xuống toàn bộ cơ sở dữ liệu hiện tại để lưu trữ cục bộ.",
+    logsCleared: "Đã xóa nhật ký hệ thống thành công.",
   },
   en: {
     pageTitle: "System Settings & Configuration",
@@ -156,6 +163,13 @@ const translations = {
     aiSettingsDesc: "Select the large language model (LLM) for AI form assistance.",
     aiModelLabel: "HuggingFace Model",
     aiModelSaved: "AI configuration saved successfully.",
+    maintenanceTitle: "System Maintenance (JSON)",
+    dbSize: "Data Size: ",
+    resetLogs: "Clear All Logs",
+    resetLogsDesc: "This will wipe all system history. This action is irreversible.",
+    downloadDb: "Download Data (JSON)",
+    downloadDbDesc: "Download the entire current database for local storage.",
+    logsCleared: "System logs cleared successfully.",
   }
 };
 
@@ -381,10 +395,94 @@ export default function SettingsPage() {
         </CardContent>
       </Card>
       
-      <Card className="shadow-lg">
+      <Card className="shadow-lg border-primary/20 bg-primary/5">
         <CardHeader>
-          <CardTitle className="flex items-center"><RadioTower /> {t.networkOperations}</CardTitle>
+          <CardTitle className="flex items-center gap-2"><SettingsIcon className="h-5 w-5" /> {t.maintenanceTitle}</CardTitle>
+          <CardDescription>{t.pageDescription}</CardDescription>
         </CardHeader>
+        <CardContent className="grid md:grid-cols-2 gap-8">
+            <div className="space-y-4">
+                <div className="flex items-center justify-between p-4 bg-background rounded-xl border">
+                    <div className="flex items-center gap-3">
+                        <Database className="h-5 w-5 text-primary" />
+                        <div>
+                            <p className="font-bold text-sm">{t.downloadDb}</p>
+                            <p className="text-xs text-muted-foreground">{t.downloadDbDesc}</p>
+                        </div>
+                    </div>
+                    <Button size="sm" onClick={async () => {
+                        const { getRawDatabase } = await import('@/lib/actions/admin.actions');
+                        const data = await getRawDatabase();
+                        
+                        // Check if response is standardized error (Hardening Task 4.11)
+                        if (typeof data !== 'string') {
+                            toast({ 
+                                title: "Lỗi tải dữ liệu", 
+                                description: (data as any).error?.message || "Không thể truy xuất dữ liệu thô.",
+                                variant: "destructive"
+                            });
+                            return;
+                        }
+
+                        const blob = new Blob([data], { type: 'application/json' });
+                        const url = URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = `hurc_backup_${new Date().toISOString().split('T')[0]}.json`;
+                        a.click();
+                        URL.revokeObjectURL(url);
+                    }}>
+                        <ExternalLink className="h-4 w-4 mr-2" />
+                        {locale === 'vi' ? 'Tải xuống' : 'Download'}
+                    </Button>
+                </div>
+                
+                <div className="flex items-center justify-between p-4 bg-background rounded-xl border border-destructive/20">
+                    <div className="flex items-center gap-3">
+                        <Activity className="h-5 w-5 text-destructive" />
+                        <div>
+                            <p className="font-bold text-sm text-destructive">{t.resetLogs}</p>
+                            <p className="text-xs text-muted-foreground">{t.resetLogsDesc}</p>
+                        </div>
+                    </div>
+                    <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                            <Button size="sm" variant="destructive">{locale === 'vi' ? 'Xóa' : 'Clear'}</Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                            <AlertDialogHeader>
+                                <AlertDialogTitle>{t.resetLogs}</AlertDialogTitle>
+                                <AlertDialogDescription>{t.resetLogsDesc}</AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                                <AlertDialogCancel>{t.cancelAction}</AlertDialogCancel>
+                                <AlertDialogAction className="bg-destructive text-destructive-foreground" onClick={async () => {
+                                    const { resetSystemLogs } = await import('@/lib/actions/admin.actions');
+                                    await resetSystemLogs();
+                                    toast({ title: t.logsCleared });
+                                }}>{t.confirmAction}</AlertDialogAction>
+                            </AlertDialogFooter>
+                        </AlertDialogContent>
+                    </AlertDialog>
+                </div>
+            </div>
+
+            <div className="bg-background p-6 rounded-xl border flex flex-col justify-center items-center text-center space-y-4">
+                <ShieldAlert className="h-12 w-12 text-primary/40" />
+                <div>
+                   <h4 className="font-bold uppercase tracking-tighter text-muted-foreground">{t.dbSize}</h4>
+                   <p className="text-4xl font-black text-primary">JSON MODE</p>
+                </div>
+                <p className="text-xs text-muted-foreground max-w-[200px]">
+                    {locale === 'vi' 
+                        ? 'Hệ thống đang chạy trên cơ sở dữ liệu tệp tin. Hiệu năng ổn định cho < 10,000 bản ghi.'
+                        : 'System is running on file-based database. Performance stable for < 10,000 records.'}
+                </p>
+            </div>
+        </CardContent>
+      </Card>
+
+      <Card className="shadow-lg">
         <CardContent>
             <div>
                 <Label className="text-base">{t.snmpScan}</Label>

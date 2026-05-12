@@ -160,7 +160,7 @@ export function AiInsightsPanel() {
                     <h3 className="text-lg font-bold mb-2">AI Insights & Predictions</h3>
                     <p className="text-sm text-muted-foreground max-w-md mx-auto">
                         Phân tích xu hướng sự cố, dự báo rủi ro, và nhận insights từ dữ liệu bảo trì.
-                        Nhấn "Tạo Dự báo AI" để bắt đầu.
+                        Nhấn &quot;Tạo Dự báo AI&quot; để bắt đầu.
                     </p>
                 </div>
             )}

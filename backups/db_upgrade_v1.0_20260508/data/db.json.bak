@@ -1,0 +1,403 @@
+{
+  "maintenanceStandards": [
+    {
+      "name": "Thông tin - Tín hiệu",
+      "name_en": "Telecom",
+      "description": "Checklist tuần của nhà ga",
+      "frequency": "weekly",
+      "scheduledTime": "06:00",
+      "locationIds": [
+        "001",
+        "002",
+        "003",
+        "004",
+        "005",
+        "006",
+        "007",
+        "008",
+        "015",
+        "014",
+        "013",
+        "012",
+        "011",
+        "010",
+        "009"
+      ],
+      "recipientId": "",
+      "abbreviation": "T",
+      "id": "MS-1773411304732"
+    }
+  ],
+  "maintenanceStandardItems": [],
+  "inspections": [
+    {
+      "id": "INS-AT-T-140326-0001",
+      "title": "[AUTO] Thông tin - Tín hiệu",
+      "areaIds": [
+        "001",
+        "002",
+        "003",
+        "004",
+        "005",
+        "006",
+        "007",
+        "008",
+        "015",
+        "014",
+        "013",
+        "012",
+        "011",
+        "010",
+        "009"
+      ],
+      "checklistTemplateId": "MS-1773411304732",
+      "date": "2026-03-13",
+      "scheduledStartDate": "2026-03-13T17:00:00.000Z",
+      "scheduledFinishDate": "2026-03-20T17:00:00.000Z",
+      "status": "Chưa thực hiện",
+      "inspector": "L2 Technician",
+      "generalNotes": "Automatically generated based on weekly schedule.",
+      "checklistItems": []
+    }
+  ],
+  "correctiveActions": [],
+  "dnfs": [
+    {
+      "failureReportNo": "",
+      "locationOfFailure": "003",
+      "failedComponentEquipmentLRUTrainNumber": "SS01PG023",
+      "subsystemIds": [
+        "001"
+      ],
+      "subsystemOther": "",
+      "descriptionOfFailure": "[DỮ LIỆU ĐÃ LƯU TRỮ]",
+      "impactAssessment": "[DỮ LIỆU ĐÃ LƯU TRỮ]",
+      "staffWhoIdentifiedFailure": "Vũ Minh Bảo",
+      "dateTimeOfFailureOccurrence": "2025-08-13T00:20:00.000Z",
+      "methodOfFailureDetection": "report_from_other",
+      "status": "Đã đóng",
+      "attachments": [],
+      "assignedTo": "user-1755069083240",
+      "priority": "Trung bình",
+      "id": "DNF-001-0001",
+      "createdAt": "2025-08-13T07:31:23.113Z",
+      "updatedAt": "2025-09-16T06:59:14.745Z",
+      "createdById": "002",
+      "statusHistory": [
+        {
+          "from": "Mới",
+          "to": "Đã tiếp nhận",
+          "timestamp": "2025-08-13T07:33:42.390Z",
+          "userId": "002",
+          "userName": "Nguyễn Huy Hoàng"
+        },
+        {
+          "from": "Đang điều tra",
+          "to": "Đang xử lý",
+          "timestamp": "2025-08-31T11:11:45.810Z",
+          "userId": "002",
+          "userName": "Nguyễn Huy Hoàng"
+        },
+        {
+          "from": "Đang xử lý",
+          "to": "Chờ xác nhận",
+          "timestamp": "2025-09-16T02:13:54.881Z",
+          "userId": "002",
+          "userName": "Nguyễn Huy Hoàng"
+        },
+        {
+          "from": "Chờ xác nhận",
+          "to": "Đã đóng",
+          "timestamp": "2025-09-16T06:59:14.744Z",
+          "userId": "002",
+          "userName": "Nguyễn Huy Hoàng"
+        }
+      ],
+      "correctiveActions": [
+        {
+          "description": "Tđtzgfxfyx",
+          "responsiblePersonOrUnit": "Nguyễn Huy Hoàng",
+          "id": "CA-1756638714185",
+          "dnfId": "DNF-001-0001",
+          "createdAt": "2025-08-31T11:11:54.185Z",
+          "status": "Mới"
+        }
+      ],
+      "isArchived": true,
+      "resolutionDetails": "[DỮ LIỆU ĐÃ LƯU TRỮ]"
+    }
+  ],
+  "hazardRecords": [
+    {
+      "description": "[DỮ LIỆU ĐÃ LƯU TRỮ]",
+      "systemGroup": "003",
+      "locationIds": [
+        "015"
+      ],
+      "source": "",
+      "potentialConsequence": "[DỮ LIỆU ĐÃ LƯU TRỮ]",
+      "identifiedBy": "Nguyễn Huy Hoàng",
+      "identificationDate": "2025-08-15T00:00:00.000Z",
+      "severityId": "I",
+      "likelihoodId": "B",
+      "currentControls": "[DỮ LIỆU ĐÃ LƯU TRỮ]",
+      "proposedActions": "[DỮ LIỆU ĐÃ LƯU TRỮ]",
+      "suggestedActions": "[DỮ LIỆU ĐÃ LƯU TRỮ]",
+      "responsiblePersonOrUnit": "XNVN",
+      "coordinatingUnits": [
+        "XNBD"
+      ],
+      "dueDate": "2025-08-22T00:00:00.000Z",
+      "status": "Đã đóng",
+      "attachments": [],
+      "linkedDnfId": null,
+      "closureDetails": "[DỮ LIỆU ĐÃ LƯU TRỮ]",
+      "verificationDetails": "[DỮ LIỆU ĐÃ LƯU TRỮ]",
+      "id": "HAZ-003-001",
+      "createdAt": "2025-08-15T09:24:28.341Z",
+      "updatedAt": "2025-09-04T08:33:17.835Z",
+      "riskLevelId": "R1",
+      "isArchived": true
+    }
+  ],
+  "improvements": [],
+  "roles": [
+    {
+      "id": "SUPER_ADMIN",
+      "name": "Quản trị viên Cấp cao",
+      "description": "Toàn quyền quản trị và điều hành hệ thống HURC CDHS.",
+      "permissions": [
+        "inspections:create",
+        "inspections:view_all",
+        "inspections:edit_all",
+        "inspections:delete",
+        "inspections:assign",
+        "inspections:approve",
+        "dnf:create",
+        "dnf:view_all",
+        "dnf:edit_all",
+        "dnf:delete",
+        "dnf:manage_status",
+        "dnf:import",
+        "corrective_actions:create",
+        "corrective_actions:view_all",
+        "corrective_actions:edit_all",
+        "corrective_actions:delete",
+        "corrective_actions:assign",
+        "corrective_actions:verify",
+        "hazard:create",
+        "hazard:view_all",
+        "hazard:assess",
+        "hazard:edit_all",
+        "hazard:delete",
+        "hazard:manage_status",
+        "improvements:create",
+        "improvements:view_all",
+        "improvements:edit_all",
+        "improvements:delete",
+        "reports:view",
+        "reports:manage",
+        "users:manage",
+        "roles:manage",
+        "checklist_templates:manage",
+        "settings:manage",
+        "ai:use",
+        "ai:vision"
+      ]
+    },
+    {
+      "id": "MANAGER",
+      "name": "Trưởng phòng Kỹ thuật",
+      "description": "Quản lý và giám sát các hoạt động kỹ thuật, giao việc cho nhân viên.",
+      "permissions": [
+        "inspections:view_all",
+        "dnf:view_all",
+        "users:view_all",
+        "todo:manage_team"
+      ]
+    },
+    {
+      "id": "TECHNICIAN",
+      "name": "Kỹ thuật viên",
+      "description": "Thực hiện các công việc kỹ thuật được giao.",
+      "permissions": [
+        "inspections:view",
+        "dnf:create",
+        "todo:personal"
+      ]
+    }
+  ],
+  "users": [
+    {
+      "id": "user-admin-2026",
+      "name": "Supper Admin",
+      "email": "nhhoang@hurc.vn",
+      "password": "$2b$10$v4s09aSjFKj.JnZGRRYPFuElSZoTnEXkCorhYgEEHJ/LbhYgKj92q",
+      "role": "SUPER_ADMIN",
+      "status": "active",
+      "department": "Ban Quản trị Hệ thống",
+      "isVerified": true,
+      "createdAt": "2026-04-01T14:00:00.000Z",
+      "assignedSubsystems": [],
+      "failedLoginAttempts": 0,
+      "lockoutUntil": null,
+      "lastLoginAt": "2026-05-08T07:21:09.855Z",
+      "lastLoginIp": "unknown"
+    },
+    {
+      "id": "user-manager-1",
+      "name": "Nguyễn Văn Quản Lý",
+      "email": "manager@hurc.vn",
+      "password": "$2b$10$v4s09aSjFKj.JnZGRRYPFuElSZoTnEXkCorhYgEEHJ/LbhYgKj92q",
+      "role": "MANAGER",
+      "status": "active",
+      "department": "Phòng Kỹ thuật",
+      "isVerified": true,
+      "createdAt": "2026-04-03T05:30:00.000Z",
+      "assignedSubsystems": []
+    },
+    {
+      "id": "user-tech-1",
+      "name": "Trần Văn Kỹ Thuật",
+      "email": "tech1@hurc.vn",
+      "password": "$2b$10$v4s09aSjFKj.JnZGRRYPFuElSZoTnEXkCorhYgEEHJ/LbhYgKj92q",
+      "role": "TECHNICIAN",
+      "status": "active",
+      "department": "Phòng Kỹ thuật",
+      "isVerified": true,
+      "createdAt": "2026-04-03T05:30:00.000Z",
+      "assignedSubsystems": []
+    }
+  ],
+  "responsibleUnits": [],
+  "subsystems": [
+    {
+      "id": "001",
+      "label": {
+        "vi": "Thanh toán tự động",
+        "en": "AFC"
+      }
+    },
+    {
+      "id": "002",
+      "label": {
+        "vi": "Công trình ray ",
+        "en": "Rolling Stock"
+      }
+    },
+    {
+      "id": "003",
+      "label": {
+        "vi": "Đầu máy toa xe",
+        "en": "(Chưa có)"
+      }
+    },
+    {
+      "id": "004",
+      "label": {
+        "vi": "Hệ thống thanh toán tự động",
+        "en": "AFC (CP04)"
+      }
+    },
+    {
+      "id": "005",
+      "label": {
+        "vi": "Thiết bị nhà Ga ",
+        "en": "TBNG"
+      }
+    },
+    {
+      "id": "006",
+      "label": {
+        "vi": "Thông tin - Tín hiệu",
+        "en": "Telecom"
+      }
+    },
+    {
+      "id": "007",
+      "label": {
+        "vi": "Điện",
+        "en": "(Chưa có)"
+      }
+    },
+    {
+      "id": "008",
+      "label": {
+        "vi": "Cơ",
+        "en": "(Chưa có)"
+      }
+    }
+  ],
+  "patrolLocations": [
+    {
+      "id": "001",
+      "label": "Depot Long Bình"
+    },
+    {
+      "id": "002",
+      "label": "Ga Bến Thành"
+    },
+    {
+      "id": "003",
+      "label": "Ga Nhà hát Thành phố"
+    },
+    {
+      "id": "004",
+      "label": "Ga Ba Son"
+    },
+    {
+      "id": "005",
+      "label": "Ga Công viên Văn Thánh"
+    },
+    {
+      "id": "006",
+      "label": "Ga Tân Cảng"
+    },
+    {
+      "id": "007",
+      "label": "Ga Thảo Điền"
+    },
+    {
+      "id": "008",
+      "label": "Ga An Phú"
+    },
+    {
+      "id": "009",
+      "label": "Ga Rạch Chiếc "
+    },
+    {
+      "id": "010",
+      "label": "Ga Phước Long"
+    },
+    {
+      "id": "011",
+      "label": "Ga Bình Thái "
+    },
+    {
+      "id": "012",
+      "label": "Ga Thủ Đức"
+    },
+    {
+      "id": "013",
+      "label": "Ga Công nghệ cao "
+    },
+    {
+      "id": "014",
+      "label": "Ga Đại học Quốc Gia "
+    },
+    {
+      "id": "015",
+      "label": "Ga Bến xe Suối Tiên"
+    }
+  ],
+  "systemLogs": [],
+  "networkNodes": [],
+  "systemState": {
+    "id": 1,
+    "lastMaintenanceDate": null,
+    "isSystemLocked": false
+  },
+  "passwordResetRequests": [],
+  "notifications": [],
+  "todos": []
+}

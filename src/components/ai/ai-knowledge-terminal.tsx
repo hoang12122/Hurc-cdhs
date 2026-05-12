@@ -64,9 +64,15 @@ export function AiKnowledgeTerminal({ selectedIds, selectedTypes }: AiKnowledgeT
 
     React.useEffect(() => {
         async function loadAgents() {
-            const data = await getAgents();
-            setAgents(data);
-            if (data.length > 0) setSelectedAgentId(data[0].id);
+            try {
+                const data = await getAgents();
+                const agentList = Array.isArray(data) ? data : [];
+                setAgents(agentList);
+                if (agentList.length > 0) setSelectedAgentId(agentList[0].id);
+            } catch (e) {
+                console.error('Failed to load agents:', e);
+                setAgents([]);
+            }
         }
         loadAgents();
     }, []);
@@ -114,7 +120,7 @@ export function AiKnowledgeTerminal({ selectedIds, selectedTypes }: AiKnowledgeT
                 // Personalized NemoClaw chat
                 const result = await personalizedQuery(userMsg, agentHistory);
                 response = result.content;
-                source = result.source;
+                source = (result as any).source || 'nemoclaw';
                 setAgentHistory(prev => [...prev, { role: 'user', content: userMsg }, { role: 'assistant', content: response }]);
             } else {
                 // Grounded query with selected sources
@@ -140,7 +146,8 @@ export function AiKnowledgeTerminal({ selectedIds, selectedTypes }: AiKnowledgeT
         setMessages(prev => [...prev, { role: 'user', content: "Hãy tổng hợp tri thức từ các nguồn đã chọn." }]);
         
         try {
-            const summary = await generateSynthesis(selectedIds, selectedTypes);
+            const result = await generateSynthesis(selectedIds, selectedTypes);
+            const summary = typeof result === 'string' ? result : (result as any).response;
             setMessages(prev => [...prev, { role: 'assistant', content: summary, source: 'synthesis' }]);
         } catch (error) {
             toast({ title: "Lỗi tổng hợp", variant: "destructive" });
@@ -364,8 +371,8 @@ export function AiKnowledgeTerminal({ selectedIds, selectedTypes }: AiKnowledgeT
                 </div>
             </CardHeader>
 
-            <CardContent className="flex-grow p-0 relative min-h-[400px]">
-                <div className="absolute inset-0 bg-slate-50/50 dark:bg-slate-900/50 rounded-2xl border border-slate-200 dark:border-slate-800 flex flex-col overflow-hidden">
+            <CardContent className="flex-grow p-0">
+                <div className="h-[450px] bg-slate-50/50 dark:bg-slate-900/50 rounded-2xl border border-slate-200 dark:border-slate-800 flex flex-col overflow-hidden">
                     <ScrollArea className="flex-grow p-4" ref={scrollRef}>
                         {messages.length === 0 ? (
                             <div className="h-full flex flex-col items-center justify-center text-center space-y-4 pt-20">

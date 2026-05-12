@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import Image from 'next/image';
 import { 
     Dialog,
     DialogContent,
@@ -68,7 +69,7 @@ export default function AssetHubPage() {
 
     const { toast } = useToast();
 
-    const loadAssets = async () => {
+    const loadAssets = React.useCallback(async () => {
         setIsRefreshing(true);
         try {
             const data = await getAssetTree();
@@ -79,11 +80,11 @@ export default function AssetHubPage() {
             setIsLoading(false);
             setIsRefreshing(false);
         }
-    };
+    }, [toast]);
 
     React.useEffect(() => {
         loadAssets();
-    }, []);
+    }, [loadAssets]);
 
     React.useEffect(() => {
         if (selectedAsset) {
@@ -293,8 +294,8 @@ export default function AssetHubPage() {
                                         <Card className="border-none shadow-xl bg-white dark:bg-slate-900 p-6 flex flex-col items-center justify-center space-y-4">
                                             <h4 className="text-xs font-bold text-slate-400 uppercase tracking-widest text-center">QR Code Định danh</h4>
                                             {qrCode ? (
-                                                <div className="p-2 bg-white rounded-xl border-4 border-slate-50 shadow-inner">
-                                                    <img src={qrCode} alt="Asset QR Code" className="w-32 h-32" />
+                                                <div className="p-2 bg-white rounded-xl border-4 border-slate-50 shadow-inner relative w-32 h-32">
+                                                    <Image src={qrCode} alt="Asset QR Code" fill className="object-contain" />
                                                 </div>
                                             ) : (
                                                 <div className="w-32 h-32 bg-slate-50 animate-pulse rounded-xl" />

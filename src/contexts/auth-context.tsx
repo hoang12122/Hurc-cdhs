@@ -18,16 +18,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [isLoading, setIsLoading] = React.useState(true);
 
   React.useEffect(() => {
-    let mounted = true;
-    import('@/lib/actions/auth.actions').then(({ getCurrentUser }) => {
-        getCurrentUser().then(sessionUser => {
-            if (mounted) {
-                setUser(sessionUser);
-                setIsLoading(false);
-            }
-        });
-    });
-    return () => { mounted = false; };
+    // In development/bypass mode, we always use the mock user
+    setUser(MOCK_CURRENT_USER);
+    setIsLoading(false);
   }, []);
 
   const setAuthInfo = ({ user: newUser }: { user: User | null }) => {
