@@ -1,5 +1,6 @@
 # PHASE 1: Build Dependencies (Chainguard for Zero-CVE)
 FROM cgr.dev/chainguard/node:latest-dev AS deps
+USER root
 RUN apk update && apk upgrade --no-cache && apk add --no-cache openssl
 WORKDIR /app
 COPY package.json package-lock.json* ./
@@ -7,6 +8,7 @@ RUN npm ci && npm cache clean --force
 
 # PHASE 2: Build Application
 FROM cgr.dev/chainguard/node:latest-dev AS builder
+USER root
 RUN apk update && apk upgrade --no-cache && apk add --no-cache openssl
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
