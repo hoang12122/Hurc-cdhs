@@ -1,13 +1,13 @@
-# PHASE 1: Build Dependencies (Alpine for security and speed)
-FROM node:22-alpine3.21 AS deps
-RUN apk add --no-cache libc6-compat openssl && apk upgrade --no-cache
+# PHASE 1: Build Dependencies (Chainguard for Zero-CVE)
+FROM cgr.dev/chainguard/node:latest-dev AS deps
+RUN apk update && apk upgrade --no-cache && apk add --no-cache openssl
 WORKDIR /app
 COPY package.json package-lock.json* ./
 RUN npm ci && npm cache clean --force
 
 # PHASE 2: Build Application
-FROM node:22-alpine3.21 AS builder
-RUN apk add --no-cache libc6-compat openssl && apk upgrade --no-cache
+FROM cgr.dev/chainguard/node:latest-dev AS builder
+RUN apk update && apk upgrade --no-cache && apk add --no-cache openssl
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
