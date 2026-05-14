@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * AI Smart Router
  * Classifies user queries and routes them to the optimal AI backend:

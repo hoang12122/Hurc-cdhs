@@ -3,6 +3,7 @@
 ## 1. Hiện trạng Schema Prisma
 
 Hệ thống hiện đang tồn tại song song hai cấu trúc:
+
 - **Cấu trúc cũ (Legacy):** `prisma/schema.prisma` - Chứa tất cả các model (Task, Dnf, Hazard, SystemLog...) trong một database duy nhất.
 - **Cấu trúc mới (Refactored):** Đã bắt đầu tách các schema vào thư mục con:
   - `prisma/ops/schema.prisma`: Chứa các model nghiệp vụ.
@@ -18,14 +19,14 @@ Hệ thống hiện đang tồn tại song song hai cấu trúc:
 ## 3. Phân loại dữ liệu hiện có
 
 - **Dữ liệu nghiệp vụ chính:** Đang nằm trong các bảng `DnfDocument`, `HazardRecord`, `Task`, `InspectionDetail`.
-- **Dữ liệu AI/Audit:** 
+- **Dữ liệu AI/Audit:**
   - Đã có schema cho `AiSyncLog`, `AiKnowledgeSnippet`, `AiAgent`.
   - **THIẾU:** Chưa có model cho `AIVerificationLog` và `AISafetyLog` (Hiện đang dùng in-memory trong service).
 - **Log hệ thống:** Đang dùng bảng `SystemLog` trong schema chính.
 
 ## 4. Rủi ro xác định
 
-1. **Memory Leak:** Việc hot-reload trong môi trường dev có thể tạo ra nhiều instance Prisma nếu Singleton không được triển khai chặt chẽ cho tất cả các schema mới.
+1. **Memory Leak:** Việc hot-reload trong môi trường dev có thể tạo ra many instance Prisma nếu Singleton không được triển khai chặt chẽ cho tất cả các schema mới.
 2. **Trộn lẫn dữ liệu:** Việc dùng chung một DB cho cả Audit log (tải ghi cao) và Nghiệp vụ (tải đọc/sửa cao) sẽ gây nghẽn cổ chai trong tương lai.
 3. **Thiếu Schema AI Safety:** Các bản ghi an toàn AI chưa được định nghĩa trong Prisma schema, dẫn đến mất dữ liệu khi restart server.
 

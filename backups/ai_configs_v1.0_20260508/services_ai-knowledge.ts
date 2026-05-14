@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { readDb } from '../json-db-service';
 import { getTrustGraphClient } from './trustgraph-client';
 

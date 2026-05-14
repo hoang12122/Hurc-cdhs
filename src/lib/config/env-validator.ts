@@ -4,7 +4,7 @@
  */
 export function validateEnv() {
   const isProduction = process.env.NODE_ENV === 'production';
-  const isOffline = process.env.DATABASE_OFFLINE === 'true';
+  const isOffline = process.env.DATABASE_OFFLINE === 'true' || process.env.IS_DATABASE_OFFLINE === 'true';
 
   console.info(`[EnvValidator] Validating environment for ${process.env.NODE_ENV}...`);
 

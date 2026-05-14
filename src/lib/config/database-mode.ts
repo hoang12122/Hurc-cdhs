@@ -4,8 +4,6 @@
  * Đây là nguồn kiểm tra Offline Mode duy nhất cho toàn bộ hệ thống.
  * Tránh việc đọc trực tiếp process.env rải rác ở các service khác nhau.
  */
-import 'dotenv/config';
-
 const normalizeBool = (val: any) => {
   if (typeof val === 'boolean') return val;
   if (typeof val === 'string') {
