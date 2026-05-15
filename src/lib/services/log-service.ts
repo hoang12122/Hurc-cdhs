@@ -1,7 +1,7 @@
 import { revalidatePath } from 'next/cache';
 import { type LogLevel, type SystemLogCategory } from '../constants';
 import { opsDb, IS_DATABASE_OFFLINE } from '../prisma';
-import { jsonDb } from '../db/json-db';
+import { readAllLogs, appendLog } from './log-writer';
 import { getSessionUser } from './auth-service';
 import { logToFullStack } from '../logger';
 
@@ -20,13 +20,13 @@ export async function internalLogSystemEvent(
         
         const newLog = {
             id: `log-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
-            timestamp: new Date(),
+            timestamp: new Date().toISOString(),
             userId: user?.id || 'system',
             userName: user?.name || 'System',
             action,
             level,
             details,
-            category
+            category,
         };
 
         // Ghi log sang Loki (Full Stack) - Try/Catch inside to prevent block
@@ -50,11 +50,9 @@ export async function internalLogSystemEvent(
             }
         }
 
-        // Offline / Fallback Persistence
-        await jsonDb.insertRecord<any>('system_logs', {
-            ...newLog,
-            timestamp: newLog.timestamp.toISOString()
-        });
+        // Persist to structured log files (always)
+        await appendLog(newLog);
+
         
         try { revalidatePath('/admin/system-logs'); } catch {}
     } catch (e) {
@@ -75,6 +73,10 @@ export async function getInternalSystemLogs(): Promise<any[]> {
         }
     }
     
-    const logs = await jsonDb.getCollection<any>('system_logs');
-    return [...logs].reverse().slice(0, 2000);
+    // Fallback: read from structured log files
+    const fileLogs = await readAllLogs();
+    // Ensure newest first and limit
+    return fileLogs
+      .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+      .slice(0, 2000);
 }
