@@ -26,6 +26,7 @@ RUN npx prisma generate --schema=prisma/ops/schema.prisma
 
 ENV NEXT_TELEMETRY_DISABLED 1
 RUN npm run build
+RUN mkdir -p /app/logs
 
 # PHASE 3: Zero-CVE Production Runner (Distroless)
 # Using gcr.io/distroless/nodejs22-debian12 (Debian-based distroless)
@@ -41,8 +42,11 @@ ENV NEXT_TELEMETRY_DISABLED 1
 COPY --from=builder /app/public ./public
 COPY --from=builder --chown=65532:65532 /app/.next/standalone ./
 COPY --from=builder --chown=65532:65532 /app/.next/static ./.next/static
-COPY --from=builder /app/db.json ./db.json
-COPY --from=builder /app/db.backup.json ./db.backup.json
+
+# IMPORTANT: Ensure local database and logs are owned by the nonroot user so they are writable
+COPY --from=builder --chown=65532:65532 /app/db.json ./db.json
+COPY --from=builder --chown=65532:65532 /app/db.backup.json ./db.backup.json
+COPY --from=builder --chown=65532:65532 /app/logs ./logs
 
 # Use the built-in nonroot user for execution
 USER 65532

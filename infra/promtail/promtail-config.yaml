@@ -25,3 +25,11 @@ scrape_configs:
       - source_labels: ['__meta_docker_container_name']
         regex: '/(.*)'
         target_label: 'container'
+
+  - job_name: hurc_structured_logs
+    static_configs:
+    - targets:
+        - localhost
+      labels:
+        job: hurc_app
+        __path__: /var/log/hurc_logs/**/*.jsonl

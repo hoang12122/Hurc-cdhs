@@ -18,10 +18,10 @@ services:
       # Đồng bộ hóa tệp db.json và db.backup.json để dữ liệu không bị mất khi container khởi động lại
       - ./db.json:/app/db.json
       - ./db.backup.json:/app/db.backup.json
+      # Đồng bộ thư mục logs
+      - ./logs:/app/logs
     # Tự động khởi động lại container nếu nó dừng
     restart: unless-stopped
-    # Drop privileges for security
-    user: "node:node"
     depends_on:
       - postgres
       - redis
@@ -99,6 +99,9 @@ services:
       - ./infra/promtail/promtail-config.yaml:/etc/promtail/config.yml
       # Thêm volume để đọc log từ Docker
       - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      # Thêm volume để đọc log cấu trúc của ứng dụng
+      - ./logs:/var/log/hurc_logs:ro
     command: -config.file=/etc/promtail/config.yml
     restart: unless-stopped
 
