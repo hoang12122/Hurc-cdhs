@@ -1,6 +1,7 @@
 import { authDb, opsDb, IS_DATABASE_OFFLINE } from '../prisma';
 import { jsonDb } from '../db/json-db';
 import { createErrorResponse, handleJsonDbError } from '../utils/error-handler';
+import { readAllLogs, clearLogs } from './log-writer';
 
 /**
  * CORE LOGIC ONLY - NO 'use server'
@@ -82,14 +83,14 @@ export async function getInternalAdminStats() {
         // Offline Fallback
         const [users, logs] = await Promise.all([
             jsonDb.getCollection<any>('users'),
-            jsonDb.getCollection<any>('system_logs')
+            readAllLogs()
         ]);
 
         stats.totalUsers = users.length;
         stats.activeUsers = users.filter((u: any) => u.status === 'active').length;
         stats.totalRoles = 0; // Simplified for offline
         stats.totalLogs = logs.length;
-        stats.recentLogs = [...logs].reverse().slice(0, 5);
+        stats.recentLogs = [...logs].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()).slice(0, 5);
         stats.isDatabaseOffline = true;
         
         return stats;
@@ -120,11 +121,7 @@ export async function getInternalRawDatabase() {
 
 export async function resetInternalSystemLogs() {
     try {
-        // Use the clear/delete functionality
-        const logs = await jsonDb.getCollection<any>('system_logs');
-        for (const log of logs) {
-            await jsonDb.delete('system_logs', (l: any) => l.id === log.id);
-        }
+        await clearLogs();
         return { success: true };
     } catch (e) {
         return handleJsonDbError(e);

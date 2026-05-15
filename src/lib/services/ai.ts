@@ -269,7 +269,8 @@ async function resolveContextMentions(prompt: string): Promise<string[]> {
                 const item = dnfs.find((d: any) => d.id === id || d.failureReportNo === id);
                 if (item) attachments.push(`[ATTACHMENT: DNF ${id}]\n${JSON.stringify(item, null, 2)}`);
             } else if (type.toLowerCase() === 'log') {
-                const logs = db.systemLogs || [];
+                const { readAllLogs } = await import('./log-writer');
+                const logs = await readAllLogs();
                 const item = logs.find((l: any) => l.id === id);
                 if (item) attachments.push(`[ATTACHMENT: LOG ${id}]\n${JSON.stringify(item, null, 2)}`);
             } else if (type.toLowerCase() === 'user') {

@@ -7,13 +7,13 @@ const DB_PATH = path.join(process.cwd(), 'db.json');
 export function readDb() {
   try {
     if (!fs.existsSync(DB_PATH)) {
-      return { dnfs: [], inspections: [], roles: [], users: [], systemLogs: [], patrolLocations: [], hazardRecords: [] };
+      return { dnfs: [], inspections: [], roles: [], users: [], patrolLocations: [], hazardRecords: [] };
     }
     const data = fs.readFileSync(DB_PATH, 'utf8');
     return JSON.parse(data);
   } catch (error) {
     console.error('Error reading db.json:', error);
-    return { dnfs: [], inspections: [], roles: [], users: [], systemLogs: [], patrolLocations: [], hazardRecords: [] };
+    return { dnfs: [], inspections: [], roles: [], users: [], patrolLocations: [], hazardRecords: [] };
   }
 }
 

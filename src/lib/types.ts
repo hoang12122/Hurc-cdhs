@@ -133,7 +133,6 @@ export interface DbData {
   responsibleUnits: ResponsibleUnit[];
   subsystems: Subsystem[];
   patrolLocations: PatrolLocation[];
-  systemLogs: SystemLog[];
   comments: Comment[];
   notifications: Notification[];
   systemState: SystemState;
