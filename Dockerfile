@@ -26,11 +26,20 @@ WORKDIR /app
 ENV NODE_ENV production
 ENV NEXT_TELEMETRY_DISABLED 1
 USER root
+# Install runtime dependencies for the init script (prisma, tsx)
+RUN npm install -g prisma tsx
 RUN mkdir -p /app/data/offline /app/logs /app/backups /app/audit_reports && chown -R node:node /app
+
 USER node
 COPY --from=builder /app/public ./public
 COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
+# Explicitly copy files needed for initialization
+COPY --from=builder /app/prisma ./prisma
+COPY --from=builder /app/src/scripts/container-init.ts ./src/scripts/container-init.ts
+COPY --from=builder /app/package.json ./package.json
+
 EXPOSE 3000
 ENV PORT 3000
+# Ensure tsx is available to run the init script
 CMD ["node", "--max-old-space-size=3072", "-r", "tsx/register", "src/scripts/container-init.ts"]

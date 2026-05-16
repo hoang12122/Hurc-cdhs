@@ -39,24 +39,80 @@ Dự án này đã chuyển đổi hệ thống HURC1 CRM từ một ứng dụn
 
 ## 🚀 Hướng dẫn Triển khai (Deployment Guide)
 
-### Bước 1: Chuẩn bị môi trường
+Hệ thống hỗ trợ triển khai theo tầng (Tiered Deployment) để tối ưu hóa tỷ lệ thành công và giảm rủi ro startup.
 
-Đảm bảo máy chủ đã cài đặt **Docker** và **Docker Compose**. Kiểm tra file `.env` để xác nhận `IS_DATABASE_OFFLINE=true`.
+### Bước 1: Kiểm tra Preflight (Bắt buộc)
 
-### Bước 2: Build và Khởi chạy
+Trước khi deploy, hãy chạy script kiểm tra môi trường:
 
-Chạy lệnh duy nhất để xây dựng và kích hoạt hệ thống:
-
-```powershell
-docker compose up -d --build
+```bash
+bash scripts/preflight.sh
 ```
 
-### Bước 3: Kiểm tra sức khỏe (Health Check)
+### Bước 2: Triển khai theo tầng (Tiered Deployment)
 
-1. **Giao diện:** `http://localhost` (Cổng 80).
-2. **Logs:** `docker compose logs -f app` (Theo dõi thời gian thực).
-3. **Monitoring:** `http://localhost:3001` (Grafana Dashboard).
-4. **Audit Certificate:** Xem tại thư mục `./audit_reports`.
+Sử dụng Docker Compose Profiles để kích hoạt các khối chức năng theo thứ tự:
+
+1. **Khối Core (Cơ bản):** DB, App, Nginx
+
+   ```bash
+   docker compose --profile core up -d --build
+   ```
+
+2. **Khối AI (Nâng cao):** Yolo, Ollama
+
+   ```bash
+   docker compose --profile ai up -d
+   ```
+
+3. **Khối Monitoring (Giám sát):** Loki, Grafana
+
+   ```bash
+   docker compose --profile obs up -d
+   ```
+
+### Bước 3: Smoke Test & Nghiệm thu
+
+Chạy script tự động để xác nhận hệ thống đã lên đủ các endpoint quan trọng:
+
+```bash
+bash scripts/smoke-test.sh
+```
+
+---
+
+## 📋 Checklist Sẵn sàng Sản xuất (Production Readiness)
+
+- [ ] **Môi trường:** RAM tối thiểu 8GB (nếu dùng AI), 4GB (nếu chỉ Core).
+- [ ] **Bảo mật:** `.env` không còn chứa placeholder values cho các khóa bí mật.
+- [ ] **Dữ liệu:** Đã backup dữ liệu cũ trước khi chạy `prisma migrate`.
+- [ ] **Mạng:** Cổng 80 và 443 đã được mở và không bị chiếm dụng.
+
+---
+
+## 🛠️ Runbook Xử lý Sự cố (Incident Runbook)
+
+### 1. Rollback nhanh (Về bản ổn định trước đó)
+
+Nếu deploy bản mới bị lỗi crash dây chuyền:
+
+```bash
+docker compose down
+# Quay lại tag image hoặc commit trước đó
+git checkout <last-stable-commit>
+docker compose --profile core up -d
+```
+
+### 2. App bị "CrashLoopBackOff"
+
+- Kiểm tra kết nối DB: `docker compose logs postgres`
+- Kiểm tra lỗi khởi tạo: `docker compose logs app`
+- Thường do lỗi biến môi trường hoặc lỗi Migration Prisma.
+
+### 3. AI Service không phản hồi
+
+- Kiểm tra Ollama: `docker exec -it hurc_ollama ollama list`
+- Nếu chưa có model: `docker compose run ollama-pull-model`
 
 ---
 
@@ -69,4 +125,4 @@ Hệ thống được thiết kế theo chuẩn **Zero Trust** cho môi trườn
 Bạn có thể xem chi tiết về kiến trúc, tính năng và quy trình bảo trì tại: [FULL_DOCUMENTATION.md](file:///d:/Hurc1CRM-main/Hurc-cdhs/docs/FULL_DOCUMENTATION.md)
 
 **HURC1 AI Engineering Team**
-*Version: 2.1.0-IRONCLAD*
+*Version: 2.2.0-IRONCLAD*

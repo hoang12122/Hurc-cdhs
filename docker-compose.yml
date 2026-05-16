@@ -3,6 +3,7 @@ services:
     image: postgres:16-alpine
     container_name: hurc_postgres
     restart: unless-stopped
+    profiles: ["core"]
     environment:
       POSTGRES_USER: ${DATABASE_USER:-postgres}
       POSTGRES_PASSWORD: ${DATABASE_PASSWORD:-hurc123}
@@ -21,6 +22,7 @@ services:
     image: mongo:latest
     container_name: hurc_mongo
     restart: unless-stopped
+    profiles: ["core"]
     environment:
       MONGO_INITDB_ROOT_USERNAME: ${MONGO_USER:-admin}
       MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD:-hurc123}
@@ -38,6 +40,7 @@ services:
     image: redis:7-alpine
     container_name: hurc_redis
     restart: unless-stopped
+    profiles: ["core"]
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 10s
@@ -52,6 +55,7 @@ services:
       dockerfile: Dockerfile
     container_name: hurc_app
     restart: unless-stopped
+    profiles: ["core"]
     env_file:
       - .env
     depends_on:
@@ -61,10 +65,11 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+      # AI services are now optional or soft dependencies
       yolo-service:
-        condition: service_healthy
+        condition: service_started
       ollama:
-        condition: service_healthy
+        condition: service_started
     volumes:
       - ./data:/app/data
       - ./logs:/app/logs
@@ -78,6 +83,7 @@ services:
     image: nginx:alpine
     container_name: hurc_nginx
     restart: unless-stopped
+    profiles: ["core"]
     ports:
       - "80:80"
       - "443:443"
@@ -94,6 +100,7 @@ services:
       context: ./infra/yolo
     container_name: hurc_yolo
     restart: unless-stopped
+    profiles: ["ai"]
     expose:
       - "5005"
     healthcheck:
@@ -108,21 +115,24 @@ services:
     image: ollama/ollama:latest
     container_name: hurc_ollama
     restart: unless-stopped
+    profiles: ["ai"]
     expose:
       - "11434"
     volumes:
       - ./data/ollama:/root/.ollama
     healthcheck:
       test: ["CMD", "ollama", "list"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
+      interval: 15s
+      timeout: 10s
+      retries: 10
+      start_period: 60s
     networks:
       - backend-net
 
   ollama-pull-model:
     image: curlimages/curl:latest
     container_name: hurc_ollama_puller
+    profiles: ["ai"]
     depends_on:
       ollama:
         condition: service_healthy
@@ -135,6 +145,7 @@ services:
     image: grafana/loki:latest
     container_name: hurc_loki
     restart: unless-stopped
+    profiles: ["obs"]
     networks:
       - backend-net
 
@@ -142,6 +153,7 @@ services:
     image: grafana/grafana:latest
     container_name: hurc_grafana
     restart: unless-stopped
+    profiles: ["obs"]
     ports:
       - "3001:3000"
     environment:
