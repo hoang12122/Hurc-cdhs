@@ -3,8 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
-    "build": "set \"HOME=%cd%\" && set \"USERPROFILE=%cd%\" && next build",
+    "dev": "npx tsx src/scripts/local-preflight.ts && next dev",
+    "build": "npx tsx src/scripts/build-env-guard.ts && npm run db:generate:all && next build",
+    "db:generate:all": "npx prisma generate --schema=prisma/auth/schema.prisma && npx prisma generate --schema=prisma/ai/schema.prisma && npx prisma generate --schema=prisma/metro/schema.prisma && npx prisma generate --schema=prisma/ops/schema.prisma",
     "start": "next start",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",

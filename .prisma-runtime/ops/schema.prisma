@@ -1,7 +1,7 @@
 generator client {
   provider      = "prisma-client-js"
   output        = "../../.prisma-runtime/ops"
-  binaryTargets = ["native", "linux-musl"]
+  binaryTargets = ["native", "linux-musl", "debian-openssl-3.0.x", "windows"]
 }
 
 datasource db {
@@ -10,54 +10,55 @@ datasource db {
 }
 
 model SystemLog {
-  id        String   @id @default(cuid())
-  timestamp DateTime @default(now())
-  userId    String
-  userName  String
+  id        String    @id @default(cuid())
+  timestamp DateTime  @default(now())
+  userId    String    @map("user_id")
+  userName  String    @map("user_name")
   action    String
   level     String // 'INFO' | 'WARNING' | 'ERROR' | 'CRITICAL'
   details   String
   category  String // 'data' | 'network'
+  deletedAt DateTime? @map("deleted_at")
 
   @@index([timestamp])
   @@index([level])
   @@index([category])
   @@index([userId])
-  @@map("system_logs")
+  @@map("audit_system_logs")
 }
 
 model ResponsibleUnit {
   id   String @id
   name String
 
-  @@map("responsible_units")
+  @@map("ops_responsible_units")
 }
 
 model Subsystem {
   id    String @id
   label Json // NavItemLabel { en: string, vi: string }
 
-  @@map("subsystems")
+  @@map("ops_subsystems")
 }
 
 model PatrolLocation {
   id    String @id
   label String
 
-  @@map("patrol_locations")
+  @@map("ops_patrol_locations")
 }
 
 model Comment {
   id         String   @id @default(cuid())
-  entityId   String // ID of the DNF, Hazard, etc.
-  senderId   String
-  senderName String
+  entityId   String   @map("entity_id") // ID of the DNF, Hazard, etc.
+  senderId   String   @map("sender_id")
+  senderName String   @map("sender_name")
   timestamp  DateTime @default(now())
   content    String
 
   @@index([entityId])
   @@index([senderId])
-  @@map("comments")
+  @@map("ops_comments")
 }
 
 model Notification {
@@ -65,62 +66,64 @@ model Notification {
   message   String
   type      String // 'info' | 'warning' | 'error'
   timestamp DateTime @default(now())
-  isRead    Boolean  @default(false)
+  isRead    Boolean  @default(false) @map("is_read")
   link      String?
 
   @@index([isRead])
   @@index([timestamp])
-  @@map("notifications")
+  @@map("ops_notifications")
 }
 
 model MaintenanceStandard {
-  id                     String   @id
+  id                     String    @id
   name                   String
   name_en                String?
   description            String?
   frequency              String? // MaintenanceFrequency
-  scheduledTime          String? // HH:mm
-  locationIds            String[] @default([])
-  recipientId            String?
+  scheduledTime          String?   @map("scheduled_time") // HH:mm
+  locationIds            String[]  @default([]) @map("location_ids")
+  recipientId            String?   @map("recipient_id")
   abbreviation           String?
-  estimatedDurationHours Float?
+  estimatedDurationHours Float?    @map("estimated_duration_hours")
+  deletedAt              DateTime? @map("deleted_at")
 
   @@map("maintenance_standards")
 }
 
 model MaintenanceStandardItem {
   id                String  @id
-  standardId        String
-  itemCode          String
-  itemText          String
+  standardId        String  @map("standard_id")
+  itemCode          String  @map("item_code")
+  itemText          String  @map("item_text")
   criteria          String?
   unit              String?
-  standardQuantity  Float?
-  toleranceOperator String? // ToleranceOperator
-  toleranceValue    Float?
-  requiredTools     String?
+  standardQuantity  Float?  @map("standard_quantity")
+  toleranceOperator String? @map("tolerance_operator")
+  toleranceValue    Float?  @map("tolerance_value")
+  requiredTools     String? @map("required_tools")
 
   @@index([standardId])
-  @@map("maintenance_standard_items")
+  @@map("ops_maintenance_standard_items")
 }
 
 model InspectionDetail {
   id                     String    @id
   title                  String
-  areaIds                String[]  @default([])
+  areaIds                String[]  @default([]) @map("area_ids")
   inspector              String
   date                   DateTime
   status                 String // InspectionStatus
-  checklistTemplateId    String?
-  checklistItems         Json? // Array of ChecklistItem
-  generalNotes           String?
-  approvalComments       String?
-  lastStatusUpdateBy     String?
-  lastStatusUpdateAt     DateTime?
-  scheduledStartDate     DateTime?
-  scheduledFinishDate    DateTime?
-  estimatedDurationHours Float?
-  isArchived             Boolean   @default(false)
+  checklistTemplateId    String?   @map("checklist_template_id")
+  checklistItems         Json?     @map("checklist_items")
+  generalNotes           String?   @map("general_notes")
+  approvalComments       String?   @map("approval_comments")
+  lastStatusUpdateBy     String?   @map("last_status_update_by")
+  lastStatusUpdateAt     DateTime? @map("last_status_update_at")
+  scheduledStartDate     DateTime? @map("scheduled_start_date")
+  scheduledFinishDate    DateTime? @map("scheduled_finish_date")
+  estimatedDurationHours Float?    @map("estimated_duration_hours")
+  isArchived             Boolean   @default(false) @map("is_archived")
+  deletedAt              DateTime? @map("deleted_at")
 
   @@index([status])
   @@index([isArchived])
@@ -128,42 +131,43 @@ model InspectionDetail {
   @@index([date])
   @@index([checklistTemplateId])
   @@index([status, isArchived])
-  @@map("inspections")
+  @@map("ops_inspections")
 }
 
 model DnfDocument {
   id                                     String             @id
-  failureReportNo                        String?
-  locationOfFailure                      String
-  failedComponentEquipmentLRUTrainNumber String?
-  subsystemIds                           String[]           @default([])
-  descriptionOfFailure                   String
-  impactAssessment                       String?
-  staffWhoIdentifiedFailure              String
-  dateTimeOfFailureOccurrence            DateTime
-  methodOfFailureDetection               String
-  hazardLevelId                          String? // 'high' | 'medium' | 'low'
+  failureReportNo                        String?            @map("failure_report_no")
+  locationOfFailure                      String             @map("location_of_failure")
+  failedComponentEquipmentLRUTrainNumber String?            @map("failed_component_equipment_lru_train_number")
+  subsystemIds                           String[]           @default([]) @map("subsystem_ids")
+  descriptionOfFailure                   String             @map("description_of_failure")
+  impactAssessment                       String?            @map("impact_assessment")
+  staffWhoIdentifiedFailure              String             @map("staff_who_identified_failure")
+  dateTimeOfFailureOccurrence            DateTime           @map("date_time_of_failure_occurrence")
+  methodOfFailureDetection               String             @map("method_of_failure_detection")
+  hazardLevelId                          String?            @map("hazard_level_id") // 'high' | 'medium' | 'low'
   status                                 String // DnfStatus
   attachments                            Json? // ImageAttachment[]
-  createdById                            String
-  createdAt                              DateTime           @default(now())
-  updatedAt                              DateTime           @updatedAt
-  statusHistory                          Json? // StatusHistory[]
-  isArchived                             Boolean            @default(false)
-  resolutionDetails                      String?
-  assignedTo                             String?
+  createdById                            String             @map("created_by_id")
+  createdAt                              DateTime           @default(now()) @map("created_at")
+  updatedAt                              DateTime           @updatedAt @map("updated_at")
+  statusHistory                          Json?              @map("status_history") // StatusHistory[]
+  isArchived                             Boolean            @default(false) @map("is_archived")
+  resolutionDetails                      String?            @map("resolution_details")
+  assignedTo                             String?            @map("assigned_to")
   priority                               String? // 'Cao' | 'Trung bình' | 'Thấp'
-  completedDate                          DateTime?
-  originatingInspectionId                String?
-  originatingFindingId                   String?
-  immediateAction                        String?
-  problemResettable                      Boolean?
-  trainServiceAffected                   Boolean?
-  trainWithdrawn                         Boolean?
-  systemRestoredTime                     DateTime?
-  disruptionDuration                     Float?
-  trainKm                                Float?
-  rectificationParty                     String?
+  completedDate                          DateTime?          @map("completed_date")
+  originatingInspectionId                String?            @map("originating_inspection_id")
+  originatingFindingId                   String?            @map("originating_finding_id")
+  immediateAction                        String?            @map("immediate_action")
+  problemResettable                      Boolean?           @map("problem_resettable")
+  trainServiceAffected                   Boolean?           @map("train_service_affected")
+  trainWithdrawn                         Boolean?           @map("train_withdrawn")
+  systemRestoredTime                     DateTime?          @map("system_restored_time")
+  disruptionDuration                     Float?             @map("disruption_duration")
+  trainKm                                Float?             @map("train_km")
+  rectificationParty                     String?            @map("rectification_party")
+  deletedAt                              DateTime?          @map("deleted_at")
   correctiveActions                      CorrectiveAction[]
 
   @@index([status])
@@ -174,60 +178,61 @@ model DnfDocument {
   @@index([createdById])
   @@index([status, isArchived])
   @@index([status, priority])
-  @@map("dnf_documents")
+  @@map("ops_dnf_documents")
 }
 
 model CorrectiveAction {
   id                      String      @id
-  dnfId                   String
+  dnfId                   String      @map("dnf_id")
   dnf                     DnfDocument @relation(fields: [dnfId], references: [id], onDelete: Cascade)
   description             String
-  responsiblePersonOrUnit String
-  createdAt               DateTime    @default(now())
-  updatedAt               DateTime    @updatedAt
-  completedAt             DateTime?
+  responsiblePersonOrUnit String      @map("responsible_person_or_unit")
+  createdAt               DateTime    @default(now()) @map("created_at")
+  updatedAt               DateTime    @updatedAt @map("updated_at")
+  completedAt             DateTime?   @map("completed_at")
   status                  String // CorrectiveActionStatus
-  dateTimeNotified        DateTime?
-  dateTimeArrival         DateTime?
-  diagnosisTime           Float?
-  repairTime              Float?
-  verificationTime        Float?
-  totalDownTime           Float?
+  dateTimeNotified        DateTime?   @map("date_time_notified")
+  dateTimeArrival         DateTime?   @map("date_time_arrival")
+  diagnosisTime           Float?      @map("diagnosis_time")
+  repairTime              Float?      @map("repair_time")
+  verificationTime        Float?      @map("verification_time")
+  totalDownTime           Float?      @map("total_down_time")
 
   @@index([dnfId])
   @@index([status])
   @@index([responsiblePersonOrUnit])
-  @@map("corrective_actions")
+  @@map("ops_corrective_actions")
 }
 
 model HazardRecord {
   id                      String    @id
   description             String
-  systemGroup             String?
-  locationIds             String[]  @default([])
+  systemGroup             String?   @map("system_group")
+  locationIds             String[]  @default([]) @map("location_ids")
   source                  String?
-  potentialConsequence    String?
-  identifiedBy            String
-  identificationDate      DateTime
-  severityId              String?
-  likelihoodId            String?
-  riskLevelId             String?
-  currentControls         String
-  proposedActions         String?
-  suggestedActions        String?
-  responsiblePersonOrUnit String?
-  coordinatingUnits       String[]  @default([])
-  dueDate                 DateTime?
+  potentialConsequence    String?   @map("potential_consequence")
+  identifiedBy            String    @map("identified_by")
+  identificationDate      DateTime  @map("identification_date")
+  severityId              String?   @map("severity_id")
+  likelihoodId            String?   @map("likelihood_id")
+  riskLevelId             String?   @map("risk_level_id")
+  currentControls         String    @map("current_controls")
+  proposedActions         String?   @map("proposed_actions")
+  suggestedActions        String?   @map("suggested_actions")
+  responsiblePersonOrUnit String?   @map("responsible_person_or_unit")
+  coordinatingUnits       String[]  @default([]) @map("coordinating_units")
+  dueDate                 DateTime? @map("due_date")
   status                  String // HazardStatus
-  closureDetails          String?
-  verificationDetails     String?
+  closureDetails          String?   @map("closure_details")
+  verificationDetails     String?   @map("verification_details")
   attachments             Json? // ImageAttachment[]
-  linkedDnfId             String?
-  createdById             String
-  createdAt               DateTime  @default(now())
-  updatedAt               DateTime  @updatedAt
-  isArchived              Boolean   @default(false)
-  statusHistory           Json? // StatusHistory[]
+  linkedDnfId             String?   @map("linked_dnf_id")
+  createdById             String    @map("created_by_id")
+  createdAt               DateTime  @default(now()) @map("created_at")
+  updatedAt               DateTime  @updatedAt @map("updated_at")
+  isArchived              Boolean   @default(false) @map("is_archived")
+  deletedAt               DateTime? @map("deleted_at")
+  statusHistory           Json?     @map("status_history") // StatusHistory[]
 
   @@index([status])
   @@index([createdAt])
@@ -237,7 +242,7 @@ model HazardRecord {
   @@index([createdById])
   @@index([status, isArchived])
   @@index([linkedDnfId])
-  @@map("hazard_records")
+  @@map("ops_hazard_records")
 }
 
 model Improvement {
@@ -246,24 +251,24 @@ model Improvement {
   description     String
   category        String
   status          String // ImprovementStatus
-  submittedBy     String
-  createdById     String
-  submissionDate  DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-  benefitAnalysis String?
-  estimatedCost   Float?
+  submittedBy     String   @map("submitted_by")
+  createdById     String   @map("created_by_id")
+  submissionDate  DateTime @default(now()) @map("submission_date")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+  benefitAnalysis String?  @map("benefit_analysis")
+  estimatedCost   Float?   @map("estimated_cost")
   attachments     Json? // ImageAttachment[]
 
   @@index([status])
   @@index([category])
   @@index([createdById])
-  @@map("improvements")
+  @@map("ops_improvements")
 }
 
 model SystemState {
   id               Int       @id @default(1)
-  lastSchedulerRun DateTime?
-  aiModelConfig    String?
+  lastSchedulerRun DateTime? @map("last_scheduler_run")
+  aiModelConfig    String?   @map("ai_model_config")
 
-  @@map("system_state")
+  @@map("ops_system_state")
 }

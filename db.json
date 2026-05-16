@@ -33,31 +33,31 @@
   ],
   "assets": [
     {
-      "id": "EQ-SIG-BT-001",
+      "id": "ASSET-EQ-SIG-BT-001",
       "name": "Máy chuyển ghi #101",
       "stationId": "001",
       "systemId": "signaling"
     },
     {
-      "id": "EQ-TEL-BT-001",
+      "id": "ASSET-EQ-TEL-BT-001",
       "name": "Tủ Rack trung tâm P1",
       "stationId": "001",
       "systemId": "telecom"
     },
     {
-      "id": "EQ-POW-SH-001",
+      "id": "ASSET-EQ-POW-SH-001",
       "name": "Máy biến áp T1",
       "stationId": "002",
       "systemId": "power"
     },
     {
-      "id": "EQ-AFC-CP-001",
+      "id": "ASSET-EQ-AFC-CP-001",
       "name": "Cổng soát vé G1",
       "stationId": "003",
       "systemId": "afc"
     },
     {
-      "id": "EQ-RS-T1-M1",
+      "id": "ASSET-EQ-RS-T1-M1",
       "name": "Động cơ kéo tàu T1-M1",
       "stationId": "depot",
       "systemId": "rolling-stock"
@@ -237,23 +237,23 @@
   "responsible_units": [],
   "sub_systems": [
     {
-      "id": "001",
+      "id": "SYS-001",
       "label_vi": "Thanh toán tự động",
       "label_en": "AFC"
     },
     {
-      "id": "002",
+      "id": "SYS-002",
       "label_vi": "Công trình ray",
       "label_en": "Rolling Stock"
     }
   ],
   "patrol_locations": [
     {
-      "id": "001",
+      "id": "LOC-001",
       "label": "Depot Long Bình"
     },
     {
-      "id": "002",
+      "id": "LOC-002",
       "label": "Ga Bến Thành"
     }
   ],

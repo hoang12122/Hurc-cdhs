@@ -35,8 +35,8 @@ const securityHeaders = [
 
 const nextConfig = {
   /* config options here */
-  // Disabling standalone mode on Windows to prevent recursive trace-led EPERM scans across drives
-  // output: 'standalone',
+  // Standalone mode is required for efficient Docker builds on Linux
+  output: 'standalone',
   images: {
     remotePatterns: [
       {

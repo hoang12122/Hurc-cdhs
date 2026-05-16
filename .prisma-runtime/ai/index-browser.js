@@ -183,6 +183,181 @@ exports.Prisma.AiSyncLogScalarFieldEnum = {
   createdAt: 'createdAt'
 };
 
+exports.Prisma.AiVerificationLogScalarFieldEnum = {
+  id: 'id',
+  targetId: 'targetId',
+  targetType: 'targetType',
+  targetDisplayCode: 'targetDisplayCode',
+  targetVersion: 'targetVersion',
+  sourceModule: 'sourceModule',
+  aiProposedContent: 'aiProposedContent',
+  finalContent: 'finalContent',
+  status: 'status',
+  riskLevel: 'riskLevel',
+  requiredRole: 'requiredRole',
+  verifiedBy: 'verifiedBy',
+  verifiedAt: 'verifiedAt',
+  modelVersion: 'modelVersion',
+  isOrphan: 'isOrphan',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.AiSafetyLogScalarFieldEnum = {
+  id: 'id',
+  timestamp: 'timestamp',
+  eventId: 'eventId',
+  userId: 'userId',
+  targetType: 'targetType',
+  targetId: 'targetId',
+  action: 'action',
+  riskLevel: 'riskLevel',
+  details: 'details',
+  isImmutable: 'isImmutable',
+  isOrphan: 'isOrphan'
+};
+
+exports.Prisma.AiRequestLogScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  targetType: 'targetType',
+  targetId: 'targetId',
+  modelName: 'modelName',
+  promptTokens: 'promptTokens',
+  completionTokens: 'completionTokens',
+  latencyMs: 'latencyMs',
+  status: 'status',
+  error: 'error',
+  isOrphan: 'isOrphan',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.TrustGraphNodeScalarFieldEnum = {
+  id: 'id',
+  sourceType: 'sourceType',
+  sourceId: 'sourceId',
+  sourceVersion: 'sourceVersion',
+  label: 'label',
+  metadata: 'metadata',
+  riskScore: 'riskScore',
+  riskLevel: 'riskLevel',
+  lastRiskUpdate: 'lastRiskUpdate',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.TrustGraphEdgeScalarFieldEnum = {
+  id: 'id',
+  fromNodeId: 'fromNodeId',
+  toNodeId: 'toNodeId',
+  relationType: 'relationType',
+  sourceType: 'sourceType',
+  sourceId: 'sourceId',
+  confidence: 'confidence',
+  metadata: 'metadata',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.TrustGraphSyncLogScalarFieldEnum = {
+  id: 'id',
+  sourceType: 'sourceType',
+  sourceId: 'sourceId',
+  status: 'status',
+  retryCount: 'retryCount',
+  lastError: 'lastError',
+  lastSyncedAt: 'lastSyncedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.AuditConsistencyCheckLogScalarFieldEnum = {
+  id: 'id',
+  checkType: 'checkType',
+  targetType: 'targetType',
+  targetId: 'targetId',
+  issueDetails: 'issueDetails',
+  severity: 'severity',
+  status: 'status',
+  jobId: 'jobId',
+  handlerId: 'handlerId',
+  handledAt: 'handledAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.GraphConsistencyLogScalarFieldEnum = {
+  id: 'id',
+  nodeOrEdgeId: 'nodeOrEdgeId',
+  sourceType: 'sourceType',
+  sourceId: 'sourceId',
+  issueType: 'issueType',
+  expectedVersion: 'expectedVersion',
+  actualVersion: 'actualVersion',
+  details: 'details',
+  status: 'status',
+  jobId: 'jobId',
+  handlerId: 'handlerId',
+  handledAt: 'handledAt',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.IntegrityJobLogScalarFieldEnum = {
+  id: 'id',
+  jobType: 'jobType',
+  startedAt: 'startedAt',
+  endedAt: 'endedAt',
+  totalRecordsChecked: 'totalRecordsChecked',
+  totalIssuesFound: 'totalIssuesFound',
+  status: 'status',
+  reportSummary: 'reportSummary'
+};
+
+exports.Prisma.AiRiskReportScalarFieldEnum = {
+  id: 'id',
+  reportType: 'reportType',
+  targetId: 'targetId',
+  title: 'title',
+  content: 'content',
+  confidence: 'confidence',
+  status: 'status',
+  reviewedBy: 'reviewedBy',
+  aiModel: 'aiModel',
+  promptVersion: 'promptVersion',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.AiReportAuditScalarFieldEnum = {
+  id: 'id',
+  reportId: 'reportId',
+  reviewerId: 'reviewerId',
+  action: 'action',
+  previousContent: 'previousContent',
+  newContent: 'newContent',
+  comment: 'comment',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.PredictiveAlertScalarFieldEnum = {
+  id: 'id',
+  targetId: 'targetId',
+  probability: 'probability',
+  recommendation: 'recommendation',
+  reasoning: 'reasoning',
+  status: 'status',
+  reviewedBy: 'reviewedBy',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.RiskScoreHistoryScalarFieldEnum = {
+  id: 'id',
+  nodeId: 'nodeId',
+  score: 'score',
+  level: 'level',
+  factors: 'factors',
+  createdAt: 'createdAt'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -190,6 +365,10 @@ exports.Prisma.SortOrder = {
 
 exports.Prisma.NullableJsonNullValueInput = {
   DbNull: Prisma.DbNull,
+  JsonNull: Prisma.JsonNull
+};
+
+exports.Prisma.JsonNullValueInput = {
   JsonNull: Prisma.JsonNull
 };
 
@@ -216,7 +395,20 @@ exports.Prisma.ModelName = {
   AiConversation: 'AiConversation',
   AiConversationMessage: 'AiConversationMessage',
   AiInsight: 'AiInsight',
-  AiSyncLog: 'AiSyncLog'
+  AiSyncLog: 'AiSyncLog',
+  AiVerificationLog: 'AiVerificationLog',
+  AiSafetyLog: 'AiSafetyLog',
+  AiRequestLog: 'AiRequestLog',
+  TrustGraphNode: 'TrustGraphNode',
+  TrustGraphEdge: 'TrustGraphEdge',
+  TrustGraphSyncLog: 'TrustGraphSyncLog',
+  AuditConsistencyCheckLog: 'AuditConsistencyCheckLog',
+  GraphConsistencyLog: 'GraphConsistencyLog',
+  IntegrityJobLog: 'IntegrityJobLog',
+  AiRiskReport: 'AiRiskReport',
+  AiReportAudit: 'AiReportAudit',
+  PredictiveAlert: 'PredictiveAlert',
+  RiskScoreHistory: 'RiskScoreHistory'
 };
 
 /**

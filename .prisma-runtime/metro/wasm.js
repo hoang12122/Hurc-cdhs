@@ -131,6 +131,7 @@ exports.Prisma.AssetScalarFieldEnum = {
   criticality: 'criticality',
   specification: 'specification',
   createdAt: 'createdAt',
+  deletedAt: 'deletedAt',
   updatedAt: 'updatedAt'
 };
 

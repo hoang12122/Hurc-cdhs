@@ -130,7 +130,8 @@ exports.Prisma.SystemLogScalarFieldEnum = {
   action: 'action',
   level: 'level',
   details: 'details',
-  category: 'category'
+  category: 'category',
+  deletedAt: 'deletedAt'
 };
 
 exports.Prisma.ResponsibleUnitScalarFieldEnum = {
@@ -176,7 +177,8 @@ exports.Prisma.MaintenanceStandardScalarFieldEnum = {
   locationIds: 'locationIds',
   recipientId: 'recipientId',
   abbreviation: 'abbreviation',
-  estimatedDurationHours: 'estimatedDurationHours'
+  estimatedDurationHours: 'estimatedDurationHours',
+  deletedAt: 'deletedAt'
 };
 
 exports.Prisma.MaintenanceStandardItemScalarFieldEnum = {
@@ -208,7 +210,8 @@ exports.Prisma.InspectionDetailScalarFieldEnum = {
   scheduledStartDate: 'scheduledStartDate',
   scheduledFinishDate: 'scheduledFinishDate',
   estimatedDurationHours: 'estimatedDurationHours',
-  isArchived: 'isArchived'
+  isArchived: 'isArchived',
+  deletedAt: 'deletedAt'
 };
 
 exports.Prisma.DnfDocumentScalarFieldEnum = {
@@ -243,7 +246,8 @@ exports.Prisma.DnfDocumentScalarFieldEnum = {
   systemRestoredTime: 'systemRestoredTime',
   disruptionDuration: 'disruptionDuration',
   trainKm: 'trainKm',
-  rectificationParty: 'rectificationParty'
+  rectificationParty: 'rectificationParty',
+  deletedAt: 'deletedAt'
 };
 
 exports.Prisma.CorrectiveActionScalarFieldEnum = {
@@ -290,6 +294,7 @@ exports.Prisma.HazardRecordScalarFieldEnum = {
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
   isArchived: 'isArchived',
+  deletedAt: 'deletedAt',
   statusHistory: 'statusHistory'
 };
 
@@ -333,15 +338,15 @@ exports.Prisma.QueryMode = {
   insensitive: 'insensitive'
 };
 
+exports.Prisma.NullsOrder = {
+  first: 'first',
+  last: 'last'
+};
+
 exports.Prisma.JsonNullValueFilter = {
   DbNull: Prisma.DbNull,
   JsonNull: Prisma.JsonNull,
   AnyNull: Prisma.AnyNull
-};
-
-exports.Prisma.NullsOrder = {
-  first: 'first',
-  last: 'last'
 };
 
 

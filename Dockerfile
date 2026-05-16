@@ -28,41 +28,32 @@ ENV NEXT_TELEMETRY_DISABLED 1
 RUN npm run build
 RUN mkdir -p /app/logs /app/backups /app/audit_reports
 
-# PHASE 3: Zero-CVE Production Runner (Distroless)
-# Using gcr.io/distroless/nodejs22-debian12 (Debian-based distroless)
-FROM gcr.io/distroless/nodejs22-debian12 AS runner
-
+# PHASE 3: Zero-CVE Production Runner (Secure Chainguard)
+FROM cgr.dev/chainguard/node:latest AS runner
+USER root
+RUN apk update && apk upgrade --no-cache && apk add --no-cache openssl
 WORKDIR /app
 
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED 1
 
-# Distroless images come with a 'nonroot' user (UID 65532) by default.
-# We will copy the standalone build and static assets.
+# Copy build artifacts and dependencies needed for migrations
 COPY --from=builder /app/public ./public
-COPY --from=builder --chown=65532:65532 /app/.next/standalone ./
-COPY --from=builder --chown=65532:65532 /app/.next/static ./.next/static
+COPY --from=builder /app/.next/standalone ./
+COPY --from=builder /app/.next/static ./.next/static
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/package.json ./package.json
+COPY --from=builder /app/prisma ./prisma
+COPY --from=builder /app/src/scripts/container-init.ts ./src/scripts/container-init.ts
 
-# IMPORTANT: Ensure data directories exist and are owned by nonroot
-# These will be the mount points for volumes
-COPY --from=builder --chown=65532:65532 /app/db.json ./db.json
-COPY --from=builder --chown=65532:65532 /app/db.backup.json ./db.backup.json
-COPY --from=builder --chown=65532:65532 /app/logs ./logs
-COPY --from=builder --chown=65532:65532 /app/backups ./backups
-COPY --from=builder --chown=65532:65532 /app/audit_reports ./audit_reports
-# Pre-create the directory structure for persistent offline data
-COPY --from=builder --chown=65532:65532 /app/data ./data
-COPY --chown=65532:65532 healthcheck.js ./healthcheck.js
+# Set permissions
+RUN mkdir -p /app/data/offline /app/logs /app/backups /app/audit_reports && \
+    chown -R node:node /app
 
-# Use the built-in nonroot user for execution
-USER 65532
+USER node
 
 EXPOSE 3000
 ENV PORT 3000
 
-# Lệnh để chạy ứng dụng ở chế độ standalone
-# Command must be in exec form as there is no shell
-HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-  CMD ["node", "healthcheck.js"]
-
-CMD ["server.js"]
+# Use the initialization script to handle migrations and start the server
+CMD ["npx", "tsx", "src/scripts/container-init.ts"]

@@ -138,6 +138,7 @@ exports.Prisma.UserScalarFieldEnum = {
   verificationOtp: 'verificationOtp',
   otpExpiry: 'otpExpiry',
   createdAt: 'createdAt',
+  deletedAt: 'deletedAt',
   updatedAt: 'updatedAt'
 };
 

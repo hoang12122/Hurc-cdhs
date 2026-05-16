@@ -56,9 +56,11 @@ services:
       init-perms:
         condition: service_completed_successfully
       postgres:
-        condition: service_started
+        condition: service_healthy
       redis:
-        condition: service_started
+        condition: service_healthy
+      mongo:
+        condition: service_healthy
 
   # == INIT PERMISSIONS ==
   # Giải quyết lỗi "Permission Denied" và khởi tạo hạ tầng dữ liệu bền vững
@@ -93,6 +95,12 @@ services:
       - ./init-db.sh:/docker-entrypoint-initdb.d/init-db.sh
     ports:
       - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
 
   mongo:
     image: mongo:7.0
@@ -110,6 +118,11 @@ services:
       - "27017:27017"
     volumes:
       - ./data/mongo:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   # == CACHE & QUEUE ==
   redis:
@@ -125,6 +138,11 @@ services:
       - "6379:6379"
     volumes:
       - ./data/redis:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
   
   # == FRONTEND GATEWAY / REVERSE PROXY ==
   # Nginx đóng vai trò là cổng vào cho người dùng.

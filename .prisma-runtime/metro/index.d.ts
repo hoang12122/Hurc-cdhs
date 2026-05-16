@@ -1063,6 +1063,7 @@ export namespace Prisma {
     parentId: string | null
     criticality: string | null
     createdAt: Date | null
+    deletedAt: Date | null
     updatedAt: Date | null
   }
 
@@ -1074,6 +1075,7 @@ export namespace Prisma {
     parentId: string | null
     criticality: string | null
     createdAt: Date | null
+    deletedAt: Date | null
     updatedAt: Date | null
   }
 
@@ -1086,6 +1088,7 @@ export namespace Prisma {
     criticality: number
     specification: number
     createdAt: number
+    deletedAt: number
     updatedAt: number
     _all: number
   }
@@ -1099,6 +1102,7 @@ export namespace Prisma {
     parentId?: true
     criticality?: true
     createdAt?: true
+    deletedAt?: true
     updatedAt?: true
   }
 
@@ -1110,6 +1114,7 @@ export namespace Prisma {
     parentId?: true
     criticality?: true
     createdAt?: true
+    deletedAt?: true
     updatedAt?: true
   }
 
@@ -1122,6 +1127,7 @@ export namespace Prisma {
     criticality?: true
     specification?: true
     createdAt?: true
+    deletedAt?: true
     updatedAt?: true
     _all?: true
   }
@@ -1207,6 +1213,7 @@ export namespace Prisma {
     criticality: string
     specification: JsonValue | null
     createdAt: Date
+    deletedAt: Date | null
     updatedAt: Date
     _count: AssetCountAggregateOutputType | null
     _min: AssetMinAggregateOutputType | null
@@ -1236,6 +1243,7 @@ export namespace Prisma {
     criticality?: boolean
     specification?: boolean
     createdAt?: boolean
+    deletedAt?: boolean
     updatedAt?: boolean
     parent?: boolean | Asset$parentArgs<ExtArgs>
     children?: boolean | Asset$childrenArgs<ExtArgs>
@@ -1251,6 +1259,7 @@ export namespace Prisma {
     criticality?: boolean
     specification?: boolean
     createdAt?: boolean
+    deletedAt?: boolean
     updatedAt?: boolean
     parent?: boolean | Asset$parentArgs<ExtArgs>
   }, ExtArgs["result"]["asset"]>
@@ -1264,6 +1273,7 @@ export namespace Prisma {
     criticality?: boolean
     specification?: boolean
     createdAt?: boolean
+    deletedAt?: boolean
     updatedAt?: boolean
   }
 
@@ -1291,6 +1301,7 @@ export namespace Prisma {
       criticality: string
       specification: Prisma.JsonValue | null
       createdAt: Date
+      deletedAt: Date | null
       updatedAt: Date
     }, ExtArgs["result"]["asset"]>
     composites: {}
@@ -1695,6 +1706,7 @@ export namespace Prisma {
     readonly criticality: FieldRef<"Asset", 'String'>
     readonly specification: FieldRef<"Asset", 'Json'>
     readonly createdAt: FieldRef<"Asset", 'DateTime'>
+    readonly deletedAt: FieldRef<"Asset", 'DateTime'>
     readonly updatedAt: FieldRef<"Asset", 'DateTime'>
   }
     
@@ -3958,6 +3970,7 @@ export namespace Prisma {
     criticality: 'criticality',
     specification: 'specification',
     createdAt: 'createdAt',
+    deletedAt: 'deletedAt',
     updatedAt: 'updatedAt'
   };
 
@@ -4114,6 +4127,7 @@ export namespace Prisma {
     criticality?: StringFilter<"Asset"> | string
     specification?: JsonNullableFilter<"Asset">
     createdAt?: DateTimeFilter<"Asset"> | Date | string
+    deletedAt?: DateTimeNullableFilter<"Asset"> | Date | string | null
     updatedAt?: DateTimeFilter<"Asset"> | Date | string
     parent?: XOR<AssetNullableRelationFilter, AssetWhereInput> | null
     children?: AssetListRelationFilter
@@ -4128,6 +4142,7 @@ export namespace Prisma {
     criticality?: SortOrder
     specification?: SortOrderInput | SortOrder
     createdAt?: SortOrder
+    deletedAt?: SortOrderInput | SortOrder
     updatedAt?: SortOrder
     parent?: AssetOrderByWithRelationInput
     children?: AssetOrderByRelationAggregateInput
@@ -4145,6 +4160,7 @@ export namespace Prisma {
     criticality?: StringFilter<"Asset"> | string
     specification?: JsonNullableFilter<"Asset">
     createdAt?: DateTimeFilter<"Asset"> | Date | string
+    deletedAt?: DateTimeNullableFilter<"Asset"> | Date | string | null
     updatedAt?: DateTimeFilter<"Asset"> | Date | string
     parent?: XOR<AssetNullableRelationFilter, AssetWhereInput> | null
     children?: AssetListRelationFilter
@@ -4159,6 +4175,7 @@ export namespace Prisma {
     criticality?: SortOrder
     specification?: SortOrderInput | SortOrder
     createdAt?: SortOrder
+    deletedAt?: SortOrderInput | SortOrder
     updatedAt?: SortOrder
     _count?: AssetCountOrderByAggregateInput
     _max?: AssetMaxOrderByAggregateInput
@@ -4177,6 +4194,7 @@ export namespace Prisma {
     criticality?: StringWithAggregatesFilter<"Asset"> | string
     specification?: JsonNullableWithAggregatesFilter<"Asset">
     createdAt?: DateTimeWithAggregatesFilter<"Asset"> | Date | string
+    deletedAt?: DateTimeNullableWithAggregatesFilter<"Asset"> | Date | string | null
     updatedAt?: DateTimeWithAggregatesFilter<"Asset"> | Date | string
   }
 
@@ -4316,6 +4334,7 @@ export namespace Prisma {
     criticality?: string
     specification?: NullableJsonNullValueInput | InputJsonValue
     createdAt?: Date | string
+    deletedAt?: Date | string | null
     updatedAt?: Date | string
     parent?: AssetCreateNestedOneWithoutChildrenInput
     children?: AssetCreateNestedManyWithoutParentInput
@@ -4330,6 +4349,7 @@ export namespace Prisma {
     criticality?: string
     specification?: NullableJsonNullValueInput | InputJsonValue
     createdAt?: Date | string
+    deletedAt?: Date | string | null
     updatedAt?: Date | string
     children?: AssetUncheckedCreateNestedManyWithoutParentInput
   }
@@ -4342,6 +4362,7 @@ export namespace Prisma {
     criticality?: StringFieldUpdateOperationsInput | string
     specification?: NullableJsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     parent?: AssetUpdateOneWithoutChildrenNestedInput
     children?: AssetUpdateManyWithoutParentNestedInput
@@ -4356,6 +4377,7 @@ export namespace Prisma {
     criticality?: StringFieldUpdateOperationsInput | string
     specification?: NullableJsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     children?: AssetUncheckedUpdateManyWithoutParentNestedInput
   }
@@ -4369,6 +4391,7 @@ export namespace Prisma {
     criticality?: string
     specification?: NullableJsonNullValueInput | InputJsonValue
     createdAt?: Date | string
+    deletedAt?: Date | string | null
     updatedAt?: Date | string
   }
 
@@ -4380,6 +4403,7 @@ export namespace Prisma {
     criticality?: StringFieldUpdateOperationsInput | string
     specification?: NullableJsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
@@ -4392,6 +4416,7 @@ export namespace Prisma {
     criticality?: StringFieldUpdateOperationsInput | string
     specification?: NullableJsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
@@ -4598,6 +4623,17 @@ export namespace Prisma {
     not?: NestedDateTimeFilter<$PrismaModel> | Date | string
   }
 
+  export type DateTimeNullableFilter<$PrismaModel = never> = {
+    equals?: Date | string | DateTimeFieldRefInput<$PrismaModel> | null
+    in?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null
+    notIn?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null
+    lt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    lte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    gt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    gte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    not?: NestedDateTimeNullableFilter<$PrismaModel> | Date | string | null
+  }
+
   export type AssetNullableRelationFilter = {
     is?: AssetWhereInput | null
     isNot?: AssetWhereInput | null
@@ -4627,6 +4663,7 @@ export namespace Prisma {
     criticality?: SortOrder
     specification?: SortOrder
     createdAt?: SortOrder
+    deletedAt?: SortOrder
     updatedAt?: SortOrder
   }
 
@@ -4638,6 +4675,7 @@ export namespace Prisma {
     parentId?: SortOrder
     criticality?: SortOrder
     createdAt?: SortOrder
+    deletedAt?: SortOrder
     updatedAt?: SortOrder
   }
 
@@ -4649,6 +4687,7 @@ export namespace Prisma {
     parentId?: SortOrder
     criticality?: SortOrder
     createdAt?: SortOrder
+    deletedAt?: SortOrder
     updatedAt?: SortOrder
   }
 
@@ -4727,6 +4766,20 @@ export namespace Prisma {
     _max?: NestedDateTimeFilter<$PrismaModel>
   }
 
+  export type DateTimeNullableWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: Date | string | DateTimeFieldRefInput<$PrismaModel> | null
+    in?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null
+    notIn?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null
+    lt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    lte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    gt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    gte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    not?: NestedDateTimeNullableWithAggregatesFilter<$PrismaModel> | Date | string | null
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _min?: NestedDateTimeNullableFilter<$PrismaModel>
+    _max?: NestedDateTimeNullableFilter<$PrismaModel>
+  }
+
   export type FloatFilter<$PrismaModel = never> = {
     equals?: number | FloatFieldRefInput<$PrismaModel>
     in?: number[] | ListFloatFieldRefInput<$PrismaModel>
@@ -4800,17 +4853,6 @@ export namespace Prisma {
     not?: NestedIntFilter<$PrismaModel> | number
   }
 
-  export type DateTimeNullableFilter<$PrismaModel = never> = {
-    equals?: Date | string | DateTimeFieldRefInput<$PrismaModel> | null
-    in?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null
-    notIn?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null
-    lt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    lte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    gt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    gte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    not?: NestedDateTimeNullableFilter<$PrismaModel> | Date | string | null
-  }
-
   export type SnmpConfigCountOrderByAggregateInput = {
     id?: SortOrder
     assetId?: SortOrder
@@ -4868,20 +4910,6 @@ export namespace Prisma {
     _max?: NestedIntFilter<$PrismaModel>
   }
 
-  export type DateTimeNullableWithAggregatesFilter<$PrismaModel = never> = {
-    equals?: Date | string | DateTimeFieldRefInput<$PrismaModel> | null
-    in?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null
-    notIn?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null
-    lt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    lte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    gt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    gte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    not?: NestedDateTimeNullableWithAggregatesFilter<$PrismaModel> | Date | string | null
-    _count?: NestedIntNullableFilter<$PrismaModel>
-    _min?: NestedDateTimeNullableFilter<$PrismaModel>
-    _max?: NestedDateTimeNullableFilter<$PrismaModel>
-  }
-
   export type AssetCreateNestedOneWithoutChildrenInput = {
     create?: XOR<AssetCreateWithoutChildrenInput, AssetUncheckedCreateWithoutChildrenInput>
     connectOrCreate?: AssetCreateOrConnectWithoutChildrenInput
@@ -4908,6 +4936,10 @@ export namespace Prisma {
 
   export type DateTimeFieldUpdateOperationsInput = {
     set?: Date | string
+  }
+
+  export type NullableDateTimeFieldUpdateOperationsInput = {
+    set?: Date | string | null
   }
 
   export type AssetUpdateOneWithoutChildrenNestedInput = {
@@ -4968,10 +5000,6 @@ export namespace Prisma {
     divide?: number
   }
 
-  export type NullableDateTimeFieldUpdateOperationsInput = {
-    set?: Date | string | null
-  }
-
   export type NestedStringFilter<$PrismaModel = never> = {
     equals?: string | StringFieldRefInput<$PrismaModel>
     in?: string[] | ListStringFieldRefInput<$PrismaModel>
@@ -5009,6 +5037,17 @@ export namespace Prisma {
     gt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
     gte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
     not?: NestedDateTimeFilter<$PrismaModel> | Date | string
+  }
+
+  export type NestedDateTimeNullableFilter<$PrismaModel = never> = {
+    equals?: Date | string | DateTimeFieldRefInput<$PrismaModel> | null
+    in?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null
+    notIn?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null
+    lt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    lte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    gt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    gte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    not?: NestedDateTimeNullableFilter<$PrismaModel> | Date | string | null
   }
 
   export type NestedStringWithAggregatesFilter<$PrismaModel = never> = {
@@ -5103,6 +5142,20 @@ export namespace Prisma {
     _max?: NestedDateTimeFilter<$PrismaModel>
   }
 
+  export type NestedDateTimeNullableWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: Date | string | DateTimeFieldRefInput<$PrismaModel> | null
+    in?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null
+    notIn?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null
+    lt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    lte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    gt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    gte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    not?: NestedDateTimeNullableWithAggregatesFilter<$PrismaModel> | Date | string | null
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _min?: NestedDateTimeNullableFilter<$PrismaModel>
+    _max?: NestedDateTimeNullableFilter<$PrismaModel>
+  }
+
   export type NestedFloatFilter<$PrismaModel = never> = {
     equals?: number | FloatFieldRefInput<$PrismaModel>
     in?: number[] | ListFloatFieldRefInput<$PrismaModel>
@@ -5130,17 +5183,6 @@ export namespace Prisma {
     _max?: NestedFloatFilter<$PrismaModel>
   }
 
-  export type NestedDateTimeNullableFilter<$PrismaModel = never> = {
-    equals?: Date | string | DateTimeFieldRefInput<$PrismaModel> | null
-    in?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null
-    notIn?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null
-    lt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    lte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    gt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    gte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    not?: NestedDateTimeNullableFilter<$PrismaModel> | Date | string | null
-  }
-
   export type NestedIntWithAggregatesFilter<$PrismaModel = never> = {
     equals?: number | IntFieldRefInput<$PrismaModel>
     in?: number[] | ListIntFieldRefInput<$PrismaModel>
@@ -5157,20 +5199,6 @@ export namespace Prisma {
     _max?: NestedIntFilter<$PrismaModel>
   }
 
-  export type NestedDateTimeNullableWithAggregatesFilter<$PrismaModel = never> = {
-    equals?: Date | string | DateTimeFieldRefInput<$PrismaModel> | null
-    in?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null
-    notIn?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null
-    lt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    lte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    gt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    gte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    not?: NestedDateTimeNullableWithAggregatesFilter<$PrismaModel> | Date | string | null
-    _count?: NestedIntNullableFilter<$PrismaModel>
-    _min?: NestedDateTimeNullableFilter<$PrismaModel>
-    _max?: NestedDateTimeNullableFilter<$PrismaModel>
-  }
-
   export type AssetCreateWithoutChildrenInput = {
     id?: string
     code: string
@@ -5179,6 +5207,7 @@ export namespace Prisma {
     criticality?: string
     specification?: NullableJsonNullValueInput | InputJsonValue
     createdAt?: Date | string
+    deletedAt?: Date | string | null
     updatedAt?: Date | string
     parent?: AssetCreateNestedOneWithoutChildrenInput
   }
@@ -5192,6 +5221,7 @@ export namespace Prisma {
     criticality?: string
     specification?: NullableJsonNullValueInput | InputJsonValue
     createdAt?: Date | string
+    deletedAt?: Date | string | null
     updatedAt?: Date | string
   }
 
@@ -5208,6 +5238,7 @@ export namespace Prisma {
     criticality?: string
     specification?: NullableJsonNullValueInput | InputJsonValue
     createdAt?: Date | string
+    deletedAt?: Date | string | null
     updatedAt?: Date | string
     children?: AssetCreateNestedManyWithoutParentInput
   }
@@ -5220,6 +5251,7 @@ export namespace Prisma {
     criticality?: string
     specification?: NullableJsonNullValueInput | InputJsonValue
     createdAt?: Date | string
+    deletedAt?: Date | string | null
     updatedAt?: Date | string
     children?: AssetUncheckedCreateNestedManyWithoutParentInput
   }
@@ -5253,6 +5285,7 @@ export namespace Prisma {
     criticality?: StringFieldUpdateOperationsInput | string
     specification?: NullableJsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     parent?: AssetUpdateOneWithoutChildrenNestedInput
   }
@@ -5266,6 +5299,7 @@ export namespace Prisma {
     criticality?: StringFieldUpdateOperationsInput | string
     specification?: NullableJsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
@@ -5297,6 +5331,7 @@ export namespace Prisma {
     criticality?: StringFilter<"Asset"> | string
     specification?: JsonNullableFilter<"Asset">
     createdAt?: DateTimeFilter<"Asset"> | Date | string
+    deletedAt?: DateTimeNullableFilter<"Asset"> | Date | string | null
     updatedAt?: DateTimeFilter<"Asset"> | Date | string
   }
 
@@ -5308,6 +5343,7 @@ export namespace Prisma {
     criticality?: string
     specification?: NullableJsonNullValueInput | InputJsonValue
     createdAt?: Date | string
+    deletedAt?: Date | string | null
     updatedAt?: Date | string
   }
 
@@ -5319,6 +5355,7 @@ export namespace Prisma {
     criticality?: StringFieldUpdateOperationsInput | string
     specification?: NullableJsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     children?: AssetUpdateManyWithoutParentNestedInput
   }
@@ -5331,6 +5368,7 @@ export namespace Prisma {
     criticality?: StringFieldUpdateOperationsInput | string
     specification?: NullableJsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     children?: AssetUncheckedUpdateManyWithoutParentNestedInput
   }
@@ -5343,6 +5381,7 @@ export namespace Prisma {
     criticality?: StringFieldUpdateOperationsInput | string
     specification?: NullableJsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 

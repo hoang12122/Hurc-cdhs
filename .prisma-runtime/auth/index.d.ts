@@ -1039,6 +1039,7 @@ export namespace Prisma {
     verificationOtp: string | null
     otpExpiry: Date | null
     createdAt: Date | null
+    deletedAt: Date | null
     updatedAt: Date | null
   }
 
@@ -1056,6 +1057,7 @@ export namespace Prisma {
     verificationOtp: string | null
     otpExpiry: Date | null
     createdAt: Date | null
+    deletedAt: Date | null
     updatedAt: Date | null
   }
 
@@ -1075,6 +1077,7 @@ export namespace Prisma {
     verificationOtp: number
     otpExpiry: number
     createdAt: number
+    deletedAt: number
     updatedAt: number
     _all: number
   }
@@ -1094,6 +1097,7 @@ export namespace Prisma {
     verificationOtp?: true
     otpExpiry?: true
     createdAt?: true
+    deletedAt?: true
     updatedAt?: true
   }
 
@@ -1111,6 +1115,7 @@ export namespace Prisma {
     verificationOtp?: true
     otpExpiry?: true
     createdAt?: true
+    deletedAt?: true
     updatedAt?: true
   }
 
@@ -1130,6 +1135,7 @@ export namespace Prisma {
     verificationOtp?: true
     otpExpiry?: true
     createdAt?: true
+    deletedAt?: true
     updatedAt?: true
     _all?: true
   }
@@ -1222,6 +1228,7 @@ export namespace Prisma {
     verificationOtp: string | null
     otpExpiry: Date | null
     createdAt: Date
+    deletedAt: Date | null
     updatedAt: Date
     _count: UserCountAggregateOutputType | null
     _min: UserMinAggregateOutputType | null
@@ -1258,6 +1265,7 @@ export namespace Prisma {
     verificationOtp?: boolean
     otpExpiry?: boolean
     createdAt?: boolean
+    deletedAt?: boolean
     updatedAt?: boolean
   }, ExtArgs["result"]["user"]>
 
@@ -1277,6 +1285,7 @@ export namespace Prisma {
     verificationOtp?: boolean
     otpExpiry?: boolean
     createdAt?: boolean
+    deletedAt?: boolean
     updatedAt?: boolean
   }, ExtArgs["result"]["user"]>
 
@@ -1296,6 +1305,7 @@ export namespace Prisma {
     verificationOtp?: boolean
     otpExpiry?: boolean
     createdAt?: boolean
+    deletedAt?: boolean
     updatedAt?: boolean
   }
 
@@ -1319,6 +1329,7 @@ export namespace Prisma {
       verificationOtp: string | null
       otpExpiry: Date | null
       createdAt: Date
+      deletedAt: Date | null
       updatedAt: Date
     }, ExtArgs["result"]["user"]>
     composites: {}
@@ -1728,6 +1739,7 @@ export namespace Prisma {
     readonly verificationOtp: FieldRef<"User", 'String'>
     readonly otpExpiry: FieldRef<"User", 'DateTime'>
     readonly createdAt: FieldRef<"User", 'DateTime'>
+    readonly deletedAt: FieldRef<"User", 'DateTime'>
     readonly updatedAt: FieldRef<"User", 'DateTime'>
   }
     
@@ -3799,6 +3811,7 @@ export namespace Prisma {
     verificationOtp: 'verificationOtp',
     otpExpiry: 'otpExpiry',
     createdAt: 'createdAt',
+    deletedAt: 'deletedAt',
     updatedAt: 'updatedAt'
   };
 
@@ -3927,6 +3940,7 @@ export namespace Prisma {
     verificationOtp?: StringNullableFilter<"User"> | string | null
     otpExpiry?: DateTimeNullableFilter<"User"> | Date | string | null
     createdAt?: DateTimeFilter<"User"> | Date | string
+    deletedAt?: DateTimeNullableFilter<"User"> | Date | string | null
     updatedAt?: DateTimeFilter<"User"> | Date | string
   }
 
@@ -3946,6 +3960,7 @@ export namespace Prisma {
     verificationOtp?: SortOrderInput | SortOrder
     otpExpiry?: SortOrderInput | SortOrder
     createdAt?: SortOrder
+    deletedAt?: SortOrderInput | SortOrder
     updatedAt?: SortOrder
   }
 
@@ -3968,6 +3983,7 @@ export namespace Prisma {
     verificationOtp?: StringNullableFilter<"User"> | string | null
     otpExpiry?: DateTimeNullableFilter<"User"> | Date | string | null
     createdAt?: DateTimeFilter<"User"> | Date | string
+    deletedAt?: DateTimeNullableFilter<"User"> | Date | string | null
     updatedAt?: DateTimeFilter<"User"> | Date | string
   }, "id" | "email">
 
@@ -3987,6 +4003,7 @@ export namespace Prisma {
     verificationOtp?: SortOrderInput | SortOrder
     otpExpiry?: SortOrderInput | SortOrder
     createdAt?: SortOrder
+    deletedAt?: SortOrderInput | SortOrder
     updatedAt?: SortOrder
     _count?: UserCountOrderByAggregateInput
     _max?: UserMaxOrderByAggregateInput
@@ -4012,6 +4029,7 @@ export namespace Prisma {
     verificationOtp?: StringNullableWithAggregatesFilter<"User"> | string | null
     otpExpiry?: DateTimeNullableWithAggregatesFilter<"User"> | Date | string | null
     createdAt?: DateTimeWithAggregatesFilter<"User"> | Date | string
+    deletedAt?: DateTimeNullableWithAggregatesFilter<"User"> | Date | string | null
     updatedAt?: DateTimeWithAggregatesFilter<"User"> | Date | string
   }
 
@@ -4120,7 +4138,7 @@ export namespace Prisma {
   }
 
   export type UserCreateInput = {
-    id: string
+    id?: string
     name: string
     email: string
     password?: string | null
@@ -4135,11 +4153,12 @@ export namespace Prisma {
     verificationOtp?: string | null
     otpExpiry?: Date | string | null
     createdAt?: Date | string
+    deletedAt?: Date | string | null
     updatedAt?: Date | string
   }
 
   export type UserUncheckedCreateInput = {
-    id: string
+    id?: string
     name: string
     email: string
     password?: string | null
@@ -4154,6 +4173,7 @@ export namespace Prisma {
     verificationOtp?: string | null
     otpExpiry?: Date | string | null
     createdAt?: Date | string
+    deletedAt?: Date | string | null
     updatedAt?: Date | string
   }
 
@@ -4173,6 +4193,7 @@ export namespace Prisma {
     verificationOtp?: NullableStringFieldUpdateOperationsInput | string | null
     otpExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
@@ -4192,11 +4213,12 @@ export namespace Prisma {
     verificationOtp?: NullableStringFieldUpdateOperationsInput | string | null
     otpExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type UserCreateManyInput = {
-    id: string
+    id?: string
     name: string
     email: string
     password?: string | null
@@ -4211,6 +4233,7 @@ export namespace Prisma {
     verificationOtp?: string | null
     otpExpiry?: Date | string | null
     createdAt?: Date | string
+    deletedAt?: Date | string | null
     updatedAt?: Date | string
   }
 
@@ -4230,6 +4253,7 @@ export namespace Prisma {
     verificationOtp?: NullableStringFieldUpdateOperationsInput | string | null
     otpExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
@@ -4249,18 +4273,19 @@ export namespace Prisma {
     verificationOtp?: NullableStringFieldUpdateOperationsInput | string | null
     otpExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type RoleCreateInput = {
-    id: string
+    id?: string
     name: string
     description: string
     permissions?: RoleCreatepermissionsInput | string[]
   }
 
   export type RoleUncheckedCreateInput = {
-    id: string
+    id?: string
     name: string
     description: string
     permissions?: RoleCreatepermissionsInput | string[]
@@ -4281,7 +4306,7 @@ export namespace Prisma {
   }
 
   export type RoleCreateManyInput = {
-    id: string
+    id?: string
     name: string
     description: string
     permissions?: RoleCreatepermissionsInput | string[]
@@ -4302,7 +4327,7 @@ export namespace Prisma {
   }
 
   export type PasswordResetRequestCreateInput = {
-    id: string
+    id?: string
     userId: string
     userEmail: string
     userName: string
@@ -4311,7 +4336,7 @@ export namespace Prisma {
   }
 
   export type PasswordResetRequestUncheckedCreateInput = {
-    id: string
+    id?: string
     userId: string
     userEmail: string
     userName: string
@@ -4338,7 +4363,7 @@ export namespace Prisma {
   }
 
   export type PasswordResetRequestCreateManyInput = {
-    id: string
+    id?: string
     userId: string
     userEmail: string
     userName: string
@@ -4450,6 +4475,7 @@ export namespace Prisma {
     verificationOtp?: SortOrder
     otpExpiry?: SortOrder
     createdAt?: SortOrder
+    deletedAt?: SortOrder
     updatedAt?: SortOrder
   }
 
@@ -4467,6 +4493,7 @@ export namespace Prisma {
     verificationOtp?: SortOrder
     otpExpiry?: SortOrder
     createdAt?: SortOrder
+    deletedAt?: SortOrder
     updatedAt?: SortOrder
   }
 
@@ -4484,6 +4511,7 @@ export namespace Prisma {
     verificationOtp?: SortOrder
     otpExpiry?: SortOrder
     createdAt?: SortOrder
+    deletedAt?: SortOrder
     updatedAt?: SortOrder
   }
 

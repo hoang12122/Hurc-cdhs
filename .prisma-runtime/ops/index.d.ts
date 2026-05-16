@@ -2010,6 +2010,7 @@ export namespace Prisma {
     level: string | null
     details: string | null
     category: string | null
+    deletedAt: Date | null
   }
 
   export type SystemLogMaxAggregateOutputType = {
@@ -2021,6 +2022,7 @@ export namespace Prisma {
     level: string | null
     details: string | null
     category: string | null
+    deletedAt: Date | null
   }
 
   export type SystemLogCountAggregateOutputType = {
@@ -2032,6 +2034,7 @@ export namespace Prisma {
     level: number
     details: number
     category: number
+    deletedAt: number
     _all: number
   }
 
@@ -2045,6 +2048,7 @@ export namespace Prisma {
     level?: true
     details?: true
     category?: true
+    deletedAt?: true
   }
 
   export type SystemLogMaxAggregateInputType = {
@@ -2056,6 +2060,7 @@ export namespace Prisma {
     level?: true
     details?: true
     category?: true
+    deletedAt?: true
   }
 
   export type SystemLogCountAggregateInputType = {
@@ -2067,6 +2072,7 @@ export namespace Prisma {
     level?: true
     details?: true
     category?: true
+    deletedAt?: true
     _all?: true
   }
 
@@ -2151,6 +2157,7 @@ export namespace Prisma {
     level: string
     details: string
     category: string
+    deletedAt: Date | null
     _count: SystemLogCountAggregateOutputType | null
     _min: SystemLogMinAggregateOutputType | null
     _max: SystemLogMaxAggregateOutputType | null
@@ -2179,6 +2186,7 @@ export namespace Prisma {
     level?: boolean
     details?: boolean
     category?: boolean
+    deletedAt?: boolean
   }, ExtArgs["result"]["systemLog"]>
 
   export type SystemLogSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
@@ -2190,6 +2198,7 @@ export namespace Prisma {
     level?: boolean
     details?: boolean
     category?: boolean
+    deletedAt?: boolean
   }, ExtArgs["result"]["systemLog"]>
 
   export type SystemLogSelectScalar = {
@@ -2201,6 +2210,7 @@ export namespace Prisma {
     level?: boolean
     details?: boolean
     category?: boolean
+    deletedAt?: boolean
   }
 
 
@@ -2216,6 +2226,7 @@ export namespace Prisma {
       level: string
       details: string
       category: string
+      deletedAt: Date | null
     }, ExtArgs["result"]["systemLog"]>
     composites: {}
   }
@@ -2617,6 +2628,7 @@ export namespace Prisma {
     readonly level: FieldRef<"SystemLog", 'String'>
     readonly details: FieldRef<"SystemLog", 'String'>
     readonly category: FieldRef<"SystemLog", 'String'>
+    readonly deletedAt: FieldRef<"SystemLog", 'DateTime'>
   }
     
 
@@ -7237,6 +7249,7 @@ export namespace Prisma {
     recipientId: string | null
     abbreviation: string | null
     estimatedDurationHours: number | null
+    deletedAt: Date | null
   }
 
   export type MaintenanceStandardMaxAggregateOutputType = {
@@ -7249,6 +7262,7 @@ export namespace Prisma {
     recipientId: string | null
     abbreviation: string | null
     estimatedDurationHours: number | null
+    deletedAt: Date | null
   }
 
   export type MaintenanceStandardCountAggregateOutputType = {
@@ -7262,6 +7276,7 @@ export namespace Prisma {
     recipientId: number
     abbreviation: number
     estimatedDurationHours: number
+    deletedAt: number
     _all: number
   }
 
@@ -7284,6 +7299,7 @@ export namespace Prisma {
     recipientId?: true
     abbreviation?: true
     estimatedDurationHours?: true
+    deletedAt?: true
   }
 
   export type MaintenanceStandardMaxAggregateInputType = {
@@ -7296,6 +7312,7 @@ export namespace Prisma {
     recipientId?: true
     abbreviation?: true
     estimatedDurationHours?: true
+    deletedAt?: true
   }
 
   export type MaintenanceStandardCountAggregateInputType = {
@@ -7309,6 +7326,7 @@ export namespace Prisma {
     recipientId?: true
     abbreviation?: true
     estimatedDurationHours?: true
+    deletedAt?: true
     _all?: true
   }
 
@@ -7409,6 +7427,7 @@ export namespace Prisma {
     recipientId: string | null
     abbreviation: string | null
     estimatedDurationHours: number | null
+    deletedAt: Date | null
     _count: MaintenanceStandardCountAggregateOutputType | null
     _avg: MaintenanceStandardAvgAggregateOutputType | null
     _sum: MaintenanceStandardSumAggregateOutputType | null
@@ -7441,6 +7460,7 @@ export namespace Prisma {
     recipientId?: boolean
     abbreviation?: boolean
     estimatedDurationHours?: boolean
+    deletedAt?: boolean
   }, ExtArgs["result"]["maintenanceStandard"]>
 
   export type MaintenanceStandardSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
@@ -7454,6 +7474,7 @@ export namespace Prisma {
     recipientId?: boolean
     abbreviation?: boolean
     estimatedDurationHours?: boolean
+    deletedAt?: boolean
   }, ExtArgs["result"]["maintenanceStandard"]>
 
   export type MaintenanceStandardSelectScalar = {
@@ -7467,6 +7488,7 @@ export namespace Prisma {
     recipientId?: boolean
     abbreviation?: boolean
     estimatedDurationHours?: boolean
+    deletedAt?: boolean
   }
 
 
@@ -7484,6 +7506,7 @@ export namespace Prisma {
       recipientId: string | null
       abbreviation: string | null
       estimatedDurationHours: number | null
+      deletedAt: Date | null
     }, ExtArgs["result"]["maintenanceStandard"]>
     composites: {}
   }
@@ -7887,6 +7910,7 @@ export namespace Prisma {
     readonly recipientId: FieldRef<"MaintenanceStandard", 'String'>
     readonly abbreviation: FieldRef<"MaintenanceStandard", 'String'>
     readonly estimatedDurationHours: FieldRef<"MaintenanceStandard", 'Float'>
+    readonly deletedAt: FieldRef<"MaintenanceStandard", 'DateTime'>
   }
     
 
@@ -9186,6 +9210,7 @@ export namespace Prisma {
     scheduledFinishDate: Date | null
     estimatedDurationHours: number | null
     isArchived: boolean | null
+    deletedAt: Date | null
   }
 
   export type InspectionDetailMaxAggregateOutputType = {
@@ -9203,6 +9228,7 @@ export namespace Prisma {
     scheduledFinishDate: Date | null
     estimatedDurationHours: number | null
     isArchived: boolean | null
+    deletedAt: Date | null
   }
 
   export type InspectionDetailCountAggregateOutputType = {
@@ -9222,6 +9248,7 @@ export namespace Prisma {
     scheduledFinishDate: number
     estimatedDurationHours: number
     isArchived: number
+    deletedAt: number
     _all: number
   }
 
@@ -9249,6 +9276,7 @@ export namespace Prisma {
     scheduledFinishDate?: true
     estimatedDurationHours?: true
     isArchived?: true
+    deletedAt?: true
   }
 
   export type InspectionDetailMaxAggregateInputType = {
@@ -9266,6 +9294,7 @@ export namespace Prisma {
     scheduledFinishDate?: true
     estimatedDurationHours?: true
     isArchived?: true
+    deletedAt?: true
   }
 
   export type InspectionDetailCountAggregateInputType = {
@@ -9285,6 +9314,7 @@ export namespace Prisma {
     scheduledFinishDate?: true
     estimatedDurationHours?: true
     isArchived?: true
+    deletedAt?: true
     _all?: true
   }
 
@@ -9391,6 +9421,7 @@ export namespace Prisma {
     scheduledFinishDate: Date | null
     estimatedDurationHours: number | null
     isArchived: boolean
+    deletedAt: Date | null
     _count: InspectionDetailCountAggregateOutputType | null
     _avg: InspectionDetailAvgAggregateOutputType | null
     _sum: InspectionDetailSumAggregateOutputType | null
@@ -9429,6 +9460,7 @@ export namespace Prisma {
     scheduledFinishDate?: boolean
     estimatedDurationHours?: boolean
     isArchived?: boolean
+    deletedAt?: boolean
   }, ExtArgs["result"]["inspectionDetail"]>
 
   export type InspectionDetailSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
@@ -9448,6 +9480,7 @@ export namespace Prisma {
     scheduledFinishDate?: boolean
     estimatedDurationHours?: boolean
     isArchived?: boolean
+    deletedAt?: boolean
   }, ExtArgs["result"]["inspectionDetail"]>
 
   export type InspectionDetailSelectScalar = {
@@ -9467,6 +9500,7 @@ export namespace Prisma {
     scheduledFinishDate?: boolean
     estimatedDurationHours?: boolean
     isArchived?: boolean
+    deletedAt?: boolean
   }
 
 
@@ -9490,6 +9524,7 @@ export namespace Prisma {
       scheduledFinishDate: Date | null
       estimatedDurationHours: number | null
       isArchived: boolean
+      deletedAt: Date | null
     }, ExtArgs["result"]["inspectionDetail"]>
     composites: {}
   }
@@ -9899,6 +9934,7 @@ export namespace Prisma {
     readonly scheduledFinishDate: FieldRef<"InspectionDetail", 'DateTime'>
     readonly estimatedDurationHours: FieldRef<"InspectionDetail", 'Float'>
     readonly isArchived: FieldRef<"InspectionDetail", 'Boolean'>
+    readonly deletedAt: FieldRef<"InspectionDetail", 'DateTime'>
   }
     
 
@@ -10239,6 +10275,7 @@ export namespace Prisma {
     disruptionDuration: number | null
     trainKm: number | null
     rectificationParty: string | null
+    deletedAt: Date | null
   }
 
   export type DnfDocumentMaxAggregateOutputType = {
@@ -10271,6 +10308,7 @@ export namespace Prisma {
     disruptionDuration: number | null
     trainKm: number | null
     rectificationParty: string | null
+    deletedAt: Date | null
   }
 
   export type DnfDocumentCountAggregateOutputType = {
@@ -10306,6 +10344,7 @@ export namespace Prisma {
     disruptionDuration: number
     trainKm: number
     rectificationParty: number
+    deletedAt: number
     _all: number
   }
 
@@ -10350,6 +10389,7 @@ export namespace Prisma {
     disruptionDuration?: true
     trainKm?: true
     rectificationParty?: true
+    deletedAt?: true
   }
 
   export type DnfDocumentMaxAggregateInputType = {
@@ -10382,6 +10422,7 @@ export namespace Prisma {
     disruptionDuration?: true
     trainKm?: true
     rectificationParty?: true
+    deletedAt?: true
   }
 
   export type DnfDocumentCountAggregateInputType = {
@@ -10417,6 +10458,7 @@ export namespace Prisma {
     disruptionDuration?: true
     trainKm?: true
     rectificationParty?: true
+    deletedAt?: true
     _all?: true
   }
 
@@ -10539,6 +10581,7 @@ export namespace Prisma {
     disruptionDuration: number | null
     trainKm: number | null
     rectificationParty: string | null
+    deletedAt: Date | null
     _count: DnfDocumentCountAggregateOutputType | null
     _avg: DnfDocumentAvgAggregateOutputType | null
     _sum: DnfDocumentSumAggregateOutputType | null
@@ -10593,6 +10636,7 @@ export namespace Prisma {
     disruptionDuration?: boolean
     trainKm?: boolean
     rectificationParty?: boolean
+    deletedAt?: boolean
     correctiveActions?: boolean | DnfDocument$correctiveActionsArgs<ExtArgs>
     _count?: boolean | DnfDocumentCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["dnfDocument"]>
@@ -10630,6 +10674,7 @@ export namespace Prisma {
     disruptionDuration?: boolean
     trainKm?: boolean
     rectificationParty?: boolean
+    deletedAt?: boolean
   }, ExtArgs["result"]["dnfDocument"]>
 
   export type DnfDocumentSelectScalar = {
@@ -10665,6 +10710,7 @@ export namespace Prisma {
     disruptionDuration?: boolean
     trainKm?: boolean
     rectificationParty?: boolean
+    deletedAt?: boolean
   }
 
   export type DnfDocumentInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -10711,6 +10757,7 @@ export namespace Prisma {
       disruptionDuration: number | null
       trainKm: number | null
       rectificationParty: string | null
+      deletedAt: Date | null
     }, ExtArgs["result"]["dnfDocument"]>
     composites: {}
   }
@@ -11137,6 +11184,7 @@ export namespace Prisma {
     readonly disruptionDuration: FieldRef<"DnfDocument", 'Float'>
     readonly trainKm: FieldRef<"DnfDocument", 'Float'>
     readonly rectificationParty: FieldRef<"DnfDocument", 'String'>
+    readonly deletedAt: FieldRef<"DnfDocument", 'DateTime'>
   }
     
 
@@ -12606,6 +12654,7 @@ export namespace Prisma {
     createdAt: Date | null
     updatedAt: Date | null
     isArchived: boolean | null
+    deletedAt: Date | null
   }
 
   export type HazardRecordMaxAggregateOutputType = {
@@ -12632,6 +12681,7 @@ export namespace Prisma {
     createdAt: Date | null
     updatedAt: Date | null
     isArchived: boolean | null
+    deletedAt: Date | null
   }
 
   export type HazardRecordCountAggregateOutputType = {
@@ -12661,6 +12711,7 @@ export namespace Prisma {
     createdAt: number
     updatedAt: number
     isArchived: number
+    deletedAt: number
     statusHistory: number
     _all: number
   }
@@ -12690,6 +12741,7 @@ export namespace Prisma {
     createdAt?: true
     updatedAt?: true
     isArchived?: true
+    deletedAt?: true
   }
 
   export type HazardRecordMaxAggregateInputType = {
@@ -12716,6 +12768,7 @@ export namespace Prisma {
     createdAt?: true
     updatedAt?: true
     isArchived?: true
+    deletedAt?: true
   }
 
   export type HazardRecordCountAggregateInputType = {
@@ -12745,6 +12798,7 @@ export namespace Prisma {
     createdAt?: true
     updatedAt?: true
     isArchived?: true
+    deletedAt?: true
     statusHistory?: true
     _all?: true
   }
@@ -12848,6 +12902,7 @@ export namespace Prisma {
     createdAt: Date
     updatedAt: Date
     isArchived: boolean
+    deletedAt: Date | null
     statusHistory: JsonValue | null
     _count: HazardRecordCountAggregateOutputType | null
     _min: HazardRecordMinAggregateOutputType | null
@@ -12895,6 +12950,7 @@ export namespace Prisma {
     createdAt?: boolean
     updatedAt?: boolean
     isArchived?: boolean
+    deletedAt?: boolean
     statusHistory?: boolean
   }, ExtArgs["result"]["hazardRecord"]>
 
@@ -12925,6 +12981,7 @@ export namespace Prisma {
     createdAt?: boolean
     updatedAt?: boolean
     isArchived?: boolean
+    deletedAt?: boolean
     statusHistory?: boolean
   }, ExtArgs["result"]["hazardRecord"]>
 
@@ -12955,6 +13012,7 @@ export namespace Prisma {
     createdAt?: boolean
     updatedAt?: boolean
     isArchived?: boolean
+    deletedAt?: boolean
     statusHistory?: boolean
   }
 
@@ -12989,6 +13047,7 @@ export namespace Prisma {
       createdAt: Date
       updatedAt: Date
       isArchived: boolean
+      deletedAt: Date | null
       statusHistory: Prisma.JsonValue | null
     }, ExtArgs["result"]["hazardRecord"]>
     composites: {}
@@ -13409,6 +13468,7 @@ export namespace Prisma {
     readonly createdAt: FieldRef<"HazardRecord", 'DateTime'>
     readonly updatedAt: FieldRef<"HazardRecord", 'DateTime'>
     readonly isArchived: FieldRef<"HazardRecord", 'Boolean'>
+    readonly deletedAt: FieldRef<"HazardRecord", 'DateTime'>
     readonly statusHistory: FieldRef<"HazardRecord", 'Json'>
   }
     
@@ -15600,7 +15660,8 @@ export namespace Prisma {
     action: 'action',
     level: 'level',
     details: 'details',
-    category: 'category'
+    category: 'category',
+    deletedAt: 'deletedAt'
   };
 
   export type SystemLogScalarFieldEnum = (typeof SystemLogScalarFieldEnum)[keyof typeof SystemLogScalarFieldEnum]
@@ -15664,7 +15725,8 @@ export namespace Prisma {
     locationIds: 'locationIds',
     recipientId: 'recipientId',
     abbreviation: 'abbreviation',
-    estimatedDurationHours: 'estimatedDurationHours'
+    estimatedDurationHours: 'estimatedDurationHours',
+    deletedAt: 'deletedAt'
   };
 
   export type MaintenanceStandardScalarFieldEnum = (typeof MaintenanceStandardScalarFieldEnum)[keyof typeof MaintenanceStandardScalarFieldEnum]
@@ -15702,7 +15764,8 @@ export namespace Prisma {
     scheduledStartDate: 'scheduledStartDate',
     scheduledFinishDate: 'scheduledFinishDate',
     estimatedDurationHours: 'estimatedDurationHours',
-    isArchived: 'isArchived'
+    isArchived: 'isArchived',
+    deletedAt: 'deletedAt'
   };
 
   export type InspectionDetailScalarFieldEnum = (typeof InspectionDetailScalarFieldEnum)[keyof typeof InspectionDetailScalarFieldEnum]
@@ -15740,7 +15803,8 @@ export namespace Prisma {
     systemRestoredTime: 'systemRestoredTime',
     disruptionDuration: 'disruptionDuration',
     trainKm: 'trainKm',
-    rectificationParty: 'rectificationParty'
+    rectificationParty: 'rectificationParty',
+    deletedAt: 'deletedAt'
   };
 
   export type DnfDocumentScalarFieldEnum = (typeof DnfDocumentScalarFieldEnum)[keyof typeof DnfDocumentScalarFieldEnum]
@@ -15793,6 +15857,7 @@ export namespace Prisma {
     createdAt: 'createdAt',
     updatedAt: 'updatedAt',
     isArchived: 'isArchived',
+    deletedAt: 'deletedAt',
     statusHistory: 'statusHistory'
   };
 
@@ -15857,6 +15922,14 @@ export namespace Prisma {
   export type QueryMode = (typeof QueryMode)[keyof typeof QueryMode]
 
 
+  export const NullsOrder: {
+    first: 'first',
+    last: 'last'
+  };
+
+  export type NullsOrder = (typeof NullsOrder)[keyof typeof NullsOrder]
+
+
   export const JsonNullValueFilter: {
     DbNull: typeof DbNull,
     JsonNull: typeof JsonNull,
@@ -15864,14 +15937,6 @@ export namespace Prisma {
   };
 
   export type JsonNullValueFilter = (typeof JsonNullValueFilter)[keyof typeof JsonNullValueFilter]
-
-
-  export const NullsOrder: {
-    first: 'first',
-    last: 'last'
-  };
-
-  export type NullsOrder = (typeof NullsOrder)[keyof typeof NullsOrder]
 
 
   /**
@@ -15964,6 +16029,7 @@ export namespace Prisma {
     level?: StringFilter<"SystemLog"> | string
     details?: StringFilter<"SystemLog"> | string
     category?: StringFilter<"SystemLog"> | string
+    deletedAt?: DateTimeNullableFilter<"SystemLog"> | Date | string | null
   }
 
   export type SystemLogOrderByWithRelationInput = {
@@ -15975,6 +16041,7 @@ export namespace Prisma {
     level?: SortOrder
     details?: SortOrder
     category?: SortOrder
+    deletedAt?: SortOrderInput | SortOrder
   }
 
   export type SystemLogWhereUniqueInput = Prisma.AtLeast<{
@@ -15989,6 +16056,7 @@ export namespace Prisma {
     level?: StringFilter<"SystemLog"> | string
     details?: StringFilter<"SystemLog"> | string
     category?: StringFilter<"SystemLog"> | string
+    deletedAt?: DateTimeNullableFilter<"SystemLog"> | Date | string | null
   }, "id">
 
   export type SystemLogOrderByWithAggregationInput = {
@@ -16000,6 +16068,7 @@ export namespace Prisma {
     level?: SortOrder
     details?: SortOrder
     category?: SortOrder
+    deletedAt?: SortOrderInput | SortOrder
     _count?: SystemLogCountOrderByAggregateInput
     _max?: SystemLogMaxOrderByAggregateInput
     _min?: SystemLogMinOrderByAggregateInput
@@ -16017,6 +16086,7 @@ export namespace Prisma {
     level?: StringWithAggregatesFilter<"SystemLog"> | string
     details?: StringWithAggregatesFilter<"SystemLog"> | string
     category?: StringWithAggregatesFilter<"SystemLog"> | string
+    deletedAt?: DateTimeNullableWithAggregatesFilter<"SystemLog"> | Date | string | null
   }
 
   export type ResponsibleUnitWhereInput = {
@@ -16258,6 +16328,7 @@ export namespace Prisma {
     recipientId?: StringNullableFilter<"MaintenanceStandard"> | string | null
     abbreviation?: StringNullableFilter<"MaintenanceStandard"> | string | null
     estimatedDurationHours?: FloatNullableFilter<"MaintenanceStandard"> | number | null
+    deletedAt?: DateTimeNullableFilter<"MaintenanceStandard"> | Date | string | null
   }
 
   export type MaintenanceStandardOrderByWithRelationInput = {
@@ -16271,6 +16342,7 @@ export namespace Prisma {
     recipientId?: SortOrderInput | SortOrder
     abbreviation?: SortOrderInput | SortOrder
     estimatedDurationHours?: SortOrderInput | SortOrder
+    deletedAt?: SortOrderInput | SortOrder
   }
 
   export type MaintenanceStandardWhereUniqueInput = Prisma.AtLeast<{
@@ -16287,6 +16359,7 @@ export namespace Prisma {
     recipientId?: StringNullableFilter<"MaintenanceStandard"> | string | null
     abbreviation?: StringNullableFilter<"MaintenanceStandard"> | string | null
     estimatedDurationHours?: FloatNullableFilter<"MaintenanceStandard"> | number | null
+    deletedAt?: DateTimeNullableFilter<"MaintenanceStandard"> | Date | string | null
   }, "id">
 
   export type MaintenanceStandardOrderByWithAggregationInput = {
@@ -16300,6 +16373,7 @@ export namespace Prisma {
     recipientId?: SortOrderInput | SortOrder
     abbreviation?: SortOrderInput | SortOrder
     estimatedDurationHours?: SortOrderInput | SortOrder
+    deletedAt?: SortOrderInput | SortOrder
     _count?: MaintenanceStandardCountOrderByAggregateInput
     _avg?: MaintenanceStandardAvgOrderByAggregateInput
     _max?: MaintenanceStandardMaxOrderByAggregateInput
@@ -16321,6 +16395,7 @@ export namespace Prisma {
     recipientId?: StringNullableWithAggregatesFilter<"MaintenanceStandard"> | string | null
     abbreviation?: StringNullableWithAggregatesFilter<"MaintenanceStandard"> | string | null
     estimatedDurationHours?: FloatNullableWithAggregatesFilter<"MaintenanceStandard"> | number | null
+    deletedAt?: DateTimeNullableWithAggregatesFilter<"MaintenanceStandard"> | Date | string | null
   }
 
   export type MaintenanceStandardItemWhereInput = {
@@ -16422,6 +16497,7 @@ export namespace Prisma {
     scheduledFinishDate?: DateTimeNullableFilter<"InspectionDetail"> | Date | string | null
     estimatedDurationHours?: FloatNullableFilter<"InspectionDetail"> | number | null
     isArchived?: BoolFilter<"InspectionDetail"> | boolean
+    deletedAt?: DateTimeNullableFilter<"InspectionDetail"> | Date | string | null
   }
 
   export type InspectionDetailOrderByWithRelationInput = {
@@ -16441,6 +16517,7 @@ export namespace Prisma {
     scheduledFinishDate?: SortOrderInput | SortOrder
     estimatedDurationHours?: SortOrderInput | SortOrder
     isArchived?: SortOrder
+    deletedAt?: SortOrderInput | SortOrder
   }
 
   export type InspectionDetailWhereUniqueInput = Prisma.AtLeast<{
@@ -16463,6 +16540,7 @@ export namespace Prisma {
     scheduledFinishDate?: DateTimeNullableFilter<"InspectionDetail"> | Date | string | null
     estimatedDurationHours?: FloatNullableFilter<"InspectionDetail"> | number | null
     isArchived?: BoolFilter<"InspectionDetail"> | boolean
+    deletedAt?: DateTimeNullableFilter<"InspectionDetail"> | Date | string | null
   }, "id">
 
   export type InspectionDetailOrderByWithAggregationInput = {
@@ -16482,6 +16560,7 @@ export namespace Prisma {
     scheduledFinishDate?: SortOrderInput | SortOrder
     estimatedDurationHours?: SortOrderInput | SortOrder
     isArchived?: SortOrder
+    deletedAt?: SortOrderInput | SortOrder
     _count?: InspectionDetailCountOrderByAggregateInput
     _avg?: InspectionDetailAvgOrderByAggregateInput
     _max?: InspectionDetailMaxOrderByAggregateInput
@@ -16509,6 +16588,7 @@ export namespace Prisma {
     scheduledFinishDate?: DateTimeNullableWithAggregatesFilter<"InspectionDetail"> | Date | string | null
     estimatedDurationHours?: FloatNullableWithAggregatesFilter<"InspectionDetail"> | number | null
     isArchived?: BoolWithAggregatesFilter<"InspectionDetail"> | boolean
+    deletedAt?: DateTimeNullableWithAggregatesFilter<"InspectionDetail"> | Date | string | null
   }
 
   export type DnfDocumentWhereInput = {
@@ -16547,6 +16627,7 @@ export namespace Prisma {
     disruptionDuration?: FloatNullableFilter<"DnfDocument"> | number | null
     trainKm?: FloatNullableFilter<"DnfDocument"> | number | null
     rectificationParty?: StringNullableFilter<"DnfDocument"> | string | null
+    deletedAt?: DateTimeNullableFilter<"DnfDocument"> | Date | string | null
     correctiveActions?: CorrectiveActionListRelationFilter
   }
 
@@ -16583,6 +16664,7 @@ export namespace Prisma {
     disruptionDuration?: SortOrderInput | SortOrder
     trainKm?: SortOrderInput | SortOrder
     rectificationParty?: SortOrderInput | SortOrder
+    deletedAt?: SortOrderInput | SortOrder
     correctiveActions?: CorrectiveActionOrderByRelationAggregateInput
   }
 
@@ -16622,6 +16704,7 @@ export namespace Prisma {
     disruptionDuration?: FloatNullableFilter<"DnfDocument"> | number | null
     trainKm?: FloatNullableFilter<"DnfDocument"> | number | null
     rectificationParty?: StringNullableFilter<"DnfDocument"> | string | null
+    deletedAt?: DateTimeNullableFilter<"DnfDocument"> | Date | string | null
     correctiveActions?: CorrectiveActionListRelationFilter
   }, "id">
 
@@ -16658,6 +16741,7 @@ export namespace Prisma {
     disruptionDuration?: SortOrderInput | SortOrder
     trainKm?: SortOrderInput | SortOrder
     rectificationParty?: SortOrderInput | SortOrder
+    deletedAt?: SortOrderInput | SortOrder
     _count?: DnfDocumentCountOrderByAggregateInput
     _avg?: DnfDocumentAvgOrderByAggregateInput
     _max?: DnfDocumentMaxOrderByAggregateInput
@@ -16701,6 +16785,7 @@ export namespace Prisma {
     disruptionDuration?: FloatNullableWithAggregatesFilter<"DnfDocument"> | number | null
     trainKm?: FloatNullableWithAggregatesFilter<"DnfDocument"> | number | null
     rectificationParty?: StringNullableWithAggregatesFilter<"DnfDocument"> | string | null
+    deletedAt?: DateTimeNullableWithAggregatesFilter<"DnfDocument"> | Date | string | null
   }
 
   export type CorrectiveActionWhereInput = {
@@ -16835,6 +16920,7 @@ export namespace Prisma {
     createdAt?: DateTimeFilter<"HazardRecord"> | Date | string
     updatedAt?: DateTimeFilter<"HazardRecord"> | Date | string
     isArchived?: BoolFilter<"HazardRecord"> | boolean
+    deletedAt?: DateTimeNullableFilter<"HazardRecord"> | Date | string | null
     statusHistory?: JsonNullableFilter<"HazardRecord">
   }
 
@@ -16865,6 +16951,7 @@ export namespace Prisma {
     createdAt?: SortOrder
     updatedAt?: SortOrder
     isArchived?: SortOrder
+    deletedAt?: SortOrderInput | SortOrder
     statusHistory?: SortOrderInput | SortOrder
   }
 
@@ -16898,6 +16985,7 @@ export namespace Prisma {
     createdAt?: DateTimeFilter<"HazardRecord"> | Date | string
     updatedAt?: DateTimeFilter<"HazardRecord"> | Date | string
     isArchived?: BoolFilter<"HazardRecord"> | boolean
+    deletedAt?: DateTimeNullableFilter<"HazardRecord"> | Date | string | null
     statusHistory?: JsonNullableFilter<"HazardRecord">
   }, "id">
 
@@ -16928,6 +17016,7 @@ export namespace Prisma {
     createdAt?: SortOrder
     updatedAt?: SortOrder
     isArchived?: SortOrder
+    deletedAt?: SortOrderInput | SortOrder
     statusHistory?: SortOrderInput | SortOrder
     _count?: HazardRecordCountOrderByAggregateInput
     _max?: HazardRecordMaxOrderByAggregateInput
@@ -16964,6 +17053,7 @@ export namespace Prisma {
     createdAt?: DateTimeWithAggregatesFilter<"HazardRecord"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"HazardRecord"> | Date | string
     isArchived?: BoolWithAggregatesFilter<"HazardRecord"> | boolean
+    deletedAt?: DateTimeNullableWithAggregatesFilter<"HazardRecord"> | Date | string | null
     statusHistory?: JsonNullableWithAggregatesFilter<"HazardRecord">
   }
 
@@ -17109,6 +17199,7 @@ export namespace Prisma {
     level: string
     details: string
     category: string
+    deletedAt?: Date | string | null
   }
 
   export type SystemLogUncheckedCreateInput = {
@@ -17120,6 +17211,7 @@ export namespace Prisma {
     level: string
     details: string
     category: string
+    deletedAt?: Date | string | null
   }
 
   export type SystemLogUpdateInput = {
@@ -17131,6 +17223,7 @@ export namespace Prisma {
     level?: StringFieldUpdateOperationsInput | string
     details?: StringFieldUpdateOperationsInput | string
     category?: StringFieldUpdateOperationsInput | string
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
   export type SystemLogUncheckedUpdateInput = {
@@ -17142,6 +17235,7 @@ export namespace Prisma {
     level?: StringFieldUpdateOperationsInput | string
     details?: StringFieldUpdateOperationsInput | string
     category?: StringFieldUpdateOperationsInput | string
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
   export type SystemLogCreateManyInput = {
@@ -17153,6 +17247,7 @@ export namespace Prisma {
     level: string
     details: string
     category: string
+    deletedAt?: Date | string | null
   }
 
   export type SystemLogUpdateManyMutationInput = {
@@ -17164,6 +17259,7 @@ export namespace Prisma {
     level?: StringFieldUpdateOperationsInput | string
     details?: StringFieldUpdateOperationsInput | string
     category?: StringFieldUpdateOperationsInput | string
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
   export type SystemLogUncheckedUpdateManyInput = {
@@ -17175,6 +17271,7 @@ export namespace Prisma {
     level?: StringFieldUpdateOperationsInput | string
     details?: StringFieldUpdateOperationsInput | string
     category?: StringFieldUpdateOperationsInput | string
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
   export type ResponsibleUnitCreateInput = {
@@ -17419,6 +17516,7 @@ export namespace Prisma {
     recipientId?: string | null
     abbreviation?: string | null
     estimatedDurationHours?: number | null
+    deletedAt?: Date | string | null
   }
 
   export type MaintenanceStandardUncheckedCreateInput = {
@@ -17432,6 +17530,7 @@ export namespace Prisma {
     recipientId?: string | null
     abbreviation?: string | null
     estimatedDurationHours?: number | null
+    deletedAt?: Date | string | null
   }
 
   export type MaintenanceStandardUpdateInput = {
@@ -17445,6 +17544,7 @@ export namespace Prisma {
     recipientId?: NullableStringFieldUpdateOperationsInput | string | null
     abbreviation?: NullableStringFieldUpdateOperationsInput | string | null
     estimatedDurationHours?: NullableFloatFieldUpdateOperationsInput | number | null
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
   export type MaintenanceStandardUncheckedUpdateInput = {
@@ -17458,6 +17558,7 @@ export namespace Prisma {
     recipientId?: NullableStringFieldUpdateOperationsInput | string | null
     abbreviation?: NullableStringFieldUpdateOperationsInput | string | null
     estimatedDurationHours?: NullableFloatFieldUpdateOperationsInput | number | null
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
   export type MaintenanceStandardCreateManyInput = {
@@ -17471,6 +17572,7 @@ export namespace Prisma {
     recipientId?: string | null
     abbreviation?: string | null
     estimatedDurationHours?: number | null
+    deletedAt?: Date | string | null
   }
 
   export type MaintenanceStandardUpdateManyMutationInput = {
@@ -17484,6 +17586,7 @@ export namespace Prisma {
     recipientId?: NullableStringFieldUpdateOperationsInput | string | null
     abbreviation?: NullableStringFieldUpdateOperationsInput | string | null
     estimatedDurationHours?: NullableFloatFieldUpdateOperationsInput | number | null
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
   export type MaintenanceStandardUncheckedUpdateManyInput = {
@@ -17497,6 +17600,7 @@ export namespace Prisma {
     recipientId?: NullableStringFieldUpdateOperationsInput | string | null
     abbreviation?: NullableStringFieldUpdateOperationsInput | string | null
     estimatedDurationHours?: NullableFloatFieldUpdateOperationsInput | number | null
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
   export type MaintenanceStandardItemCreateInput = {
@@ -17607,6 +17711,7 @@ export namespace Prisma {
     scheduledFinishDate?: Date | string | null
     estimatedDurationHours?: number | null
     isArchived?: boolean
+    deletedAt?: Date | string | null
   }
 
   export type InspectionDetailUncheckedCreateInput = {
@@ -17626,6 +17731,7 @@ export namespace Prisma {
     scheduledFinishDate?: Date | string | null
     estimatedDurationHours?: number | null
     isArchived?: boolean
+    deletedAt?: Date | string | null
   }
 
   export type InspectionDetailUpdateInput = {
@@ -17645,6 +17751,7 @@ export namespace Prisma {
     scheduledFinishDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     estimatedDurationHours?: NullableFloatFieldUpdateOperationsInput | number | null
     isArchived?: BoolFieldUpdateOperationsInput | boolean
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
   export type InspectionDetailUncheckedUpdateInput = {
@@ -17664,6 +17771,7 @@ export namespace Prisma {
     scheduledFinishDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     estimatedDurationHours?: NullableFloatFieldUpdateOperationsInput | number | null
     isArchived?: BoolFieldUpdateOperationsInput | boolean
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
   export type InspectionDetailCreateManyInput = {
@@ -17683,6 +17791,7 @@ export namespace Prisma {
     scheduledFinishDate?: Date | string | null
     estimatedDurationHours?: number | null
     isArchived?: boolean
+    deletedAt?: Date | string | null
   }
 
   export type InspectionDetailUpdateManyMutationInput = {
@@ -17702,6 +17811,7 @@ export namespace Prisma {
     scheduledFinishDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     estimatedDurationHours?: NullableFloatFieldUpdateOperationsInput | number | null
     isArchived?: BoolFieldUpdateOperationsInput | boolean
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
   export type InspectionDetailUncheckedUpdateManyInput = {
@@ -17721,6 +17831,7 @@ export namespace Prisma {
     scheduledFinishDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     estimatedDurationHours?: NullableFloatFieldUpdateOperationsInput | number | null
     isArchived?: BoolFieldUpdateOperationsInput | boolean
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
   export type DnfDocumentCreateInput = {
@@ -17756,6 +17867,7 @@ export namespace Prisma {
     disruptionDuration?: number | null
     trainKm?: number | null
     rectificationParty?: string | null
+    deletedAt?: Date | string | null
     correctiveActions?: CorrectiveActionCreateNestedManyWithoutDnfInput
   }
 
@@ -17792,6 +17904,7 @@ export namespace Prisma {
     disruptionDuration?: number | null
     trainKm?: number | null
     rectificationParty?: string | null
+    deletedAt?: Date | string | null
     correctiveActions?: CorrectiveActionUncheckedCreateNestedManyWithoutDnfInput
   }
 
@@ -17828,6 +17941,7 @@ export namespace Prisma {
     disruptionDuration?: NullableFloatFieldUpdateOperationsInput | number | null
     trainKm?: NullableFloatFieldUpdateOperationsInput | number | null
     rectificationParty?: NullableStringFieldUpdateOperationsInput | string | null
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     correctiveActions?: CorrectiveActionUpdateManyWithoutDnfNestedInput
   }
 
@@ -17864,6 +17978,7 @@ export namespace Prisma {
     disruptionDuration?: NullableFloatFieldUpdateOperationsInput | number | null
     trainKm?: NullableFloatFieldUpdateOperationsInput | number | null
     rectificationParty?: NullableStringFieldUpdateOperationsInput | string | null
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     correctiveActions?: CorrectiveActionUncheckedUpdateManyWithoutDnfNestedInput
   }
 
@@ -17900,6 +18015,7 @@ export namespace Prisma {
     disruptionDuration?: number | null
     trainKm?: number | null
     rectificationParty?: string | null
+    deletedAt?: Date | string | null
   }
 
   export type DnfDocumentUpdateManyMutationInput = {
@@ -17935,6 +18051,7 @@ export namespace Prisma {
     disruptionDuration?: NullableFloatFieldUpdateOperationsInput | number | null
     trainKm?: NullableFloatFieldUpdateOperationsInput | number | null
     rectificationParty?: NullableStringFieldUpdateOperationsInput | string | null
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
   export type DnfDocumentUncheckedUpdateManyInput = {
@@ -17970,6 +18087,7 @@ export namespace Prisma {
     disruptionDuration?: NullableFloatFieldUpdateOperationsInput | number | null
     trainKm?: NullableFloatFieldUpdateOperationsInput | number | null
     rectificationParty?: NullableStringFieldUpdateOperationsInput | string | null
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
   export type CorrectiveActionCreateInput = {
@@ -18117,6 +18235,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     isArchived?: boolean
+    deletedAt?: Date | string | null
     statusHistory?: NullableJsonNullValueInput | InputJsonValue
   }
 
@@ -18147,6 +18266,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     isArchived?: boolean
+    deletedAt?: Date | string | null
     statusHistory?: NullableJsonNullValueInput | InputJsonValue
   }
 
@@ -18177,6 +18297,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     isArchived?: BoolFieldUpdateOperationsInput | boolean
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     statusHistory?: NullableJsonNullValueInput | InputJsonValue
   }
 
@@ -18207,6 +18328,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     isArchived?: BoolFieldUpdateOperationsInput | boolean
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     statusHistory?: NullableJsonNullValueInput | InputJsonValue
   }
 
@@ -18237,6 +18359,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     isArchived?: boolean
+    deletedAt?: Date | string | null
     statusHistory?: NullableJsonNullValueInput | InputJsonValue
   }
 
@@ -18267,6 +18390,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     isArchived?: BoolFieldUpdateOperationsInput | boolean
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     statusHistory?: NullableJsonNullValueInput | InputJsonValue
   }
 
@@ -18297,6 +18421,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     isArchived?: BoolFieldUpdateOperationsInput | boolean
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     statusHistory?: NullableJsonNullValueInput | InputJsonValue
   }
 
@@ -18473,6 +18598,22 @@ export namespace Prisma {
     not?: NestedDateTimeFilter<$PrismaModel> | Date | string
   }
 
+  export type DateTimeNullableFilter<$PrismaModel = never> = {
+    equals?: Date | string | DateTimeFieldRefInput<$PrismaModel> | null
+    in?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null
+    notIn?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null
+    lt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    lte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    gt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    gte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    not?: NestedDateTimeNullableFilter<$PrismaModel> | Date | string | null
+  }
+
+  export type SortOrderInput = {
+    sort: SortOrder
+    nulls?: NullsOrder
+  }
+
   export type SystemLogCountOrderByAggregateInput = {
     id?: SortOrder
     timestamp?: SortOrder
@@ -18482,6 +18623,7 @@ export namespace Prisma {
     level?: SortOrder
     details?: SortOrder
     category?: SortOrder
+    deletedAt?: SortOrder
   }
 
   export type SystemLogMaxOrderByAggregateInput = {
@@ -18493,6 +18635,7 @@ export namespace Prisma {
     level?: SortOrder
     details?: SortOrder
     category?: SortOrder
+    deletedAt?: SortOrder
   }
 
   export type SystemLogMinOrderByAggregateInput = {
@@ -18504,6 +18647,7 @@ export namespace Prisma {
     level?: SortOrder
     details?: SortOrder
     category?: SortOrder
+    deletedAt?: SortOrder
   }
 
   export type StringWithAggregatesFilter<$PrismaModel = never> = {
@@ -18536,6 +18680,20 @@ export namespace Prisma {
     _count?: NestedIntFilter<$PrismaModel>
     _min?: NestedDateTimeFilter<$PrismaModel>
     _max?: NestedDateTimeFilter<$PrismaModel>
+  }
+
+  export type DateTimeNullableWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: Date | string | DateTimeFieldRefInput<$PrismaModel> | null
+    in?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null
+    notIn?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null
+    lt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    lte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    gt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    gte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    not?: NestedDateTimeNullableWithAggregatesFilter<$PrismaModel> | Date | string | null
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _min?: NestedDateTimeNullableFilter<$PrismaModel>
+    _max?: NestedDateTimeNullableFilter<$PrismaModel>
   }
 
   export type ResponsibleUnitCountOrderByAggregateInput = {
@@ -18675,11 +18833,6 @@ export namespace Prisma {
     not?: NestedStringNullableFilter<$PrismaModel> | string | null
   }
 
-  export type SortOrderInput = {
-    sort: SortOrder
-    nulls?: NullsOrder
-  }
-
   export type NotificationCountOrderByAggregateInput = {
     id?: SortOrder
     message?: SortOrder
@@ -18763,6 +18916,7 @@ export namespace Prisma {
     recipientId?: SortOrder
     abbreviation?: SortOrder
     estimatedDurationHours?: SortOrder
+    deletedAt?: SortOrder
   }
 
   export type MaintenanceStandardAvgOrderByAggregateInput = {
@@ -18779,6 +18933,7 @@ export namespace Prisma {
     recipientId?: SortOrder
     abbreviation?: SortOrder
     estimatedDurationHours?: SortOrder
+    deletedAt?: SortOrder
   }
 
   export type MaintenanceStandardMinOrderByAggregateInput = {
@@ -18791,6 +18946,7 @@ export namespace Prisma {
     recipientId?: SortOrder
     abbreviation?: SortOrder
     estimatedDurationHours?: SortOrder
+    deletedAt?: SortOrder
   }
 
   export type MaintenanceStandardSumOrderByAggregateInput = {
@@ -18884,17 +19040,6 @@ export namespace Prisma {
     not?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
   }
 
-  export type DateTimeNullableFilter<$PrismaModel = never> = {
-    equals?: Date | string | DateTimeFieldRefInput<$PrismaModel> | null
-    in?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null
-    notIn?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null
-    lt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    lte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    gt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    gte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    not?: NestedDateTimeNullableFilter<$PrismaModel> | Date | string | null
-  }
-
   export type InspectionDetailCountOrderByAggregateInput = {
     id?: SortOrder
     title?: SortOrder
@@ -18912,6 +19057,7 @@ export namespace Prisma {
     scheduledFinishDate?: SortOrder
     estimatedDurationHours?: SortOrder
     isArchived?: SortOrder
+    deletedAt?: SortOrder
   }
 
   export type InspectionDetailAvgOrderByAggregateInput = {
@@ -18933,6 +19079,7 @@ export namespace Prisma {
     scheduledFinishDate?: SortOrder
     estimatedDurationHours?: SortOrder
     isArchived?: SortOrder
+    deletedAt?: SortOrder
   }
 
   export type InspectionDetailMinOrderByAggregateInput = {
@@ -18950,6 +19097,7 @@ export namespace Prisma {
     scheduledFinishDate?: SortOrder
     estimatedDurationHours?: SortOrder
     isArchived?: SortOrder
+    deletedAt?: SortOrder
   }
 
   export type InspectionDetailSumOrderByAggregateInput = {
@@ -18979,20 +19127,6 @@ export namespace Prisma {
     _count?: NestedIntNullableFilter<$PrismaModel>
     _min?: NestedJsonNullableFilter<$PrismaModel>
     _max?: NestedJsonNullableFilter<$PrismaModel>
-  }
-
-  export type DateTimeNullableWithAggregatesFilter<$PrismaModel = never> = {
-    equals?: Date | string | DateTimeFieldRefInput<$PrismaModel> | null
-    in?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null
-    notIn?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null
-    lt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    lte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    gt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    gte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    not?: NestedDateTimeNullableWithAggregatesFilter<$PrismaModel> | Date | string | null
-    _count?: NestedIntNullableFilter<$PrismaModel>
-    _min?: NestedDateTimeNullableFilter<$PrismaModel>
-    _max?: NestedDateTimeNullableFilter<$PrismaModel>
   }
 
   export type BoolNullableFilter<$PrismaModel = never> = {
@@ -19043,6 +19177,7 @@ export namespace Prisma {
     disruptionDuration?: SortOrder
     trainKm?: SortOrder
     rectificationParty?: SortOrder
+    deletedAt?: SortOrder
   }
 
   export type DnfDocumentAvgOrderByAggregateInput = {
@@ -19080,6 +19215,7 @@ export namespace Prisma {
     disruptionDuration?: SortOrder
     trainKm?: SortOrder
     rectificationParty?: SortOrder
+    deletedAt?: SortOrder
   }
 
   export type DnfDocumentMinOrderByAggregateInput = {
@@ -19112,6 +19248,7 @@ export namespace Prisma {
     disruptionDuration?: SortOrder
     trainKm?: SortOrder
     rectificationParty?: SortOrder
+    deletedAt?: SortOrder
   }
 
   export type DnfDocumentSumOrderByAggregateInput = {
@@ -19224,6 +19361,7 @@ export namespace Prisma {
     createdAt?: SortOrder
     updatedAt?: SortOrder
     isArchived?: SortOrder
+    deletedAt?: SortOrder
     statusHistory?: SortOrder
   }
 
@@ -19251,6 +19389,7 @@ export namespace Prisma {
     createdAt?: SortOrder
     updatedAt?: SortOrder
     isArchived?: SortOrder
+    deletedAt?: SortOrder
   }
 
   export type HazardRecordMinOrderByAggregateInput = {
@@ -19277,6 +19416,7 @@ export namespace Prisma {
     createdAt?: SortOrder
     updatedAt?: SortOrder
     isArchived?: SortOrder
+    deletedAt?: SortOrder
   }
 
   export type ImprovementCountOrderByAggregateInput = {
@@ -19391,6 +19531,10 @@ export namespace Prisma {
     set?: Date | string
   }
 
+  export type NullableDateTimeFieldUpdateOperationsInput = {
+    set?: Date | string | null
+  }
+
   export type BoolFieldUpdateOperationsInput = {
     set?: boolean
   }
@@ -19423,10 +19567,6 @@ export namespace Prisma {
   export type InspectionDetailUpdateareaIdsInput = {
     set?: string[]
     push?: string | string[]
-  }
-
-  export type NullableDateTimeFieldUpdateOperationsInput = {
-    set?: Date | string | null
   }
 
   export type DnfDocumentCreatesubsystemIdsInput = {
@@ -19549,6 +19689,17 @@ export namespace Prisma {
     not?: NestedDateTimeFilter<$PrismaModel> | Date | string
   }
 
+  export type NestedDateTimeNullableFilter<$PrismaModel = never> = {
+    equals?: Date | string | DateTimeFieldRefInput<$PrismaModel> | null
+    in?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null
+    notIn?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null
+    lt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    lte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    gt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    gte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    not?: NestedDateTimeNullableFilter<$PrismaModel> | Date | string | null
+  }
+
   export type NestedStringWithAggregatesFilter<$PrismaModel = never> = {
     equals?: string | StringFieldRefInput<$PrismaModel>
     in?: string[] | ListStringFieldRefInput<$PrismaModel>
@@ -19589,6 +19740,31 @@ export namespace Prisma {
     _count?: NestedIntFilter<$PrismaModel>
     _min?: NestedDateTimeFilter<$PrismaModel>
     _max?: NestedDateTimeFilter<$PrismaModel>
+  }
+
+  export type NestedDateTimeNullableWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: Date | string | DateTimeFieldRefInput<$PrismaModel> | null
+    in?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null
+    notIn?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null
+    lt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    lte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    gt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    gte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    not?: NestedDateTimeNullableWithAggregatesFilter<$PrismaModel> | Date | string | null
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _min?: NestedDateTimeNullableFilter<$PrismaModel>
+    _max?: NestedDateTimeNullableFilter<$PrismaModel>
+  }
+
+  export type NestedIntNullableFilter<$PrismaModel = never> = {
+    equals?: number | IntFieldRefInput<$PrismaModel> | null
+    in?: number[] | ListIntFieldRefInput<$PrismaModel> | null
+    notIn?: number[] | ListIntFieldRefInput<$PrismaModel> | null
+    lt?: number | IntFieldRefInput<$PrismaModel>
+    lte?: number | IntFieldRefInput<$PrismaModel>
+    gt?: number | IntFieldRefInput<$PrismaModel>
+    gte?: number | IntFieldRefInput<$PrismaModel>
+    not?: NestedIntNullableFilter<$PrismaModel> | number | null
   }
   export type NestedJsonFilter<$PrismaModel = never> = 
     | PatchUndefined<
@@ -19657,17 +19833,6 @@ export namespace Prisma {
     _max?: NestedStringNullableFilter<$PrismaModel>
   }
 
-  export type NestedIntNullableFilter<$PrismaModel = never> = {
-    equals?: number | IntFieldRefInput<$PrismaModel> | null
-    in?: number[] | ListIntFieldRefInput<$PrismaModel> | null
-    notIn?: number[] | ListIntFieldRefInput<$PrismaModel> | null
-    lt?: number | IntFieldRefInput<$PrismaModel>
-    lte?: number | IntFieldRefInput<$PrismaModel>
-    gt?: number | IntFieldRefInput<$PrismaModel>
-    gte?: number | IntFieldRefInput<$PrismaModel>
-    not?: NestedIntNullableFilter<$PrismaModel> | number | null
-  }
-
   export type NestedFloatNullableFilter<$PrismaModel = never> = {
     equals?: number | FloatFieldRefInput<$PrismaModel> | null
     in?: number[] | ListFloatFieldRefInput<$PrismaModel> | null
@@ -19694,17 +19859,6 @@ export namespace Prisma {
     _min?: NestedFloatNullableFilter<$PrismaModel>
     _max?: NestedFloatNullableFilter<$PrismaModel>
   }
-
-  export type NestedDateTimeNullableFilter<$PrismaModel = never> = {
-    equals?: Date | string | DateTimeFieldRefInput<$PrismaModel> | null
-    in?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null
-    notIn?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null
-    lt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    lte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    gt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    gte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    not?: NestedDateTimeNullableFilter<$PrismaModel> | Date | string | null
-  }
   export type NestedJsonNullableFilter<$PrismaModel = never> = 
     | PatchUndefined<
         Either<Required<NestedJsonNullableFilterBase<$PrismaModel>>, Exclude<keyof Required<NestedJsonNullableFilterBase<$PrismaModel>>, 'path'>>,
@@ -19726,20 +19880,6 @@ export namespace Prisma {
     gt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
     gte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
     not?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
-  }
-
-  export type NestedDateTimeNullableWithAggregatesFilter<$PrismaModel = never> = {
-    equals?: Date | string | DateTimeFieldRefInput<$PrismaModel> | null
-    in?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null
-    notIn?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null
-    lt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    lte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    gt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    gte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    not?: NestedDateTimeNullableWithAggregatesFilter<$PrismaModel> | Date | string | null
-    _count?: NestedIntNullableFilter<$PrismaModel>
-    _min?: NestedDateTimeNullableFilter<$PrismaModel>
-    _max?: NestedDateTimeNullableFilter<$PrismaModel>
   }
 
   export type NestedBoolNullableFilter<$PrismaModel = never> = {
@@ -19893,6 +20033,7 @@ export namespace Prisma {
     disruptionDuration?: number | null
     trainKm?: number | null
     rectificationParty?: string | null
+    deletedAt?: Date | string | null
   }
 
   export type DnfDocumentUncheckedCreateWithoutCorrectiveActionsInput = {
@@ -19928,6 +20069,7 @@ export namespace Prisma {
     disruptionDuration?: number | null
     trainKm?: number | null
     rectificationParty?: string | null
+    deletedAt?: Date | string | null
   }
 
   export type DnfDocumentCreateOrConnectWithoutCorrectiveActionsInput = {
@@ -19979,6 +20121,7 @@ export namespace Prisma {
     disruptionDuration?: NullableFloatFieldUpdateOperationsInput | number | null
     trainKm?: NullableFloatFieldUpdateOperationsInput | number | null
     rectificationParty?: NullableStringFieldUpdateOperationsInput | string | null
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
   export type DnfDocumentUncheckedUpdateWithoutCorrectiveActionsInput = {
@@ -20014,6 +20157,7 @@ export namespace Prisma {
     disruptionDuration?: NullableFloatFieldUpdateOperationsInput | number | null
     trainKm?: NullableFloatFieldUpdateOperationsInput | number | null
     rectificationParty?: NullableStringFieldUpdateOperationsInput | string | null
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
   export type CorrectiveActionCreateManyDnfInput = {
