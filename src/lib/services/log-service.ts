@@ -51,7 +51,7 @@ export async function internalLogSystemEvent(
         }
 
         // Persist to structured log files (always)
-        await appendLog(newLog);
+        await appendLog(newLog, true, category);
 
         
         try { revalidatePath('/admin/system-logs'); } catch {}
