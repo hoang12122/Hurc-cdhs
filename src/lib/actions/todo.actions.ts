@@ -16,7 +16,7 @@ async function logTaskActivity(todoId: string, user: { id: string; name: string 
     if (!task) return;
     
     const activity: TaskActivity = {
-        id: `act-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`,
+        id: `act-${Date.now()}-${require('crypto').randomBytes(3).toString('hex')}`,
         timestamp: new Date().toISOString(),
         userId: user.id,
         userName: user.name,

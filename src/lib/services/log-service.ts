@@ -19,7 +19,7 @@ export async function internalLogSystemEvent(
         const user = await getSessionUser();
         
         const newLog = {
-            id: `log-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
+            id: `log-${Date.now()}-${require('crypto').randomBytes(4).toString('hex')}`,
             timestamp: new Date().toISOString(),
             userId: user?.id || 'system',
             userName: user?.name || 'System',
