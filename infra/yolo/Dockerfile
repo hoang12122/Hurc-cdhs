@@ -1,62 +1,43 @@
-# Stage 1: Build stage
-FROM ubuntu:24.04 AS builder
+# syntax=docker/dockerfile:1
 
+# Stage 1: Builder
+FROM ubuntu:24.04 AS builder
 ENV DEBIAN_FRONTEND=noninteractive
-RUN apt-get update && apt-get install -y --no-install-recommends \
+
+RUN apt-get update && apt-get install -y \
+    python3 \
     python3-pip \
-    python3-venv \
-    python3-dev \
-    build-essential \
-    libgl1 \
-    libglib2.0-0 \
-    && apt-get clean \
+    curl \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 COPY requirements.txt .
+RUN pip3 install --no-cache-dir -r requirements.txt --break-system-packages
 
-# Create virtualenv to isolate dependencies
-RUN python3 -m venv /opt/venv
-ENV PATH="/opt/venv/bin:$PATH"
+# Pre-bake YOLOv8 Nano model for offline deployment
+RUN python3 -c "from ultralytics import YOLO; YOLO('yolov8n.pt')"
 
-RUN pip install --no-cache-dir --upgrade pip && \
-    pip install --no-cache-dir -r requirements.txt
-
-# Stage 2: Final secure stage
+# Stage 2: Final
 FROM ubuntu:24.04
-
 ENV DEBIAN_FRONTEND=noninteractive
-ENV PYTHONUNBUFFERED=1
-ENV PYTHONDONTWRITEBYTECODE=1
-ENV PATH="/opt/venv/bin:$PATH"
 
-WORKDIR /app
-
-# Install only runtime dependencies and security updates
-RUN apt-get update && apt-get upgrade -y && \
-    apt-get install -y --no-install-recommends \
-    python3-minimal \
-    libgl1 \
-    libglib2.0-0 \
+RUN apt-get update && apt-get install -y \
+    python3 \
+    python3-pip \
     curl \
-    && apt-get clean \
+    libgl1-mesa-glx \
+    libglib2.0-0 \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy virtualenv from builder
-COPY --from=builder /opt/venv /opt/venv
-
-# Create non-root user
-RUN addgroup --system --gid 1001 yoloapp && \
-    adduser --system --uid 1001 --gid 1001 yoloapp
-
-# Copy application code
+WORKDIR /app
+COPY --from=builder /usr/local/lib/python3.12/dist-packages /usr/local/lib/python3.12/dist-packages
+COPY --from=builder /root/.config/Ultralytics/yolov8n.pt /app/models/yolov8n.pt
 COPY main.py .
 
-# Pre-download weights and ensure ownership
-RUN python3 -c "from ultralytics import YOLO; YOLO('yolov8n.pt')" && \
-    chown -R yoloapp:yoloapp /app
-
-USER yoloapp
 EXPOSE 5005
+ENV YOLO_MODEL_PATH=/app/models/yolov8n.pt
+
+# Healthcheck dependency
+RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
 
 CMD ["python3", "main.py"]

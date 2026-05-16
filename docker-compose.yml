@@ -1,211 +1,96 @@
-
 services:
-  # == BACKEND ==
-  # Đây là ứng dụng Next.js, đóng vai trò là backend.
-  # Nó xử lý logic, render trang, và giao tiếp với dữ liệu.
-  # Để HA, bạn sẽ nhân bản service này trên nhiều máy chủ và đặt một load balancer ở phía trước.
-  app:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    # Không cần map cổng ở đây nữa vì Nginx sẽ xử lý việc đó.
-    # ports:
-    environment:
-      - NODE_ENV=production
-      - DATABASE_JSON_PATH=/app/data/offline/db.json
-      - YOLO_ENDPOINT=http://yolo-service:5005/detect
-      - LLM_ENDPOINT=http://ollama:11434/v1/chat/completions
-    env_file:
-      - .env
-    user: "65532:65532"
-    volumes:
-      # Mount the entire data/offline folder for persistence (Strict Hardening)
-      - ./data/offline:/app/data/offline:rw
-      # Sync logs to a persistent volume
-      - ./logs:/app/logs:rw
-      - ./backups:/app/backups:rw
-      - ./audit_reports:/app/audit_reports:rw
-    read_only: true
-    cap_drop:
-      - ALL
-    cap_add:
-      - NET_BIND_SERVICE
-    security_opt:
-      - no-new-privileges:true
-    tmpfs:
-      - /tmp:size=100M,noexec,nosuid,nodev
-      - /run:size=1M,noexec,nosuid,nodev
-    networks:
-      - backend-net
-    # Tự động khởi động lại container nếu nó dừng
-    restart: unless-stopped
-    deploy:
-      resources:
-        limits:
-          cpus: '2.0'
-          memory: 4G
-        reservations:
-          cpus: '0.5'
-          memory: 1G
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "10m"
-        max-file: "3"
-    depends_on:
-      init-perms:
-        condition: service_completed_successfully
-      postgres:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-      mongo:
-        condition: service_healthy
-      ollama:
-        condition: service_healthy
-      yolo-service:
-        condition: service_healthy
-
-  # == INIT PERMISSIONS ==
-  # Giải quyết lỗi "Permission Denied" và khởi tạo hạ tầng dữ liệu bền vững
-  init-perms:
-    image: alpine
-    volumes:
-      - ./:/app_root
-    command: >
-      sh -c "
-        mkdir -p /app_root/data/offline /app_root/logs /app_root/backups /app_root/audit_reports &&
-        touch /app_root/data/offline/db.json &&
-        [ ! -f /app_root/.env ] && [ -f /app_root/docker.env ] && cp /app_root/docker.env /app_root/.env || true &&
-        chown -R 65532:65532 /app_root/data/offline /app_root/logs /app_root/backups /app_root/audit_reports &&
-        chmod -R 755 /app_root/data/offline /app_root/logs /app_root/backups /app_root/audit_reports
-      "
-
-  # == DATABASE ==
+  # == INFRASTRUCTURE ==
   postgres:
-    image: postgres:15-alpine
+    image: postgres:16-alpine
     container_name: hurc_postgres
     restart: unless-stopped
-    deploy:
-      resources:
-        limits:
-          cpus: '0.5'
-          memory: 512M
     environment:
       POSTGRES_USER: ${DATABASE_USER:-postgres}
-      POSTGRES_PASSWORD: ${DATABASE_PASSWORD:-postgres}
-      POSTGRES_DB: ${DATABASE_NAME:-hurc_crm}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD:-hurc123}
+      POSTGRES_DB: ${DATABASE_NAME:-hurc_db}
     volumes:
       - ./data/postgres:/var/lib/postgresql/data
-      - ./init-db.sh:/docker-entrypoint-initdb.d/init-db.sh
-    ports:
-      - "5432:5432"
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 10s
       timeout: 5s
       retries: 5
-      start_period: 10s
+    networks:
+      - backend-net
 
   mongo:
-    image: mongo:7.0
+    image: mongo:latest
     container_name: hurc_mongo
     restart: unless-stopped
-    deploy:
-      resources:
-        limits:
-          cpus: '0.5'
-          memory: 1G
     environment:
-      MONGO_INITDB_ROOT_USERNAME: ${MONGO_USER:-hurc_mongouser}
-      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD:-hurc_mongopass}
-    ports:
-      - "27017:27017"
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_USER:-admin}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD:-hurc123}
     volumes:
       - ./data/mongo:/data/db
     healthcheck:
-      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      test: ["CMD-SHELL", "mongosh --eval 'db.runCommand({ping:1})' --quiet"]
       interval: 10s
       timeout: 5s
       retries: 5
+    networks:
+      - backend-net
 
-  # == CACHE & QUEUE ==
   redis:
-    image: redis:alpine
+    image: redis:7-alpine
     container_name: hurc_redis
     restart: unless-stopped
-    deploy:
-      resources:
-        limits:
-          cpus: '0.2'
-          memory: 256M
-    ports:
-      - "6379:6379"
-    volumes:
-      - ./data/redis:/data
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 10s
       timeout: 5s
       retries: 5
-  
-  # == FRONTEND GATEWAY / REVERSE PROXY ==
-  # Nginx đóng vai trò là cổng vào cho người dùng.
-  # Nó nhận request và chuyển tiếp đến backend (app service).
-  # Trong môi trường HA, Nginx cũng có thể hoạt động như một load balancer.
+    networks:
+      - backend-net
+
+  # == CORE APPLICATION ==
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: hurc_app
+    restart: unless-stopped
+    env_file:
+      - .env
+    depends_on:
+      postgres:
+        condition: service_healthy
+      mongo:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      yolo-service:
+        condition: service_healthy
+      ollama:
+        condition: service_healthy
+    volumes:
+      - ./data:/app/data
+      - ./logs:/app/logs
+      - ./backups:/app/backups
+      - ./audit_reports:/app/audit_reports
+    networks:
+      - backend-net
+      - frontend-net
+
+  # == REVERSE PROXY ==
   nginx:
     image: nginx:alpine
+    container_name: hurc_nginx
+    restart: unless-stopped
     ports:
-      # Ánh xạ cổng 80 của máy chủ tới cổng 80 của Nginx.
       - "80:80"
+      - "443:443"
     volumes:
-      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
-    # Đảm bảo Nginx chỉ khởi động sau khi backend (app) đã sẵn sàng.
+      - ./nginx/conf.d:/etc/nginx/conf.d
+      - ./nginx/certs:/etc/nginx/certs
     depends_on:
       - app
-    # Tự động khởi động lại Nginx nếu nó dừng
-    restart: unless-stopped
-
-  # == MONITORING & LOGGING (LOKI + GRAFANA) ==
-  loki:
-    image: grafana/loki:latest
-    container_name: hurc_loki
-    ports:
-      - "3100:3100"
-    volumes:
-      - ./infra/loki/loki-config.yaml:/etc/loki/local-config.yaml
-    command: -config.file=/etc/loki/local-config.yaml
-    restart: unless-stopped
-
-  promtail:
-    image: grafana/promtail:latest
-    container_name: hurc_promtail
-    volumes:
-      - /var/log:/var/log
-      - ./infra/promtail/promtail-config.yaml:/etc/promtail/config.yml
-      # Thêm volume để đọc log từ Docker
-      - /var/lib/docker/containers:/var/lib/docker/containers:ro
-      # REMOVED docker.sock for security (Brutal Audit Fix)
-      # - /var/run/docker.sock:/var/run/docker.sock:ro
-      # Thêm volume để đọc log cấu trúc của ứng dụng
-      - ./logs:/var/log/hurc_logs:ro
-    command: -config.file=/etc/promtail/config.yml
-    restart: unless-stopped
-
-  grafana:
-    image: grafana/grafana:latest
-    container_name: hurc_grafana
-    ports:
-      - "3001:3000"
-    environment:
-      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:-admin}
-      - GF_USERS_ALLOW_SIGN_UP=false
-    volumes:
-      - ./infra/grafana/provisioning:/etc/grafana/provisioning
-      - ./data/grafana:/var/lib/grafana
-    depends_on:
-      - loki
-    restart: unless-stopped
+    networks:
+      - frontend-net
 
   # == AI VISION (YOLOv8) ==
   yolo-service:
@@ -220,33 +105,27 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    networks:
+      - backend-net
 
   # == AI AGENT (OLLAMA) ==
   ollama:
     image: ollama/ollama:latest
     container_name: hurc_ollama
     restart: unless-stopped
-    # EXPOSE instead of PORTS for internal security (Brutal Audit Fix)
     expose:
       - "11434"
     volumes:
       - ./data/ollama:/root/.ollama
-    # Bỏ comment phần dưới nếu máy chủ có GPU NVIDIA để chạy Gemma-4 mượt mà
-    # deploy:
-    #   resources:
-    #     reservations:
-    #       devices:
-    #         - driver: nvidia
-    #           count: all
-    #           capabilities: [gpu]
     healthcheck:
       test: ["CMD", "ollama", "list"]
       interval: 10s
       timeout: 5s
       retries: 5
+    networks:
+      - backend-net
 
   # == OLLAMA MODEL SEEDER ==
-  # Tự động tải model khi khởi động lần đầu
   ollama-pull-model:
     image: curlimages/curl:latest
     container_name: hurc_ollama_puller
@@ -257,6 +136,25 @@ services:
       - backend-net
     command: >
       sh -c "curl -X POST http://ollama:11434/api/pull -d '{\"name\": \"gemma:2b\"}'"
+
+  # == MONITORING ==
+  loki:
+    image: grafana/loki:latest
+    container_name: hurc_loki
+    restart: unless-stopped
+    networks:
+      - backend-net
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: hurc_grafana
+    restart: unless-stopped
+    ports:
+      - "3001:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:-hurc123}
+    networks:
+      - frontend-net
 
 networks:
   backend-net:
