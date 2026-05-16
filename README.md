@@ -29,7 +29,7 @@ Hệ thống được xây dựng trên nền tảng **Next.js 14 (App Router)**
 | **ORM / DB** | Prisma, PostgreSQL, JSON-DB | Quản lý dữ liệu đa tầng |
 | **Security** | BcryptJS, Jose, Node-Crypto | Mã hóa và xác thực |
 | **AI (Vision)** | FastAPI, YOLOv8, OpenCV | Nhận diện mối nguy qua hình ảnh |
-| **AI (LLM)** | Google Generative AI, HF Inference | Phân tích rủi ro & Trợ lý thông minh |
+| **AI (LLM)** | Gemma-4 Local (Ollama/NemoClaw) | Phân tích rủi ro & Trợ lý bảo mật tuyệt đối |
 
 ---
 
@@ -117,9 +117,9 @@ ALLOW_OFFLINE_PRODUCTION=true
 # DATABASE
 DATABASE_URL="postgresql://user:pass@localhost:5432/hurc"
 
-# AI KEYS
-GEMINI_API_KEY=AIza...
-HUGGING_FACE_API_KEY=hf_...
+# AI (LOCAL-ONLY)
+LLM_ENDPOINT=http://ollama:11434/v1/chat/completions
+YOLO_ENDPOINT=http://yolo-service:5005/detect
 ```
 
 ---
