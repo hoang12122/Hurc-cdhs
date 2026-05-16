@@ -43,10 +43,14 @@ COPY --from=builder /app/public ./public
 COPY --from=builder --chown=65532:65532 /app/.next/standalone ./
 COPY --from=builder --chown=65532:65532 /app/.next/static ./.next/static
 
-# IMPORTANT: Ensure local database and logs are owned by the nonroot user so they are writable
+# IMPORTANT: Ensure data directories exist and are owned by nonroot
+# These will be the mount points for volumes
 COPY --from=builder --chown=65532:65532 /app/db.json ./db.json
 COPY --from=builder --chown=65532:65532 /app/db.backup.json ./db.backup.json
 COPY --from=builder --chown=65532:65532 /app/logs ./logs
+# Pre-create the directory structure for persistent offline data
+COPY --from=builder --chown=65532:65532 /app/data ./data
+COPY --chown=65532:65532 healthcheck.js ./healthcheck.js
 
 # Use the built-in nonroot user for execution
 USER 65532
@@ -56,4 +60,7 @@ ENV PORT 3000
 
 # Lệnh để chạy ứng dụng ở chế độ standalone
 # Command must be in exec form as there is no shell
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+  CMD ["node", "healthcheck.js"]
+
 CMD ["server.js"]

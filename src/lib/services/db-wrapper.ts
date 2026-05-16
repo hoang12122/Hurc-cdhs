@@ -107,6 +107,14 @@ export class JsonProvider implements IDataProvider {
 
            // Handle Prisma-style operators
            if (filterVal && typeof filterVal === 'object' && !Array.isArray(filterVal)) {
+             const supportedOps = ['gte', 'lte', 'gt', 'lt', 'in', 'notIn', 'contains', 'has', 'hasSome'];
+             const usedOps = Object.keys(filterVal);
+             const unsupported = usedOps.filter(op => !supportedOps.includes(op));
+             
+             if (unsupported.length > 0) {
+               console.warn(`[JsonProvider] Detected UNSUPPORTED Prisma operators in filter for model '${model}': ${unsupported.join(', ')}. Result might be inconsistent.`);
+             }
+
              if (filterVal.gte !== undefined && new Date(itemVal) < new Date(filterVal.gte)) return false;
              if (filterVal.lte !== undefined && new Date(itemVal) > new Date(filterVal.lte)) return false;
              if (filterVal.gt !== undefined && new Date(itemVal) <= new Date(filterVal.gt)) return false;

@@ -10,13 +10,14 @@ services:
       dockerfile: Dockerfile
     # Không cần map cổng ở đây nữa vì Nginx sẽ xử lý việc đó.
     # ports:
-    # This is commented out because nginx handles it
-    #   - "3000:3000" 
     environment:
       - NODE_ENV=production
       - DATABASE_JSON_PATH=/app/data/offline/db.json
+      - YOLO_ENDPOINT=http://yolo-service:5005/detect
+      - LLM_ENDPOINT=http://ollama:11434/v1/chat/completions
     env_file:
       - .env
+    user: "65532:65532"
     volumes:
       # Mount the entire data/offline folder for persistence (Strict Hardening)
       - ./data/offline:/app/data/offline
@@ -42,10 +43,10 @@ services:
       sh -c "
         mkdir -p /app_root/data/offline /app_root/logs &&
         touch /app_root/data/offline/db.json /app_root/data/offline/db.backup.json &&
-        chmod -R 777 /app_root/data/offline &&
-        chmod -R 777 /app_root/logs
+        chown -R 65532:65532 /app_root/data/offline /app_root/logs &&
+        chmod -R 755 /app_root/data/offline /app_root/logs
       "
-  
+
   # == DATABASE ==
   postgres:
     image: postgres:15-alpine
@@ -138,36 +139,6 @@ services:
       - ./data/grafana:/var/lib/grafana
     depends_on:
       - loki
-    restart: unless-stopped
-
-  # == NETWORK MONITORING (CACTI) ==
-  cacti_db:
-    image: mariadb:10.11
-    container_name: hurc_cacti_db
-    environment:
-      - MYSQL_ROOT_PASSWORD=cacti_root
-      - MYSQL_DATABASE=cacti
-      - MYSQL_USER=cactiuser
-      - MYSQL_PASSWORD=cactipassword
-    volumes:
-      - ./data/cacti_db:/var/lib/mysql
-    restart: unless-stopped
-
-  cacti:
-    image: smcline06/cacti:latest
-    container_name: hurc_cacti
-    ports:
-      - "8080:80"
-      - "161:161/udp"
-    environment:
-      - DB_TYPE=mysql
-      - DB_HOST=cacti_db
-      - DB_NAME=cacti
-      - DB_USER=cactiuser
-      - DB_PASSWORD=cactipassword
-      - INITIALIZE_DB=1
-    depends_on:
-      - cacti_db
     restart: unless-stopped
 
   # == AI VISION (YOLOv8) ==

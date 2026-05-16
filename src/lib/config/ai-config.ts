@@ -15,14 +15,14 @@ export const AI_CONFIG = {
     YOLO: {
         STABLE_MODEL: 'yolov8n',
         EXPERIMENTAL_MODEL: 'yolov8_metro_v1', // Model sẽ được fine-tune để nhận diện nứt/rỉ sét
-        ENDPOINT: process.env.NEXT_PUBLIC_YOLO_ENDPOINT || 'http://localhost:5005/detect',
+        ENDPOINT: process.env.YOLO_ENDPOINT || process.env.NEXT_PUBLIC_YOLO_ENDPOINT || 'http://yolo-service:5005/detect',
     },
 
     // Cấu hình module Xử lý ngôn ngữ (Gemma/RAG)
     LLM: {
         STABLE_MODEL: 'google/gemma-4-E2B-it',
         EXPERIMENTAL_MODEL: 'google/gemma-4-E4B-it',
-        ENDPOINT: process.env.NEXT_PUBLIC_LLM_ENDPOINT || 'http://localhost:3002/v1/chat/completions',
+        ENDPOINT: process.env.LLM_ENDPOINT || process.env.NEXT_PUBLIC_LLM_ENDPOINT || 'http://ollama:11434/v1/chat/completions',
     },
     
     // Cấu hình module Nhận diện giọng nói (Speech-to-Text)
