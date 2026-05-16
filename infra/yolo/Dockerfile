@@ -38,6 +38,7 @@ RUN apt-get update && apt-get upgrade -y && \
     python3-minimal \
     libgl1 \
     libglib2.0-0 \
+    curl \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 

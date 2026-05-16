@@ -61,6 +61,10 @@ services:
         condition: service_healthy
       mongo:
         condition: service_healthy
+      ollama:
+        condition: service_healthy
+      yolo-service:
+        condition: service_healthy
 
   # == INIT PERMISSIONS ==
   # Giải quyết lỗi "Permission Denied" và khởi tạo hạ tầng dữ liệu bền vững
@@ -72,6 +76,7 @@ services:
       sh -c "
         mkdir -p /app_root/data/offline /app_root/logs /app_root/backups /app_root/audit_reports &&
         touch /app_root/data/offline/db.json &&
+        [ ! -f /app_root/.env ] && [ -f /app_root/docker.env ] && cp /app_root/docker.env /app_root/.env || true &&
         chown -R 65532:65532 /app_root/data/offline /app_root/logs /app_root/backups /app_root/audit_reports &&
         chmod -R 755 /app_root/data/offline /app_root/logs /app_root/backups /app_root/audit_reports
       "
@@ -210,6 +215,11 @@ services:
     restart: unless-stopped
     expose:
       - "5005"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:5005/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   # == AI AGENT (OLLAMA) ==
   ollama:
@@ -229,6 +239,24 @@ services:
     #         - driver: nvidia
     #           count: all
     #           capabilities: [gpu]
+    healthcheck:
+      test: ["CMD", "ollama", "list"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # == OLLAMA MODEL SEEDER ==
+  # Tự động tải model khi khởi động lần đầu
+  ollama-pull-model:
+    image: curlimages/curl:latest
+    container_name: hurc_ollama_puller
+    depends_on:
+      ollama:
+        condition: service_healthy
+    networks:
+      - backend-net
+    command: >
+      sh -c "curl -X POST http://ollama:11434/api/pull -d '{\"name\": \"gemma:2b\"}'"
 
 networks:
   backend-net:
