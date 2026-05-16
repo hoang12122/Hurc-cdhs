@@ -1,0 +1,49 @@
+name: HURC1 IRONCLAD CI/CD PIPELINE
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  audit_and_build:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: 📥 Checkout Code
+        uses: actions/checkout@v4
+
+      - name: 🟢 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: 📦 Install Dependencies
+        run: npm install
+
+      - name: 🔍 Deep Logic Audit (Mission Critical)
+        run: |
+          mkdir -p audit_reports
+          npx tsx src/scripts/pre-deploy-audit.ts
+        env:
+          IS_DATABASE_OFFLINE: true
+
+      - name: 🛡️ Security Scan (Trivy)
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          ignore-unfixed: true
+          format: 'table'
+          severity: 'HIGH,CRITICAL'
+
+      - name: 🏗️ Build Hardened Docker Image
+        run: |
+          docker build -t hurc1-crm:latest .
+
+      - name: 📄 Archive Audit Certificate
+        uses: actions/upload-artifact@v4
+        with:
+          name: deployment-certificate
+          path: audit_reports/*.md
