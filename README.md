@@ -1,83 +1,164 @@
-# Hurc1CRM - Hệ thống Quản lý Vận tải Đường sắt
+# Hurc1CRM - Hệ thống Quản lý & Bảo trì Đường sắt Tích hợp AI (Hardened Production Edition)
 
-Hệ thống quản lý bảo trì và vận hành tích hợp AI, hỗ trợ cơ chế lưu trữ linh hoạt (Hybrid Storage).
-
-## 🗄️ Chế độ Cơ sở dữ liệu (Database Modes)
-
-Dự án hỗ trợ hai cơ chế lưu trữ dữ liệu để tối ưu hóa quá trình phát triển và triển khai.
-
-### 1. Offline Mode (Dùng `db.json`)
-
-Chế độ này cho phép chạy ứng dụng mà **KHÔNG cần cài đặt PostgreSQL hay Docker**.
-
-- **Cấu hình**: Đặt `IS_DATABASE_OFFLINE=true` trong tệp `.env`.
-- **Cách thức**: Dữ liệu được lưu trữ nguyên tử vào tệp `db.json` tại thư mục gốc.
-- **Ưu điểm**: Khởi động nhanh, phù hợp cho phát triển giao diện (UI) và logic nghiệp vụ cơ bản.
-
-### 2. Online Mode (Dùng PostgreSQL)
-
-Chế độ đầy đủ tính năng, sử dụng PostgreSQL làm cơ sở dữ liệu chính thông qua Prisma ORM.
-
-- **Cấu hình**: Đặt `IS_DATABASE_OFFLINE=false` trong tệp `.env`.
-- **Yêu cầu**: PostgreSQL server phải đang chạy (thường qua Docker).
-- **Lưu ý quan trọng**: Prisma là thành phần **BẮT BUỘC** cho chế độ này. **KHÔNG ĐƯỢC XÓA** thư mục `prisma` hoặc các gói `prisma client` vì chúng là hạ tầng cốt lõi của hệ thống.
+Hurc1CRM là một nền tảng quản trị bảo trì đường sắt thế hệ mới, kết hợp sức mạnh của **Computer Vision (YOLOv8)** và **Generative AI (Gemini/Gemma)**. Hệ thống được thiết kế với triết lý **"Hardened by Default"**, đảm bảo tính an toàn tuyệt đối và khả năng vận hành bền bỉ ngay cả trong điều kiện hạ tầng bị giới hạn.
 
 ---
 
-## 🚀 Hướng dẫn vận hành
+## Mục lục
 
-### Cách chạy không cần PostgreSQL
-
-1. Đảm bảo `.env` có `IS_DATABASE_OFFLINE=true`.
-2. Chạy lệnh: `npm run dev`.
-3. Ứng dụng sẽ tự động sử dụng `db.json`.
-
-### Cách bật lại PostgreSQL (Online Mode)
-
-1. Mở Docker Desktop.
-2. Khởi động database: `docker compose up -d postgres`.
-3. Đồng bộ Prisma:
-
-   ```bash
-   npx prisma generate
-   npx prisma migrate dev
-   ```
-
-4. Đặt `IS_DATABASE_OFFLINE=false` trong `.env`.
-5. Chạy lệnh: `npm run dev`.
+1. [Kien truc He thong (System Architecture)](#architecture)
+2. [Lop Bao mat Boc thep (Security Hardening)](#security)
+3. [Ha tang AI & Phan tich (AI Infrastructure)](#ai)
+4. [Quan tri Du lieu Hybrid (Hybrid Data Management)](#data)
+5. [Huong dan Cai dat & Trien khai (Deployment)](#deployment)
+6. [Bao tri & Giam sat (Maintenance & Monitoring)](#maintenance)
+7. [Tieu chuan Ky thuat (Engineering Standards)](#standards)
 
 ---
 
-## 🛠️ Xử lý sự cố
+## Architecture
 
-### ⚠️ Lưu ý Quan trọng khi Triển khai (Build/Production)
+Hệ thống được xây dựng trên nền tảng **Next.js 14 (App Router)**, tối ưu hóa cho Rendering phía Server (SSR) và bảo mật Server Actions.
 
-Mặc định, hệ thống sẽ ngăn chặn việc chạy `db.json` trong môi trường Production (`npm run build`) để tránh mất mát dữ liệu. Nếu bạn thực sự muốn chạy Offline trong Production:
+### Stack Cong nghe (Technology Stack)
 
-1. Đặt `IS_DATABASE_OFFLINE=true`
-2. Đặt `ALLOW_OFFLINE_PRODUCTION=true` trong `.env`
-
----
-
-## 🛠 Troubleshooting (Xử lý lỗi)
-
-### Lỗi kết nối Database (Prisma Error)
-
-Nếu bạn thấy lỗi `P2002`, `P1001` hoặc thông báo "Can't reach database server":
-
-- **Nguyên nhân**: Thường do PostgreSQL chưa được khởi động trong Docker.
-- **Giải pháp**: Kiểm tra Docker Desktop và chạy `docker compose ps` để đảm bảo dịch vụ `hurc_postgres` đang ở trạng thái `running`.
-
-### Lỗi "Prisma Client not generated"
-
-- **Giải pháp**: Chạy lệnh `npx prisma generate` để khởi tạo lại bộ thư viện truy vấn.
-
-### Cách kiểm tra lỗi Prisma chi tiết
-
-- Kiểm tra log console tại terminal chạy `npm run dev`.
-- Kiểm tra tệp `.env` để đảm bảo `DATABASE_URL` chính xác.
+| Thành phần | Công nghệ sử dụng | Mục đích |
+| :--- | :--- | :--- |
+| **Core Framework** | Next.js 14, TypeScript 5 | Xử lý Logic & UI |
+| **Styling** | Vanilla CSS, Radix UI, Lucide Icons | Giao diện hiện đại, tối ưu hiệu suất |
+| **ORM / DB** | Prisma, PostgreSQL, JSON-DB | Quản lý dữ liệu đa tầng |
+| **Security** | BcryptJS, Jose, Node-Crypto | Mã hóa và xác thực |
+| **AI (Vision)** | FastAPI, YOLOv8, OpenCV | Nhận diện mối nguy qua hình ảnh |
+| **AI (LLM)** | Google Generative AI, HF Inference | Phân tích rủi ro & Trợ lý thông minh |
 
 ---
 
-> [!IMPORTANT]
-> **Hạ tầng Hybrid**: Hệ thống được thiết kế để chuyển đổi linh hoạt. Việc giữ lại Prisma giúp đảm bảo ứng dụng có thể nâng cấp lên môi trường sản xuất (Production) bất cứ lúc nào mà không cần viết lại mã nguồn.
+## Security
+
+Dự án đã trải qua chiến dịch **Red Teaming** nội bộ và được bọc thép qua 5 lớp phòng thủ vật lý:
+
+### 1. Kiem soat Truy cap Doi tuong (BOLA/IDOR Protection)
+
+Mọi hàm `Server Action` đều được bao bọc bởi logic kiểm tra sở hữu.
+
+- **Logic:** `if (record.createdById !== currentUser.id && currentUser.role !== 'ADMIN') throw UnauthorizedError`.
+- **Phạm vi:** Áp dụng cho Improvements, Hazards, Comments, và Attachments.
+
+### 2. Thuat toan Chong Brute-Force (Rate Limiting)
+
+Hệ thống sử dụng bộ nhớ đệm có giới hạn kích thước (**Bounded Memory Map**) để theo dõi IP.
+
+- **Cơ chế:** Tự động chặn IP sau 5 lần thử sai trong 15 phút.
+- **Bảo vệ RAM:** Thuật toán tự động giải phóng bộ nhớ (Garbage Collection) khi bộ đệm đạt ngưỡng 10,000 thực thể để chống tấn công làm tràn RAM (OOM Attack).
+
+### 3. Ma hoa & Random mat ma (CSPRNG)
+
+Tuyệt đối không sử dụng `Math.random()`. Mọi mật khẩu và ID hoạt động đều được sinh ra bởi **`crypto.randomBytes`** và **`crypto.randomInt`**, đảm bảo tính ngẫu nhiên không thể dự đoán được ở mức độ mật mã học.
+
+### 4. Phong chong Injection Da lop
+
+- **Data Sanitization:** Mọi payload đầu vào được ép kiểu (Strict Type Casting).
+- **Safe JSON Storage:** Sử dụng cơ chế hàng đợi ghi (**Write Mutex Queue**) để đảm bảo dữ liệu không bị hỏng rách (corruption) khi có hàng nghìn yêu cầu ghi cùng lúc.
+
+---
+
+## AI
+
+### Chuoi Phan tich Resilience (AI Chain)
+
+Hệ thống AI được thiết kế với khả năng tự phục hồi (Self-healing):
+
+1. **Primary:** Google Gemini (Dành cho phân tích phức tạp nhất).
+2. **Secondary:** HuggingFace Inference (Dự phòng khi Gemini hết quota).
+3. **Tertiary:** Local Gemma/Llama (Hoạt động hoàn toàn Offline khi mất mạng).
+
+### YOLO Service (Computer Vision)
+
+Dịch vụ nhận diện vật thể được đóng gói trong Container riêng, giao tiếp qua REST API tại cổng `5005`.
+
+- **Đầu vào:** Luồng video RTSP hoặc hình ảnh tĩnh từ hiện trường.
+- **Đầu ra:** Tọa độ bounding box và mức độ tin cậy (Confidence score).
+
+---
+
+## Data
+
+### Database Routing Logic
+
+Hệ thống sử dụng tệp `src/lib/services/db-wrapper.ts` để điều phối truy vấn:
+
+- **`IS_DATABASE_OFFLINE=true`:** Sử dụng `JsonProvider`. Dữ liệu ghi vào `db.json`. Thích hợp cho thiết bị di động tại hiện trường không có sóng 4G.
+- **`IS_DATABASE_OFFLINE=false`:** Sử dụng `PrismaProvider`. Dữ liệu đồng bộ vào PostgreSQL.
+
+---
+
+## Deployment
+
+### 1. Yeu cau He thong
+
+- Docker & Docker Compose.
+- Node.js 18+ (nếu chạy local).
+
+### 2. Trien khai bang Docker (Khuyen dung)
+
+```bash
+# Khởi chạy toàn bộ hạ tầng (Postgres, YOLO, Web App)
+docker compose up -d --build
+```
+
+### 3. Cau hinh Bien moi truong (.env)
+
+```env
+# SECURITY
+SESSION_SECRET=phải_là_chuỗi_dài_hơn_32_ký_tự
+ALLOW_OFFLINE_PRODUCTION=true
+
+# DATABASE
+DATABASE_URL="postgresql://user:pass@localhost:5432/hurc"
+
+# AI KEYS
+GEMINI_API_KEY=AIza...
+HUGGING_FACE_API_KEY=hf_...
+```
+
+---
+
+## Maintenance
+
+### He thong Logs Tap trung
+
+Logs được phân loại và lưu trữ tại thư mục `/logs`:
+
+- `logs/security`: Ghi lại các nỗ lực xâm nhập bị chặn (BOLA, Rate Limit hits).
+- `logs/ai`: Nhật ký các quyết định của mô hình AI.
+- `logs/data`: Nhật ký thay đổi cơ sở dữ liệu.
+
+### Cong cu Nghiem thu (Validation Tools)
+
+Trước khi bàn giao, hãy chạy các lệnh sau để đảm bảo 100% tính toàn vẹn:
+
+```bash
+# Nghiệm thu các lớp bảo mật vật lý
+npx tsx src/scripts/hardened-proof.ts
+
+# Kiểm tra tính nhất quán của dữ liệu Hybrid
+npx tsx src/scripts/comprehensive-audit.ts
+```
+
+---
+
+## Standards
+
+Mọi thay đổi mã nguồn phải tuân thủ nghiêm ngặt **[ENGINEERING_HANDBOOK.md](./src/ENGINEERING_HANDBOOK.md)**:
+
+- Luôn sử dụng **Zod** để validate schema.
+- Luôn kiểm tra **Ownership** cho mọi mutation server actions.
+- Luôn sử dụng **Atomic Writes** khi thao tác với file hệ thống.
+
+---
+
+> [!CAUTION]
+> **Cảnh báo vận hành:** Khi chạy ở chế độ `OFFLINE` trong môi trường `PRODUCTION`, hãy đảm bảo file `db.json` được mount vào một Volume bền vững (Persistent Volume) để tránh mất dữ liệu khi container restart.
+
+---
+*Tài liệu được cập nhật tự động bởi hệ thống Audit Hurc1CRM - 2026.*
