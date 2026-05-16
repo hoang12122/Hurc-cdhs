@@ -24,6 +24,8 @@
     "db:dashboard": "npx tsx src/scripts/generate-integrity-dashboard.ts"
   },
   "dependencies": {
+    "@emnapi/core": "^1.10.0",
+    "@emnapi/runtime": "^1.10.0",
     "@google/generative-ai": "^0.24.1",
     "@hookform/resolvers": "^3.10.0",
     "@huggingface/inference": "^4.13.15",
