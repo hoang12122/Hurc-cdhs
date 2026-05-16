@@ -78,6 +78,12 @@ services:
     networks:
       - backend-net
       - frontend-net
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
 
   nginx:
     image: nginx:alpine
@@ -125,7 +131,7 @@ services:
       interval: 15s
       timeout: 10s
       retries: 10
-      start_period: 60s
+      start_period: 120s
     networks:
       - backend-net
 

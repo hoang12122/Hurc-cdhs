@@ -30,14 +30,27 @@ async function init() {
     } else {
         console.log("🌐 Mode: ONLINE. Running Prisma migrations...");
         const schemas = ['auth', 'ai', 'metro', 'ops'];
-        
+        const MAX_RETRIES = 10;
+        const RETRY_DELAY = 5000;
+
         for (const s of schemas) {
-            console.log(`Migrating schema: ${s}...`);
-            try {
-                execSync(`npx prisma migrate deploy --schema=prisma/${s}/schema.prisma`, { stdio: 'inherit' });
-            } catch (e) {
-                console.error(`❌ Migration failed for ${s}. Check your DATABASE_URL.`);
-                process.exit(1);
+            let success = false;
+            let attempts = 0;
+
+            while (!success && attempts < MAX_RETRIES) {
+                attempts++;
+                console.log(`Migrating schema: ${s} (Attempt ${attempts}/${MAX_RETRIES})...`);
+                try {
+                    execSync(`npx prisma migrate deploy --schema=prisma/${s}/schema.prisma`, { stdio: 'inherit' });
+                    success = true;
+                } catch (e) {
+                    if (attempts >= MAX_RETRIES) {
+                        console.error(`❌ Migration failed for ${s} after ${MAX_RETRIES} attempts. Exiting.`);
+                        process.exit(1);
+                    }
+                    console.warn(`⚠️ Migration attempt ${attempts} failed. Database might be booting. Retrying in 5s...`);
+                    await new Promise(resolve => setTimeout(resolve, RETRY_DELAY));
+                }
             }
         }
     }
