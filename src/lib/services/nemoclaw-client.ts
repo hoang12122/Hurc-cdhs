@@ -10,7 +10,7 @@
 
 import { AI_CONFIG } from '../config/ai-config';
 
-const NEMOCLAW_API_URL = process.env.NEMOCLAW_API_URL || 'http://ollama:11434'; // Mặc định trỏ thẳng vào Ollama Container
+const NEMOCLAW_API_URL = process.env.NEMOCLAW_API_URL || process.env.LLM_ENDPOINT || 'http://ollama:11434'; // Đảm bảo đồng bộ với Docker Compose
 const NEMOCLAW_API_KEY = process.env.NEMOCLAW_API_KEY || '';
 const NEMOCLAW_MODEL = process.env.NEMOCLAW_MODEL || AI_CONFIG.LLM.STABLE_MODEL;
 
@@ -77,7 +77,16 @@ class NemoClawClient {
     private _healthCheckExpiry = 0;
 
     constructor() {
-        this.baseUrl = NEMOCLAW_API_URL.replace(/\/$/, '');
+        // Nếu API_URL đã chứa path /v1/..., ta bóc tách lấy base
+        let rawUrl = NEMOCLAW_API_URL.replace(/\/$/, '');
+        if (rawUrl.includes('/v1/chat/completions')) {
+            this.baseUrl = rawUrl.split('/v1/chat/completions')[0];
+        } else if (rawUrl.includes('/v1')) {
+            this.baseUrl = rawUrl.split('/v1')[0];
+        } else {
+            this.baseUrl = rawUrl;
+        }
+        
         this.apiKey = NEMOCLAW_API_KEY;
         this.model = NEMOCLAW_MODEL;
     }
@@ -115,7 +124,7 @@ class NemoClawClient {
                 ...(this.apiKey ? { 'Authorization': `Bearer ${this.apiKey}` } : {}),
             },
             body: JSON.stringify(body),
-            signal: AbortSignal.timeout(60000),
+            signal: AbortSignal.timeout(90000), // Tăng timeout lên 90s cho Gemma-4 31B
         });
 
         if (!response.ok) {

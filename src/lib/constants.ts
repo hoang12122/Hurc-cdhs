@@ -1,6 +1,7 @@
 
 
 import type { LucideIcon } from 'lucide-react';
+import { AI_CONFIG } from './config/ai-config';
 import { 
     AlertTriangle,
     ShieldAlert,
@@ -71,7 +72,7 @@ export const APP_NAME: Record<Locale, string> = {
   vi: "HURC No.1 CDHS"
 };
 
-export const DEFAULT_AI_MODEL = process.env.NEXT_PUBLIC_HF_MODEL || 'google/gemma-4-31b';
+export const DEFAULT_AI_MODEL = AI_CONFIG.LLM.STABLE_MODEL;
 
 // ==========================================================================
 // USER & ROLE MANAGEMENT CONSTANTS

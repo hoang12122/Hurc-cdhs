@@ -1,4 +1,4 @@
-import { DEFAULT_AI_MODEL } from "../constants";
+import { AI_CONFIG } from "../config/ai-config";
 import { getTrustGraphClient, TrustGraphError } from "./trustgraph-client";
 import { classifyQueryIntent, suggestCollection, extractQueryFocus, buildFocusedPrompt, type QueryIntent } from "./ai-smart-router";
 import { getNemoClawClient, type ChatMessage as NcChatMessage } from "./nemoclaw-client";
@@ -31,21 +31,19 @@ export async function askAI(prompt: string, options: {
     if (!forceBackend || forceBackend === 'nemoclaw') {
         try {
             const nc = getNemoClawClient();
-            if (await nc.isAvailable()) {
-                const result = await nc.ask(
-                    groundingContext 
-                        ? `[NGỮ CẢNH]\n${groundingContext}\n\n[CÂU HỎI] ${prompt}`
-                        : prompt,
-                    {
-                        systemPrompt,
-                        userId,
-                        temperature: 0.3,
-                    }
-                );
-                return result.content;
-            }
+            const result = await nc.ask(
+                groundingContext 
+                    ? `[NGỮ CẢNH]\n${groundingContext}\n\n[CÂU HỎI] ${prompt}`
+                    : prompt,
+                {
+                    systemPrompt,
+                    userId,
+                    temperature: 0.3,
+                }
+            );
+            return result.content;
         } catch (error) {
-            console.warn("NemoClaw unavailable, falling back:", error instanceof Error ? error.message : error);
+            console.warn("NemoClaw request failed, trying TrustGraph fallback:", error instanceof Error ? error.message : error);
         }
     }
     
@@ -53,17 +51,15 @@ export async function askAI(prompt: string, options: {
     if (forceBackend !== 'nemoclaw') {
         try {
             const tg = getTrustGraphClient();
-            if (await tg.isAvailable()) {
-                const fullPrompt = groundingContext 
-                    ? `Sử dụng các thông tin sau làm ngữ cảnh để trả lời câu hỏi:\n\n${groundingContext}\n\nCâu hỏi: ${prompt}`
-                    : prompt;
+            const fullPrompt = groundingContext 
+                ? `Sử dụng các thông tin sau làm ngữ cảnh để trả lời câu hỏi:\n\n${groundingContext}\n\nCâu hỏi: ${prompt}`
+                : prompt;
 
-                const result = await tg.textCompletion({
-                    prompt: fullPrompt,
-                    system: systemPrompt,
-                });
-                return result.response.trim();
-            }
+            const result = await tg.textCompletion({
+                prompt: fullPrompt,
+                system: systemPrompt,
+            });
+            return result.response.trim();
         } catch (error) {
             console.warn("TrustGraph unavailable:", error instanceof Error ? error.message : error);
         }
