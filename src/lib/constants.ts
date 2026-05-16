@@ -87,7 +87,7 @@ export const ROLE_CLIENT = "Client";
 // In a real app, this would be derived from a cookie, JWT, or session store.
 export const MOCK_CURRENT_USER: User = {
     id: "user-admin-2026",
-    name: "Supper Admin",
+    name: "Super Admin",
     email: "nhhoang@hurc.vn",
     role: ROLE_SUPER_ADMIN,
     status: "active",

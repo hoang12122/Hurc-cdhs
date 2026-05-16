@@ -289,3 +289,15 @@ export async function clearMcpTraces() {
     const { mcpService } = await import('../services/ai/mcp-service');
     mcpService.clearTraces();
 }
+
+// ============ AI SAFETY LOGGING ============
+
+export async function logAiAction(action: string, details: string, level: any = 'INFO') {
+    try {
+        await requireAuth();
+        await logSystemEvent(action, level, details, 'ai');
+    } catch (e) {
+        // Logging should be non-blocking and safe
+        console.error("[AI-LOG-ERROR]", e);
+    }
+}

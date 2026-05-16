@@ -23,8 +23,26 @@ services:
     # Tự động khởi động lại container nếu nó dừng
     restart: unless-stopped
     depends_on:
-      - postgres
-      - redis
+      init-perms:
+        condition: service_completed_successfully
+      postgres:
+        condition: service_started
+      redis:
+        condition: service_started
+
+  # == INIT PERMISSIONS ==
+  # Giải quyết lỗi "Permission Denied" trên Ubuntu khi mount file db.json (bắt buộc chạy 1 lần)
+  init-perms:
+    image: alpine
+    volumes:
+      - ./:/app_root
+    command: >
+      sh -c "
+        touch /app_root/db.json /app_root/db.backup.json &&
+        mkdir -p /app_root/logs &&
+        chmod 666 /app_root/db.json /app_root/db.backup.json &&
+        chmod 777 /app_root/logs
+      "
   
   # == DATABASE ==
   postgres:
@@ -158,6 +176,31 @@ services:
     restart: unless-stopped
     expose:
       - "5005"
+
+  # == AI WORKER (FastAPI + YOLO) ==
+  ai-worker:
+    build:
+      context: ./ai-worker
+      dockerfile: Dockerfile
+    container_name: hurc_ai_worker
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      - RABBITMQ_HOST=rabbitmq
+    depends_on:
+      - rabbitmq
+
+  # == QUEUE (RabbitMQ for AI Worker) ==
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: hurc_rabbitmq
+    restart: unless-stopped
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    volumes:
+      - ./data/rabbitmq:/var/lib/rabbitmq
 
   # == AI AGENT (OLLAMA) ==
   ollama:

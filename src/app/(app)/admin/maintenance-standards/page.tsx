@@ -518,14 +518,16 @@ export default function MaintenanceStandardsPage() {
         <h1 className="text-3xl font-bold font-headline text-primary flex items-center">
           <IconListChecks className="mr-3 h-8 w-8" /> {t.pageTitle}
         </h1>
-        <Button variant="outline" size="sm" onClick={handleUndo}>
-          <Undo2 className="mr-2 h-4 w-4" />
-          {t.undoLastChange}
-        </Button>
+        {hasAccess && (
+            <Button variant="outline" size="sm" onClick={handleUndo}>
+            <Undo2 className="mr-2 h-4 w-4" />
+            {t.undoLastChange}
+            </Button>
+        )}
       </div>
 
       <Dialog open={isStandardDialogOpen} onOpenChange={setIsStandardDialogOpen}>
-        <DialogContent>
+        <DialogContent className="glass-card border-white/20">
           <DialogHeader>
             <DialogTitle>{editingStandard ? t.editStandard : t.addStandard}</DialogTitle>
             <DialogDescription>{editingStandard ? t.editStandardDialogDescription(editingStandard.name) : t.addStandardDialogDescription}</DialogDescription>
@@ -705,7 +707,7 @@ export default function MaintenanceStandardsPage() {
       </Dialog>
       
        <Dialog open={isItemDialogOpen} onOpenChange={setIsItemDialogOpen}>
-        <DialogContent className="sm:max-w-lg">
+        <DialogContent className="sm:max-w-lg glass-card border-white/20">
           <DialogHeader>
             <DialogTitle>{editingItem ? t.editItem : t.addItem}</DialogTitle>
             <DialogDescription>
@@ -831,7 +833,7 @@ export default function MaintenanceStandardsPage() {
       </Dialog>
 
       <div className="grid lg:grid-cols-3 gap-6">
-        <Card className="lg:col-span-1 shadow-lg">
+        <Card className="lg:col-span-1 glass-card">
           <CardHeader>
             <CardTitle>{t.standardsTitle}</CardTitle>
             <CardDescription>{t.standardsDescription}</CardDescription>
@@ -845,9 +847,11 @@ export default function MaintenanceStandardsPage() {
                         onChange={(e) => setSearchTerm(e.target.value)} 
                     />
                 </div>
-                <Button size="sm" variant="outline" onClick={handleOpenAddStandardDialog} className="shrink-0">
+                {hasAccess && (
+                  <Button size="sm" variant="outline" onClick={handleOpenAddStandardDialog} className="shrink-0">
                     <PlusCircle className="mr-2 h-4 w-4" /> {t.addStandard}
-                </Button>
+                  </Button>
+                )}
             </div>
             <div className="pt-2">
               <Button size="sm" variant="outline" asChild className="w-full">
@@ -871,10 +875,10 @@ export default function MaintenanceStandardsPage() {
                       <div
                         key={std.id}
                         className={cn(
-                          "flex items-center justify-between gap-2 rounded-lg border p-3 transition-colors cursor-pointer",
+                          "flex items-center justify-between gap-2 rounded-xl border p-3 transition-all duration-300 cursor-pointer",
                           selectedStandardId === std.id
-                            ? "bg-primary text-primary-foreground border-primary"
-                            : "hover:bg-muted/50"
+                            ? "bg-primary/90 text-primary-foreground border-primary shadow-lg backdrop-blur-md scale-[1.02]"
+                            : "bg-background/40 hover:bg-background/60 dark:hover:bg-white/5 backdrop-blur-sm hover:shadow-md"
                         )}
                         onClick={() => setSelectedStandardId(std.id)}
                       >
@@ -918,7 +922,8 @@ export default function MaintenanceStandardsPage() {
                             </div>
                           )}
                         </div>
-                        <div className="flex shrink-0 gap-0">
+                        {hasAccess && (
+                            <div className="flex shrink-0 gap-0">
                           <Button
                             variant="ghost"
                             size="icon"
@@ -960,6 +965,7 @@ export default function MaintenanceStandardsPage() {
                             </AlertDialogContent>
                           </AlertDialog>
                         </div>
+                        )}
                       </div>
                     );
                   })}
@@ -971,7 +977,7 @@ export default function MaintenanceStandardsPage() {
           </CardContent>
         </Card>
 
-        <Card className="lg:col-span-2 shadow-lg">
+        <Card className="lg:col-span-2 glass-card">
           <CardHeader>
             <div className="flex justify-between items-center">
                 <div>
@@ -980,7 +986,7 @@ export default function MaintenanceStandardsPage() {
                     {selectedStandardId ? `${itemsForSelectedStandard.length} ${locale === 'vi' ? 'hạng mục' : 'items'}` : t.selectStandardPrompt}
                     </CardDescription>
                 </div>
-                {selectedStandardId && (
+                {hasAccess && (
                     <Button size="sm" onClick={handleOpenAddItemDialog}>
                         <PlusCircle className="mr-2 h-4 w-4" /> {t.addItem}
                     </Button>
@@ -999,7 +1005,7 @@ export default function MaintenanceStandardsPage() {
                       <TableHead>{t.itemCriteria}</TableHead>
                       <TableHead>{t.itemUnit}</TableHead>
                       <TableHead>{t.itemStandardQuantity}</TableHead>
-                      <TableHead className="text-right">{t.actions}</TableHead>
+                      {hasAccess && <TableHead className="text-right">{t.actions}</TableHead>}
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -1010,8 +1016,11 @@ export default function MaintenanceStandardsPage() {
                         <TableCell className="whitespace-normal text-xs text-muted-foreground">{item.criteria || "N/A"}</TableCell>
                         <TableCell>{item.unit || "N/A"}</TableCell>
                         <TableCell>{item.standardQuantity ?? "N/A"}</TableCell>
-                        <TableCell className="text-right">
-                            <Button variant="ghost" size="icon" title={t.editItem} onClick={() => handleOpenEditItemDialog(item)}><Edit className="h-4 w-4"/></Button>
+                        {hasAccess && (
+                          <TableCell className="text-right">
+                            <Button variant="ghost" size="icon" title={t.editItem} onClick={() => handleOpenEditItemDialog(item)}>
+                                <Edit className="h-4 w-4" />
+                            </Button>
                             <AlertDialog>
                                 <AlertDialogTrigger asChild>
                                     <Button variant="ghost" size="icon" title={t.deleteItem} className="text-destructive hover:text-destructive-foreground hover:bg-destructive"><Trash2 className="h-4 w-4"/></Button>
@@ -1026,6 +1035,7 @@ export default function MaintenanceStandardsPage() {
                                 </AlertDialogContent>
                             </AlertDialog>
                         </TableCell>
+                        )}
                       </TableRow>
                     ))}
                   </TableBody>

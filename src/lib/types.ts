@@ -29,6 +29,8 @@ export interface ImageAttachment {
   size?: number;
   type?: string; // 'image' | 'pdf' | 'doc' | etc.
   'data-ai-hint'?: string;
+  isAnalyzing?: boolean;
+  aiAnalysisResult?: string;
 }
 
 export interface StatusHistory {
@@ -84,7 +86,7 @@ export interface Role {
 }
 
 export type LogLevel = 'INFO' | 'WARNING' | 'ERROR' | 'CRITICAL';
-export type SystemLogCategory = 'data' | 'network' | 'security' | 'system' | 'maintenance';
+export type SystemLogCategory = 'data' | 'network' | 'security' | 'system' | 'maintenance' | 'ai';
 
 export interface SystemLog {
     id: string;
