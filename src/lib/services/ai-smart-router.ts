@@ -115,6 +115,22 @@ export function classifyQueryIntent(query: string): ClassificationResult {
 }
 
 /**
+ * NEW: AI-based Classification Prompt (for Gemma-2B/4B)
+ */
+export const AI_CLASSIFICATION_PROMPT = `
+Bạn là AI Smart Router của hệ thống HURC1. 
+Nhiệm vụ của bạn là phân loại yêu cầu của người dùng vào một trong 4 nhóm sau:
+1. 'graph_rag': Nếu câu hỏi về mối quan hệ, liên kết, nguyên nhân gốc rễ hoặc thực thể phức tạp.
+2. 'document_rag': Nếu câu hỏi về quy trình, tiêu chuẩn, hoặc tìm kiếm trong tài liệu thô.
+3. 'agent': Nếu yêu cầu phân tích toàn diện, lập kế hoạch hoặc nhiều bước suy luận.
+4. 'text_completion': Nếu là câu hỏi chào hỏi hoặc câu hỏi đơn giản không cần dữ liệu hệ thống.
+
+CHỈ TRẢ VỀ MỘT TỪ DUY NHẤT: graph_rag, document_rag, agent, hoặc text_completion.
+
+CÂU HỎI: "{query}"
+`;
+
+/**
  * Suggest the best collection based on query content
  */
 export function suggestCollection(query: string): string {
@@ -139,6 +155,8 @@ export function formatCrmDataForIngestion(type: 'dnf' | 'hazard' | 'inspection',
                 `Failure Report: ${record.failureReportNo || record.id}`,
                 `Status: ${record.status}`,
                 `Location: ${record.locationOfFailure || 'N/A'}`,
+                `Station_ID: ${record.stationId || 'N/A'}`, // Metadata Tag
+                `Asset_Category: ${record.assetCategory || 'N/A'}`, // Metadata Tag
                 `Description: ${record.descriptionOfFailure || 'N/A'}`,
                 `Priority: ${record.priority || 'N/A'}`,
                 `Impact: ${record.impactAssessment || 'N/A'}`,
@@ -146,6 +164,7 @@ export function formatCrmDataForIngestion(type: 'dnf' | 'hazard' | 'inspection',
                 record.correctiveActions?.length > 0
                     ? `Corrective Actions: ${record.correctiveActions.map((ca: any) => `[${ca.status}] ${ca.description}`).join('; ')}`
                     : '',
+                `[METADATA] type=dnf station=${record.stationId} priority=${record.priority} status=${record.status}`
             ].filter(Boolean).join('\n');
 
         case 'hazard':
@@ -156,6 +175,7 @@ export function formatCrmDataForIngestion(type: 'dnf' | 'hazard' | 'inspection',
                 `Potential Consequence: ${record.potentialConsequence || 'N/A'}`,
                 `Current Controls: ${record.currentControls || 'N/A'}`,
                 `Risk Level: ${record.riskLevelId || 'N/A'}`,
+                `[METADATA] type=hazard risk=${record.riskLevelId} status=${record.status}`
             ].filter(Boolean).join('\n');
 
         case 'inspection':

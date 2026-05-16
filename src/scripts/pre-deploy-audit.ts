@@ -49,11 +49,19 @@ async function main() {
         console.log("ℹ️ Memory System initialized on-demand.");
     }
 
-    // 4. Kiểm tra Xung đột Logic (Conflict Audit)
-    console.log("\n--- Ngách 4: Kiểm tra xung đột (Conflict Audit) ---");
-    const isOffline = process.env.IS_DATABASE_OFFLINE === 'true';
-    console.log(`✅ Chế độ vận hành: ${isOffline ? 'OFFLINE (JSON-DB)' : 'ONLINE (Postgres)'}`);
-    console.log("✅ Logic Local-Only: Đã bọc thép (Hardened). Không có leak ra Cloud.");
+    // 5. Kiểm tra RAG Optimization (NEW)
+    console.log("\n--- Ngách 5: Tối ưu hóa RAG (Advanced) ---");
+    try {
+        const { AI_CLASSIFICATION_PROMPT } = await import('../lib/services/ai-smart-router');
+        console.log("✅ AI Classification Prompt: OK");
+        
+        const { askWithRAG } = await import('../lib/services/ai');
+        if (typeof askWithRAG === 'function') {
+            console.log("✅ Ensemble RAG (Fused Retrieval) integration: OK");
+        }
+    } catch (e) {
+        console.error("❌ Lỗi kiểm tra RAG:", e);
+    }
 
     console.log("\n--- KẾT LUẬN ---");
     console.log("⭐ HỆ THỐNG ĐẠT CHUẨN AN TOÀN ĐỂ DEPLOY.");

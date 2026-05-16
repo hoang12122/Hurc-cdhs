@@ -1,10 +1,11 @@
 import { AI_CONFIG } from "../config/ai-config";
 import { getTrustGraphClient, TrustGraphError } from "./trustgraph-client";
-import { classifyQueryIntent, suggestCollection, extractQueryFocus, buildFocusedPrompt, type QueryIntent } from "./ai-smart-router";
+import { classifyQueryIntent, suggestCollection, extractQueryFocus, buildFocusedPrompt, type QueryIntent, AI_CLASSIFICATION_PROMPT } from "./ai-smart-router";
 import { getNemoClawClient, type ChatMessage as NcChatMessage } from "./nemoclaw-client";
 import { buildUserContext } from "./user-context";
 import { detectObjects as callYoloService, type YoloResponse } from "./yolo";
 import { executeCrmTool, openAiToolDeclarations } from "../ai-tools/crm-tools";
+import { retrieveMemories, storeExperience } from "./agent-memory";
 
 /**
  * HURC AI SERVICE (LOCAL-ONLY EDITION)
@@ -20,8 +21,15 @@ export async function askAI(prompt: string, options: {
     forceBackend?: 'nemoclaw' | 'trustgraph',
     userId?: string,
     image?: { data: string, mimeType: string },
+    temperature?: number,
 } = {}) {
-    const { model, systemPrompt, groundingContext, forceBackend, userId, image } = options;
+    const { model, systemPrompt, groundingContext, forceBackend, userId, image, temperature } = options;
+
+    // Retrieve Long-term Memory (TencentDB Agent Memory Logic)
+    let memoryContext = "";
+    if (userId && !image) {
+        memoryContext = await retrieveMemories(userId, prompt.substring(0, 100));
+    }
 
     if (image) {
         return askVisionAI(prompt, image, { model, systemPrompt, forceBackend, userId });
@@ -31,16 +39,24 @@ export async function askAI(prompt: string, options: {
     if (!forceBackend || forceBackend === 'nemoclaw') {
         try {
             const nc = getNemoClawClient();
+            const enhancedPrompt = memoryContext 
+                ? `${memoryContext}\n\n[CÂU HỎI HIỆN TẠI]: ${prompt}`
+                : (groundingContext ? `[NGỮ CẢNH]\n${groundingContext}\n\n[CÂU HỎI] ${prompt}` : prompt);
+
             const result = await nc.ask(
-                groundingContext 
-                    ? `[NGỮ CẢNH]\n${groundingContext}\n\n[CÂU HỎI] ${prompt}`
-                    : prompt,
+                enhancedPrompt,
                 {
                     systemPrompt,
                     userId,
                     temperature: 0.3,
                 }
             );
+
+            // Store this interaction in memory for future context
+            if (userId) {
+                await storeExperience(userId, prompt.substring(0, 50), result.content, 5);
+            }
+
             return result.content;
         } catch (error) {
             console.warn("NemoClaw request failed, trying TrustGraph fallback:", error instanceof Error ? error.message : error);
@@ -78,15 +94,48 @@ export async function askWithRAG(query: string, options: {
     user?: string,
 }): Promise<{ response: string; intent: QueryIntent; source: string }> {
     const tg = getTrustGraphClient();
-    const classification = options.forceIntent 
-        ? { intent: options.forceIntent, confidence: 1, reason: 'Forced' }
-        : classifyQueryIntent(query);
+    
+    // 0. AI-driven Intent Classification (Hybrid)
+    let intent: QueryIntent = options.forceIntent || 'text_completion';
+    if (!options.forceIntent) {
+        try {
+            const aiClass = await askAI(AI_CLASSIFICATION_PROMPT.replace('{query}', query), { temperature: 0 });
+            intent = aiClass.trim().toLowerCase() as QueryIntent;
+            if (!['graph_rag', 'document_rag', 'agent', 'text_completion'].includes(intent)) {
+                intent = classifyQueryIntent(query).intent; // Fallback to Regex
+            }
+        } catch {
+            intent = classifyQueryIntent(query).intent; // Fallback to Regex
+        }
+    }
     
     const collection = options.collection || suggestCollection(query);
 
+    // 1. Ensemble Mode (Parallel Graph + Doc)
+    if (intent === 'graph_rag' || intent === 'document_rag') {
+        try {
+            const [graphRes, docRes] = await Promise.allSettled([
+                tg.graphRag({ query, collection, user: options.user }),
+                tg.documentRag({ query, collection, user: options.user })
+            ]);
+
+            const graphContext = graphRes.status === 'fulfilled' ? graphRes.value.response : "";
+            const docContext = docRes.status === 'fulfilled' ? docRes.value.response : "";
+
+            if (graphContext && docContext) {
+                // Fused Retrieval
+                const fusedPrompt = `Sử dụng cả dữ liệu từ Đồ thị tri thức và Tài liệu sau để trả lời:\n\n[GRAPH DATA]\n${graphContext}\n\n[DOC DATA]\n${docContext}\n\nCâu hỏi: ${query}`;
+                const fusedResp = await askAI(fusedPrompt, { systemPrompt: options.systemPrompt });
+                return { response: fusedResp, intent: 'ensemble' as any, source: 'trustgraph-ensemble' };
+            }
+        } catch (e) {
+            console.warn("Ensemble RAG failed, trying single path:", e);
+        }
+    }
+
     try {
         if (await tg.isAvailable()) {
-            switch (classification.intent) {
+            switch (intent) {
                 case 'graph_rag': {
                     const result = await tg.graphRag({
                         query,
@@ -130,7 +179,7 @@ export async function askWithRAG(query: string, options: {
     }
 
     const fallbackResponse = await askAI(query, { systemPrompt: options.systemPrompt, forceBackend: 'nemoclaw' });
-    return { response: fallbackResponse, intent: classification.intent, source: 'local-fallback' };
+    return { response: fallbackResponse, intent: intent, source: 'local-fallback' };
 }
 
 // ============ AGENT CHAT ============
