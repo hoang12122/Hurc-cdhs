@@ -160,3 +160,11 @@ services:
       - "11434:11434"
     volumes:
       - ./data/ollama:/root/.ollama
+    # Bỏ comment phần dưới nếu máy chủ có GPU NVIDIA để chạy Gemma-4 mượt mà
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: all
+    #           capabilities: [gpu]

@@ -14,15 +14,16 @@ export const AI_CONFIG = {
     // Cấu hình module Nhận diện hình ảnh (YOLO)
     YOLO: {
         STABLE_MODEL: 'yolov8n',
-        EXPERIMENTAL_MODEL: 'yolov8_metro_v1', // Model sẽ được fine-tune để nhận diện nứt/rỉ sét
-        ENDPOINT: process.env.YOLO_ENDPOINT || process.env.NEXT_PUBLIC_YOLO_ENDPOINT || 'http://yolo-service:5005/detect',
+        EXPERIMENTAL_MODEL: 'yolov8_metro_v1', 
+        ENDPOINT: process.env.YOLO_ENDPOINT || 'http://yolo-service:5005/detect',
     },
 
-    // Cấu hình module Xử lý ngôn ngữ (Gemma/RAG)
+    // Cấu hình module Xử lý ngôn ngữ (Gemma-4 Local - BẢO MẬT TUYỆT ĐỐI)
     LLM: {
-        STABLE_MODEL: 'google/gemma-4-E2B-it',
-        EXPERIMENTAL_MODEL: 'google/gemma-4-E4B-it',
-        ENDPOINT: process.env.LLM_ENDPOINT || process.env.NEXT_PUBLIC_LLM_ENDPOINT || 'http://ollama:11434/v1/chat/completions',
+        // Sử dụng phiên bản cao nhất của Gemma-4 để tối ưu hóa suy luận local
+        STABLE_MODEL: 'google/gemma-4-E4B-it', 
+        EXPERIMENTAL_MODEL: 'google/gemma-4-E4B-it', 
+        ENDPOINT: process.env.LLM_ENDPOINT || 'http://ollama:11434/v1/chat/completions',
     },
     
     // Cấu hình module Nhận diện giọng nói (Speech-to-Text)

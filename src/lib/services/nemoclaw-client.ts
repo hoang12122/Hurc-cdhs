@@ -8,9 +8,11 @@
  * Each user gets an isolated session via session-id.
  */
 
-const NEMOCLAW_API_URL = process.env.NEMOCLAW_API_URL || 'http://localhost:3001';
+import { AI_CONFIG } from '../config/ai-config';
+
+const NEMOCLAW_API_URL = process.env.NEMOCLAW_API_URL || 'http://ollama:11434'; // Mặc định trỏ thẳng vào Ollama Container
 const NEMOCLAW_API_KEY = process.env.NEMOCLAW_API_KEY || '';
-const NEMOCLAW_MODEL = process.env.NEMOCLAW_MODEL || 'nvidia/nemotron-3-super-120b-a12b';
+const NEMOCLAW_MODEL = process.env.NEMOCLAW_MODEL || AI_CONFIG.LLM.STABLE_MODEL;
 
 interface ChatMessage {
     role: 'system' | 'user' | 'assistant' | 'tool';
