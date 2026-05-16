@@ -102,13 +102,15 @@ Hệ thống sử dụng tệp `src/lib/services/db-wrapper.ts` để điều ph
 
 Hệ thống cung cấp Dashboard dành riêng cho lãnh đạo tối cao (CEO/Board) để điều hành dựa trên dữ liệu thực tế:
 
-### Cac Tinh nang Chinh:
+### Cac Tinh nang Chinh
+
 - **Strategic Radar Chart:** Cân bằng 5 trụ cột: Năng suất, Vận hành, Nhân sự, Chất lượng và An toàn.
 - **AI Strategic Insights:** Gemma-4 tự động phân tích KPI và đưa ra 3 khuyến nghị hành động hàng ngày.
 - **Service Recovery Tracking:** Theo dõi khả năng phục hồi hệ thống sau sự cố kỹ thuật.
 - **Automated Reporting:** Tự động xuất báo cáo quản trị định kỳ hàng tuần (`report-service.ts`).
 
-### Truy cap Dashboard:
+### Truy cap Dashboard
+
 Đường dẫn mặc định: `/ceo/dashboard` (Yêu cầu quyền hạn cao nhất).
 
 ---
