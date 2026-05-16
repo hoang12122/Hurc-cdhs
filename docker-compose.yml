@@ -27,8 +27,8 @@ services:
       - ./audit_reports:/app/audit_reports:rw
     read_only: true
     tmpfs:
-      - /tmp
-      - /run
+      - /tmp:size=100M,noexec,nosuid,nodev
+      - /run:size=1M,noexec,nosuid,nodev
     networks:
       - backend-net
     # Tự động khởi động lại container nếu nó dừng
@@ -141,7 +141,8 @@ services:
       - ./infra/promtail/promtail-config.yaml:/etc/promtail/config.yml
       # Thêm volume để đọc log từ Docker
       - /var/lib/docker/containers:/var/lib/docker/containers:ro
-      - /var/run/docker.sock:/var/run/docker.sock:ro
+      # REMOVED docker.sock for security (Brutal Audit Fix)
+      # - /var/run/docker.sock:/var/run/docker.sock:ro
       # Thêm volume để đọc log cấu trúc của ứng dụng
       - ./logs:/var/log/hurc_logs:ro
     command: -config.file=/etc/promtail/config.yml

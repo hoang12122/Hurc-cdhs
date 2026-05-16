@@ -1,5 +1,6 @@
 import fs from 'fs/promises';
 import path from 'path';
+import { hasEnoughSpace } from '../utils/disk-check';
 
 /**
  * BACKUP SERVICE (HURC1 DB-HARDENING)
@@ -23,6 +24,10 @@ export async function createBackup(sourcePath: string) {
     const backupPath = path.join(BACKUP_DIR, `${filename}.${timestamp}.bak`);
     
     try {
+        // CHECK DISK SPACE (Brutal Audit Fix)
+        if (!await hasEnoughSpace(BACKUP_DIR)) {
+            throw new Error("Insufficient disk space for backup.");
+        }
         await fs.copyFile(sourcePath, backupPath);
         await rotateBackups(filename);
         return backupPath;

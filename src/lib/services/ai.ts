@@ -106,6 +106,9 @@ export async function askWithRAG(query: string, options: {
     forceIntent?: QueryIntent,
     user?: string,
 }): Promise<{ response: string; intent: QueryIntent; source: string }> {
+    if (!query || query.trim() === "") {
+        return { response: "Vui lòng nhập câu hỏi của bạn.", intent: 'text_completion', source: 'guard-clause' };
+    }
     const tg = getTrustGraphClient();
     
     // 0. AI-driven Intent Classification (Hybrid)
@@ -139,7 +142,26 @@ export async function askWithRAG(query: string, options: {
                 // Fused Retrieval
                 const fusedPrompt = `Sử dụng cả dữ liệu từ Đồ thị tri thức và Tài liệu sau để trả lời:\n\n[GRAPH DATA]\n${graphContext}\n\n[DOC DATA]\n${docContext}\n\nCâu hỏi: ${query}`;
                 const fusedResp = await askAI(fusedPrompt, { systemPrompt: options.systemPrompt });
-                return { response: fusedResp, intent: 'ensemble' as any, source: 'trustgraph-ensemble' };
+                
+                // PHASE 6 - AI-HARDENING: Self-Reflection Loop with Retry (Brutal Audit Fix)
+                let reflectionCount = 0;
+                const MAX_REFLECTION_RETRY = 2;
+                let currentResponse = fusedResp;
+                let contextStr = `[GRAPH]\n${graphContext}\n[DOC]\n${docContext}`;
+
+                while (reflectionCount < MAX_REFLECTION_RETRY) {
+                    const audit = await auditAIResponse(query, currentResponse, contextStr);
+                    if (audit.isSafe) break;
+
+                    console.warn(`⚠️ [AI-HARDENING] Hallucination detected (Attempt ${reflectionCount + 1}). Refined prompt...`);
+                    currentResponse = await askAI(
+                        `QUERY: ${query}\n\nPREVIOUS RESPONSE (FLAWED): ${currentResponse}\n\nFEEDBACK: ${audit.reason}\n\nPlease correct the response based on the feedback and use ONLY the provided context.`,
+                        { systemPrompt: options.systemPrompt }
+                    );
+                    reflectionCount++;
+                }
+
+                return { response: currentResponse, intent: 'ensemble' as any, source: 'trustgraph-ensemble' };
             }
         } catch (e) {
             console.warn("Ensemble RAG failed, trying single path:", e);
@@ -191,8 +213,13 @@ export async function askWithRAG(query: string, options: {
         console.warn("TrustGraph RAG failed, falling back:", error);
     }
 
-    const fallbackResponse = await askAI(query, { systemPrompt: options.systemPrompt, forceBackend: 'nemoclaw' });
-    return { response: fallbackResponse, intent: intent, source: 'local-fallback' };
+    try {
+        const fallbackResponse = await askAI(query, { systemPrompt: options.systemPrompt, forceBackend: 'nemoclaw' });
+        return { response: fallbackResponse, intent: intent, source: 'local-fallback' };
+    } catch (e) {
+        console.error("AI Core Fatal Error:", e);
+        return { response: "Hệ thống AI hiện đang bận hoặc gặp lỗi phân tích. Vui lòng thử lại sau.", intent: 'text_completion', source: 'error-handler' };
+    }
 }
 
 // ============ AGENT CHAT ============
@@ -461,4 +488,24 @@ function manageAgentContext(history: NcChatMessage[]): NcChatMessage[] {
 
 function estimateTokens(history: NcChatMessage[]): number {
     return Math.floor(history.reduce((acc, m) => acc + (m.content?.length || 0), 0) / 4);
+}
+
+/**
+ * AI AUDITOR (HURC1 AI-HARDENING)
+ * Simple logic to detect obvious hallucinations or generic refusals.
+ */
+async function auditAIResponse(query: string, response: string, context: string): Promise<{ isSafe: boolean; reason?: string }> {
+    const lowerResp = response.toLowerCase();
+    
+    // 1. Kiểm tra sự từ chối mặc dù có context
+    if (context.length > 50 && (lowerResp.includes("tôi không biết") || lowerResp.includes("không có thông tin"))) {
+        return { isSafe: false, reason: "AI refused to answer despite having available context data." };
+    }
+    
+    // 2. Kiểm tra việc trích dẫn (Evidence Check)
+    if (context.includes("DNF-") && !response.includes("DNF-")) {
+        return { isSafe: false, reason: "Response lacks specific ID citations (DNF-) from the context." };
+    }
+    
+    return { isSafe: true };
 }
