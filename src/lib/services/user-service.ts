@@ -268,7 +268,8 @@ export function generateRandomPassword(length: number = 8): string {
     const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
     let password = 'HURC-';
     for (let i = 0; i < length; i++) {
-        password += chars.charAt(Math.floor(Math.random() * chars.length));
+        const randomIndex = crypto.randomInt(0, chars.length);
+        password += chars.charAt(randomIndex);
     }
     return password;
 }

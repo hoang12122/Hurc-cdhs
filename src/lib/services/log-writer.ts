@@ -25,17 +25,29 @@ async function ensureLogDir(category: string = 'system') {
 
 // (Deprecated) ensureLogDir now handled with category
 
+/** Read/Write Mutex Queue for Race Condition Prevention */
+let logWriteQueue: Promise<void> = Promise.resolve();
+
 /** Append a SystemLog entry to a category-specific log */
 export async function appendLog(entry: SystemLog, asJsonl = true, category: string = 'system'): Promise<void> {
-  await ensureLogDir(category);
-  const { textPath, jsonlPath } = getLogPaths(category);
-  const timestamp = new Date(entry.timestamp).toISOString();
-  const textLine = `[${timestamp}] ${entry.level?.toUpperCase() ?? 'INFO'} ${entry.action}: ${entry.details}\n`;
-  await fs.appendFile(textPath, textLine, 'utf8');
-  if (asJsonl) {
-    const jsonLine = JSON.stringify({ ...entry, timestamp }) + '\n';
-    await fs.appendFile(jsonlPath, jsonLine, 'utf8');
-  }
+  const op = async () => {
+      await ensureLogDir(category);
+      const { textPath, jsonlPath } = getLogPaths(category);
+      const timestamp = new Date(entry.timestamp).toISOString();
+      const textLine = `[${timestamp}] ${entry.level?.toUpperCase() ?? 'INFO'} ${entry.action}: ${entry.details}\n`;
+      await fs.appendFile(textPath, textLine, 'utf8');
+      if (asJsonl) {
+        const jsonLine = JSON.stringify({ ...entry, timestamp }) + '\n';
+        await fs.appendFile(jsonlPath, jsonLine, 'utf8');
+      }
+  };
+
+  // Queue the operation to prevent Concurrent Write Corruption (Race Condition)
+  logWriteQueue = logWriteQueue.then(op).catch(e => {
+      console.error("[LOG-WRITER] Queue write error:", e);
+  });
+  
+  return logWriteQueue;
 }
 
 /** Read all logs from a specific category (default 'system') */
