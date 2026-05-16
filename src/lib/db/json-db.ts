@@ -1,11 +1,15 @@
 import fs from 'fs/promises';
 import path from 'path';
 import { IS_DATABASE_OFFLINE } from '../config/database-mode';
+import { createBackup } from '../services/backup-service';
 
 /**
  * PHASE 2 - TASK 2.1: JSON-DB Helper Layer
  * Centralized utility for reading and writing to db.json.
  */
+
+// Global In-memory Snapshot (Task 2.1 DB-Hardening)
+let _dbSnapshot: JsonDbData | null = null;
 
 const DB_FILE_NAME = process.env.DATABASE_JSON_PATH || 'db.json';
 const DB_PATH = path.join(process.cwd(), DB_FILE_NAME);
@@ -18,14 +22,20 @@ export interface JsonDbData {
  * Low-level: Read the entire database file
  * PHASE 2 - TASK 2.2: Robust JSON reading
  */
-export async function readRawDb(): Promise<JsonDbData> {
+export async function readRawDb(forceRefresh: boolean = false): Promise<JsonDbData> {
+  // Return cached snapshot if available and not forcing refresh (Task 2.2)
+  if (_dbSnapshot && !forceRefresh) {
+    return _dbSnapshot;
+  }
+
   try {
     // 1. Kiểm tra file có tồn tại và có quyền đọc không
     try {
       await fs.access(DB_PATH, fs.constants.R_OK);
     } catch (err) {
-      console.error(`[JSON-DB] File not found or not readable: ${DB_PATH}`);
-      throw new Error("Unable to read db.json. File does not exist at specified path.");
+      console.warn(`[JSON-DB] File not found or not readable: ${DB_PATH}. Returning empty db.`);
+      _dbSnapshot = {};
+      return _dbSnapshot;
     }
 
     // 2. Đọc nội dung file
@@ -33,7 +43,9 @@ export async function readRawDb(): Promise<JsonDbData> {
     
     // 3. Parse JSON với kiểm tra định dạng
     try {
-      return JSON.parse(content);
+      const data = JSON.parse(content);
+      _dbSnapshot = data; // Update Snapshot (Task 2.3)
+      return data;
     } catch (err) {
       console.error(`[JSON-DB] Invalid JSON format in ${DB_FILE_NAME}`);
       throw new Error("Unable to parse db.json. Please check JSON format for syntax errors.");
@@ -95,8 +107,18 @@ export async function writeJsonDb(data: JsonDbData): Promise<void> {
   }
 
   try {
+    // 2.5 Pre-write Backup (Task 1.2 DB-Hardening)
+    try {
+      await createBackup(DB_PATH);
+    } catch (e) {
+      console.warn("[JSON-DB] Backup failed before write, proceeding anyway:", e);
+    }
+
     const content = JSON.stringify(data, null, 2);
     await fs.writeFile(DB_PATH, content, 'utf-8');
+    
+    // 2.6 Update Snapshot (Task 2.3 DB-Hardening)
+    _dbSnapshot = data;
   } catch (error: any) {
     console.error(`[JSON-DB] Write failed for ${DB_FILE_NAME}:`, error);
     throw error;
