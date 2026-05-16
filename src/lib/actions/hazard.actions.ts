@@ -15,11 +15,43 @@ import {
     sendGlobalNotify
 } from '../services/ops-service';
 
-export async function getHazardRecordsPaginated(params: any) {
+export interface HazardPaginationParams {
+    page: number;
+    pageSize: number;
+    status?: string; // singular (for backward compatibility if any)
+    statuses?: string[]; // plural (used in table client)
+    priority?: string;
+    riskLevel?: string; // singular
+    riskLevels?: string[]; // plural
+    searchTerm?: string;
+    startDate?: string;
+    endDate?: string;
+}
+
+export async function getHazardRecordsPaginated(params: HazardPaginationParams) {
     await requireAuth();
     const skip = (params.page - 1) * params.pageSize;
+    
+    // Construct where clause for service layer
     let whereClause: any = { isArchived: false };
-    // Simplified where clause
+    
+    if (params.status) whereClause.status = params.status;
+    if (params.statuses && params.statuses.length > 0) whereClause.status = { in: params.statuses };
+    if (params.riskLevel) whereClause.riskLevelId = params.riskLevel;
+    if (params.riskLevels && params.riskLevels.length > 0) whereClause.riskLevelId = { in: params.riskLevels };
+    if (params.searchTerm) {
+        whereClause.OR = [
+            { id: { contains: params.searchTerm, mode: 'insensitive' } },
+            { description: { contains: params.searchTerm, mode: 'insensitive' } },
+            { systemGroup: { contains: params.searchTerm, mode: 'insensitive' } }
+        ];
+    }
+    if (params.startDate || params.endDate) {
+        whereClause.identificationDate = {};
+        if (params.startDate) whereClause.identificationDate.gte = new Date(params.startDate);
+        if (params.endDate) whereClause.identificationDate.lte = new Date(params.endDate);
+    }
+    
     const { total, records } = await getInternalHazardsPaginated(skip, params.pageSize, whereClause);
     return {
         data: records as unknown as HazardRecord[],
@@ -29,10 +61,10 @@ export async function getHazardRecordsPaginated(params: any) {
 
 export async function getHazardRecords(): Promise<HazardRecord[]> {
   await requireAuth();
-  return await getInternalHazards() as any;
+  return await getInternalHazards();
 }
 
-export async function addHazardRecord(data: any): Promise<HazardRecord> {
+export async function addHazardRecord(data: Omit<HazardRecord, 'id' | 'createdAt' | 'updatedAt' | 'riskLevelId' | 'createdById'>): Promise<HazardRecord> {
   const user = await requirePermission('hazard:create');
   const systemGroup = data.systemGroup?.toUpperCase() || 'GEN';
   const count = await countHazardsByPrefix(`HAZ-${systemGroup}-`);
