@@ -373,5 +373,48 @@
     }
   ],
   "password_reset_requests": [],
-  "test_collection_tmp": []
+  "test_collection_tmp": [],
+  "graphconsistencylogs": [
+    {
+      "id": "JSON-1778923106411",
+      "issueType": "MISSING_NODE",
+      "sourceType": "DNF",
+      "sourceId": "DNF-001-0001",
+      "details": "DNF DNF-001-0001 exists in Ops but no node in Graph.",
+      "jobId": "9F5BU7JC8",
+      "createdAt": "2026-05-16T09:18:26.411Z",
+      "updatedAt": "2026-05-16T09:18:26.412Z",
+      "deletedAt": null
+    },
+    {
+      "id": "JSON-1778923106418",
+      "issueType": "MISSING_NODE",
+      "sourceType": "HAZARD",
+      "sourceId": "HAZ-003-001",
+      "details": "Hazard HAZ-003-001 missing in Graph.",
+      "jobId": "9F5BU7JC8",
+      "createdAt": "2026-05-16T09:18:26.418Z",
+      "updatedAt": "2026-05-16T09:18:26.419Z",
+      "deletedAt": null
+    }
+  ],
+  "integrityjoblogs": [
+    {
+      "id": "9F5BU7JC8",
+      "jobType": "FULL_CHECK",
+      "startedAt": "2026-05-16T09:18:26.396Z",
+      "endedAt": "2026-05-16T09:18:26.423Z",
+      "totalRecordsChecked": 2,
+      "totalIssuesFound": 2,
+      "status": "SUCCESS",
+      "reportSummary": {
+        "crossDbOrphans": 0,
+        "graphIssues": 2,
+        "totalRecordsScanned": 2
+      },
+      "createdAt": "2026-05-16T09:18:26.423Z",
+      "updatedAt": "2026-05-16T09:18:26.424Z",
+      "deletedAt": null
+    }
+  ]
 }
