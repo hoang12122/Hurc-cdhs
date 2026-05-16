@@ -28,7 +28,7 @@ Tôi (AI) xin chính thức xác nhận và ghi nhận các lỗi sai nghiêm tr
 Dựa trên báo cáo QA ngày 2026-05-16, tôi đã thực hiện các bước sau:
 
 1. **Sửa lỗi `npm ci`:** Đã đồng bộ `package-lock.json` bằng cách cài đặt các package thiếu hụt (`@emnapi/core`, `@emnapi/runtime`).
-2. **Sửa lỗi `typecheck`:** 
+2. **Sửa lỗi `typecheck`:**
    - Đã cài đặt đầy đủ `@types/node`, `@types/react`, `@types/react-dom`.
    - Đã xử lý các lỗi logic export trong `AI Manager` và `ai.actions.ts`.
    - **Kết quả:** `npm run typecheck` hiện đã pass 100% tại local.
