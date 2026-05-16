@@ -22,8 +22,9 @@ export async function askAI(prompt: string, options: {
     userId?: string,
     image?: { data: string, mimeType: string },
     temperature?: number,
+    reflect?: boolean, // New: Enable Self-Reflection (Task 2.1 AI-Hardening)
 } = {}) {
-    const { model, systemPrompt, groundingContext, forceBackend, userId, image, temperature } = options;
+    const { model, systemPrompt, groundingContext, forceBackend, userId, image, temperature, reflect } = options;
 
     // Retrieve Long-term Memory (TencentDB Agent Memory Logic)
     let memoryContext = "";
@@ -75,7 +76,19 @@ export async function askAI(prompt: string, options: {
                 prompt: fullPrompt,
                 system: systemPrompt,
             });
-            return result.response.trim();
+            let finalResponse = result.response.trim();
+
+            // PHASE 3 - TASK 2.2: Self-Reflection Loop (AI-Hardening)
+            if (reflect) {
+                const reflectionPrompt = `Bạn vừa đưa ra câu trả lời sau:\n"${finalResponse}"\n\nHãy kiểm tra lại xem câu trả lời có chính xác, logic và đầy đủ dựa trên ngữ cảnh được cung cấp không. Nếu có lỗi, hãy sửa lại. Nếu đã tốt, hãy trả về nguyên văn câu trả lời.`;
+                const reflected = await tg.textCompletion({
+                    prompt: reflectionPrompt,
+                    system: "Bạn là một kiểm soát viên AI cẩn trọng (AI Auditor).",
+                });
+                finalResponse = reflected.response.trim();
+            }
+
+            return finalResponse;
         } catch (error) {
             console.warn("TrustGraph unavailable:", error instanceof Error ? error.message : error);
         }
