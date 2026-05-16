@@ -26,7 +26,7 @@ RUN npx prisma generate --schema=prisma/ops/schema.prisma
 
 ENV NEXT_TELEMETRY_DISABLED 1
 RUN npm run build
-RUN mkdir -p /app/logs
+RUN mkdir -p /app/logs /app/backups /app/audit_reports
 
 # PHASE 3: Zero-CVE Production Runner (Distroless)
 # Using gcr.io/distroless/nodejs22-debian12 (Debian-based distroless)
@@ -48,6 +48,8 @@ COPY --from=builder --chown=65532:65532 /app/.next/static ./.next/static
 COPY --from=builder --chown=65532:65532 /app/db.json ./db.json
 COPY --from=builder --chown=65532:65532 /app/db.backup.json ./db.backup.json
 COPY --from=builder --chown=65532:65532 /app/logs ./logs
+COPY --from=builder --chown=65532:65532 /app/backups ./backups
+COPY --from=builder --chown=65532:65532 /app/audit_reports ./audit_reports
 # Pre-create the directory structure for persistent offline data
 COPY --from=builder --chown=65532:65532 /app/data ./data
 COPY --chown=65532:65532 healthcheck.js ./healthcheck.js

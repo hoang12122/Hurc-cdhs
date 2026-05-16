@@ -23,6 +23,8 @@ services:
       - ./data/offline:/app/data/offline
       # Sync logs to a persistent volume
       - ./logs:/app/logs
+      - ./backups:/app/backups
+      - ./audit_reports:/app/audit_reports
     # Tự động khởi động lại container nếu nó dừng
     restart: unless-stopped
     depends_on:
@@ -41,10 +43,10 @@ services:
       - ./:/app_root
     command: >
       sh -c "
-        mkdir -p /app_root/data/offline /app_root/logs &&
-        touch /app_root/data/offline/db.json /app_root/data/offline/db.backup.json &&
-        chown -R 65532:65532 /app_root/data/offline /app_root/logs &&
-        chmod -R 755 /app_root/data/offline /app_root/logs
+        mkdir -p /app_root/data/offline /app_root/logs /app_root/backups /app_root/audit_reports &&
+        touch /app_root/data/offline/db.json &&
+        chown -R 65532:65532 /app_root/data/offline /app_root/logs /app_root/backups /app_root/audit_reports &&
+        chmod -R 755 /app_root/data/offline /app_root/logs /app_root/backups /app_root/audit_reports
       "
 
   # == DATABASE ==
