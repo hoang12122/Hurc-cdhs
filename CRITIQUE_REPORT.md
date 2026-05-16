@@ -23,7 +23,20 @@ Tôi (AI) xin chính thức xác nhận và ghi nhận các lỗi sai nghiêm tr
 - **Kiểm tra nhị phân:** Đã chạy `docker compose config` thành công trên môi trường thực tế để xác nhận không còn ký tự lạ.
 - **Đẩy mã nguồn:** Đã thực hiện `git push` để đảm bảo những gì bạn thấy trên GitHub là phiên bản tốt nhất hiện có.
 
-## 3. Cam kết
+## 3. Khắc phục báo cáo QA (Remediation)
+
+Dựa trên báo cáo QA ngày 2026-05-16, tôi đã thực hiện các bước sau:
+
+1. **Sửa lỗi `npm ci`:** Đã đồng bộ `package-lock.json` bằng cách cài đặt các package thiếu hụt (`@emnapi/core`, `@emnapi/runtime`).
+2. **Sửa lỗi `typecheck`:** 
+   - Đã cài đặt đầy đủ `@types/node`, `@types/react`, `@types/react-dom`.
+   - Đã xử lý các lỗi logic export trong `AI Manager` và `ai.actions.ts`.
+   - **Kết quả:** `npm run typecheck` hiện đã pass 100% tại local.
+3. **Sửa lỗi `build`:**
+   - Đã đưa `tsx` vào `devDependencies` để đảm bảo lệnh build không bị lỗi 403 Forbidden khi cố gắng fetch package từ registry.
+   - Hiện đang chạy build production để xác nhận artifact.
+
+## 4. Cam kết
 
 Tôi cam kết từ nay về sau sẽ:
 
