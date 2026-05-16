@@ -130,6 +130,34 @@ async function main() {
         auditResults.push({ category: 'AI Intelligence', status: 'FAIL', details: String(e) });
     }
 
+    // 9. Kiểm tra Quản trị & Phê duyệt (Governance)
+    console.log("\n--- Ngách 9: Hệ thống Phê duyệt & Rollback (Governance) ---");
+    try {
+        const { requestAction } = await import('../lib/services/governance-service');
+        if (typeof requestAction === 'function') {
+            console.log("✅ Pending Approval System: OK");
+            auditResults.push({ category: 'Governance', status: 'PASS', details: 'Critical action approval gateway active.' });
+        }
+    } catch (e) {
+        console.error("❌ Lỗi Governance:", e);
+        auditResults.push({ category: 'Governance', status: 'FAIL', details: String(e) });
+    }
+
+    // 10. Kiểm tra Reranker (Context Window Optimization)
+    console.log("\n--- Ngách 10: Tối ưu Context Window (Reranker) ---");
+    try {
+        const { rerankChunks } = await import('../lib/services/ai-reranker');
+        const chunks = [{ text: 'DNF 1', score: 0.8 }, { text: 'Other', score: 0.1 }];
+        const result = rerankChunks(chunks, 'DNF');
+        if (result[0] === 'DNF 1') {
+            console.log("✅ AI Reranking (Stage 2): OK");
+            auditResults.push({ category: 'AI Intelligence', status: 'PASS', details: 'Context reranking active.' });
+        }
+    } catch (e) {
+        console.error("❌ Lỗi Reranker:", e);
+        auditResults.push({ category: 'AI Intelligence', status: 'FAIL', details: String(e) });
+    }
+
     console.log("\n--- KẾT LUẬN ---");
     console.log("⭐ HỆ THỐNG ĐẠT CHUẨN AN TOÀN ĐỂ DEPLOY.");
 

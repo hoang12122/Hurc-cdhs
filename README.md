@@ -64,5 +64,9 @@ docker compose up -d --build
 
 Hệ thống được thiết kế theo chuẩn **Zero Trust** cho môi trường nội bộ. Mọi luồng dữ liệu đều được kiểm soát bởi gateway nội bộ, không có bất kỳ kết nối nào ra Cloud/Internet bên ngoài.
 
+## 📖 Tài liệu hướng dẫn đầy đủ (Full Documentation)
+
+Bạn có thể xem chi tiết về kiến trúc, tính năng và quy trình bảo trì tại: [FULL_DOCUMENTATION.md](file:///d:/Hurc1CRM-main/Hurc-cdhs/docs/FULL_DOCUMENTATION.md)
+
 **HURC1 AI Engineering Team**
 *Version: 2.1.0-IRONCLAD*

@@ -20,11 +20,17 @@ services:
     user: "65532:65532"
     volumes:
       # Mount the entire data/offline folder for persistence (Strict Hardening)
-      - ./data/offline:/app/data/offline
+      - ./data/offline:/app/data/offline:rw
       # Sync logs to a persistent volume
-      - ./logs:/app/logs
-      - ./backups:/app/backups
-      - ./audit_reports:/app/audit_reports
+      - ./logs:/app/logs:rw
+      - ./backups:/app/backups:rw
+      - ./audit_reports:/app/audit_reports:rw
+    read_only: true
+    tmpfs:
+      - /tmp
+      - /run
+    networks:
+      - backend-net
     # Tự động khởi động lại container nếu nó dừng
     restart: unless-stopped
     deploy:
@@ -183,3 +189,9 @@ services:
     #         - driver: nvidia
     #           count: all
     #           capabilities: [gpu]
+
+networks:
+  backend-net:
+    driver: bridge
+  frontend-net:
+    driver: bridge
