@@ -8,18 +8,22 @@ import { getInternalComments, createInternalComment } from '../services/ops-serv
 
 export async function getComments(entityId: string): Promise<Comment[]> {
   await requireAuth();
-  const comments = await getInternalComments(entityId);
+  const safeId = String(entityId);
+  const comments = await getInternalComments(safeId);
   return comments.map((c: any) => ({ ...c, timestamp: c.timestamp.toISOString() })) as unknown as Comment[];
 }
 
 export async function addComment(entityId: string, content: string): Promise<Comment> {
   const user = await requireAuth();
-  const record = await createInternalComment(entityId, user.id, user.name, content);
-  await logSystemEvent('ADD_COMMENT', 'INFO', `User ${user.name} added a comment to entity ${entityId}`);
+  const safeId = String(entityId);
+  const safeContent = String(content);
+  
+  const record = await createInternalComment(safeId, user.id, user.name, safeContent);
+  await logSystemEvent('ADD_COMMENT', 'INFO', `User ${user.name} added a comment to entity ${safeId}`);
   
   // Revalidate relevant paths
-  revalidatePath(`/dnf/${entityId}`);
-  revalidatePath(`/hazards/${entityId}`); 
+  revalidatePath(`/dnf/${safeId}`);
+  revalidatePath(`/hazards/${safeId}`); 
   
   return { ...record, timestamp: record.timestamp.toISOString() } as unknown as Comment;
 }

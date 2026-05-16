@@ -10,7 +10,16 @@ import { dbProvider } from './db-wrapper';
  */
 
 const SESSION_COOKIE_NAME = 'hurc_crm_session';
-const SESSION_SECRET = process.env.SESSION_SECRET || 'fallback-secret-for-dev-only';
+let SESSION_SECRET = process.env.SESSION_SECRET;
+
+if (!SESSION_SECRET) {
+    if (process.env.NODE_ENV === 'production') {
+        throw new Error("FATAL SECURITY ERROR: SESSION_SECRET is not set in production environment.");
+    } else {
+        console.warn("WARNING: Using insecure fallback SESSION_SECRET for development.");
+        SESSION_SECRET = 'fallback-secret-for-dev-only-v2';
+    }
+}
 
 function verifySession(signedData: string): string | null {
     const crypto = require('crypto');

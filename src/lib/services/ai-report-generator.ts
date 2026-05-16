@@ -35,17 +35,27 @@ export class AiReportService {
       4. Đánh giá độ tin cậy của AI (Confidence Score 0-1).
     `;
 
-    // 3. Giả lập gọi Gemma (Mocking AI response)
-    const aiContent = {
+    // 3. Gọi Gemma thật thông qua manager
+    let aiContent = {
       summary: `Thiết bị ${node?.label || targetId} đang ở mức rủi ro ${riskLevel}.`,
       analysis: `Dựa trên điểm số ${riskScore}, hệ thống phát hiện xu hướng hỏng hóc gia tăng.`,
       recommendations: [
-        'Kiểm tra định kỳ trong 24h tới.',
-        'Thay thế linh kiện dự phòng loại X.',
-        'Cập nhật nhật ký bảo trì.'
+        'Kiểm tra định kỳ trong 24h tới.'
       ],
-      confidence: 0.85
+      confidence: 0.5
     };
+    
+    try {
+      const { askAI } = await import('./ai/manager');
+      const response = await askAI(prompt, { 
+          systemPrompt: "Bạn là chuyên gia phân tích rủi ro. Chỉ trả về JSON hợp lệ với cấu trúc: {summary, analysis, recommendations: string[], confidence: number}. KHÔNG trả về markdown blocks, KHÔNG giải thích thêm.",
+          forceBackend: "gemini" 
+      });
+      const cleanJson = response.replace(/```json/g, "").replace(/```/g, "").trim();
+      aiContent = JSON.parse(cleanJson);
+    } catch (e) {
+      console.warn("[AI Report Generator] Failed to use Real AI, falling back to basic analysis:", e);
+    }
 
     // 4. Lưu báo cáo vào Database (Task 9.5)
     const report = await aiDbProvider.create<any>('AiRiskReport', {

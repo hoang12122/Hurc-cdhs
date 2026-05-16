@@ -177,31 +177,6 @@ services:
     expose:
       - "5005"
 
-  # == AI WORKER (FastAPI + YOLO) ==
-  ai-worker:
-    build:
-      context: ./ai-worker
-      dockerfile: Dockerfile
-    container_name: hurc_ai_worker
-    restart: unless-stopped
-    ports:
-      - "8000:8000"
-    environment:
-      - RABBITMQ_HOST=rabbitmq
-    depends_on:
-      - rabbitmq
-
-  # == QUEUE (RabbitMQ for AI Worker) ==
-  rabbitmq:
-    image: rabbitmq:3-management-alpine
-    container_name: hurc_rabbitmq
-    restart: unless-stopped
-    ports:
-      - "5672:5672"
-      - "15672:15672"
-    volumes:
-      - ./data/rabbitmq:/var/lib/rabbitmq
-
   # == AI AGENT (OLLAMA) ==
   ollama:
     image: ollama/ollama:latest

@@ -6,7 +6,16 @@ import { getSessionUser, checkPermission } from '../services/auth-service';
 import { verifyInternalCredentials } from '../services/user-service';
 
 const SESSION_COOKIE_NAME = 'hurc_crm_session';
-const SESSION_SECRET = process.env.SESSION_SECRET || 'fallback-secret-for-dev-only';
+let SESSION_SECRET = process.env.SESSION_SECRET;
+
+if (!SESSION_SECRET) {
+    if (process.env.NODE_ENV === 'production') {
+        throw new Error("FATAL SECURITY ERROR: SESSION_SECRET is not set in production environment.");
+    } else {
+        console.warn("WARNING: Using insecure fallback SESSION_SECRET for development.");
+        SESSION_SECRET = 'fallback-secret-for-dev-only-v2';
+    }
+}
 
 function sign(data: string): string {
     const crypto = require('crypto');
@@ -17,6 +26,8 @@ function sign(data: string): string {
 }
 
 import { internalLogSystemEvent } from '../services/log-service';
+import { checkRateLimit } from '../rate-limit';
+import { headers } from 'next/headers';
 
 /**
  * AUDIT LOGGING: Standardized security event logger
@@ -30,6 +41,15 @@ async function logSecurityEvent(userId: string, event: string, details?: string)
  * This is the ONLY entry point for authentication via Server Actions.
  */
 export async function login(email: string, password?: string, rememberMe: boolean = false): Promise<{ user?: User; error?: string }> {
+    const ip = headers().get('x-forwarded-for') || 'unknown';
+    const identifier = `${ip}-${email}`;
+    
+    // Anti Brute-Force & DDoS
+    if (!checkRateLimit(identifier, 5, 15 * 60 * 1000)) { // 5 requests per 15 minutes
+        console.warn(`[SECURITY] Rate limit exceeded for login: ${identifier}`);
+        return { error: "Bạn đã đăng nhập sai quá nhiều lần. Vui lòng thử lại sau 15 phút." };
+    }
+
     const result = await verifyInternalCredentials(email, password);
 
     if (result.error) {

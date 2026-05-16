@@ -13,13 +13,13 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "No file provided" }, { status: 400 });
     }
 
-    const aiWorkerUrl = process.env.AI_WORKER_URL || "http://localhost:8000";
+    const aiWorkerUrl = process.env.AI_WORKER_URL || "http://yolo-service:5005";
     
     // Proxy formData to AI Worker
     const proxyFormData = new FormData();
     proxyFormData.append("file", file);
 
-    const response = await fetch(`${aiWorkerUrl}/analyze`, {
+    const response = await fetch(`${aiWorkerUrl}/detect`, {
       method: "POST",
       body: proxyFormData,
       // Note: Do NOT set Content-Type header manually when sending FormData in fetch

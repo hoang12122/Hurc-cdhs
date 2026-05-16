@@ -449,6 +449,15 @@ export async function deleteInternalImprovement(id: string) {
     return { id };
 }
 
+export async function getInternalImprovementById(id: string) {
+    if (!IS_DATABASE_OFFLINE) {
+        try {
+            return await opsDb.improvement.findUnique({ where: { id } });
+        } catch (e) { /* fallback */ }
+    }
+    return await jsonDb.findFirst('improvements', (i: any) => i.id === id);
+}
+
 // --- AI KNOWLEDGE ---
 export async function getInternalKnowledge() {
     return await aiDbProvider.findMany<any>('AiKnowledgeSnippet');

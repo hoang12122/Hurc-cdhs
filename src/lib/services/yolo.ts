@@ -19,7 +19,7 @@ export interface YoloResponse {
  * Communicates with the 'yolo-service' Docker container to perform object detection.
  */
 export async function detectObjects(imageBuffer: Buffer): Promise<YoloResponse | null> {
-    const YOLO_SERVICE_URL = process.env.YOLO_SERVICE_URL || 'http://localhost:3002/detect';
+    const YOLO_SERVICE_URL = process.env.YOLO_SERVICE_URL || 'http://yolo-service:5005/detect';
 
     try {
         const formData = new FormData();
