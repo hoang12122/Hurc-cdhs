@@ -13,7 +13,6 @@ async function init() {
     
     if (isOffline) {
         console.log("📦 Mode: OFFLINE. Skipping Prisma migrations.");
-        // Ensure data directory and db.json exist
         const dbPath = process.env.DATABASE_JSON_PATH || '/app/data/offline/db.json';
         const dbDir = path.dirname(dbPath);
         
@@ -35,18 +34,15 @@ async function init() {
         for (const s of schemas) {
             console.log(`Migrating schema: ${s}...`);
             try {
-                // Running migrate deploy instead of dev to ensure zero-interaction production safety
                 execSync(`npx prisma migrate deploy --schema=prisma/${s}/schema.prisma`, { stdio: 'inherit' });
             } catch (e) {
                 console.error(`❌ Migration failed for ${s}. Check your DATABASE_URL.`);
-                // In production, we might want to exit(1) to prevent starting with broken schema
                 process.exit(1);
             }
         }
     }
 
     console.log("✅ Initialization complete. Handing over to Next.js...");
-    // Start the application
     execSync('node server.js', { stdio: 'inherit' });
 }
 

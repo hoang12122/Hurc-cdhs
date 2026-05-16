@@ -1,5 +1,4 @@
 services:
-  # == INFRASTRUCTURE ==
   postgres:
     image: postgres:16-alpine
     container_name: hurc_postgres
@@ -47,7 +46,6 @@ services:
     networks:
       - backend-net
 
-  # == CORE APPLICATION ==
   app:
     build:
       context: .
@@ -76,7 +74,6 @@ services:
       - backend-net
       - frontend-net
 
-  # == REVERSE PROXY ==
   nginx:
     image: nginx:alpine
     container_name: hurc_nginx
@@ -92,7 +89,6 @@ services:
     networks:
       - frontend-net
 
-  # == AI VISION (YOLOv8) ==
   yolo-service:
     build:
       context: ./infra/yolo
@@ -108,7 +104,6 @@ services:
     networks:
       - backend-net
 
-  # == AI AGENT (OLLAMA) ==
   ollama:
     image: ollama/ollama:latest
     container_name: hurc_ollama
@@ -125,7 +120,6 @@ services:
     networks:
       - backend-net
 
-  # == OLLAMA MODEL SEEDER ==
   ollama-pull-model:
     image: curlimages/curl:latest
     container_name: hurc_ollama_puller
@@ -137,7 +131,6 @@ services:
     command: >
       sh -c "curl -X POST http://ollama:11434/api/pull -d '{\"name\": \"gemma:2b\"}'"
 
-  # == MONITORING ==
   loki:
     image: grafana/loki:latest
     container_name: hurc_loki
