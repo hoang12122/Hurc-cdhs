@@ -40,21 +40,20 @@ export async function createBackup(sourcePath: string) {
 async function rotateBackups(originalFilename: string) {
     try {
         const files = await fs.readdir(BACKUP_DIR);
-        const backups = files
-            .filter(f => f.startsWith(originalFilename) && f.endsWith('.bak'))
+        // Remove older backups exceeding limit (Brutal Audit Fix: Clean any .bak)
+        const allBakFiles = files
+            .filter(f => f.endsWith('.bak'))
             .map(f => ({ name: f, path: path.join(BACKUP_DIR, f), time: 0 }));
             
-        for (const b of backups) {
+        for (const b of allBakFiles) {
             const stats = await fs.stat(b.path);
             b.time = stats.mtimeMs;
         }
         
-        // Sort by time descending
-        backups.sort((a, b) => b.time - a.time);
+        allBakFiles.sort((a, b) => b.time - a.time);
         
-        // Remove older backups exceeding limit
-        if (backups.length > MAX_BACKUPS) {
-            const toDelete = backups.slice(MAX_BACKUPS);
+        if (allBakFiles.length > MAX_BACKUPS) {
+            const toDelete = allBakFiles.slice(MAX_BACKUPS);
             for (const b of toDelete) {
                 await fs.unlink(b.path);
             }

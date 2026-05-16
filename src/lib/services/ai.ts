@@ -138,9 +138,15 @@ export async function askWithRAG(query: string, options: {
             const graphContext = graphRes.status === 'fulfilled' ? graphRes.value.response : "";
             const docContext = docRes.status === 'fulfilled' ? docRes.value.response : "";
 
-            if (graphContext && docContext) {
-                // Fused Retrieval
-                const fusedPrompt = `Sử dụng cả dữ liệu từ Đồ thị tri thức và Tài liệu sau để trả lời:\n\n[GRAPH DATA]\n${graphContext}\n\n[DOC DATA]\n${docContext}\n\nCâu hỏi: ${query}`;
+                if (!graphContext && !docContext) {
+                    return { 
+                        response: "Hệ thống không tìm thấy dữ liệu kỹ thuật cụ thể cho yêu cầu này. Vui lòng cung cấp thêm chi tiết hoặc kiểm tra mã DNF.", 
+                        intent: 'ensemble' as any, 
+                        source: 'hard-refusal' 
+                    };
+                }
+                
+                const fusedPrompt = `Sử dụng dữ liệu từ hai nguồn sau để trả lời. Lưu ý: Dữ liệu từ Đồ thị (KNOWLEDGE_GRAPH) có độ tin cậy cao hơn nếu có mâu thuẫn.\n\n[SOURCE: KNOWLEDGE_GRAPH]\n${graphContext}\n\n[SOURCE: TECHNICAL_DOCUMENT]\n${docContext}\n\nCâu hỏi: ${query}`;
                 const fusedResp = await askAI(fusedPrompt, { systemPrompt: options.systemPrompt });
                 
                 // PHASE 6 - AI-HARDENING: Self-Reflection Loop with Retry (Brutal Audit Fix)
@@ -161,8 +167,16 @@ export async function askWithRAG(query: string, options: {
                     reflectionCount++;
                 }
 
+                if (reflectionCount >= MAX_REFLECTION_RETRY) {
+                    console.error("❌ [AI-HARDENING] Max reflection retries reached. Triggering Safe-Mode Fallback.");
+                    return { 
+                        response: "Hệ thống phát hiện mâu thuẫn dữ liệu không thể tự giải quyết sau nhiều lần đối soát. Để đảm bảo an toàn, vui lòng kiểm tra trực tiếp hồ sơ máy móc hoặc liên hệ kỹ thuật viên trưởng.", 
+                        intent: 'ensemble' as any, 
+                        source: 'safe-fallback' 
+                    };
+                }
+
                 return { response: currentResponse, intent: 'ensemble' as any, source: 'trustgraph-ensemble' };
-            }
         } catch (e) {
             console.warn("Ensemble RAG failed, trying single path:", e);
         }

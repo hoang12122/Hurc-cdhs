@@ -1,9 +1,11 @@
 import { calculateStrategicScorecard } from '../lib/services/strategic-metrics';
 import { runShannonAudit } from '../lib/services/shannon-patcher';
-import { jsonDb } from '../lib/db/json-db';
+import { readRawDb, jsonDb } from '../lib/db/json-db';
 import { validateCollection } from '../lib/validations/db-schema';
 import { generateCertificate, AuditResult } from '../lib/services/audit-evidence';
 import path from 'path';
+import fs from 'fs/promises';
+import os from 'os';
 
 /**
  * HURC1 PRE-DEPLOYMENT AUDIT ENGINE v2.0
@@ -111,6 +113,57 @@ async function main() {
         auditResults.push({ category: 'Data Integrity', status: 'FAIL', details: String(e) });
     }
 
+    // 7.5 Đối soát Trùng lặp ID (Micro-Crack Fix)
+    console.log("\n--- Ngách 7.5: Kiểm tra Trùng lặp ID (Collision Check) ---");
+    try {
+        const rawDb = await readRawDb(true);
+        const allIds = new Set<string>();
+        let duplicates: string[] = [];
+
+        for (const col in rawDb) {
+            rawDb[col].forEach((item: any) => {
+                if (item.id) {
+                    if (allIds.has(item.id)) duplicates.push(`${col}:${item.id}`);
+                    allIds.add(item.id);
+                }
+            });
+        }
+
+        if (duplicates.length > 0) {
+            console.error(`⚠️ PHÁT HIỆN ID BỊ TRÙNG LẶP:`, duplicates);
+            auditResults.push({ category: 'Data Integrity', status: 'FAIL', details: `Found ${duplicates.length} duplicate IDs.` });
+        } else {
+            console.log("✅ Không phát hiện xung đột ID.");
+            auditResults.push({ category: 'Data Integrity', status: 'PASS', details: 'ID collisions verified: NONE' });
+        }
+    } catch (e) {
+        console.error("❌ Lỗi ID Check:", e);
+    }
+
+    // 7.6 Kiểm tra Tham chiếu (Referential Integrity)
+    console.log("\n--- Ngách 7.6: Kiểm tra Ràng buộc Tham chiếu (Integrity Check) ---");
+    try {
+        const rawDb = await readRawDb(true);
+        const userIds = new Set((rawDb.users || []).map((u: any) => u.id));
+        let orphans = 0;
+
+        (rawDb.dnfs || []).forEach((dnf: any) => {
+            if (dnf.reportedBy && !userIds.has(dnf.reportedBy)) {
+                // console.warn(`⚠️ DNF ${dnf.id} tham chiếu đến User không tồn tại: ${dnf.reportedBy}`);
+                orphans++;
+            }
+        });
+
+        if (orphans > 0) {
+            auditResults.push({ category: 'Data Integrity', status: 'WARNING', details: `Found ${orphans} orphaned references.` });
+        } else {
+            console.log("✅ Toàn bộ tham chiếu hợp lệ.");
+            auditResults.push({ category: 'Data Integrity', status: 'PASS', details: 'No orphaned records detected.' });
+        }
+    } catch (e) {
+        console.error("❌ Lỗi Integrity Check:", e);
+    }
+
     // 8. Kiểm tra AI Hardening (NEW)
     console.log("\n--- Ngách 8: Củng cố Trí tuệ nhân tạo (AI-Hardening) ---");
     try {
@@ -177,9 +230,23 @@ async function main() {
 
     // 12. Phân tích Log hồi quy (Forensic Log Analyzer)
     console.log("\n--- Ngách 12: Forensic Log Analyzer (Truy vết lỗi ngầm) ---");
+    console.log("🕵️ Running Log Forensic Analyzer...");
     try {
         const { scanLogsForErrors } = await import('../lib/utils/log-scanner');
         const errors = await scanLogsForErrors(path.join(process.cwd(), 'logs'));
+        
+        // 12.1 Log Manifest Check (Brutal Audit Fix: Tamper Detection)
+        const criticalLogs = ['system.log', 'audit.log', 'ai-performance.log'];
+        const logDir = path.join(process.cwd(), 'logs');
+        for (const logFile of criticalLogs) {
+            try {
+                await fs.access(path.join(logDir, logFile));
+            } catch {
+                console.warn(`⚠️ THIẾU FILE LOG QUAN TRỌNG: ${logFile}`);
+                auditResults.push({ category: 'Forensics', status: 'WARNING', details: `Missing log file: ${logFile}` });
+            }
+        }
+
         if (errors.length === 0) {
             console.log("✅ Không phát hiện lỗi nghiêm trọng trong log hiện tại.");
             auditResults.push({ category: 'Stability', status: 'PASS', details: 'No critical errors found in logs.' });
@@ -189,6 +256,21 @@ async function main() {
         }
     } catch (e) {
         console.error("❌ Lỗi Log Analyzer:", e);
+    }
+
+    // 12.2 Kiểm tra Áp lực Bộ nhớ (Memory Pressure Check)
+    console.log("\n--- Ngách 12.2: Kiểm tra Áp lực Bộ nhớ (RAM Guard) ---");
+    const totalMem = os.totalmem();
+    const freeMem = os.freemem();
+    const freePct = (freeMem / totalMem) * 100;
+    
+    console.log(`📊 RAM: ${Math.round(freeMem / 1024 / 1024)}MB free of ${Math.round(totalMem / 1024 / 1024)}MB (${Math.round(freePct)}%)`);
+    
+    if (freePct < 15) {
+        console.warn("⚠️ CẢNH BÁO: BỘ NHỚ CÒN LẠI QUÁ THẤP (<15%). Hệ thống có nguy cơ bị OOM Killer.");
+        auditResults.push({ category: 'Infrastructure', status: 'WARNING', details: `Low memory: ${Math.round(freePct)}% free.` });
+    } else {
+        auditResults.push({ category: 'Infrastructure', status: 'PASS', details: `Memory healthy: ${Math.round(freePct)}% free.` });
     }
 
     console.log("\n--- KẾT LUẬN ---");

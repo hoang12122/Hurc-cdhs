@@ -32,5 +32,10 @@ export function semanticChunking(text: string, maxChunkSize: number = 1000): str
     }
 
     if (currentChunk) chunks.push(currentChunk.trim());
-    return chunks;
+    
+    // Inject Metadata (Brutal Audit Fix: Prevent context drift)
+    const dateStr = new Date().toISOString().split('T')[0];
+    const metadataPrefix = `[DOC_META: Date=${dateStr}] `;
+    
+    return chunks.map(c => metadataPrefix + c);
 }

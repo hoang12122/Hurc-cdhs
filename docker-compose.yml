@@ -26,6 +26,12 @@ services:
       - ./backups:/app/backups:rw
       - ./audit_reports:/app/audit_reports:rw
     read_only: true
+    cap_drop:
+      - ALL
+    cap_add:
+      - NET_BIND_SERVICE
+    security_opt:
+      - no-new-privileges:true
     tmpfs:
       - /tmp:size=100M,noexec,nosuid,nodev
       - /run:size=1M,noexec,nosuid,nodev
@@ -73,6 +79,11 @@ services:
     image: postgres:15-alpine
     container_name: hurc_postgres
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
     environment:
       POSTGRES_USER: ${DATABASE_USER:-postgres}
       POSTGRES_PASSWORD: ${DATABASE_PASSWORD:-postgres}
@@ -87,6 +98,11 @@ services:
     image: mongo:7.0
     container_name: hurc_mongo
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 1G
     environment:
       MONGO_INITDB_ROOT_USERNAME: ${MONGO_USER:-hurc_mongouser}
       MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD:-hurc_mongopass}
@@ -100,6 +116,11 @@ services:
     image: redis:alpine
     container_name: hurc_redis
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '0.2'
+          memory: 256M
     ports:
       - "6379:6379"
     volumes:
@@ -154,7 +175,7 @@ services:
     ports:
       - "3001:3000"
     environment:
-      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:-admin}
       - GF_USERS_ALLOW_SIGN_UP=false
     volumes:
       - ./infra/grafana/provisioning:/etc/grafana/provisioning
@@ -177,9 +198,9 @@ services:
     image: ollama/ollama:latest
     container_name: hurc_ollama
     restart: unless-stopped
-    ports:
-      - "3002:11434" # Mapped to 3002 for direct CRM gateway access
-      - "11434:11434"
+    # EXPOSE instead of PORTS for internal security (Brutal Audit Fix)
+    expose:
+      - "11434"
     volumes:
       - ./data/ollama:/root/.ollama
     # Bỏ comment phần dưới nếu máy chủ có GPU NVIDIA để chạy Gemma-4 mượt mà

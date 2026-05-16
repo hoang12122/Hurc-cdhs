@@ -2,6 +2,9 @@ import fs from 'fs/promises';
 import path from 'path';
 import { IS_DATABASE_OFFLINE } from '../config/database-mode';
 import { createBackup } from '../services/backup-service';
+import { clearStaleLocks } from './lock-recovery';
+import { atomicWrite } from '../utils/atomic-write';
+import crypto from 'crypto';
 
 /**
  * PHASE 2 - TASK 2.1: JSON-DB Helper Layer
@@ -28,6 +31,9 @@ export async function readRawDb(forceRefresh: boolean = false): Promise<JsonDbDa
     return _dbSnapshot;
   }
 
+  // 0. Recover from stale locks (Brutal Audit Fix)
+  await clearStaleLocks(DB_PATH);
+
   try {
     // 1. Kiểm tra file có tồn tại và có quyền đọc không
     try {
@@ -41,6 +47,18 @@ export async function readRawDb(forceRefresh: boolean = false): Promise<JsonDbDa
     // 2. Đọc nội dung file
     const content = await fs.readFile(DB_PATH, 'utf-8');
     
+    // 2.5 Verify Checksum (Brutal Audit Fix: Bit Rot Detection)
+    try {
+        const expectedChecksum = await fs.readFile(`${DB_PATH}.sha256`, 'utf-8');
+        const actualChecksum = crypto.createHash('sha256').update(content).digest('hex');
+        if (expectedChecksum !== actualChecksum) {
+            console.error(`🚨 [CRITICAL] BIT ROT DETECTED IN ${DB_FILE_NAME}! Checksum mismatch.`);
+        }
+    } catch (e) {
+        // Checksum file missing, skip but warn
+        console.warn(`[JSON-DB] Checksum file missing for ${DB_FILE_NAME}.`);
+    }
+
     // 3. Parse JSON với kiểm tra định dạng
     try {
       const data = JSON.parse(content);
@@ -115,7 +133,7 @@ export async function writeJsonDb(data: JsonDbData): Promise<void> {
     }
 
     const content = JSON.stringify(data, null, 2);
-    await fs.writeFile(DB_PATH, content, 'utf-8');
+    await atomicWrite(DB_PATH, content);
     
     // 2.6 Update Snapshot (Task 2.3 DB-Hardening)
     _dbSnapshot = data;
