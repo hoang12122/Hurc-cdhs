@@ -3,6 +3,7 @@ import { runShannonAudit } from '../lib/services/shannon-patcher';
 import { jsonDb } from '../lib/db/json-db';
 import { validateCollection } from '../lib/validations/db-schema';
 import { generateCertificate, AuditResult } from '../lib/services/audit-evidence';
+import path from 'path';
 
 /**
  * HURC1 PRE-DEPLOYMENT AUDIT ENGINE v2.0
@@ -156,6 +157,38 @@ async function main() {
     } catch (e) {
         console.error("❌ Lỗi Reranker:", e);
         auditResults.push({ category: 'AI Intelligence', status: 'FAIL', details: String(e) });
+    }
+
+    // 11. Đối soát Biến môi trường (Environmental Guard)
+    console.log("\n--- Ngách 11: Environmental Guard (Đối soát .env) ---");
+    try {
+        const { validateEnvParity } = await import('./env-validator');
+        const missing = await validateEnvParity(process.cwd());
+        if (missing.length === 0) {
+            console.log("✅ Toàn bộ biến môi trường đã được cấu hình.");
+            auditResults.push({ category: 'Environment', status: 'PASS', details: 'All process.env keys present in .env' });
+        } else {
+            console.error("⚠️ THIẾU CẤU HÌNH BIẾN MÔI TRƯỜNG:", missing);
+            auditResults.push({ category: 'Environment', status: 'FAIL', details: `Missing keys: ${missing.join(', ')}` });
+        }
+    } catch (e) {
+        console.error("❌ Lỗi Env Guard:", e);
+    }
+
+    // 12. Phân tích Log hồi quy (Forensic Log Analyzer)
+    console.log("\n--- Ngách 12: Forensic Log Analyzer (Truy vết lỗi ngầm) ---");
+    try {
+        const { scanLogsForErrors } = await import('../lib/utils/log-scanner');
+        const errors = await scanLogsForErrors(path.join(process.cwd(), 'logs'));
+        if (errors.length === 0) {
+            console.log("✅ Không phát hiện lỗi nghiêm trọng trong log hiện tại.");
+            auditResults.push({ category: 'Stability', status: 'PASS', details: 'No critical errors found in logs.' });
+        } else {
+            console.warn(`⚠️ PHÁT HIỆN ${errors.length} LỖI TRONG LOG:`, errors.slice(0, 3));
+            auditResults.push({ category: 'Stability', status: 'FAIL', details: `Found ${errors.length} errors in system logs.` });
+        }
+    } catch (e) {
+        console.error("❌ Lỗi Log Analyzer:", e);
     }
 
     console.log("\n--- KẾT LUẬN ---");
