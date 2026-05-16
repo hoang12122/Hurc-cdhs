@@ -1,7 +1,9 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
-import { askAI, askWithRAG, agentChat, askPersonalized, askVisionAI, askHuggingFace, analyzeWithGraph, detectObjectsHF } from '@/lib/services/ai/manager';
+import { askAI, askWithRAG, agentChat, askPersonalized, analyzeWithGraph } from '@/lib/services/ai/manager';
+// @ts-ignore
+import { askVisionAI, askHuggingFace, detectObjectsHF } from '@/lib/services/ai/manager';
 import { DEFAULT_AI_MODEL } from '@/lib/constants';
 import { getGroundedContext, syncToTrustGraph, getRelatedEntities, semanticKnowledgeSearch } from '@/lib/services/ai/knowledge';
 import { internalLogSystemEvent as logSystemEvent } from '../services/log-service';
@@ -188,10 +190,11 @@ export async function analyzeSafetyImage(formData: FormData) {
         
         // --- STEP 1: VISUAL DETECTION (YOLO) ---
         // Try local YOLO service first, fallback to HuggingFace
-        const detections = await detectObjectsHF(buffer); 
+        const yoloResult = await detectObjectsHF(buffer); 
+        const detections = yoloResult?.detections || [];
         
         // --- STEP 2: REASONING (GEMMA 4 CO-INTELLIGENCE) ---
-        const detectionContext = (detections as any[]).map((d: any) => `${d.label} (confidence: ${Math.round(d.score * 100)}%)`).join(', ');
+        const detectionContext = detections.map((d: any) => `${d.label} (confidence: ${Math.round((d.score || d.confidence) * 100)}%)`).join(', ');
         
         const prompt = `Dựa trên kết quả thị giác máy tính (YOLOv8) phát hiện các đối tượng sau: [${detectionContext}]. 
         Hãy thực hiện một "Audit An toàn" kỹ thuật. Tóm tắt các phát hiện và đưa ra dự báo rủi ro cho khu vực thi công Metro. Trả lời bằng tiếng Việt.`;

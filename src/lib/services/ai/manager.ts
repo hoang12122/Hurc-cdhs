@@ -39,3 +39,19 @@ export async function detectObjects(imageBuffer: Buffer, options: any = {}) {
     const { detectObjects: baseDetect } = await import('../ai');
     return baseDetect(imageBuffer);
 }
+
+export async function askVisionAI(prompt: string, image: { data: string, mimeType: string }, options: any = {}) {
+    const { askVisionAI: baseVision } = await import('../ai');
+    return baseVision(prompt, image, options);
+}
+
+export async function askHuggingFace(prompt: string, options: any = {}) {
+    // Local-Only Fallback for HuggingFace requests
+    console.log(`[AI MANAGER] HuggingFace request detected. Routing to Local Expert...`);
+    return askAI(prompt, options);
+}
+
+export async function detectObjectsHF(imageBuffer: Buffer, options: any = {}) {
+    // Proxy HF detection to Local YOLO for better reliability in Local-Only mode
+    return detectObjects(imageBuffer, options);
+}
