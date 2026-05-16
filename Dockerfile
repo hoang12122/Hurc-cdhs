@@ -55,5 +55,6 @@ USER node
 EXPOSE 3000
 ENV PORT 3000
 
-# Use the initialization script to handle migrations and start the server
-CMD ["npx", "tsx", "src/scripts/container-init.ts"]
+    # Use the initialization script to handle migrations and start the server
+    # BRUTAL HARDENING: Increase Node memory limit to 3GB to match container quota
+    CMD ["node", "--max-old-space-size=3072", "-r", "tsx/register", "src/scripts/container-init.ts"]

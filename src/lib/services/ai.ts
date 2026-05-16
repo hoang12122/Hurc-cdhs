@@ -111,6 +111,19 @@ export async function askWithRAG(query: string, options: {
     }
     const tg = getTrustGraphClient();
     
+    // PHASE 0 - CONNECTION RESILIENCE (Startup Race Protection)
+    let retries = 3;
+    while (retries > 0) {
+        try {
+            if (await tg.isAvailable()) break;
+        } catch (e) {}
+        retries--;
+        if (retries > 0) {
+            console.warn(`⚠️ [AI-RESILIENCE] AI Service not ready, retrying... (${retries} left)`);
+            await new Promise(r => setTimeout(r, 2000));
+        }
+    }
+
     // 0. AI-driven Intent Classification (Hybrid)
     let intent: QueryIntent = options.forceIntent || 'text_completion';
     if (!options.forceIntent) {
