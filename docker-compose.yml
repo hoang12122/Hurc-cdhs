@@ -12,13 +12,15 @@ services:
     # ports:
     # This is commented out because nginx handles it
     #   - "3000:3000" 
+    environment:
+      - NODE_ENV=production
+      - DATABASE_JSON_PATH=/app/data/offline/db.json
     env_file:
       - .env
     volumes:
-      # Đồng bộ hóa tệp db.json và db.backup.json để dữ liệu không bị mất khi container khởi động lại
-      - ./db.json:/app/db.json
-      - ./db.backup.json:/app/db.backup.json
-      # Đồng bộ thư mục logs
+      # Mount the entire data/offline folder for persistence (Strict Hardening)
+      - ./data/offline:/app/data/offline
+      # Sync logs to a persistent volume
       - ./logs:/app/logs
     # Tự động khởi động lại container nếu nó dừng
     restart: unless-stopped
@@ -31,17 +33,17 @@ services:
         condition: service_started
 
   # == INIT PERMISSIONS ==
-  # Giải quyết lỗi "Permission Denied" trên Ubuntu khi mount file db.json (bắt buộc chạy 1 lần)
+  # Giải quyết lỗi "Permission Denied" và khởi tạo hạ tầng dữ liệu bền vững
   init-perms:
     image: alpine
     volumes:
       - ./:/app_root
     command: >
       sh -c "
-        touch /app_root/db.json /app_root/db.backup.json &&
-        mkdir -p /app_root/logs &&
-        chmod 666 /app_root/db.json /app_root/db.backup.json &&
-        chmod 777 /app_root/logs
+        mkdir -p /app_root/data/offline /app_root/logs &&
+        touch /app_root/data/offline/db.json /app_root/data/offline/db.backup.json &&
+        chmod -R 777 /app_root/data/offline &&
+        chmod -R 777 /app_root/logs
       "
   
   # == DATABASE ==

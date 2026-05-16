@@ -87,7 +87,7 @@ Dịch vụ nhận diện vật thể được đóng gói trong Container riên
 
 Hệ thống sử dụng tệp `src/lib/services/db-wrapper.ts` để điều phối truy vấn:
 
-- **`IS_DATABASE_OFFLINE=true`:** Sử dụng `JsonProvider`. Dữ liệu ghi vào `db.json`. Thích hợp cho thiết bị di động tại hiện trường không có sóng 4G.
+- **`IS_DATABASE_OFFLINE=true`:** Sử dụng `JsonProvider`. Dữ liệu ghi vào `data/offline/db.json` (Mount bền vững trong Docker). Thích hợp cho hiện trường không có sóng 4G.
 - **`IS_DATABASE_OFFLINE=false`:** Sử dụng `PrismaProvider`. Dữ liệu đồng bộ vào PostgreSQL.
 
 ---
@@ -157,8 +157,8 @@ Mọi thay đổi mã nguồn phải tuân thủ nghiêm ngặt **[ENGINEERING_H
 
 ---
 
-> [!CAUTION]
-> **Cảnh báo vận hành:** Khi chạy ở chế độ `OFFLINE` trong môi trường `PRODUCTION`, hãy đảm bảo file `db.json` được mount vào một Volume bền vững (Persistent Volume) để tránh mất dữ liệu khi container restart.
+> [!NOTE]
+> **Đảm bảo Dữ liệu:** Hệ thống đã được cấu hình tự động mount Volume bền vững (`data/offline`) trong `docker-compose.yml`. Dữ liệu Offline của bạn sẽ luôn được an toàn kể cả khi container bị restart hoặc update.
 
 ---
 *Tài liệu được cập nhật tự động bởi hệ thống Audit Hurc1CRM - 2026.*
