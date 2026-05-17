@@ -94,8 +94,8 @@ export async function askAI(prompt: string, options: {
         }
     }
 
-    // Fallback: Nếu mọi thứ thất bại, trả về lỗi thay vì gọi Cloud
-    throw new Error("Local AI (NemoClaw/TrustGraph) hiện không khả dụng. Chế độ Local-Only ngăn chặn gửi dữ liệu lên Cloud.");
+    // Chế độ dự phòng Core-Only (Không chạy dịch vụ AI): Trả về phản hồi thân thiện thay vì crash ứng dụng
+    return "Tính năng AI tạm thời không khả dụng do hệ thống đang chạy ở chế độ tối giản hạ tầng (Core-Only).";
 }
 
 // ============ RAG-POWERED QUERY ============
