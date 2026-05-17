@@ -81,12 +81,108 @@ bash scripts/smoke-test.sh
 
 ---
 
+## 📋 Cẩm nang Lệnh Chuẩn cho Đội ngũ Phát triển (Standard Team Commands)
+
+Dưới đây là chuỗi lệnh chuẩn đã được gia cố (Ironclad Guard). Đội ngũ phát triển và vận hành có thể copy-paste trực tiếp để thiết lập sạch, kiểm tra chất lượng mã nguồn, đóng gói và vận hành hệ thống cục bộ:
+
+### 1. Dọn dẹp và cài đặt sạch Dependencies
+
+*Loại bỏ hoàn toàn thư viện cũ bị xung đột và cài đặt chuẩn theo lockfile:*
+
+```bash
+# Windows (PowerShell)
+Remove-Item -Recurse -Force node_modules
+npm ci --include=dev
+
+# Linux/macOS
+rm -rf node_modules
+npm ci --include=dev
+```
+
+### 2. Đồng bộ Database Client
+
+*Tự động sinh Types cho cả 4 Prisma Schemas độc lập:*
+
+```bash
+npm run db:generate:all
+```
+
+### 3. Kiểm duyệt Chất lượng (Local Quality Gates)
+
+*Chạy chuỗi kiểm duyệt tĩnh bắt buộc trước khi commit/merge:*
+
+```bash
+# Kiểm tra kiểu dữ liệu TypeScript
+npm run typecheck
+
+# Kiểm tra phong cách viết code & quy tắc an toàn
+npm run lint
+
+# Biên dịch thử nghiệm Next.js tĩnh
+npm run build
+```
+
+### 4. Đóng gói và Khởi chạy Docker Container
+
+*Đóng gói độc lập dịch vụ `app` và khởi chạy cụm container cục bộ:*
+
+```bash
+# Đóng gói Docker Image cục bộ
+docker compose build app
+
+# Khởi chạy cụm container chế độ chạy ngầm
+docker compose up -d
+
+# Kiểm tra trạng thái hoạt động & Healthcheck của các container
+docker compose ps
+
+# Theo dõi trực tiếp logs của container app
+docker compose logs -f app
+```
+
+---
+
 ## 📋 Checklist Sẵn sàng Sản xuất (Production Readiness)
 
 - [ ] **Môi trường:** RAM tối thiểu 8GB (nếu dùng AI), 4GB (nếu chỉ Core).
 - [ ] **Bảo mật:** `.env` không còn chứa placeholder values cho các khóa bí mật.
 - [ ] **Dữ liệu:** Đã backup dữ liệu cũ trước khi chạy `prisma migrate`.
 - [ ] **Mạng:** Cổng 80 và 443 đã được mở và không bị chiếm dụng.
+
+---
+
+## 🚀 Quy trình Khởi động Xếp tầng (Layered Startup Guide)
+
+Để tối ưu hóa tài nguyên (RAM/CPU) và cô lập lỗi khởi động nhanh chóng, hệ thống hỗ trợ khởi chạy xếp tầng thông qua Docker Compose Profiles:
+
+### 🟢 Tầng 1: Khởi động dịch vụ cốt lõi (Core Stack)
+
+*Khởi chạy: Web App, PostgreSQL, MongoDB, Redis Cache, Nginx Gateway.*
+
+```powershell
+docker compose --profile core up -d
+```
+
+### 🔵 Tầng 2: Khởi động dịch vụ Trí tuệ Nhân tạo (AI Stack)
+
+*Khởi chạy thêm: YOLO-service và Ollama.*
+
+```powershell
+docker compose --profile core --profile ai up -d
+```
+
+*Lưu ý: Sau khi kích hoạt AI Stack, hãy chạy script tải model AI độc lập:*
+
+- Windows: `.\scripts\pull-local-ai.ps1`
+- Linux: `chmod +x scripts/pull-local-ai.sh && ./scripts/pull-local-ai.sh`
+
+### 🟣 Tầng 3: Khởi động hệ thống Giám sát (Observability Stack)
+
+*Khởi chạy thêm: Loki log aggregator và Grafana Dashboard.*
+
+```powershell
+docker compose --profile core --profile ai --profile obs up -d
+```
 
 ---
 

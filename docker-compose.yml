@@ -65,11 +65,6 @@ services:
         condition: service_started
       redis:
         condition: service_started
-      # AI services are now optional or soft dependencies
-      yolo-service:
-        condition: service_started
-      ollama:
-        condition: service_started
     volumes:
       - ./data:/app/data
       - ./logs:/app/logs

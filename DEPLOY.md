@@ -23,6 +23,23 @@ cp docker.env .env
 - `DATABASE_URL`: Chuỗi kết nối Postgres (nếu chạy Online).
 - `SESSION_SECRET`: Khóa bí mật cho phiên đăng nhập.
 
+## 2.5. Bảo vệ Nhánh & Khóa Deploy CI/CD (Quality Gate Guard)
+
+Để ngăn ngừa tuyệt đối việc đưa mã lỗi lên nhánh chính (`main`/`develop`), cấu hình bảo vệ nhánh (Branch Protection) phải được áp dụng trên GitHub:
+
+1. **Bật Rule Bảo vệ Nhánh:**
+   - Đi tới: `Settings` -> `Branches` -> `Add branch protection rule`.
+   - Chọn nhánh áp dụng: `main` hoặc `develop`.
+
+2. **Bắt buộc Kiểm tra Chất lượng trước khi Merge:**
+   - Tích chọn: `Require status checks to pass before merging`.
+   - Tìm kiếm và tích chọn check sau:
+     - `audit_and_build` (Đường ống Ironclad CI/CD kiểm tra 5 tầng).
+
+3. **Cơ chế Khóa Deploy Tự động (Fail-Fast Block):**
+   - Mọi tiến trình Deploy/Build Docker (`docker build`) trong file `.github/workflows/ironclad-pipeline.yml` đều nằm ở cuối job `audit_and_build`. 
+   - Nếu bất kỳ gate nào trong 5 cổng kiểm duyệt (`npm ci`, `db:generate:all`, `typecheck`, `lint`, `build`) báo đỏ, tiến trình chạy của GitHub Actions sẽ dừng lại lập tức, ngăn chặn hoàn toàn việc build hoặc đẩy image lỗi lên registry.
+
 ## 3. Các bước Triển khai
 
 ### Bước 1: Build và Khởi động
@@ -52,13 +69,35 @@ docker compose up -d --build
 
 *Mô hình mặc định được tải về bao gồm `gemma:2b` (siêu nhẹ cho RAG), `mistral` và `llama3:8b`.*
 
-### Bước 3: Kiểm tra Sức khỏe (Smoke Test)
+### Bước 3: Kiểm tra Sức khỏe & Nghiệm thu sau Deploy (Post-Deployment Verification)
 
-Sau khi deploy, chạy script kiểm tra để đảm bảo mọi ngách đều thông suốt:
+Sau khi deploy, để chắc chắn hệ thống không chỉ build thành công mà còn vận hành an toàn trên môi trường thực tế với đầy đủ các dịch vụ phụ trợ, hãy tiến hành các bước nghiệm thu sau:
 
-```bash
-bash scripts/smoke-test.sh
-```
+1. **Khởi động và Kiểm tra Trạng thái Dịch vụ (Healthcheck chain):**
+
+   ```bash
+   docker compose up -d
+   # Chờ khoảng 30-45 giây để các dịch vụ khởi động hoàn tất, sau đó kiểm tra:
+   docker compose ps
+   ```
+
+   *Đảm bảo tất cả các container (`postgres`, `mongo`, `redis`, `yolo-service`, `ollama`, `app`) đều hiển thị trạng thái `healthy` hoặc `running` và không bị restart đột ngột.*
+
+2. **Chạy Kịch bản Smoke Test Tự động:**
+
+   ```bash
+   bash scripts/smoke-test.sh
+   ```
+
+   *Script này sẽ gửi HTTP request đến Nginx/App, YOLO-service, Ollama API để đảm bảo luồng giao tiếp nội bộ thông suốt.*
+
+3. **Theo dõi Logs Vận hành 2-5 Phút Đầu:**
+
+   ```bash
+   docker compose logs -f --tail=100 app
+   ```
+
+   *Giúp phát hiện sớm các lỗi kết nối Database hoặc cảnh báo thiếu tài nguyên hệ thống (RAM/CPU).*
 
 ## 4. Quản trị và Sao lưu
 

@@ -12,16 +12,21 @@ if (Test-Path "artifacts") { Remove-Item -Recurse -Force "artifacts" }
 
 # 1.5. Ensure Dependencies are Installed (Resolves 'next: not found' & missing types)
 Write-Host "--- Verifying node_modules and dependencies ---" -ForegroundColor Yellow
-if (-not (Test-Path "node_modules")) {
-    Write-Host "node_modules missing. Restoring dependencies..." -ForegroundColor Cyan
-    npm ci --include=dev
-} else {
-    Write-Host "node_modules detected. Verifying typescript and next.js tools..." -ForegroundColor Gray
-    # Force run npm install if devDependencies types are missing but folder exists
-    if (-not (Test-Path "node_modules/typescript") -or -not (Test-Path "node_modules/.bin/next")) {
-        Write-Host "Critical tools or types missing. Performing repair install..." -ForegroundColor Cyan
+if (-not (Test-Path "node_modules") -or 
+    -not (Test-Path "node_modules/.bin/next") -or
+    -not (Test-Path "node_modules/.bin/tsc")) {
+    Write-Host "Critical tools, types, or binaries missing. Restoring dependencies..." -ForegroundColor Cyan
+    if (Test-Path "package-lock.json") {
+        npm ci --include=dev
+    } else {
         npm install --include=dev
     }
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "ERROR: Package installation failed with exit code $LASTEXITCODE. Aborting." -ForegroundColor Red
+        exit 1
+    }
+} else {
+    Write-Host "node_modules and essential build tools (.bin/next, .bin/tsc) are present and verified." -ForegroundColor Gray
 }
 
 # 2. Sync Database Schemas (Multi-schema support)

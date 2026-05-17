@@ -21,16 +21,21 @@ jobs:
           cache: 'npm'
 
       - name: 📦 Install Dependencies
-        run: npm install
+        run: npm ci --include=dev
 
       - name: ⚙️ Generate Prisma Clients
         run: npm run db:generate:all
 
+      - name: 🧪 Run Typecheck
+        run: npm run typecheck
+
       - name: 🔍 Run Linting
         run: npm run lint
 
-      - name: 🧪 Run Typecheck
-        run: npm run typecheck
+      - name: 🏗️ Verify Next.js Build
+        run: npm run build
+        env:
+          IS_DATABASE_OFFLINE: true
 
       - name: 🔍 Deep Logic Audit (Mission Critical)
         run: |
