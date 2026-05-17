@@ -92,10 +92,12 @@ Dưới đây là chuỗi lệnh chuẩn đã được gia cố (Ironclad Guard)
 ```bash
 # Windows (PowerShell)
 Remove-Item -Recurse -Force node_modules
+npm cache verify
 npm ci --include=dev
 
 # Linux/macOS
 rm -rf node_modules
+npm cache verify
 npm ci --include=dev
 ```
 
