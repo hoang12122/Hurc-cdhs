@@ -153,6 +153,25 @@ docker compose logs -f app
 
 ---
 
+## 🛡️ Phương án Dự phòng: Chạy Chế độ Cốt lõi (Core-Only Mode)
+
+Khi triển khai trên các máy chủ không có card đồ họa GPU, RAM hạn chế (<8GB) hoặc mạng bị cô lập không tải được mô hình AI, bạn có thể chuyển sang chế độ dự phòng **Core-Only**:
+
+1. **Khởi chạy độc lập:**
+   - Chỉ chạy profile `core` (bỏ qua profile `ai` và `obs`):
+
+     ```bash
+     docker compose --profile core up -d
+     ```
+
+   - Ứng dụng Next.js, Nginx, PostgreSQL, MongoDB và Redis sẽ khởi động và hoạt động trơn tru 100%. Các container YOLO và Ollama sẽ không được tạo ra, giúp tiết kiệm tài nguyên RAM/CPU tối đa.
+
+2. **Hoạt động an toàn (Graceful Fallback):**
+   - Ứng dụng được thiết kế liên kết lỏng (decoupled design). Nếu người dùng truy cập các tính năng AI (nhận dạng hình ảnh hoặc chatbot), hệ thống sẽ kiểm tra kết nối dịch vụ.
+   - Nếu dịch vụ AI không hoạt động, giao diện sẽ hiển thị thông báo thân thiện: *"Tính năng tạm thời không khả dụng do hệ thống đang chạy ở chế độ tối giản hạ tầng"* thay vì gây crash ứng dụng hay trả lỗi 500.
+
+---
+
 ## 🚀 Quy trình Khởi động Xếp tầng (Layered Startup Guide)
 
 Để tối ưu hóa tài nguyên (RAM/CPU) và cô lập lỗi khởi động nhanh chóng, hệ thống hỗ trợ khởi chạy xếp tầng thông qua Docker Compose Profiles:

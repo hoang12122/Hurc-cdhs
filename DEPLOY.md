@@ -37,8 +37,25 @@ cp docker.env .env
      - `audit_and_build` (Đường ống Ironclad CI/CD kiểm tra 5 tầng).
 
 3. **Cơ chế Khóa Deploy Tự động (Fail-Fast Block):**
-   - Mọi tiến trình Deploy/Build Docker (`docker build`) trong file `.github/workflows/ironclad-pipeline.yml` đều nằm ở cuối job `audit_and_build`. 
+   - Mọi tiến trình Deploy/Build Docker (`docker build`) trong file `.github/workflows/ironclad-pipeline.yml` đều nằm ở cuối job `audit_and_build`.
    - Nếu bất kỳ gate nào trong 5 cổng kiểm duyệt (`npm ci`, `db:generate:all`, `typecheck`, `lint`, `build`) báo đỏ, tiến trình chạy của GitHub Actions sẽ dừng lại lập tức, ngăn chặn hoàn toàn việc build hoặc đẩy image lỗi lên registry.
+
+## 2.6. Phương án Dự phòng: Chạy Chế độ Cốt lõi (Core-Only Mode) khi thiếu Hạ tầng
+
+Nếu hệ thống máy chủ deploy không có GPU, thiếu RAM (<8GB) hoặc mạng bị cô lập không thể tải mô hình AI, bạn có thể chuyển sang chế độ dự phòng **Core-Only (Không chạy dịch vụ AI)**:
+
+1. **Khởi chạy độc lập:**
+   - Chỉ kích hoạt profile `core` (không kích hoạt `ai`):
+
+     ```bash
+     docker compose --profile core up -d
+     ```
+
+   - Nginx, Web App, Postgres, Mongo và Redis sẽ hoạt động bình thường. `yolo-service` và `ollama` sẽ không được tạo ra hay chiếm dụng tài nguyên hệ thống.
+
+2. **Cơ chế hoạt động an toàn (Graceful Fallback):**
+   - Ứng dụng Next.js đã được cấu hình liên kết lỏng (decoupled network). Khi người dùng nhấp vào tính năng YOLO Vision hoặc Trợ lý AI, hệ thống sẽ kiểm tra kết nối mạng nội bộ.
+   - Nếu dịch vụ AI không phản hồi, giao diện người dùng sẽ hiển thị thông báo thân thiện: *"Tính năng tạm thời không khả dụng do hệ thống đang chạy ở chế độ tối giản hạ tầng"* thay vì gây crash ứng dụng hay trả về lỗi 500.
 
 ## 3. Các bước Triển khai
 
