@@ -23,6 +23,15 @@ jobs:
       - name: 📦 Install Dependencies
         run: npm install
 
+      - name: ⚙️ Generate Prisma Clients
+        run: npm run db:generate:all
+
+      - name: 🔍 Run Linting
+        run: npm run lint
+
+      - name: 🧪 Run Typecheck
+        run: npm run typecheck
+
       - name: 🔍 Deep Logic Audit (Mission Critical)
         run: |
           mkdir -p audit_reports

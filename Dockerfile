@@ -19,6 +19,7 @@ RUN npx prisma generate --schema=prisma/ai/schema.prisma
 RUN npx prisma generate --schema=prisma/auth/schema.prisma
 RUN npx prisma generate --schema=prisma/metro/schema.prisma
 RUN npx prisma generate --schema=prisma/ops/schema.prisma
+RUN npx tsc src/scripts/container-init.ts --esModuleInterop --skipLibCheck --outDir ./dist-init
 RUN npm run build
 
 FROM cgr.dev/chainguard/node:latest AS runner
@@ -26,8 +27,8 @@ WORKDIR /app
 ENV NODE_ENV production
 ENV NEXT_TELEMETRY_DISABLED 1
 USER root
-# Install runtime dependencies for the init script (prisma, tsx)
-RUN npm install -g prisma tsx
+# Install runtime dependencies for the init script (prisma)
+RUN npm install -g prisma
 RUN mkdir -p /app/data/offline /app/logs /app/backups /app/audit_reports && chown -R node:node /app
 
 USER node
@@ -36,10 +37,10 @@ COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
 # Explicitly copy files needed for initialization
 COPY --from=builder /app/prisma ./prisma
-COPY --from=builder /app/src/scripts/container-init.ts ./src/scripts/container-init.ts
+COPY --from=builder /app/dist-init ./dist-init
 COPY --from=builder /app/package.json ./package.json
 
 EXPOSE 3000
 ENV PORT 3000
-# Ensure tsx is available to run the init script
-CMD ["node", "--max-old-space-size=3072", "-r", "tsx/register", "src/scripts/container-init.ts"]
+# Run the compiled init script directly with Node
+CMD ["node", "--max-old-space-size=3072", "dist-init/container-init.js"]

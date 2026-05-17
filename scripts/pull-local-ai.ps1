@@ -10,13 +10,17 @@ if (-not $containerId) {
     exit 1
 }
 
-# 2. Tải mô hình Mistral (Mặc định, nhẹ)
+# 2. Tải mô hình Gemma 2B (Mô hình siêu nhẹ cho RAG/Phân tích nhanh)
+Write-Host "[>] Đang tải mô hình Gemma:2b (1.6GB)..." -ForegroundColor Yellow
+docker exec -it hurc_ollama ollama pull gemma:2b
+
+# 3. Tải mô hình Mistral (Mặc định, nhẹ)
 Write-Host "[>] Đang tải mô hình Mistral (4GB)..." -ForegroundColor Yellow
 docker exec -it hurc_ollama ollama pull mistral
 
-# 3. Tải mô hình Llama3 (Dành cho phân tích sâu)
+# 4. Tải mô hình Llama3 (Dành cho phân tích sâu)
 Write-Host "[>] Đang tải mô hình Llama3:8b (5GB)..." -ForegroundColor Yellow
 docker exec -it hurc_ollama ollama pull llama3:8b
 
 Write-Host "[V] HOÀN TẤT: Toàn bộ mô hình AI đã sẵn sàng cho chế độ Offline." -ForegroundColor Green
-Write-Host "[*] Gợi ý: Bạn có thể đổi mô hình trong tệp .env thông qua biến NEMOCLAW_MODEL." -ForegroundColor Cyan
+Write-Host "[*] Gợi ý: Bạn có thể đổi mô hình trong tệp .env thông qua biến LLM_ENDPOINT hoặc cấu hình cấu hình model." -ForegroundColor Cyan

@@ -60,11 +60,11 @@ services:
       - .env
     depends_on:
       postgres:
-        condition: service_healthy
+        condition: service_started
       mongo:
-        condition: service_healthy
+        condition: service_started
       redis:
-        condition: service_healthy
+        condition: service_started
       # AI services are now optional or soft dependencies
       yolo-service:
         condition: service_started
@@ -134,18 +134,6 @@ services:
       start_period: 120s
     networks:
       - backend-net
-
-  ollama-pull-model:
-    image: curlimages/curl:latest
-    container_name: hurc_ollama_puller
-    profiles: ["ai"]
-    depends_on:
-      ollama:
-        condition: service_healthy
-    networks:
-      - backend-net
-    command: >
-      sh -c "curl -X POST http://ollama:11434/api/pull -d '{\"name\": \"gemma:2b\"}'"
 
   loki:
     image: grafana/loki:latest

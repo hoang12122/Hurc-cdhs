@@ -111,8 +111,19 @@ docker compose --profile core up -d
 
 ### 3. AI Service không phản hồi
 
-- Kiểm tra Ollama: `docker exec -it hurc_ollama ollama list`
-- Nếu chưa có model: `docker compose run ollama-pull-model`
+- Kiểm tra danh sách model đã tải: `docker exec -it hurc_ollama ollama list`
+- Nếu thiếu model hoặc gặp lỗi timeout, hãy tự tải out-of-band:
+  - Windows: `.\scripts\pull-local-ai.ps1`
+  - Linux: `./scripts/pull-local-ai.sh`
+
+### 4. Quy trình Kiểm nghiệm Sức khỏe & Chẩn đoán nhanh (Healthcheck Guide)
+
+Nếu có service nào báo trạng thái **unhealthy** khi xem qua `docker compose ps`:
+
+1. **PostgreSQL/MongoDB:** Chạy `docker compose logs postgres` hoặc `docker compose logs mongo` để kiểm tra phân quyền volume hoặc lỗi khởi động.
+2. **YOLO-Service:** Chạy `curl -f http://localhost:5005/health` trên host. Nếu lỗi, restart bằng `docker compose restart yolo-service`.
+3. **App (Next.js Standalone):** Chạy `docker compose logs app` để kiểm tra các bước Migration Prisma của script `./dist-init/container-init.js`.
+4. Xem hướng dẫn vận hành và xử lý lỗi chi tiết cho từng trường hợp tại: [DEPLOY.md](file:///d:/Hurc1CRM-main/Hurc-cdhs/DEPLOY.md#5-cam-nang-xu-ly-su-co--kiem-tra-healthcheck-operational-runbook)
 
 ---
 

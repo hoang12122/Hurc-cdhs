@@ -3,8 +3,8 @@
  * Handles DB migrations and connectivity checks inside the container.
  */
 import { execSync } from 'child_process';
-import fs from 'fs';
-import path from 'path';
+import * as fs from 'fs';
+import * as path from 'path';
 
 async function init() {
     console.log("🚀 HURC1: Container Initialization started...");
