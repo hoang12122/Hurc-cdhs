@@ -1,0 +1,349 @@
+generator client {
+  provider      = "prisma-client-js"
+  output        = "../../.prisma-runtime/ai"
+  binaryTargets = ["native", "linux-musl", "debian-openssl-3.0.x", "windows"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("AI_DATABASE_URL")
+}
+
+model AiAgent {
+  id           String   @id @default(uuid())
+  name         String
+  subsystem    String // 'Signaling', 'Power', 'Track', etc.
+  systemPrompt String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([subsystem])
+  @@map("ai_agents")
+}
+
+model AiKnowledgeSnippet {
+  id        String   @id @default(uuid())
+  content   String
+  source    String // e.g., 'Manual', 'Email', 'LocalSend'
+  tags      String[] @default([])
+  createdAt DateTime @default(now())
+  agentId   String? // Optional: link to a specific agent
+
+  @@index([source])
+  @@index([agentId])
+  @@index([createdAt])
+  @@map("ai_knowledge_snippets")
+}
+
+// Conversation history for multi-turn AI chats
+model AiConversation {
+  id        String                  @id @default(uuid())
+  title     String?
+  userId    String
+  agentId   String?
+  state     Json? // TrustGraph agent state for continuity
+  mode      String                  @default("agent") // 'agent', 'document_rag', 'graph_rag'
+  createdAt DateTime                @default(now())
+  updatedAt DateTime                @updatedAt
+  messages  AiConversationMessage[]
+
+  @@index([userId])
+  @@index([agentId])
+  @@index([createdAt])
+  @@map("ai_conversations")
+}
+
+model AiConversationMessage {
+  id             String         @id @default(uuid())
+  conversationId String
+  conversation   AiConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  role           String // 'user' | 'assistant' | 'system'
+  content        String
+  source         String? // 'trustgraph-agent', 'trustgraph-graph-rag', 'gemini-fallback', etc.
+  metadata       Json? // intent, entities, sources referenced
+  createdAt      DateTime       @default(now())
+
+  @@index([conversationId])
+  @@index([createdAt])
+  @@map("ai_conversation_messages")
+}
+
+// Cached AI insights and predictions
+model AiInsight {
+  id        String    @id @default(uuid())
+  category  String // 'risk_prediction', 'trend_analysis', 'cross_reference', 'anomaly'
+  title     String
+  content   String
+  severity  String    @default("info") // 'info', 'warning', 'critical'
+  source    String // 'trustgraph', 'gemini', 'analysis'
+  metadata  Json? // related record IDs, confidence scores, etc.
+  expiresAt DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([category])
+  @@index([severity])
+  @@index([createdAt])
+  @@index([expiresAt])
+  @@map("ai_insights")
+}
+
+// TrustGraph sync tracking
+model AiSyncLog {
+  id            String   @id @default(uuid())
+  syncType      String // 'dnf', 'hazard', 'inspection', 'dnf,hazard,inspection'
+  recordsSynced Int      @default(0)
+  recordsFailed Int      @default(0)
+  status        String   @default("PENDING") // 'PENDING', 'SUCCESS', 'PARTIAL', 'FAILED'
+  errorMessage  String?
+  createdAt     DateTime @default(now())
+
+  @@index([status])
+  @@index([createdAt])
+  @@map("ai_sync_logs")
+}
+
+// AI Verification & Safety Audit Logs
+model AiVerificationLog {
+  id                String    @id @default(uuid())
+  targetId          String
+  targetType        String // 'DNF' | 'HAZARD' | 'INSPECTION' | 'ASSET' | 'STATION'
+  targetDisplayCode String? // e.g., 'DNF-2026-001'
+  targetVersion     Int?      @default(1)
+  sourceModule      String // 'YOLO' | 'GEMMA' | 'RAG' | 'VOICE' | 'PREDICTIVE' | 'GRAPH'
+  aiProposedContent Json
+  finalContent      Json?
+  status            String    @default("PROPOSED") // 'PROPOSED' | 'APPROVED' | 'REJECTED'
+  riskLevel         String    @default("LOW") // 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL'
+  requiredRole      String    @default("TECHNICIAN")
+  verifiedBy        String?
+  verifiedAt        DateTime?
+  modelVersion      String?
+  isOrphan          Boolean   @default(false)
+  createdAt         DateTime  @default(now())
+
+  @@index([targetType, targetId])
+  @@index([sourceModule])
+  @@index([status])
+  @@index([riskLevel])
+  @@map("ai_verification_logs")
+}
+
+model AiSafetyLog {
+  id          String   @id @default(uuid())
+  timestamp   DateTime @default(now())
+  eventId     String // Link to AiVerificationLog.id or AiRequestLog.id
+  userId      String
+  targetType  String? // Thêm để truy vấn nhanh không cần qua eventId
+  targetId    String?
+  action      String // 'PROPOSE' | 'APPROVE' | 'REJECT' | 'OVERRIDE'
+  riskLevel   String
+  details     String
+  isImmutable Boolean  @default(true) // Black Box policy indicator
+  isOrphan    Boolean  @default(false)
+
+  @@index([timestamp])
+  @@index([targetType, targetId])
+  @@index([riskLevel])
+  @@index([userId])
+  @@map("ai_safety_logs")
+}
+
+model AiRequestLog {
+  id               String   @id @default(uuid())
+  userId           String
+  targetType       String? // Context of request
+  targetId         String?
+  modelName        String
+  promptTokens     Int      @default(0)
+  completionTokens Int      @default(0)
+  latencyMs        Int      @default(0)
+  status           Int // HTTP status code
+  error            String?
+  isOrphan         Boolean  @default(false)
+  createdAt        DateTime @default(now())
+
+  @@index([userId])
+  @@index([targetType, targetId])
+  @@index([createdAt])
+  @@map("ai_request_logs")
+}
+
+// TrustGraph Nodes (Station, Asset, DNF, etc.)
+model TrustGraphNode {
+  id             String    @id @default(uuid())
+  sourceType     String // 'STATION' | 'SYSTEM' | 'ASSET' | 'DNF' | 'HAZARD' | 'DOCUMENT'
+  sourceId       String? // Original record ID (opsDb)
+  sourceVersion  Int?      @default(1)
+  label          String
+  metadata       Json? // Extended properties
+  riskScore      Float?    @default(0) @map("risk_score")
+  riskLevel      String?   @default("LOW") @map("risk_level")
+  lastRiskUpdate DateTime? @map("last_risk_update")
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+
+  @@unique([sourceType, sourceId]) // Chống tạo node trùng khi sync lại
+  @@index([sourceType])
+  @@index([sourceId])
+  @@map("graph_nodes")
+}
+
+// TrustGraph Edges (LOCATED_AT, BELONGS_TO, etc.)
+model TrustGraphEdge {
+  id           String   @id @default(uuid())
+  fromNodeId   String
+  toNodeId     String
+  relationType String // 'LOCATED_AT' | 'BELONGS_TO' | 'TRIGGERED_BY' | 'RESOLVED_BY'
+  sourceType   String? // Nguồn gốc tạo quan hệ (ví dụ: 'manual', 'ai_inference')
+  sourceId     String? // Link to audit record
+  confidence   Float    @default(1.0)
+  metadata     Json?
+  createdAt    DateTime @default(now())
+
+  @@unique([fromNodeId, toNodeId, relationType])
+  @@index([fromNodeId])
+  @@index([toNodeId])
+  @@index([relationType])
+  @@index([sourceType, sourceId])
+  @@map("graph_edges")
+}
+
+// Track sync status for each record (Task 4.4)
+model TrustGraphSyncLog {
+  id           String    @id @default(uuid())
+  sourceType   String    @map("source_type")
+  sourceId     String    @map("source_id")
+  status       String // 'PENDING' | 'SYNCING' | ...
+  retryCount   Int       @default(0) @map("retry_count")
+  lastError    String?   @map("last_error")
+  lastSyncedAt DateTime? @map("last_synced_at")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+
+  @@unique([sourceType, sourceId])
+  @@index([status])
+  @@map("graph_sync_logs")
+}
+
+// Cross-DB Consistency Check Log (Task 6.6 & 6.9)
+model AuditConsistencyCheckLog {
+  id           String    @id @default(uuid())
+  checkType    String    @map("check_type")
+  targetType   String    @map("target_type")
+  targetId     String    @map("target_id")
+  issueDetails String    @map("issue_details")
+  severity     String    @default("WARNING") // 'INFO' | 'WARNING' | 'ERROR' | 'CRITICAL'
+  status       String    @default("detected") // 'detected' | 'reviewing' | 'fixed' | 'ignored'
+  jobId        String?   @map("job_id") // Link to IntegrityJobLog
+  handlerId    String?   @map("handler_id") // Person who handled manually
+  handledAt    DateTime? @map("handled_at")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+
+  @@index([checkType])
+  @@index([targetType, targetId])
+  @@index([status])
+  @@map("audit_consistency_check_logs")
+}
+
+// TrustGraph Consistency Check Log (Task 6.7 & 6.9)
+model GraphConsistencyLog {
+  id              String    @id @default(uuid())
+  nodeOrEdgeId    String?   @map("node_or_edge_id")
+  sourceType      String    @map("source_type")
+  sourceId        String    @map("source_id")
+  issueType       String    @map("issue_type") // 'ORPHAN' | 'MISSING_NODE' | ...
+  expectedVersion Int?      @map("expected_version")
+  actualVersion   Int?      @map("actual_version")
+  details         String?
+  status          String    @default("detected") // 'detected' | ...
+  jobId           String?   @map("job_id")
+  handlerId       String?   @map("handler_id")
+  handledAt       DateTime? @map("handled_at")
+  createdAt       DateTime  @default(now()) @map("created_at")
+
+  @@index([sourceType, sourceId])
+  @@index([issueType])
+  @@index([status])
+  @@map("graph_consistency_logs")
+}
+
+// Summary log for each run (Task 6.9)
+model IntegrityJobLog {
+  id                  String   @id @default(uuid())
+  jobType             String   @map("job_type") // 'FULL_CHECK' | 'PARTIAL_CHECK'
+  startedAt           DateTime @map("started_at")
+  endedAt             DateTime @map("ended_at")
+  totalRecordsChecked Int      @map("total_records_checked")
+  totalIssuesFound    Int      @map("total_issues_found")
+  status              String // 'SUCCESS' | 'FAILED' | 'PARTIAL'
+  reportSummary       Json?    @map("report_summary") // Summary data
+
+  @@map("integrity_job_logs")
+}
+
+// Automated AI Risk Reports (Task 9.5)
+model AiRiskReport {
+  id            String   @id @default(uuid())
+  reportType    String   @map("report_type") // 'EQUIPMENT' | 'STATION' | 'CLUSTER'
+  targetId      String   @map("target_id")
+  title         String
+  content       Json // Structured content (Summary, Analysis, Recommendations)
+  confidence    Float    @default(0.0)
+  status        String   @default("AI_DRAFT") // 'AI_DRAFT' | 'UNDER_REVIEW' | 'APPROVED' | 'REJECTED'
+  reviewedBy    String?  @map("reviewed_by")
+  aiModel       String   @map("ai_model")
+  promptVersion String   @map("prompt_version")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  @@index([reportType, targetId])
+  @@index([status])
+  @@map("ai_risk_reports")
+}
+
+// Audit trail for AI Report edits (Task 9.7)
+model AiReportAudit {
+  id              String   @id @default(uuid())
+  reportId        String   @map("report_id")
+  reviewerId      String   @map("reviewer_id")
+  action          String // 'EDIT' | 'APPROVE' | 'REJECT'
+  previousContent Json?    @map("previous_content")
+  newContent      Json?    @map("new_content")
+  comment         String?
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  @@index([reportId])
+  @@map("ai_report_audits")
+}
+
+// Predictive Maintenance Alerts (Task 9.10)
+model PredictiveAlert {
+  id             String   @id @default(uuid())
+  targetId       String   @map("target_id")
+  probability    Float
+  recommendation String
+  reasoning      Json? // Why AI thinks it will fail
+  status         String   @default("NEW") // 'NEW' | 'CONFIRMED' | 'IGNORED'
+  reviewedBy     String?  @map("reviewed_by")
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  @@index([targetId])
+  @@index([status])
+  @@map("predictive_alerts")
+}
+
+// History of Risk Score changes for Trend Analysis (Task 9.1)
+model RiskScoreHistory {
+  id        String   @id @default(uuid())
+  nodeId    String   @map("node_id")
+  score     Float
+  level     String
+  factors   Json? // Reason for this score
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([nodeId])
+  @@index([createdAt])
+  @@map("risk_score_history")
+}
