@@ -58,6 +58,82 @@ Hệ thống được thiết kế nhắm vào hai đối tượng sử dụng c
 - **Hazard Map (Bản Đồ Rủi Ro):** Hiển thị trực quan nhà ga nào, trạm nào đang có nhiều lỗi nhất và mức độ khẩn cấp (Đỏ - Nghiêm trọng, Vàng - Cảnh báo, Xanh - An toàn).
 - **Strategic Scorecard (Bảng Điểm Chiến Lược):** Đánh giá hiệu suất làm việc của các đội bảo trì xem họ có sửa chữa đúng tiến độ hay không.
 
+#### 📊 Công thức tính toán các chỉ số tối cao cho CEO
+
+Để đảm bảo các con số hiển thị trên Dashboard của CEO hoàn toàn chính xác và mang ý nghĩa thực tế, hệ thống chạy một công cụ tính toán tự động dựa trên các công thức toán học có trọng số như sau:
+
+##### A. Điểm Sức Khỏe Metro (Health Score)
+
+Điểm Sức Khỏe Metro là một chỉ số tổng hợp phản ánh toàn diện ba khía cạnh sống còn của hệ thống đường sắt đô thị: Khả năng giải quyết sự cố phát sinh, Năng lực phòng ngừa nguy hiểm, và Tính ổn định của đội ngũ nhân sự vận hành.
+
+Công thức tính toán có trọng số:
+
+$$\text{Health Score} = (\text{Tỉ lệ Phục hồi Dịch vụ} \times 40\%) + (\text{Tỉ lệ Xử lý Mối nguy} \times 40\%) + (\text{Tỉ lệ Giữ chân Nhân sự} \times 20\%)$$
+
+Giải thích chi tiết từng cấu phần trong công thức:
+
+###### 1. Tỉ lệ Phục hồi Dịch vụ (Service Recovery Rate - Trọng số 40%)
+
+*Ý nghĩa:* Đánh giá tốc độ và hiệu quả của việc khắc phục sự cố kỹ thuật (DNF) phát sinh trên tuyến Metro.
+
+*Công thức tính toán:*
+
+$$\text{Tỉ lệ Phục hồi Dịch vụ} = \left( \frac{\text{Số sự cố DNF đã giải quyết}}{\text{Tổng số sự cố DNF phát sinh}} \right) \times 100$$
+
+*Lưu ý kỹ thuật:* Các sự cố DNF được coi là "đã giải quyết" khi trạng thái của chúng là **"Đóng"** hoặc **"Hoàn thành"**. Nếu hệ thống hoàn toàn không có sự cố nào phát sinh, tỉ lệ này mặc định đạt tối đa **100%**.
+
+###### 2. Tỉ lệ Xử lý Mối nguy (Hazard Mitigation Rate - Trọng số 40%)
+
+*Ý nghĩa:* Đánh giá khả năng chủ động phòng ngừa tai nạn trước khi nó xảy ra bằng việc xử lý các mối nguy hiểm tiềm ẩn (Hazards) được ghi nhận trong ga/ray.
+
+*Công thức tính toán:*
+
+$$\text{Tỉ lệ Xử lý Mối nguy} = \left( \frac{\text{Số mối nguy đã đóng}}{\text{Tổng số mối nguy ghi nhận}} \right) \times 100$$
+
+*Lưu ý kỹ thuật:* Các mối nguy hiểm được tính là đã đóng khi có trạng thái là **"Đóng"**, **"Đã xử lý"** hoặc **"Phản hồi"**. Nếu không có mối nguy nào được ghi nhận, tỉ lệ này mặc định đạt **100%**.
+
+###### 3. Tỉ lệ Giữ chân Nhân sự (Retention Rate - Trọng số 20%)
+
+*Ý nghĩa:* Đảm bảo hệ thống luôn có đủ nguồn lực nhân sự ổn định để vận hành và ứng cứu kịp thời.
+
+*Công thức tính toán:*
+
+$$\text{Tỉ lệ Giữ chân Nhân sự} = \left( \frac{\text{Số nhân sự đang hoạt động}}{\text{Tổng số nhân sự đăng ký trên hệ thống}} \right) \times 100$$
+
+*Lưu ý kỹ thuật:* Nhân sự đang hoạt động là các tài khoản ở trạng thái **"active"**.
+
+*Ví dụ thực tế:* Nếu hệ thống ghi nhận Tỉ lệ Phục hồi Dịch vụ đạt 90%, Tỉ lệ Xử lý Mối nguy đạt 80% và Tỉ lệ Giữ chân Nhân sự đạt 95%, Điểm Sức Khỏe Metro sẽ là:
+
+$$(90 \times 0.4) + (80 \times 0.4) + (95 \times 0.2) = 36 + 32 + 19 = 87 \text{ điểm (Trạng thái: AN TOÀN)}$$
+
+##### B. Bảng Điểm Chiến Lược (Strategic Scorecard)
+
+Bảng Điểm Chiến Lược của CEO phân loại tất cả các chỉ số vận hành thành 4 trụ cột chiến lược cốt lõi để đưa ra những phân tích sâu sắc nhất:
+
+###### 1. Trụ cột Hoạt động (Operations)
+
+- *Chỉ số Năng suất (Productivity Index):* Đo lường hiệu quả giải quyết sự cố trên tổng số lượng hoạt động tác nghiệp thực tế.
+  $$\text{Chỉ số Năng suất} = \left( \frac{\text{Số sự cố DNF đã giải quyết}}{\text{Tổng số Tác vụ}} \right) \times 100$$
+  Trong đó, *Tổng số Tác vụ* là tổng hợp của: *Số sự cố DNF* + *Số lượt kiểm tra hiện trường (Inspections)* + *Số hành động khắc phục lỗi (Corrective Actions)*.
+- *Tỉ lệ Khai thác Thiết bị (Utilization Rate):* Thời gian hoạt động thực tế của thiết bị so với tổng thời gian vận hành (hiện tại đo lường ở mức **85.5%** phục vụ kết nối dữ liệu viễn thông telemetry).
+- *Tỉ lệ Chi phí (Cost Ratio):* So sánh giữa Chi phí thực tế bỏ ra so với Chi phí dự toán ngân sách đầu tư (đạt tỉ lệ vàng **0.92**, tức là tiết kiệm được 8% ngân sách).
+
+###### 2. Trụ cột Nguồn Nhân lực (Human Capital)
+
+- *Tỉ lệ Giữ chân (Retention Rate):* Tỉ lệ kỹ sư hoạt động tích cực (như tính toán ở phần trên).
+- *Năng suất Lao động (Labor Productivity):* Số lượng tác vụ trung bình mà một kỹ sư tích cực giải quyết được.
+  $$\text{Năng suất Lao động} = \frac{\text{Tổng số Tác vụ}}{\text{Số nhân sự đang hoạt động}}$$
+
+###### 3. Trụ cột Chất lượng (Quality)
+
+- *Tỉ lệ Phục hồi Dịch vụ (Service Recovery Rate):* Tỉ lệ giải quyết nhanh chóng các sự cố phát sinh.
+- *Điểm Sức Khỏe Metro (Health Score):* Chỉ số tổng hợp có trọng số 3 chiều (Safety/Uptime/HR).
+
+###### 4. Trụ cột An toàn (Safety)
+
+- *Tỉ lệ Giảm thiểu Mối nguy (Hazard Mitigation Rate):* Khả năng chủ động bịt các lỗ hổng an toàn trước khi xảy ra sự cố.
+- *Rủi ro Lỗi Nghiêm trọng (Critical Failure Risk):* Chỉ số rủi ro dự đoán sự cố mang tính thảm họa. Chỉ số này sẽ nhảy vọt lên **80% (0.8)** nếu hệ thống phát hiện có bất kỳ mối nguy hiểm nào thuộc nhóm cực kỳ nghiêm trọng (Mức độ Severity cấp **I**). Nếu không có mối nguy nghiêm trọng nào, chỉ số rủi ro sẽ giữ ở mức an toàn tối đa là **20% (0.2)**.
+
 ### 2.2. Metro Inspect Pro (Ứng dụng Kiểm tra Hiện trường)
 
 Dành cho các kỹ sư đi tuần tra đường ray và nhà ga:
