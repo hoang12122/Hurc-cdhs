@@ -41,7 +41,31 @@ Dự án này đã chuyển đổi hệ thống HURC1 CRM từ một ứng dụn
 
 Hệ thống hỗ trợ triển khai theo tầng (Tiered Deployment) để tối ưu hóa tỷ lệ thành công và giảm rủi ro startup.
 
-### Bước 1: Kiểm tra Preflight (Bắt buộc)
+### Bước 1: Khởi tạo tệp Môi trường `.env` (Environment Initialization)
+
+Trước khi chạy bất kỳ bước kiểm tra hay khởi chạy nào, bạn cần khởi tạo tệp `.env` từ tệp `.env.example`. Hãy chọn và sao chép lệnh tương ứng với hệ điều hành và shell của bạn:
+
+- **Windows (PowerShell):**
+
+  ```powershell
+  Copy-Item .env.example .env
+  ```
+
+- **Windows (Command Prompt - CMD):**
+
+  ```cmd
+  copy .env.example .env
+  ```
+
+- **Linux / macOS (Bash / Zsh):**
+
+  ```bash
+  cp .env.example .env
+  ```
+
+*Sau khi tạo tệp `.env`, bạn có thể mở ra để tùy biến cấu hình phù hợp với môi trường triển khai thực tế.*
+
+### Bước 2: Kiểm tra Preflight (Bắt buộc)
 
 Trước khi deploy, hãy chạy script kiểm tra môi trường:
 
@@ -49,7 +73,7 @@ Trước khi deploy, hãy chạy script kiểm tra môi trường:
 bash scripts/preflight.sh
 ```
 
-### Bước 2: Triển khai theo tầng (Tiered Deployment)
+### Bước 3: Triển khai theo tầng (Tiered Deployment)
 
 Sử dụng Docker Compose Profiles để kích hoạt các khối chức năng theo thứ tự:
 
@@ -71,7 +95,7 @@ Sử dụng Docker Compose Profiles để kích hoạt các khối chức năng 
    docker compose --profile obs up -d
    ```
 
-### Bước 3: Smoke Test & Nghiệm thu
+### Bước 4: Smoke Test & Nghiệm thu
 
 Chạy script tự động để xác nhận hệ thống đã lên đủ các endpoint quan trọng:
 
