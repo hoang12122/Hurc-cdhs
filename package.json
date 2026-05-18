@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "preinstall": "node scripts/guard-install.js",
     "dev": "npx tsx src/scripts/local-preflight.ts && next dev",
     "build": "npx tsx src/scripts/build-env-guard.ts && npm run db:generate:all && next build",
     "db:generate:all": "npx prisma generate --schema=prisma/auth/schema.prisma && npx prisma generate --schema=prisma/ai/schema.prisma && npx prisma generate --schema=prisma/metro/schema.prisma && npx prisma generate --schema=prisma/ops/schema.prisma",
@@ -91,5 +92,9 @@
     "tailwindcss": "^3.4.7",
     "tsx": "^4.22.0",
     "typescript": "^5.9.3"
+  },
+  "engines": {
+    "node": "20.12.2",
+    "npm": ">=10 <11"
   }
 }

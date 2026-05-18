@@ -16,11 +16,7 @@ if (-not (Test-Path "node_modules") -or
     -not (Test-Path "node_modules/.bin/next") -or
     -not (Test-Path "node_modules/.bin/tsc")) {
     Write-Host "Critical tools, types, or binaries missing. Restoring dependencies..." -ForegroundColor Cyan
-    if (Test-Path "package-lock.json") {
-        npm ci --include=dev
-    } else {
-        npm install --include=dev
-    }
+    npm ci --include=dev
     if ($LASTEXITCODE -ne 0) {
         Write-Host "ERROR: Package installation failed with exit code $LASTEXITCODE. Aborting." -ForegroundColor Red
         exit 1

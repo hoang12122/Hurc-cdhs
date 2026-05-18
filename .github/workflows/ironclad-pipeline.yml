@@ -17,8 +17,29 @@ jobs:
       - name: 🟢 Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version-file: '.nvmrc'
           cache: 'npm'
+
+      - name: 🟢 Verify Node.js and npm versions (Strict Invariant Check)
+        run: |
+          EXPECTED_NODE="v20.12.2"
+          ACTUAL_NODE=$(node -v)
+          echo "Expected Node version: $EXPECTED_NODE"
+          echo "Actual Node version: $ACTUAL_NODE"
+          if [ "$ACTUAL_NODE" != "$EXPECTED_NODE" ]; then
+            echo "❌ Node.js version mismatch!"
+            exit 1
+          fi
+          
+          ACTUAL_NPM=$(npm -v)
+          echo "Actual npm version: $ACTUAL_NPM"
+          NPM_MAJOR=$(echo "$ACTUAL_NPM" | cut -d. -f1)
+          echo "Actual npm major version: $NPM_MAJOR"
+          if [ "$NPM_MAJOR" != "10" ]; then
+            echo "❌ npm version is not in range >=10 <11 (Major version must be 10)!"
+            exit 1
+          fi
+          echo "✅ Node.js and npm versions verified successfully!"
 
       - name: 📦 Install Dependencies
         run: npm ci --include=dev

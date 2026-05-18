@@ -130,6 +130,21 @@ services:
     networks:
       - backend-net
 
+  ollama-pull-model:
+    image: ollama/ollama:latest
+    container_name: hurc_ollama_pull
+    profiles: ["ai"]
+    depends_on:
+      ollama:
+        condition: service_healthy
+    volumes:
+      - ./data/ollama:/root/.ollama
+    entrypoint: /bin/sh
+    command: -c "ollama pull gemma:2b"
+    networks:
+      - backend-net
+
+
   loki:
     image: grafana/loki:latest
     container_name: hurc_loki
