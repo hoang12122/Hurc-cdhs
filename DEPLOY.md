@@ -103,7 +103,8 @@ Sau khi deploy, để chắc chắn hệ thống không chỉ build thành công
 2. **Chạy Kịch bản Smoke Test Tự động:**
 
    ```bash
-   bash scripts/smoke-test.sh
+   # Chạy smoke test toàn diện (all) hoặc chỉ phân hệ core (core)
+   bash scripts/smoke-deploy.sh all
    ```
 
    *Script này sẽ gửi HTTP request đến Nginx/App, YOLO-service, Ollama API để đảm bảo luồng giao tiếp nội bộ thông suốt.*

@@ -73,35 +73,39 @@ Trước khi deploy, hãy chạy script kiểm tra môi trường:
 bash scripts/preflight.sh
 ```
 
-### Bước 3: Triển khai theo tầng (Tiered Deployment)
+### Bước 3: Triển khai theo tầng & Kiểm nghiệm Sức bền (Tiered Deployment & Smoke Loop)
 
-Sử dụng Docker Compose Profiles để kích hoạt các khối chức năng theo thứ tự:
+Để đảm bảo độ tin cậy tuyệt đối, hệ thống phải được kích hoạt theo tầng (Core Services lên trước và pass kiểm tra, sau đó mới kích hoạt AI Services):
 
-1. **Khối Core (Cơ bản):** DB, App, Nginx
+1. **Khởi động Phân hệ Core (Cơ bản):** Máy chủ Database (Postgres, Mongo), Cache (Redis), App Next.js và Nginx Reverse Proxy:
 
    ```bash
    docker compose --profile core up -d --build
    ```
 
-2. **Khối AI (Nâng cao):** Yolo, Ollama
+2. **Kiểm nghiệm Sức bền Phân hệ Core:** Chốt chặn Smoke Test đảm bảo lõi hệ thống đã hoạt động trơn tru:
+
+   ```bash
+   bash scripts/smoke-deploy.sh core
+   ```
+
+3. **Khởi động Phân hệ AI (Nâng cao):** YOLO Vision Service, Ollama Engine và Helper tự động tải mô hình:
 
    ```bash
    docker compose --profile ai up -d
    ```
 
-3. **Khối Monitoring (Giám sát):** Loki, Grafana
+4. **Kiểm nghiệm Sức bền Phân hệ AI:** Đảm bảo toàn bộ chuỗi suy luận cục bộ đã sẵn sàng phản hồi:
+
+   ```bash
+   bash scripts/smoke-deploy.sh ai
+   ```
+
+5. **Kích hoạt Phân hệ Giám sát (Tùy chọn):** Loki và Grafana để thu thập logs & giám sát trực quan:
 
    ```bash
    docker compose --profile obs up -d
    ```
-
-### Bước 4: Smoke Test & Nghiệm thu
-
-Chạy script tự động để xác nhận hệ thống đã lên đủ các endpoint quan trọng:
-
-```bash
-bash scripts/smoke-test.sh
-```
 
 ---
 
@@ -264,7 +268,7 @@ Nếu có service nào báo trạng thái **unhealthy** khi xem qua `docker comp
 1. **PostgreSQL/MongoDB:** Chạy `docker compose logs postgres` hoặc `docker compose logs mongo` để kiểm tra phân quyền volume hoặc lỗi khởi động.
 2. **YOLO-Service:** Chạy `curl -f http://localhost:5005/health` trên host. Nếu lỗi, restart bằng `docker compose restart yolo-service`.
 3. **App (Next.js Standalone):** Chạy `docker compose logs app` để kiểm tra các bước Migration Prisma của script `./dist-init/container-init.js`.
-4. Xem hướng dẫn vận hành và xử lý lỗi chi tiết cho từng trường hợp tại: [DEPLOY.md](file:///d:/Hurc1CRM-main/Hurc-cdhs/DEPLOY.md#5-cam-nang-xu-ly-su-co--kiem-tra-healthcheck-operational-runbook)
+4. Xem hướng dẫn vận hành và xử lý lỗi chi tiết cho từng trường hợp tại: [DEPLOY.md](DEPLOY.md#5-cam-nang-xu-ly-su-co--kiem-tra-healthcheck-operational-runbook)
 
 ---
 
@@ -274,7 +278,7 @@ Hệ thống được thiết kế theo chuẩn **Zero Trust** cho môi trườn
 
 ## 📖 Tài liệu hướng dẫn đầy đủ (Full Documentation)
 
-Bạn có thể xem chi tiết về kiến trúc, tính năng và quy trình bảo trì tại: [FULL_DOCUMENTATION.md](file:///d:/Hurc1CRM-main/Hurc-cdhs/docs/FULL_DOCUMENTATION.md)
+Bạn có thể xem chi tiết về kiến trúc, tính năng và quy trình bảo trì tại: [FULL_DOCUMENTATION.md](docs/FULL_DOCUMENTATION.md)
 
 **HURC1 AI Engineering Team**
 *Version: 2.2.0-IRONCLAD*

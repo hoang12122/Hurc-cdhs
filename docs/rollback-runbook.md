@@ -72,11 +72,11 @@ docker logs hurc_app > logs/crash-INCIDENT-$(date +%Y%m%d-%H%M%S).log
 
 * **Mục tiêu Thời gian Phục hồi (RTO - Recovery Time Objective):**
   * **Mục tiêu:** `< 15 phút` kể từ khi phát hiện sự cố.
-  * **Thực tế cấu hình tự động:** Hệ thống Rollback tự động qua [deploy-prod.sh](file:///d:/Hurc1CRM-main/Hurc-cdhs/scripts/deploy-prod.sh) có thời gian khôi phục thực tế `< 1 phút`.
+  * **Thực tế cấu hình tự động:** Hệ thống Rollback tự động qua [deploy-prod.sh](../scripts/deploy-prod.sh) có thời gian khôi phục thực tế `< 1 phút`.
 * **Mục tiêu Điểm Phục hồi (RPO - Recovery Point Objective):**
   * **Mục tiêu:** Không làm mất mát quá `1 giờ` dữ liệu nghiệp vụ.
   * **Biện pháp đảm bảo:**
-    * Tự động chạy kịch bản sao lưu [backup-system.sh](file:///d:/Hurc1CRM-main/Hurc-cdhs/scripts/backup-system.sh) trước khi nâng cấp.
+    * Tự động chạy kịch bản sao lưu [backup-system.sh](../scripts/backup-system.sh) trước khi nâng cấp.
     * Cơ chế sao lưu gia tăng (incremental backup) tự động hàng giờ của cơ sở dữ liệu PostgreSQL & MongoDB.
 
 ---

@@ -24,19 +24,19 @@ Dưới đây là bảng đối chiếu chi tiết hiệu suất hệ thống tr
 ### A. Tỷ lệ CI Pass lần đầu (First-Pass Rate)
 
 - **Phương thức đo lường:** Thống kê các lượt chạy test, linter, typecheck tự động trên môi trường Staging/CI ngay sau khi lập trình viên đẩy code lên.
-- **Kế hoạch cải tiến:** Tích hợp bộ kiểm soát môi trường cục bộ [local-preflight.ts](file:///d:/Hurc1CRM-main/Hurc-cdhs/src/scripts/local-preflight.ts) chạy trước khi commit.
+- **Kế hoạch cải tiến:** Tích hợp bộ kiểm soát môi trường cục bộ [local-preflight.ts](../src/scripts/local-preflight.ts) chạy trước khi commit.
 - **Kết quả:** Loại bỏ hoàn toàn 100% lỗi runtime TypeScript không khớp kiểu dữ liệu và cảnh báo linter định dạng, nâng tỷ lệ pass lần đầu lên **88.2%**.
 
 ### B. Tỷ lệ triển khai thành công theo tuần (Weekly Deployment Success Rate)
 
 - **Phương thức đo lường:** Số lượt triển khai thành công vượt qua Smoke Test chia cho tổng số lượt cập nhật hệ thống trong tuần.
-- **Kế hoạch cải tiến:** Enforce chạy tự động [pre-deploy-audit.ts](file:///d:/Hurc1CRM-main/Hurc-cdhs/src/scripts/pre-deploy-audit.ts) và chốt chặn an toàn [smoke-deploy.sh](file:///d:/Hurc1CRM-main/Hurc-cdhs/scripts/smoke-deploy.sh).
+- **Kế hoạch cải tiến:** Enforce chạy tự động [pre-deploy-audit.ts](../src/scripts/pre-deploy-audit.ts) và chốt chặn an toàn [smoke-deploy.sh](../scripts/smoke-deploy.sh).
 - **Kết quả:** Đạt **95.0%** thành công. Mọi sự cố phát sinh đều được khoanh vùng và xử lý triệt để trước khi Docker Compose tạo container hỏng.
 
 ### C. Thời gian khôi phục trung bình (MTTR - Mean Time To Recovery)
 
 - **Phương thức đo lường:** Đo đạc thời gian bằng giây từ lúc Smoke Test phát hiện container sập cho đến khi toàn bộ stack ổn định cũ được khôi phục thành công.
-- **Kế hoạch cải tiến:** Kịch bản Rollback tự động 5 bước tích hợp trong cổng triển khai và công cụ diễn tập [rollback-drill.sh](file:///d:/Hurc1CRM-main/Hurc-cdhs/scripts/rollback-drill.sh).
+- **Kế hoạch cải tiến:** Kịch bản Rollback tự động 5 bước tích hợp trong cổng triển khai và công cụ diễn tập [rollback-drill.sh](../scripts/rollback-drill.sh).
 - **Kết quả:** Đạt mức kỷ lục **12 giây** (Nhanh hơn gấp 75 lần so với mục tiêu RTO < 15 phút).
 
 ### D. Tỷ lệ lỗi quay lại của Linter/Typecheck/Build (Regression Rate)
@@ -47,7 +47,7 @@ Dưới đây là bảng đối chiếu chi tiết hiệu suất hệ thống tr
 
 ### E. Thời gian Startup Core và AI tách biệt (Decoupled Cold-Start Latency)
 
-- **Phương thức đo lường:** Sử dụng kịch bản nghiệm thu [acceptance-proof.sh](file:///d:/Hurc1CRM-main/Hurc-cdhs/scripts/acceptance-proof.sh) đo thời gian cold-start cho từng profile Docker Compose riêng biệt:
+- **Phương thức đo lường:** Sử dụng kịch bản nghiệm thu [acceptance-proof.sh](../scripts/acceptance-proof.sh) đo thời gian cold-start cho từng profile Docker Compose riêng biệt:
   - **Phân hệ Core (`postgres`, `mongo`, `redis`, `app`, `nginx`):** **1.82 giây** (Cực kỳ gọn nhẹ, phản hồi thành công `HTTP 200` độc lập hoàn hảo).
   - **Phân hệ AI (`yolo-service`, `ollama`, `ollama-pull-model`):** **9.45 giây** (Bao gồm thời gian chờ khởi tạo mô hình AI và kéo weights).
 
@@ -57,4 +57,4 @@ Dưới đây là bảng đối chiếu chi tiết hiệu suất hệ thống tr
 
 > [!TIP]
 > Hạ tầng triển khai của HURC1 CRM sau nâng cấp đã đạt mức **Ironclad Reliability** (Tin cậy sắt đá), sẵn sàng bàn giao cho đội ngũ vận hành kỹ thuật số Ga Metro Tuyến 1.
-> Kiến nghị duy trì diễn tập Rollback định kỳ 1 lần mỗi sprint bằng [rollback-drill.sh](file:///d:/Hurc1CRM-main/Hurc-cdhs/scripts/rollback-drill.sh) để đảm bảo tính sẵn sàng tối đa của hệ thống.
+> Kiến nghị duy trì diễn tập Rollback định kỳ 1 lần mỗi sprint bằng [rollback-drill.sh](../scripts/rollback-drill.sh) để đảm bảo tính sẵn sàng tối đa của hệ thống.

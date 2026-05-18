@@ -22,7 +22,7 @@ Tài liệu này được thiết kế theo cách tiếp cận **"cấp độ ph
 
 ## 1. KIẾN TRÚC DỮ LIỆU CẤP ĐỘ PHÂN TỬ
 
-Hệ thống HURC1 CRM hỗ trợ cơ chế lưu trữ kép linh hoạt: **Online Mode** sử dụng cơ sở dữ liệu quan hệ **PostgreSQL** qua Prisma ORM, và **Offline Mode** sử dụng công cụ lưu trữ siêu nhẹ **JSON-DB** qua tệp tin [db.json](file:///d:/Hurc1CRM-main/Hurc-cdhs/db.json).
+Hệ thống HURC1 CRM hỗ trợ cơ chế lưu trữ kép linh hoạt: **Online Mode** sử dụng cơ sở dữ liệu quan hệ **PostgreSQL** qua Prisma ORM, và **Offline Mode** sử dụng công cụ lưu trữ siêu nhẹ **JSON-DB** qua tệp tin [db.json](db.json).
 
 Dù chạy ở chế độ nào, cấu trúc logic của dữ liệu luôn đồng bộ tuyệt đối dưới dạng 5 thực thể cốt lõi sau:
 
@@ -91,7 +91,7 @@ Dù chạy ở chế độ nào, cấu trúc logic của dữ liệu luôn đồ
 
 ## 2. THUẬT TOÁN VÀ CÔNG THỨC TOÁN HỌC CỐT LÕI
 
-Toàn bộ "trí tuệ toán học" của Dashboard chỉ huy CEO nằm tại tệp tin dịch vụ [strategic-metrics.ts](file:///d:/Hurc1CRM-main/Hurc-cdhs/src/lib/services/strategic-metrics.ts). Dưới đây là cách tính toán chi tiết từng chỉ số ở cấp độ dòng lệnh.
+Toàn bộ "trí tuệ toán học" của Dashboard chỉ huy CEO nằm tại tệp tin dịch vụ [strategic-metrics.ts](src/lib/services/strategic-metrics.ts). Dưới đây là cách tính toán chi tiết từng chỉ số ở cấp độ dòng lệnh.
 
 ### 2.1. Chỉ số Năng suất Hoạt động (Productivity Index)
 
@@ -184,7 +184,7 @@ Trước khi trợ lý AI trả lời người dùng, hệ thống sẽ thực h
 
 ### 3.2. Mắt thần nhận diện lỗi - YOLO Vision Pipeline
 
-Dịch vụ nhận diện lỗi kỹ thuật sử dụng mô hình học máy **YOLOv8** chạy trực tiếp qua container Python chuyên dụng tại cổng `5005` (Xem file cấu hình tại [yolo/main.py](file:///d:/Hurc1CRM-main/Hurc-cdhs/infra/yolo/main.py)).
+Dịch vụ nhận diện lỗi kỹ thuật sử dụng mô hình học máy **YOLOv8** chạy trực tiếp qua container Python chuyên dụng tại cổng `5005` (Xem file cấu hình tại [yolo/main.py](infra/yolo/main.py)).
 
 ```mermaid
 graph LR
@@ -262,13 +262,13 @@ sequenceDiagram
 
 ## 5. CƠ CHẾ PHÒNG VỆ FILE KHÓA VÀ SAO LƯU XOAY VÒNG
 
-Trong môi trường vận hành thực tế trên hệ điều hành Windows ở chế độ **Offline**, các tiến trình ghi tệp tin liên tục vào [db.json](file:///d:/Hurc1CRM-main/Hurc-cdhs/db.json) có thể dẫn tới tranh chấp tài nguyên (File Locking) khiến hệ thống bị sập. Dưới đây là cơ chế tự phòng vệ cấp độ nguyên tử được tích hợp sẵn.
+Trong môi trường vận hành thực tế trên hệ điều hành Windows ở chế độ **Offline**, các tiến trình ghi tệp tin liên tục vào [db.json](db.json) có thể dẫn tới tranh chấp tài nguyên (File Locking) khiến hệ thống bị sập. Dưới đây là cơ chế tự phòng vệ cấp độ nguyên tử được tích hợp sẵn.
 
 ### 5.1. Cơ chế khôi phục khóa file (Lock Recovery Engine)
 
 - **Vấn đề thực tế trên Windows:** Khi Next.js đang ghi ghi dữ liệu vào tệp `db.json`, nếu kỹ sư dùng Notepad mở tệp này lên để xem, hệ điều hành Windows sẽ lập tức kích hoạt cơ chế khóa độc quyền (Exclusive File Lock). Lúc này, Next.js ghi đè dữ liệu mới vào sẽ bị chặn và quăng ra lỗi hệ thống nghiêm trọng: `EPERM: permission denied, open 'db.json'` hoặc `EBUSY: resource busy`.
 - **Giải pháp giải cứu thông minh (Graceful Retry with Exponential Backoff):**
-  Trong tệp quản lý dữ liệu [lock-recovery.ts](file:///d:/Hurc1CRM-main/Hurc-cdhs/src/lib/db/lock-recovery.ts), hệ thống không báo sập ứng dụng ngay khi gặp lỗi khóa file `db.json`. Thay vào đó, nó triển khai thuật toán lùi bước chờ đợi tăng dần (Exponential Backoff):
+  Trong tệp quản lý dữ liệu [lock-recovery.ts](src/lib/db/lock-recovery.ts), hệ thống không báo sập ứng dụng ngay khi gặp lỗi khóa file `db.json`. Thay vào đó, nó triển khai thuật toán lùi bước chờ đợi tăng dần (Exponential Backoff):
   - *Lần lỗi thứ 1:* Hệ thống tự động đứng yên chờ đợi **50 mili-giây**, sau đó thử ghi lại lần 2.
   - *Lần lỗi thứ 2:* Nếu vẫn bị khóa, hệ thống nhân đôi thời gian chờ đợi lên **100 mili-giây**, sau đó thử ghi lại lần 3.
   - *Lần lỗi thứ 3:* Nếu vẫn bị khóa, tiếp tục đợi **200 mili-giây**, sau đó thử ghi lại lần cuối cùng.
@@ -304,7 +304,7 @@ Dưới đây là phần giải nghĩa chi tiết cấp độ phân tử từng 
 
 ### 6.1. Tham chiếu chi tiết tệp cấu hình .env
 
-Tệp tin này nằm tại thư mục gốc [.env](file:///d:/Hurc1CRM-main/Hurc-cdhs/.env), điều khiển toàn bộ hành vi khởi chạy hệ thống:
+Tệp tin này nằm tại thư mục gốc [.env](.env), điều khiển toàn bộ hành vi khởi chạy hệ thống:
 
 ```ini
 # Chế độ chạy Offline hay Online (QUAN TRỌNG NHẤT)
@@ -334,7 +334,7 @@ JWT_SECRET="secure_token_generation_key_hurc1_metro_2026"
 
 ### 6.2. Tham chiếu chi tiết dịch vụ docker-compose.yml
 
-Tệp cấu hình [docker-compose.yml](file:///d:/Hurc1CRM-main/Hurc-cdhs/docker-compose.yml) định nghĩa cách các container được dựng lên và cô lập cổng mạng.
+Tệp cấu hình [docker-compose.yml](docker-compose.yml) định nghĩa cách các container được dựng lên và cô lập cổng mạng.
 
 #### Trụ cột Dịch vụ Web
 
