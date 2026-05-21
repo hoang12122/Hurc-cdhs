@@ -13,6 +13,13 @@ const normalizeBool = (val: any) => {
   return false;
 };
 
+console.log('--- DEBUG DATABASE MODE ---');
+console.log('process.env.IS_DATABASE_OFFLINE:', process.env.IS_DATABASE_OFFLINE);
+console.log('process.env.DATABASE_OFFLINE:', process.env.DATABASE_OFFLINE);
+console.log('process.env.USE_FALLBACK:', process.env.USE_FALLBACK);
+console.log('process.env.NODE_ENV:', process.env.NODE_ENV);
+console.log('---------------------------');
+
 export const IS_DATABASE_OFFLINE =
   normalizeBool(process.env.IS_DATABASE_OFFLINE) ||
   normalizeBool(process.env.DATABASE_OFFLINE) ||

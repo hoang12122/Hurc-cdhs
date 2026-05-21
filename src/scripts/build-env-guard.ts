@@ -25,16 +25,42 @@ function guard() {
         fs.writeFileSync(envPath, "# Build Placeholder\n");
     }
 
+    // Parse existing .env file
+    const envVars: Record<string, string> = {};
+    const envContent = fs.readFileSync(envPath, 'utf-8');
+    envContent.split(/\r?\n/).forEach(line => {
+        const trimmed = line.trim();
+        if (trimmed && !trimmed.startsWith('#')) {
+            const index = trimmed.indexOf('=');
+            if (index !== -1) {
+                const key = trimmed.substring(0, index).trim();
+                const val = trimmed.substring(index + 1).trim().replace(/^['"]|['"]$/g, '');
+                envVars[key] = val;
+            }
+        }
+    });
+
     // 2. Inject dummy values for critical build-time vars
     // This allows 'prisma generate' and 'next build' to pass without real DB access
     for (const v of REQUIRED_BUILD_VARS) {
-        if (!process.env[v]) {
-            process.env[v] = v.includes('URL') 
+        const valueInEnv = envVars[v];
+        const valueInProcess = process.env[v];
+
+        if (!valueInEnv && !valueInProcess) {
+            const val = v.includes('URL') 
                 ? "postgresql://build:placeholder@localhost:5432/build" 
                 : "build_placeholder_secret";
             
+            process.env[v] = val;
+            
             // Also append to .env temporarily if not set to satisfy some loaders
-            fs.appendFileSync(envPath, `${v}=${process.env[v]}\n`);
+            fs.appendFileSync(envPath, `${v}=${val}\n`);
+            console.log(`ℹ️ Appended placeholder value for: ${v}`);
+        } else {
+            // Already present, ensure process.env has it if it was only in .env
+            if (!valueInProcess && valueInEnv) {
+                process.env[v] = valueInEnv;
+            }
         }
     }
 

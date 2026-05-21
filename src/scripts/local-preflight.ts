@@ -11,6 +11,7 @@ const ROOT = process.cwd();
 async function runCheck() {
     console.log("🚀 HURC1: Running Local Pre-flight Safety Check...");
     let issues = 0;
+    const combinedEnv: Record<string, string | undefined> = { ...process.env };
 
     // 1. Check .env
     const envPath = path.join(ROOT, '.env');
@@ -34,8 +35,8 @@ async function runCheck() {
             }
         });
 
-        // Merge with process.env
-        const combinedEnv = { ...envVars, ...process.env };
+        // Merge into combinedEnv
+        Object.assign(combinedEnv, envVars);
 
         const CRITICAL_VARS = [
             'AUTH_DATABASE_URL',
@@ -67,22 +68,39 @@ async function runCheck() {
     }
 
     // 3. Check JSON DB
-    if (!fs.existsSync(path.join(ROOT, 'db.json'))) {
-        console.warn("⚠️ MISSING: db.json not found. Initializing empty database...");
-        fs.writeFileSync(path.join(ROOT, 'db.json'), JSON.stringify({
-            users: [], equipment: [], assets: [], tasks: [], inspections: [], dnf_documents: [], system_logs: []
-        }, null, 2));
-        console.log("✅ Created db.json from template.");
+    const dbFileName = combinedEnv['DATABASE_JSON_PATH'] || 'db.json';
+    const dbPath = path.isAbsolute(dbFileName) ? dbFileName : path.join(ROOT, dbFileName);
+    const dbDir = path.dirname(dbPath);
+
+    // Ensure parent directory exists
+    if (!fs.existsSync(dbDir)) {
+        fs.mkdirSync(dbDir, { recursive: true });
+    }
+
+    if (!fs.existsSync(dbPath)) {
+        // If there's a db.json in ROOT, copy it
+        const rootDbPath = path.join(ROOT, 'db.json');
+        if (fs.existsSync(rootDbPath) && rootDbPath !== dbPath) {
+            console.warn(`⚠️ COPYING: Copying existing db.json from root to ${dbFileName}...`);
+            fs.copyFileSync(rootDbPath, dbPath);
+        } else {
+            console.warn(`⚠️ MISSING: db.json not found at ${dbFileName}. Initializing empty database...`);
+            fs.writeFileSync(dbPath, JSON.stringify({
+                users: [], equipment: [], assets: [], tasks: [], inspections: [], dnf_documents: [], system_logs: []
+            }, null, 2));
+            console.log(`✅ Created ${dbFileName} from template.`);
+        }
     }
 
     // 4. Check Checksum Integrity
-    if (!fs.existsSync(path.join(ROOT, 'db.json.sha256'))) {
-        console.log("ℹ️ Initializing DB Checksum...");
+    const checksumPath = `${dbPath}.sha256`;
+    if (!fs.existsSync(checksumPath)) {
+        console.log(`ℹ️ Initializing DB Checksum for ${dbFileName}...`);
         try {
             const crypto = require('crypto');
-            const content = fs.readFileSync(path.join(ROOT, 'db.json'), 'utf-8');
+            const content = fs.readFileSync(dbPath, 'utf-8');
             const hash = crypto.createHash('sha256').update(content).digest('hex');
-            fs.writeFileSync(path.join(ROOT, 'db.json.sha256'), hash);
+            fs.writeFileSync(checksumPath, hash);
         } catch (e) {}
     }
 
