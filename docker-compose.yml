@@ -24,6 +24,8 @@ services:
   mongo:
     image: mongo:latest
     container_name: hurc_mongo
+    ports:
+      - "27017:27017"
     restart: unless-stopped
     profiles: ["core"]
     environment:
