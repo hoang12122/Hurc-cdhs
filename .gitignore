@@ -47,3 +47,8 @@ firestore-debug.log
 
 # Runtime logs
 /logs/
+
+# Local database & AI model data
+/data/postgres/
+/data/mongo/
+/data/ollama/
