@@ -4,6 +4,7 @@ FROM cgr.dev/chainguard/node:latest-dev AS deps
 USER root
 WORKDIR /app
 COPY package*.json ./
+COPY scripts ./scripts
 RUN npm ci --legacy-peer-deps
 
 FROM cgr.dev/chainguard/node:latest-dev AS builder
