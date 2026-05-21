@@ -25,29 +25,37 @@ export class PrismaProvider implements IDataProvider {
     this.client = client;
   }
 
-  async findMany<T>(model: string, filter: any = {}, includeDeleted: boolean = false): Promise<T[]> {
+  private getModelClient(model: string): any {
     if (!this.client) throw new Error('Prisma Client is not initialized');
+    if (this.client[model]) return this.client[model];
+    const camelCased = model.charAt(0).toLowerCase() + model.slice(1);
+    if (this.client[camelCased]) return this.client[camelCased];
+    throw new Error(`Model '${model}' or its camelCase variant '${camelCased}' does not exist on the current Prisma client.`);
+  }
+
+  async findMany<T>(model: string, filter: any = {}, includeDeleted: boolean = false): Promise<T[]> {
+    const modelClient = this.getModelClient(model);
     const where = includeDeleted ? filter : { ...filter, deletedAt: null };
-    const results = await this.client[model].findMany({ where });
+    const results = await modelClient.findMany({ where });
     return results.map((item: any) => this.processItem(item, 'decrypt'));
   }
   
   async findUnique<T>(model: string, id: string | number): Promise<T | null> {
-    if (!this.client) throw new Error('Prisma Client is not initialized');
-    const result = await this.client[model].findUnique({ where: { id } });
+    const modelClient = this.getModelClient(model);
+    const result = await modelClient.findUnique({ where: { id } });
     return result ? this.processItem(result, 'decrypt') : null;
   }
 
   async create<T>(model: string, data: any): Promise<T> {
-    if (!this.client) throw new Error('Prisma Client is not initialized');
+    const modelClient = this.getModelClient(model);
     const processedData = this.processItem({ ...data }, 'encrypt');
-    return await this.client[model].create({ data: processedData });
+    return await modelClient.create({ data: processedData });
   }
 
   async update<T>(model: string, id: string | number, data: any): Promise<T> {
-    if (!this.client) throw new Error('Prisma Client is not initialized');
+    const modelClient = this.getModelClient(model);
     const processedData = this.processItem({ ...data }, 'encrypt');
-    return await this.client[model].update({ where: { id }, data: processedData });
+    return await modelClient.update({ where: { id }, data: processedData });
   }
 
   private processItem(item: any, action: 'encrypt' | 'decrypt'): any {
@@ -67,25 +75,25 @@ export class PrismaProvider implements IDataProvider {
   }
 
   async delete(model: string, id: string | number): Promise<void> {
-    if (!this.client) throw new Error('Prisma Client is not initialized');
-    await this.client[model].update({ 
+    const modelClient = this.getModelClient(model);
+    await modelClient.update({ 
       where: { id }, 
       data: { deletedAt: new Date() } 
     });
   }
 
   async restore(model: string, id: string | number): Promise<void> {
-    if (!this.client) throw new Error('Prisma Client is not initialized');
-    await this.client[model].update({ 
+    const modelClient = this.getModelClient(model);
+    await modelClient.update({ 
       where: { id }, 
       data: { deletedAt: null } 
     });
   }
 
   async count(model: string, filter: any = {}, includeDeleted: boolean = false): Promise<number> {
-    if (!this.client) throw new Error('Prisma Client is not initialized');
+    const modelClient = this.getModelClient(model);
     const where = includeDeleted ? filter : { ...filter, deletedAt: null };
-    return await this.client[model].count({ where });
+    return await modelClient.count({ where });
   }
 }
 
