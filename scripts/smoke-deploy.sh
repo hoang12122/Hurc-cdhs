@@ -54,6 +54,14 @@ for CONTAINER in "${TARGET_CONTAINERS[@]}"; do
   
   echo -e "🔎 Container $CONTAINER: ${GREEN}$STATE${NC}"
   if [ "$STATE" = "restarting" ] || [ "$STATE" = "exited" ] || [ "$STATE" = "dead" ]; then
+    # Đặc cách cho hurc_ollama_pull exited thành công với ExitCode 0
+    if [ "$CONTAINER" = "hurc_ollama_pull" ] && [ "$STATE" = "exited" ]; then
+      EXIT_CODE=$(docker inspect -f '{{.State.ExitCode}}' "$CONTAINER" 2>/dev/null)
+      if [ "$EXIT_CODE" = "0" ]; then
+        echo -e "ℹ️ Container $CONTAINER đã hoàn tất nhiệm vụ và dừng thành công (ExitCode 0)."
+        continue
+      fi
+    fi
     echo -e "❌ ${RED}LỖI NGHIÊM TRỌNG: Container $CONTAINER đang ở trạng thái lỗi: $STATE!${NC}"
     exit 1
   fi

@@ -2,31 +2,41 @@
 
 # scripts/guard-install.sh - Local Guard Script for Enforcing npm ci in CI/Deploy Contexts
 
-# 1. Xác định ngữ cảnh CI hoặc Deploy
-# Các biến môi trường thường gặp trong CI/CD: CI, GITHUB_ACTIONS, GITLAB_CI, JENKINS_URL, DEPLOY, hoặc NODE_ENV=production trong một số môi trường deploy.
-IS_CI_OR_DEPLOY=false
+# 1. Phát hiện câu lệnh npm được gọi với độ chính xác cao nhất
+IS_CI_COMMAND=false
+IS_INSTALL_COMMAND=false
 
-if [ "$CI" = "true" ] || [ "$CI" = "1" ] || [ -n "$GITHUB_ACTIONS" ] || [ -n "$GITLAB_CI" ] || [ -n "$JENKINS_URL" ] || [ "$DEPLOY" = "true" ] || [ "$NODE_ENV" = "production" ]; then
-    IS_CI_OR_DEPLOY=true
+if [ "$npm_command" = "ci" ]; then
+    IS_CI_COMMAND=true
+elif [ "$npm_command" = "install" ] || [ "$npm_command" = "i" ] || [ "$npm_command" = "add" ]; then
+    IS_INSTALL_COMMAND=true
 fi
 
-# 2. Phát hiện câu lệnh npm được gọi
-# Trong npm v7+, biến môi trường $npm_command lưu trữ trực tiếp tên câu lệnh đang chạy (ví dụ: "install" hoặc "ci").
-# Hỗ trợ thêm cơ chế quét ngược lại biến legacy $npm_config_argv phòng trường hợp chạy npm cũ.
-CURRENT_COMMAND="$npm_command"
-
-if [ -z "$CURRENT_COMMAND" ] && [ -n "$npm_config_argv" ]; then
-    # Quét biến legacy npm_config_argv (dạng JSON string: {"remain":[],"cooked":["install"],"original":["install"]})
+# Quét thêm biến legacy npm_config_argv
+if [ -n "$npm_config_argv" ]; then
     if echo "$npm_config_argv" | grep -q '"ci"'; then
-        CURRENT_COMMAND="ci"
-    elif echo "$npm_config_argv" | grep -q '"install"'; then
-        CURRENT_COMMAND="install"
+        IS_CI_COMMAND=true
+    fi
+    if echo "$npm_config_argv" | grep -q '"install"' || echo "$npm_config_argv" | grep -q '"i"' || echo "$npm_config_argv" | grep -q '"add"'; then
+        IS_INSTALL_COMMAND=true
     fi
 fi
 
+# 2. Xác định ngữ cảnh CI hoặc Deploy
+# Loại bỏ hoàn toàn NODE_ENV=production mơ hồ dễ gây false-positive ở local
+IS_CI_OR_DEPLOY=false
+if [ "$CI" = "true" ] || [ "$CI" = "1" ] || [ "$DEPLOY" = "true" ] || [ -n "$GITHUB_ACTIONS" ] || [ -n "$GITLAB_CI" ] || [ -n "$JENKINS_URL" ] || [ -n "$CIRCLECI" ] || [ -n "$TRAVIS" ]; then
+    IS_CI_OR_DEPLOY=true
+fi
+
 # 3. Ép buộc nguyên tắc bất biến
-# Nếu đang ở trong ngữ cảnh CI hoặc Deploy, và người dùng hoặc tiến trình cố gắng chạy "npm install" thay vì "npm ci" -> báo lỗi và ngắt tiến trình.
-if [ "$IS_CI_OR_DEPLOY" = "true" ] && [ "$CURRENT_COMMAND" = "install" ]; then
+# - Cho phép chắc chắn npm ci (thoát 0 ngay lập tức nếu phát hiện ci)
+# - Chỉ chặn install khi xác định rõ là context CI/deploy và câu lệnh là install
+if [ "$IS_CI_COMMAND" = "true" ]; then
+    exit 0
+fi
+
+if [ "$IS_CI_OR_DEPLOY" = "true" ] && [ "$IS_INSTALL_COMMAND" = "true" ]; then
     echo "=========================================================================="
     echo "🔴 LỖI VI PHẠM NGUYÊN TẮC BẤT BIẾN (INVARIANT VIOLATION):"
     echo "Phát hiện hành vi chạy 'npm install' trong môi trường CI/Deploy!"

@@ -4,8 +4,8 @@
   "private": true,
   "scripts": {
     "preinstall": "node scripts/guard-install.js",
-    "dev": "npx tsx src/scripts/local-preflight.ts && next dev",
-    "build": "npx tsx src/scripts/build-env-guard.ts && npm run db:generate:all && next build",
+    "dev": "node scripts/preflight-node.js && npx tsx src/scripts/local-preflight.ts && next dev",
+    "build": "node scripts/preflight-node.js && npx tsx src/scripts/build-env-guard.ts && npm run db:generate:all && next build",
     "db:generate:all": "npx prisma generate --schema=prisma/auth/schema.prisma && npx prisma generate --schema=prisma/ai/schema.prisma && npx prisma generate --schema=prisma/metro/schema.prisma && npx prisma generate --schema=prisma/ops/schema.prisma",
     "start": "next start",
     "lint": "next lint",
@@ -22,6 +22,7 @@
     "test:mock": "npx tsx src/scripts/test-mock-layer.ts",
     "test:integrity": "npx tsx src/scripts/test-cross-db-integrity.ts",
     "test:graph": "npx tsx src/scripts/test-trustgraph-sync.ts",
+    "test:guard": "node scripts/test-guard.js",
     "db:dashboard": "npx tsx src/scripts/generate-integrity-dashboard.ts"
   },
   "dependencies": {

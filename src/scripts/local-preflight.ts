@@ -13,10 +13,46 @@ async function runCheck() {
     let issues = 0;
 
     // 1. Check .env
-    if (!fs.existsSync(path.join(ROOT, '.env'))) {
+    const envPath = path.join(ROOT, '.env');
+    if (!fs.existsSync(envPath)) {
         console.error("❌ MISSING: .env file not found.");
         console.log("👉 Action: Copy .env.example to .env and configure your secrets.");
         issues++;
+    } else {
+        // Parse env file
+        const envVars: Record<string, string> = {};
+        const envContent = fs.readFileSync(envPath, 'utf-8');
+        envContent.split(/\r?\n/).forEach(line => {
+            const trimmed = line.trim();
+            if (trimmed && !trimmed.startsWith('#')) {
+                const index = trimmed.indexOf('=');
+                if (index !== -1) {
+                    const key = trimmed.substring(0, index).trim();
+                    const val = trimmed.substring(index + 1).trim().replace(/^['"]|['"]$/g, '');
+                    envVars[key] = val;
+                }
+            }
+        });
+
+        // Merge with process.env
+        const combinedEnv = { ...envVars, ...process.env };
+
+        const CRITICAL_VARS = [
+            'AUTH_DATABASE_URL',
+            'AI_DATABASE_URL',
+            'METRO_DATABASE_URL',
+            'OPS_DATABASE_URL',
+            'SESSION_SECRET',
+            'NEXT_PUBLIC_SETUP_COMPLETE'
+        ];
+
+        console.log("🔎 Verifying Critical Environment Variables...");
+        for (const v of CRITICAL_VARS) {
+            if (!combinedEnv[v]) {
+                console.error(`❌ MISSING ENV VAR: '${v}' is not defined or is empty in .env.`);
+                issues++;
+            }
+        }
     }
 
     // 2. Check Prisma Runtimes

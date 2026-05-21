@@ -1,6 +1,6 @@
 # HURC1 CRM - FULL SYSTEM DOCUMENTATION
 
-**Version:** 2.1.0-IRONCLAD
+**Version:** 2.2.0-IRONCLAD
 **Status:** Production Ready (Air-Gapped)
 
 ---
@@ -38,9 +38,9 @@ Hỗ trợ cơ chế **Hybrid Database**:
 
 ### 2.3. Tầng Hạ tầng (Infrastructure Layer)
 
-- **Containerization:** Triển khai qua Docker Compose với các hình ảnh Zero-CVE (Chainguard/Distroless).
+- **Containerization:** Triển khai qua Docker Compose với các hình ảnh Zero-CVE (Chainguard/Distroless). Đặc biệt, container `app` sử dụng cơ chế kiểm tra sức khỏe Node-native HTTP probe thay vì `curl` để tương thích với môi trường Distroless bảo mật cao.
 - **Security:** Chế độ Local-Only chặn toàn bộ các cuộc gọi API ra bên ngoài.
-- **DevOps:** Tích hợp Terraform để quản lý hạ tầng và GitHub Actions cho luồng CI/CD.
+- **DevOps & CI/CD:** Tích hợp kiểm duyệt ràng buộc phiên bản Node.js (`20.12.2`) động từ `.nvmrc` trong GitHub Actions và tích hợp kiểm tra Smoke Test tự động có chính sách rollback khẩn cấp (GO/NO-GO).
 
 ---
 
@@ -64,9 +64,12 @@ Hiển thị các chỉ số KPI chiến lược:
 
 ## 4. QUY TRÌNH VẬN HÀNH & BẢO TRÌ
 
-### 4.1. Kiểm nghiệm hệ thống (Audit)
+### 4.1. Kiểm nghiệm hệ thống (Audit & Preflight)
 
-Trước khi cập nhật, luôn chạy lệnh sau để kiểm tra 8 ngách an toàn:
+Trước khi chạy dev/build hoặc cập nhật triển khai, các chốt chặn tự động sẽ kiểm nghiệm hệ thống:
+- **Kiểm tra phiên bản Node.js:** Chốt chặn `scripts/preflight-node.js` cưỡng chế phiên bản Node.js chính xác `20.12.2` trước khi chạy `npm run dev` hoặc `npm run build`.
+- **Đối soát môi trường cục bộ:** Lớp preflight `src/scripts/local-preflight.ts` xác thực bắt buộc 6 biến môi trường trọng yếu (`AUTH_DATABASE_URL`, `AI_DATABASE_URL`, `METRO_DATABASE_URL`, `OPS_DATABASE_URL`, `SESSION_SECRET`, `NEXT_PUBLIC_SETUP_COMPLETE`).
+- **Nghiệm thu an toàn:** Luôn chạy lệnh sau để kiểm tra các ngách an toàn trước khi deploy:
 
 ```powershell
 node --import tsx src/scripts/pre-deploy-audit.ts

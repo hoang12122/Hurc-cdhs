@@ -41,7 +41,17 @@ Dự án này đã chuyển đổi hệ thống HURC1 CRM từ một ứng dụn
 
 Hệ thống hỗ trợ triển khai theo tầng (Tiered Deployment) để tối ưu hóa tỷ lệ thành công và giảm rủi ro startup.
 
-### Bước 1: Khởi tạo tệp Môi trường `.env` (Environment Initialization)
+### Bước 1: Đồng bộ Phiên bản Node.js (Node.js Version Alignment)
+
+Hệ thống yêu cầu bắt buộc và kiểm tra nghiêm ngặt phiên bản Node.js chính xác là **`20.12.2`** (được định nghĩa trong tệp `.nvmrc` và `.node-version`). Bộ lọc bảo vệ `scripts/preflight-node.js` sẽ tự động chặn các lệnh `npm run dev` hoặc `npm run build` nếu phát hiện sai lệch phiên bản Node.js để tránh các lỗi không tương thích.
+
+- **Sử dụng NVM (Node Version Manager) để cài đặt và chuyển đổi:**
+  ```bash
+  nvm install 20.12.2
+  nvm use 20.12.2
+  ```
+
+### Bước 2: Khởi tạo tệp Môi trường `.env` (Environment Initialization)
 
 Trước khi chạy bất kỳ bước kiểm tra hay khởi chạy nào, bạn cần khởi tạo tệp `.env` từ tệp `.env.example`. Hãy chọn và sao chép lệnh tương ứng với hệ điều hành và shell của bạn:
 
@@ -65,15 +75,26 @@ Trước khi chạy bất kỳ bước kiểm tra hay khởi chạy nào, bạn 
 
 *Sau khi tạo tệp `.env`, bạn có thể mở ra để tùy biến cấu hình phù hợp với môi trường triển khai thực tế.*
 
-### Bước 2: Kiểm tra Preflight (Bắt buộc)
+### Bước 3: Kiểm tra Preflight & Xác thực Môi trường (Preflight & Environment Validation)
 
-Trước khi deploy, hãy chạy script kiểm tra môi trường:
+Trước khi deploy hoặc chạy ứng dụng, hãy chạy script kiểm tra môi trường để kiểm duyệt các tài nguyên mạng, cổng kết nối và độ tin cậy của file cấu hình:
 
-```bash
-bash scripts/preflight.sh
-```
+- **Chạy chốt chặn Preflight hệ thống:**
+  ```bash
+  bash scripts/preflight.sh
+  ```
 
-### Bước 3: Triển khai theo tầng & Kiểm nghiệm Sức bền (Tiered Deployment & Smoke Loop)
+- **Đối soát biến môi trường cục bộ (Tự động chạy trước dev/build):**
+  Lớp kiểm duyệt `src/scripts/local-preflight.ts` sẽ quét và xác thực bắt buộc sự hiện diện của 6 biến môi trường trọng yếu trong `.env`:
+  - `AUTH_DATABASE_URL` (URL kết nối DB xác thực)
+  - `AI_DATABASE_URL` (URL kết nối DB trí tuệ nhân tạo RAG)
+  - `METRO_DATABASE_URL` (URL kết nối DB Metro chính)
+  - `OPS_DATABASE_URL` (URL kết nối DB vận hành)
+  - `SESSION_SECRET` (Khóa bảo mật phiên đăng nhập)
+  - `NEXT_PUBLIC_SETUP_COMPLETE` (Trạng thái thiết lập hệ thống)
+
+
+### Bước 4: Triển khai theo tầng & Kiểm nghiệm Sức bền (Tiered Deployment & Smoke Loop)
 
 Để đảm bảo độ tin cậy tuyệt đối, hệ thống phải được kích hoạt theo tầng (Core Services lên trước và pass kiểm tra, sau đó mới kích hoạt AI Services):
 
@@ -100,6 +121,8 @@ bash scripts/preflight.sh
    ```bash
    bash scripts/smoke-deploy.sh ai
    ```
+
+   *Lưu ý về kiểm thử sức bền AI:* Container tác vụ ngắn hạn `hurc_ollama_pull` (phục vụ kéo model AI lúc khởi động) khi hoàn thành công việc sẽ tự dừng ở trạng thái `exited` với mã thoát `0`. Trình kiểm duyệt `smoke-deploy.sh` được lập trình đặc cách coi đây là trạng thái thành công và sẽ không kích hoạt rollback giả (chỉ rollback khi container này báo lỗi với exit code khác 0, hoặc các container chính khác bị sập).
 
 5. **Kích hoạt Phân hệ Giám sát (Tùy chọn):** Loki và Grafana để thu thập logs & giám sát trực quan:
 
@@ -267,7 +290,7 @@ Nếu có service nào báo trạng thái **unhealthy** khi xem qua `docker comp
 
 1. **PostgreSQL/MongoDB:** Chạy `docker compose logs postgres` hoặc `docker compose logs mongo` để kiểm tra phân quyền volume hoặc lỗi khởi động.
 2. **YOLO-Service:** Chạy `curl -f http://localhost:5005/health` trên host. Nếu lỗi, restart bằng `docker compose restart yolo-service`.
-3. **App (Next.js Standalone):** Chạy `docker compose logs app` để kiểm tra các bước Migration Prisma của script `./dist-init/container-init.js`.
+3. **App (Next.js Standalone):** Container `app` sử dụng hình ảnh bọc thép Chainguard (Zero-CVE) siêu bảo mật và tối giản (không tích hợp sẵn `curl` hay `wget`). Cơ chế healthcheck nội tại của container này được thực hiện thông qua Node.js: `node -e "fetch('http://localhost:3000/api/health').then(r => r.ok ? process.exit(0) : process.exit(1)).catch(() => process.exit(1))"`. Nếu báo unhealthy, hãy chạy `docker compose logs app` để kiểm tra các bước Migration Prisma của script `./dist-init/container-init.js`.
 4. Xem hướng dẫn vận hành và xử lý lỗi chi tiết cho từng trường hợp tại: [DEPLOY.md](DEPLOY.md#5-cam-nang-xu-ly-su-co--kiem-tra-healthcheck-operational-runbook)
 
 ---

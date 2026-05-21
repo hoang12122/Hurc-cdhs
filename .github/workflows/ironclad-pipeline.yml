@@ -22,10 +22,14 @@ jobs:
 
       - name: 🟢 Verify Node.js and npm versions (Strict Invariant Check)
         run: |
-          EXPECTED_NODE="v20.12.2"
-          ACTUAL_NODE=$(node -v)
-          echo "Expected Node version: $EXPECTED_NODE"
-          echo "Actual Node version: $ACTUAL_NODE"
+          if [ ! -f ".nvmrc" ]; then
+            echo "❌ Error: .nvmrc file not found!"
+            exit 1
+          fi
+          EXPECTED_NODE=$(cat .nvmrc | tr -d '\r' | tr -d ' ' | sed 's/^v//')
+          ACTUAL_NODE=$(node -v | sed 's/^v//')
+          echo "Expected Node version: v$EXPECTED_NODE"
+          echo "Actual Node version: v$ACTUAL_NODE"
           if [ "$ACTUAL_NODE" != "$EXPECTED_NODE" ]; then
             echo "❌ Node.js version mismatch!"
             exit 1
@@ -76,6 +80,30 @@ jobs:
       - name: 🏗️ Build Hardened Docker Image
         run: |
           docker build -t hurc1-crm:latest .
+
+      - name: ⚙️ Initialize Environment File (.env)
+        run: cp .env.example .env
+
+      - name: 🟢 Start Core Services (Tiered Deploy)
+        run: |
+          docker compose --profile core up -d
+
+      - name: 🧪 Run Core Smoke Test Gate (Mandatory)
+        run: |
+          bash scripts/smoke-deploy.sh core
+
+      - name: 🔵 Start AI Services (Tiered Deploy - Optional)
+        run: |
+          docker compose --profile ai up -d
+
+      - name: 🧪 Run AI Smoke Test Gate (Optional Verification)
+        run: |
+          bash scripts/smoke-deploy.sh ai
+
+      - name: 🛑 Tear Down Services
+        if: always()
+        run: |
+          docker compose --profile core --profile ai down -v
 
       - name: 📄 Archive Audit Certificate
         uses: actions/upload-artifact@v4

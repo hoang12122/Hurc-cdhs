@@ -300,7 +300,14 @@ Cơ chế này đảm bảo máy chủ của bạn luôn có đúng **5 bản sa
 
 ## 6. HƯỚNG DẪN CÀI ĐẶT & THAM CHIẾU CẤU HÌNH CHI TIẾT
 
-Dưới đây là phần giải nghĩa chi tiết cấp độ phân tử từng tham số cấu hình trong hệ thống để quản trị viên có thể tùy biến sâu.
+Dưới đây là phần giải nghĩa chi tiết cấu hình và hướng dẫn cài đặt hệ thống nhằm bảo vệ tính an toàn và bất biến tuyệt đối.
+
+### 6.0. Yêu cầu Môi trường & Phiên bản Node.js (Node.js & Environment Requirements)
+
+Để hệ thống hoạt động ổn định và tránh lỗi bất tương thích nhị phân (ABI) trong các thư viện (đặc biệt là Prisma ORM và các module mã hóa), hệ thống áp đặt quy định chặt chẽ về phiên bản Node.js:
+- **Phiên bản bắt buộc:** Node.js **`v20.12.2`** (được chỉ định động tại tệp `.nvmrc` và `.node-version`).
+- **Chốt chặn cục bộ (Preflight Node Guard):** Chốt chặn `scripts/preflight-node.js` đã được tích hợp trực tiếp vào vòng đời của các lệnh `npm run dev` và `npm run build`. Nếu chạy bằng phiên bản Node.js khác, tiến trình sẽ ngay lập tức bị ngắt (`exit 1`) và hướng dẫn kỹ sư cách đồng bộ.
+- **Sử dụng NVM:** Chạy lệnh `nvm install 20.12.2 && nvm use 20.12.2` để thiết lập đúng phiên bản trước khi chạy cài đặt hoặc khởi chạy.
 
 ### 6.1. Tham chiếu chi tiết tệp cấu hình .env
 
@@ -341,7 +348,7 @@ Tệp cấu hình [docker-compose.yml](docker-compose.yml) định nghĩa cách 
 - **Dịch vụ `app` (Next.js):**
   - *Cổng nội bộ:* `3000`
   - *Biến môi trường truyền vào:* Nhận trực tiếp các giá trị từ `.env` để cấu hình chế độ Offline/Online và chỉ số AI.
-  - *Cơ chế kiểm tra sức khỏe (Healthcheck):* Dùng lệnh `curl -f http://localhost:3000/api/health` mỗi 30 giây một lần. Nếu sập quá 3 lần liên tiếp, Docker sẽ tự động tái khởi động ứng dụng.
+  - *Cơ chế kiểm tra sức khỏe (Healthcheck):* Container sử dụng hình ảnh bọc thép Chainguard (Zero-CVE) siêu bảo mật và tối giản (không tích hợp sẵn `curl` hay `wget`). Do đó, cơ chế kiểm tra sức khỏe được thực hiện bằng trình biên dịch Node.js nội tại: `node -e "fetch('http://localhost:3000/api/health').then(r => r.ok ? process.exit(0) : process.exit(1)).catch(() => process.exit(1))"` chạy định kỳ mỗi 30 giây. Nếu sập quá 3 lần liên tiếp, Docker sẽ tự động tái khởi động ứng dụng.
 
 #### Trụ cột An ninh Mạng
 
@@ -412,6 +419,15 @@ Tệp cấu hình [docker-compose.yml](docker-compose.yml) định nghĩa cách 
 - **Ngôi nhà chính (Next.js App)** sẽ mở **Tủ hồ sơ (Database)** ra kiểm tra xem khách hàng đó tên gì, có tiền án tiền sự hay không.
 - Nếu khách hàng có câu hỏi khó về kỹ thuật tàu hỏa, chủ nhà sẽ chạy sang **Phòng cố vấn chiến lược (Ollama AI)** để hỏi ý kiến chuyên gia. Chuyên gia sẽ giở đúng cuốn **Sách hướng dẫn tàu (RAG)** đặt trên kệ để đọc câu trả lời chính xác, tránh việc tự bịa ra thông tin làm hại đến an toàn hành khách.
 - Mọi hoạt động trong ngôi nhà từ việc đón khách, mở tủ hồ sơ, đến câu hỏi của chuyên gia đều được ghi chép cẩn thận vào cuốn **Sổ nhật ký của người giám sát (Loki logs)** và hiển thị liên tục lên **Màn hình camera an ninh (Grafana)** để Ban giám đốc theo dõi từ xa.
+
+### 6.3. Quy trình Kiểm nghiệm Sức bền (Smoke Test & Rollback Policies)
+
+Hệ thống tích hợp quy trình kiểm duyệt chất lượng và sức bền tự động cực kỳ nghiêm ngặt nhằm tránh việc "Build thành công nhưng Runtime thất bại" (Build Pass but Runtime Fail):
+1. **Chốt chặn Smoke Test cục bộ:** Kịch bản `scripts/smoke-deploy.sh` sẽ thực hiện gửi các gói tin HTTP kiểm tra đến các cổng API của Nginx, App, YOLO-Service, và Ollama.
+2. **Đặc cách cho container tác vụ ngắn hạn:** Đối với container `hurc_ollama_pull` (có nhiệm vụ tải model AI khi khởi chạy rồi tự dừng ở trạng thái `exited` với mã thoát `0`), trình kiểm duyệt sẽ đặc cách bỏ qua kiểm tra trạng thái hoạt động dài hạn nếu mã thoát là `0` để tránh phát hiện lỗi giả (false-positive).
+3. **Quy tắc GO/NO-GO & Rollback:** 
+   - **GO:** Tiến trình deploy được hoàn tất nếu và chỉ nếu toàn bộ các chốt chặn kiểm thử sức bền đạt 100% kết quả thành công.
+   - **NO-GO:** Nếu bất kỳ một kiểm thử nhỏ nào thất bại, hệ thống tự động kích hoạt tiến trình Rollback nhanh khẩn cấp (sử dụng `scripts/rollback-drill.sh` hoặc checkout lại commit ổn định gần nhất) để giữ vững tính ổn định tuyệt đối của hệ thống Metro.
 
 ---
 *Tài liệu được biên soạn và bảo chứng chất lượng ở mức độ phân tử bởi Đội ngũ kỹ sư Hệ thống HURC1 CRM.*
