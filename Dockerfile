@@ -30,7 +30,7 @@ ENV NODE_ENV production
 ENV NEXT_TELEMETRY_DISABLED 1
 USER root
 # Install runtime dependencies for the init script (prisma)
-RUN npm install -g prisma
+RUN npm install -g prisma@5.22.0
 RUN mkdir -p /app/data/offline /app/logs /app/backups /app/audit_reports && chown -R node:node /app
 
 USER node
