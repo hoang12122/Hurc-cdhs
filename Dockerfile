@@ -20,6 +20,7 @@ RUN npx prisma generate --schema=prisma/ai/schema.prisma
 RUN npx prisma generate --schema=prisma/auth/schema.prisma
 RUN npx prisma generate --schema=prisma/metro/schema.prisma
 RUN npx prisma generate --schema=prisma/ops/schema.prisma
+RUN npx prisma generate --schema=prisma/schema.prisma
 RUN npx tsc src/scripts/container-init.ts --esModuleInterop --skipLibCheck --outDir ./dist-init
 RUN npm run build
 

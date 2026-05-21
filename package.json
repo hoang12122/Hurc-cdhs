@@ -6,7 +6,7 @@
     "preinstall": "node scripts/guard-install.js",
     "dev": "node scripts/preflight-node.js && npx tsx src/scripts/local-preflight.ts && next dev",
     "build": "node scripts/preflight-node.js && npx tsx src/scripts/build-env-guard.ts && npm run db:generate:all && next build",
-    "db:generate:all": "npx prisma generate --schema=prisma/auth/schema.prisma && npx prisma generate --schema=prisma/ai/schema.prisma && npx prisma generate --schema=prisma/metro/schema.prisma && npx prisma generate --schema=prisma/ops/schema.prisma",
+    "db:generate:all": "npx prisma generate --schema=prisma/auth/schema.prisma && npx prisma generate --schema=prisma/ai/schema.prisma && npx prisma generate --schema=prisma/metro/schema.prisma && npx prisma generate --schema=prisma/ops/schema.prisma && npx prisma generate --schema=prisma/schema.prisma",
     "start": "next start",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
