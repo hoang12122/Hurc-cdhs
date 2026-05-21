@@ -2,6 +2,11 @@ const fs = require('fs');
 const path = require('path');
 
 try {
+  if (process.env.SKIP_PREFLIGHT === 'true') {
+    console.log("✅ [Preflight] Node.js version check skipped (SKIP_PREFLIGHT=true).");
+    process.exit(0);
+  }
+
   const nvmrcPath = path.join(__dirname, '..', '.nvmrc');
   if (!fs.existsSync(nvmrcPath)) {
     console.error("❌ Error: .nvmrc file not found!");

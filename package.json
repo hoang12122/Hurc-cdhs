@@ -100,6 +100,7 @@
     "npm": ">=10 <11"
   },
   "overrides": {
-    "eslint-visitor-keys": "3.4.3"
+    "eslint-visitor-keys": "3.4.3",
+    "pdfjs-dist": "4.0.379"
   }
 }
