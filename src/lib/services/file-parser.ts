@@ -9,26 +9,12 @@ export async function parsePdf(buffer: Buffer): Promise<string> {
             throw new Error("Buffer is empty or undefined.");
         }
 
-        // Fix for Next.js resolve issues: Point directly to the CJS worker
-        try {
-            const workerPath = require.resolve('pdf-parse/worker');
-            PDFParse.setWorker(workerPath);
-        } catch (e) {
-            console.warn("Could not resolve pdf-parse/worker via require.resolve, falling back to manual path.");
-            const manualPath = path.resolve(process.cwd(), 'node_modules/pdf-parse/dist/worker/cjs/index.cjs');
-            PDFParse.setWorker(manualPath);
-        }
-
         const parser = new PDFParse({ data: buffer });
-        try {
-            const result = await parser.getText();
-            if (!result || !result.text) {
-                throw new Error("No text content returned from PDF parser.");
-            }
-            return result.text;
-        } finally {
-            await parser.destroy();
+        const result = await parser.getText();
+        if (!result || !result.text) {
+            throw new Error("No text content returned from PDF parser.");
         }
+        return result.text;
     } catch (error: any) {
         console.error("PDF Parsing Error:", error);
         throw new Error(`Failed to parse PDF: ${error.message || 'Unknown error'}`);
