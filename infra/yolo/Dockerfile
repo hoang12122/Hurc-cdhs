@@ -33,7 +33,7 @@ RUN apt-get update && apt-get install -y \
 
 WORKDIR /app
 COPY --from=builder /usr/local/lib/python3.12/dist-packages /usr/local/lib/python3.12/dist-packages
-COPY --from=builder /root/.config/Ultralytics/yolov8n.pt /app/models/yolov8n.pt
+COPY --from=builder /app/yolov8n.pt /app/models/yolov8n.pt
 COPY main.py .
 
 EXPOSE 5005

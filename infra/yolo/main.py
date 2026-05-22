@@ -1,4 +1,5 @@
 import io
+import os
 import uvicorn
 from fastapi import FastAPI, File, UploadFile
 from PIL import Image
@@ -8,7 +9,8 @@ import numpy as np
 app = FastAPI(title="HURC YOLO AI Service")
 
 # Tải mô hình YOLOv8 Nano (nhẹ và nhanh nhất cho môi trường Docker không GPU)
-model = YOLO('yolov8n.pt')
+model_path = os.getenv("YOLO_MODEL_PATH", "yolov8n.pt")
+model = YOLO(model_path)
 
 @app.get("/health")
 async def health():
