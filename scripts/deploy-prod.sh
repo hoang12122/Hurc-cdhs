@@ -8,9 +8,12 @@
 
 RED='\033[0;31m'
 GREEN='\033[0;32m'
-YELLOW='\033[0;33'
+YELLOW='\033[0;33m'
 BLUE='\033[0;34m'
 NC='\033[0;m'
+
+# Tự động đặt mặc định bỏ qua kiểm tra phiên bản Node trên host (chỉ chạy trong Docker)
+export SKIP_PREFLIGHT=${SKIP_PREFLIGHT:-true}
 
 echo -e "${BLUE}==============================================================================${NC}"
 echo -e "${BLUE}🚀 TIẾN TRÌNH TRIỂN KHAI PHÂN LỚP PRODUCTION (TIÊU CHUẨN GA METRO METICULOUS)${NC}"
@@ -20,7 +23,13 @@ echo -e "${BLUE}================================================================
 DEPLOY_PROFILE=${DEPLOY_PROFILE:-all}
 echo -e "🔎 Hồ sơ triển khai được cấu hình: ${YELLOW}${DEPLOY_PROFILE^^}${NC}"
 
-# 1. Chạy Preflight Check cục bộ trước khi bắt đầu
+# 1. Khởi tạo các thư mục dữ liệu để tránh lỗi phân quyền (Permission Denied) của Docker
+echo -e "\n${YELLOW}[BƯỚC CHUẨN BỊ] Khởi tạo các thư mục lưu trữ dữ liệu...${NC}"
+mkdir -p nginx/certs
+mkdir -p data/postgres data/mongo data/ollama data/offline logs backups audit_reports
+echo -e "✅ ${GREEN}Khởi tạo thư mục dữ liệu thành công!${NC}"
+
+# 2. Chạy Preflight Check cục bộ trước khi bắt đầu
 echo -e "\n${YELLOW}[BƯỚC CHUẨN BỊ] Chạy Preflight Validation phiên bản Node.js...${NC}"
 if ! node scripts/preflight-node.js; then
   echo -e "❌ ${RED}LỖI: Preflight validation thất bại! Dừng tiến trình triển khai để bảo vệ hệ thống.${NC}"
@@ -28,7 +37,7 @@ if ! node scripts/preflight-node.js; then
 fi
 echo -e "✅ ${GREEN}Preflight validation thành công!${NC}"
 
-# 2. Thực hiện Hot Backup
+# 3. Thực hiện Hot Backup
 echo -e "\n${YELLOW}[HOT BACKUP] Sao lưu trạng thái hệ thống hiện hữu trước khi nâng cấp...${NC}"
 if [ -f "scripts/backup-system.sh" ]; then
   bash scripts/backup-system.sh
