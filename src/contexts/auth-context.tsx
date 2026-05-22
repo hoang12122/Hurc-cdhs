@@ -18,9 +18,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [isLoading, setIsLoading] = React.useState(true);
 
   React.useEffect(() => {
-    // In development/bypass mode, we always use the mock user
-    setUser(MOCK_CURRENT_USER);
-    setIsLoading(false);
+    async function restoreSession() {
+      try {
+        const { getCurrentUser } = await import('@/lib/actions/auth.actions');
+        const sessionUser = await getCurrentUser();
+        setUser(sessionUser);
+      } catch (err) {
+        console.error("Failed to restore session:", err);
+        setUser(null);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    restoreSession();
   }, []);
 
   const setAuthInfo = ({ user: newUser }: { user: User | null }) => {

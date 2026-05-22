@@ -66,9 +66,12 @@ export async function login(email: string, password?: string, rememberMe: boolea
     // Cookie duration: 4 hours (session) or 30 days (remember me)
     const maxAge = rememberMe ? 30 * 24 * 60 * 60 : 4 * 60 * 60;
 
+    const reqHeaders = headers();
+    const isHttps = reqHeaders.get('x-forwarded-proto') === 'https' || reqHeaders.get('referer')?.startsWith('https://');
+
     cookies().set(SESSION_COOKIE_NAME, signedValue, {
         httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
+        secure: isHttps,
         sameSite: 'lax',
         path: '/',
         maxAge: maxAge

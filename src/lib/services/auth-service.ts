@@ -24,10 +24,16 @@ if (!SESSION_SECRET) {
 function verifySession(signedData: string): string | null {
     const crypto = require('crypto');
     const parts = signedData.split('.');
-    if (parts.length !== 2) return null;
+    if (parts.length !== 2) {
+        console.warn("[AUTH-SERVICE] verifySession failed: cookie value split length is not 2. Value length:", signedData?.length);
+        return null;
+    }
     
     const [data, signature] = parts;
-    if (!data || !signature) return null;
+    if (!data || !signature) {
+        console.warn("[AUTH-SERVICE] verifySession failed: data or signature missing.");
+        return null;
+    }
     
     const hmac = crypto.createHmac('sha256', SESSION_SECRET);
     hmac.update(data);
@@ -39,7 +45,10 @@ function verifySession(signedData: string): string | null {
         if (a.length === b.length && crypto.timingSafeEqual(a, b)) {
             return data;
         }
-    } catch { /* ignore */ }
+        console.warn("[AUTH-SERVICE] verifySession failed: signatures do not match.");
+    } catch (e: any) {
+        console.error("[AUTH-SERVICE] verifySession error in timingSafeEqual:", e.message);
+    }
     return null;
 }
 
@@ -48,14 +57,27 @@ export async function getSessionUser(): Promise<User | null> {
         const cookieStore = cookies();
         const sessionCookie = cookieStore.get(SESSION_COOKIE_NAME);
 
-        if (!sessionCookie?.value) return null;
+        if (!sessionCookie?.value) {
+            console.debug("[AUTH-SERVICE] No session cookie found in request headers.");
+            return null;
+        }
 
         const userId = verifySession(sessionCookie.value);
-        if (!userId) return null;
+        if (!userId) {
+            console.warn("[AUTH-SERVICE] Session validation failed for cookie value.");
+            return null;
+        }
 
         const dbUser = await getInternalUserById(userId);
+        if (!dbUser) {
+            console.warn(`[AUTH-SERVICE] User with ID ${userId} not found in database.`);
+            return null;
+        }
 
-        if (!dbUser || dbUser.status !== 'active') return null;
+        if (dbUser.status !== 'active') {
+            console.warn(`[AUTH-SERVICE] User ${dbUser.email} (ID: ${userId}) has inactive status: ${dbUser.status}`);
+            return null;
+        }
 
         // Fetch roles using getInternalRoles() which handles ONLINE (authDb) and OFFLINE (jsonDb) modes
         const roles: any[] = await getInternalRoles();
@@ -74,7 +96,8 @@ export async function getSessionUser(): Promise<User | null> {
             passwordLastChangedAt: typeof dbUser.passwordLastChangedAt === 'string' ? dbUser.passwordLastChangedAt : (dbUser.passwordLastChangedAt as any)?.toISOString?.() || new Date().toISOString(),
             permissions: dbUser.permissions || permissions,
         };
-    } catch (e) {
+    } catch (e: any) {
+        console.error("[AUTH-SERVICE] getSessionUser error:", e.stack || e.message || e);
         return null;
     }
 }
