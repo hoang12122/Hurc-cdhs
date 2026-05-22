@@ -186,7 +186,10 @@ if [ "$PROFILE" = "core" ] || [ "$PROFILE" = "all" ]; then
 
   # 2.6: Log Scan App Container
   echo -e "\n${YELLOW}[BƯỚC 5] Quét nhật ký Log App Container để bắt lỗi sập vòng lặp (Crash Loop)...${NC}"
-  RESTART_COUNT=$(docker inspect -f '{{.State.RestartCount}}' hurc_app)
+  RESTART_COUNT=$(docker inspect hurc_app 2>/dev/null | grep -i '"RestartCount"' | head -n 1 | awk -F': ' '{print $2}' | tr -d ', ' || echo 0)
+  if ! [[ "$RESTART_COUNT" =~ ^[0-9]+$ ]]; then
+    RESTART_COUNT=0
+  fi
   echo -e "🔎 Số lần tự động khởi động lại của hurc_app: ${GREEN}$RESTART_COUNT${NC}"
   if [ "$RESTART_COUNT" -gt 0 ]; then
     echo -e "❌ ${RED}LỖI NGHIÊM TRỌNG: Phát hiện sập vòng lặp (Crash Loop) trên hurc_app!${NC}"
