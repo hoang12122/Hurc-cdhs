@@ -1,7 +1,7 @@
 import { cookies } from 'next/headers';
 import { type User, ROLE_SUPER_ADMIN } from '../constants';
 import { jsonDb } from '../db/json-db';
-import { findAccountById } from './account-service';
+import { getInternalUserById } from './user-service';
 import { dbProvider } from './db-wrapper';
 
 /**
@@ -53,7 +53,7 @@ export async function getSessionUser(): Promise<User | null> {
         const userId = verifySession(sessionCookie.value);
         if (!userId) return null;
 
-        const dbUser = await findAccountById(userId);
+        const dbUser = await getInternalUserById(userId);
 
         if (!dbUser || dbUser.status !== 'active') return null;
 
@@ -63,16 +63,16 @@ export async function getSessionUser(): Promise<User | null> {
         const permissions = userRole?.permissions || [];
 
         return {
-            id: dbUser._id?.toString() || dbUser.id || userId,
+            id: dbUser.id || userId,
             name: dbUser.name,
             email: dbUser.email,
             role: dbUser.role as any,
             status: dbUser.status as any,
             department: dbUser.department,
-            isVerified: true,
-            mustChangePassword: false,
-            passwordLastChangedAt: dbUser.updatedAt?.toISOString() || new Date().toISOString(),
-            permissions,
+            isVerified: dbUser.isVerified ?? true,
+            mustChangePassword: dbUser.mustChangePassword ?? false,
+            passwordLastChangedAt: typeof dbUser.passwordLastChangedAt === 'string' ? dbUser.passwordLastChangedAt : (dbUser.passwordLastChangedAt as any)?.toISOString?.() || new Date().toISOString(),
+            permissions: dbUser.permissions || permissions,
         };
     } catch (e) {
         return null;

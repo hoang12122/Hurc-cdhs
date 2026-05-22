@@ -120,9 +120,28 @@ export async function createInternalUser(user: Partial<User>) {
 
     if (!IS_DATABASE_OFFLINE) {
         try {
-            await authDb.user.create({ data: record });
-            return record;
-        } catch (e) {}
+            const pgRecord: any = {
+                id: record.id,
+                name: record.name,
+                email: record.email,
+                password: record.password,
+                role: record.role,
+                status: record.status,
+                department: record.department,
+                isVerified: record.isVerified,
+                verificationOtp: record.verificationOtp,
+                otpExpiry: new Date(record.otpExpiry),
+                passwordLastChangedAt: new Date(record.passwordLastChangedAt),
+                createdAt: new Date(record.createdAt),
+                updatedAt: new Date(record.updatedAt),
+                permissions: user.permissions || [],
+                assignedSubsystems: user.assignedSubsystems || []
+            };
+            return await authDb.user.create({ data: pgRecord });
+        } catch (e) {
+            console.error("[USER-SERVICE] PostgreSQL create user failed:", e);
+            throw e;
+        }
     }
     
     return await jsonDb.insertRecord<any>('users', record);
@@ -139,12 +158,32 @@ export async function updateInternalUser(id: string, data: any) {
     };
 
     if (!IS_DATABASE_OFFLINE) {
+        const pgPayload: any = {};
+        const allowedFields = [
+            'name', 'email', 'password', 'role', 'status', 'department', 
+            'isVerified', 'passwordLastChangedAt', 'permissions', 
+            'assignedSubsystems', 'avatarUrl', 'verificationOtp', 'otpExpiry', 'deletedAt'
+        ];
+        
+        for (const key of allowedFields) {
+            if (key in updatePayload) {
+                if (['passwordLastChangedAt', 'otpExpiry', 'deletedAt'].includes(key) && updatePayload[key]) {
+                    pgPayload[key] = new Date(updatePayload[key]);
+                } else {
+                    pgPayload[key] = updatePayload[key];
+                }
+            }
+        }
+
         try {
             return await authDb.user.update({
                 where: { id },
-                data: updatePayload
+                data: pgPayload
             });
-        } catch (e) {}
+        } catch (e) {
+            console.error("[USER-SERVICE] PostgreSQL update user failed:", e);
+            throw e;
+        }
     }
 
     return await jsonDb.updateRecord<any>('users', id, updatePayload);
@@ -154,7 +193,10 @@ export async function deleteInternalUser(id: string) {
     if (!IS_DATABASE_OFFLINE) {
         try {
             return await authDb.user.delete({ where: { id } });
-        } catch (e) {}
+        } catch (e) {
+            console.error("[USER-SERVICE] PostgreSQL delete user failed:", e);
+            throw e;
+        }
     }
     return await jsonDb.delete('users', (u: any) => u.id === id);
 }
@@ -204,9 +246,16 @@ export async function createInternalPasswordResetRequest(userId: string, email: 
 
     if (!IS_DATABASE_OFFLINE) {
         try {
-            await authDb.passwordResetRequest.create({ data: record });
+            const pgRecord = {
+                ...record,
+                createdAt: new Date(record.createdAt)
+            };
+            await authDb.passwordResetRequest.create({ data: pgRecord });
             return;
-        } catch (e) {}
+        } catch (e) {
+            console.error("[USER-SERVICE] PostgreSQL create password reset request failed:", e);
+            throw e;
+        }
     }
     await jsonDb.insertRecord<any>('password_reset_requests', record);
 }
@@ -219,7 +268,10 @@ export async function updateInternalPasswordResetRequest(id: string, status: str
                 data: { status }
             });
             return;
-        } catch (e) {}
+        } catch (e) {
+            console.error("[USER-SERVICE] PostgreSQL update password reset request failed:", e);
+            throw e;
+        }
     }
     await jsonDb.updateRecord<any>('password_reset_requests', id, { status });
 }
@@ -239,7 +291,10 @@ export async function createInternalRole(data: any) {
         try {
             await authDb.role.create({ data });
             return;
-        } catch (e) {}
+        } catch (e) {
+            console.error("[USER-SERVICE] PostgreSQL create role failed:", e);
+            throw e;
+        }
     }
     await jsonDb.insertRecord<any>('roles', data);
 }
@@ -249,7 +304,10 @@ export async function updateInternalRole(id: string, data: any) {
         try {
             await authDb.role.update({ where: { id }, data });
             return;
-        } catch (e) {}
+        } catch (e) {
+            console.error("[USER-SERVICE] PostgreSQL update role failed:", e);
+            throw e;
+        }
     }
     await jsonDb.updateRecord<any>('roles', id, data);
 }
@@ -259,7 +317,10 @@ export async function deleteInternalRole(id: string) {
         try {
             await authDb.role.delete({ where: { id } });
             return;
-        } catch (e) {}
+        } catch (e) {
+            console.error("[USER-SERVICE] PostgreSQL delete role failed:", e);
+            throw e;
+        }
     }
     await jsonDb.delete('roles', (r: any) => r.id === id);
 }
@@ -295,11 +356,18 @@ export async function updateUserPassword(userId: string, newPassword: string, ad
 
     if (!IS_DATABASE_OFFLINE) {
         try {
+            const pgUpdateData = {
+                password: updateData.password,
+                passwordLastChangedAt: new Date(updateData.passwordLastChangedAt)
+            };
             return await authDb.user.update({
                 where: { id: userId },
-                data: updateData
+                data: pgUpdateData
             });
-        } catch (e) { /* fallback */ }
+        } catch (e) {
+            console.error("[USER-SERVICE] PostgreSQL update user password failed:", e);
+            throw e;
+        }
     }
 
     return await jsonDb.updateRecord<any>('users', userId, updateData);
