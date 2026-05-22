@@ -63,6 +63,8 @@ services:
       - "3000:3000"
     restart: unless-stopped
     profiles: ["core"]
+    environment:
+      - HOSTNAME=0.0.0.0
     env_file:
       - .env
     depends_on:

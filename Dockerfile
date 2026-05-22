@@ -44,6 +44,7 @@ COPY --from=builder /app/package.json ./package.json
 
 EXPOSE 3000
 ENV PORT 3000
+ENV HOSTNAME 0.0.0.0
 ENTRYPOINT []
 # Run the compiled init script directly with Node
 CMD ["node", "--max-old-space-size=3072", "dist-init/container-init.js"]
