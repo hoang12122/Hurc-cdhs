@@ -58,3 +58,7 @@ firestore-debug.log
 /dist/
 /dist-init/
 
+# Backups
+/backups/
+
+
