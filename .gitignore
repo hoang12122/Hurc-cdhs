@@ -52,3 +52,4 @@ firestore-debug.log
 /data/postgres/
 /data/mongo/
 /data/ollama/
+/data/offline/
