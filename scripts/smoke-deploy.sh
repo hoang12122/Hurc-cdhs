@@ -212,8 +212,8 @@ if [ "$PROFILE" = "ai" ] || [ "$PROFILE" = "all" ]; then
   ATTEMPT=1
   SUCCESS=0
   while [ $ATTEMPT -le $MAX_ATTEMPTS ]; do
-    echo -n "🔎 Thử lần $ATTEMPT/$MAX_ATTEMPTS kết nối đến YOLO Service: http://localhost:5005/health... "
-    YOLO_STATUS=$(curl -s -o /dev/null -w "%{http_code}" "http://localhost:5005/health" || echo "000")
+    echo -n "🔎 Thử lần $ATTEMPT/$MAX_ATTEMPTS kết nối đến YOLO Service (trong container): http://localhost:5005/health... "
+    YOLO_STATUS=$(docker exec hurc_yolo curl -s -o /dev/null -w "%{http_code}" "http://localhost:5005/health" 2>/dev/null || echo "000")
     if [ "$YOLO_STATUS" = "200" ]; then
       echo -e "${GREEN}THÀNH CÔNG (HTTP 200)${NC}"
       SUCCESS=1
