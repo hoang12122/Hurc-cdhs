@@ -21,8 +21,9 @@ export const DB_CONFIG = {
   
   // MongoDB (optional for some services)
   mongo: {
-    uri: process.env.MONGODB_URI || 'mongodb://localhost:27017',
-    dbName: process.env.MONGODB_DB_NAME || 'hurc1crm',
+    uri: (process.env.MONGODB_URI || process.env.MONGO_URL || 'mongodb://localhost:27017')
+      .replace('mongo:27117', 'mongo:27017'),
+    dbName: process.env.MONGODB_DB_NAME || (process.env.MONGO_URL ? 'hurc_meta' : 'hurc1crm'),
   },
   
   // Chế độ Offline/Mock (Đã được chuẩn hóa trong database-mode.ts)
