@@ -1,4 +1,5 @@
 process.env.DATABASE_OFFLINE = 'true';
+process.env.IS_DATABASE_OFFLINE = 'true';
 (process.env as any).NODE_ENV = 'development';
 
 import * as fs from 'fs';
