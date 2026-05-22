@@ -49,7 +49,7 @@ export async function readRawDb(forceRefresh: boolean = false): Promise<JsonDbDa
     
     // 2.5 Verify Checksum (Brutal Audit Fix: Bit Rot Detection)
     try {
-        const expectedChecksum = await fs.readFile(`${DB_PATH}.sha256`, 'utf-8');
+        const expectedChecksum = (await fs.readFile(`${DB_PATH}.sha256`, 'utf-8')).trim();
         const actualChecksum = crypto.createHash('sha256').update(content).digest('hex');
         if (expectedChecksum !== actualChecksum) {
             console.error(`🚨 [CRITICAL] BIT ROT DETECTED IN ${DB_FILE_NAME}! Checksum mismatch.`);
