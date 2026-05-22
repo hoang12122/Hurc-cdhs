@@ -1,4 +1,6 @@
-import { getOpsDbProvider } from '../lib/services/db-wrapper';
+process.env.DATABASE_OFFLINE = 'true';
+(process.env as any).NODE_ENV = 'development';
+
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -8,10 +10,7 @@ import * as path from 'path';
 async function runMockLayerTest() {
   console.log('--- STARTING TASK 8.2: MOCK LAYER TEST ---');
   
-  // 1. Cưỡng bức chế độ Offline
-  process.env.DATABASE_OFFLINE = 'true';
-  (process.env as any).NODE_ENV = 'development';
-
+  const { getOpsDbProvider } = await import('../lib/services/db-wrapper');
   const mockProvider = getOpsDbProvider();
   const testId = `MOCK-TEST-${Date.now()}`;
   
@@ -52,11 +51,12 @@ async function runMockLayerTest() {
 
     // 4. Kiểm tra sự tồn tại của tệp db.json
     console.log('[Test] Verifying File Persistence...');
-    const dbPath = path.join(process.cwd(), 'db.json');
+    const dbFileName = process.env.DATABASE_JSON_PATH || 'db.json';
+    const dbPath = path.join(process.cwd(), dbFileName);
     if (fs.existsSync(dbPath)) {
       const content = JSON.parse(fs.readFileSync(dbPath, 'utf8'));
       if (content.dnf_documents && content.dnf_documents.some((i: any) => i.id === testId)) {
-        console.log('[Success] db.json contains the mock data.');
+        console.log(`[Success] ${dbFileName} contains the mock data.`);
         results.filePersistence = true;
       }
     }
