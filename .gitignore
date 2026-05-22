@@ -53,3 +53,8 @@ firestore-debug.log
 /data/mongo/
 /data/ollama/
 /data/offline/
+
+# Compiled files
+/dist/
+/dist-init/
+

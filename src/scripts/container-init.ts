@@ -59,7 +59,7 @@ async function init() {
         if (fs.existsSync(dbJsonPath)) {
             console.log("🔄 Found db.json. Automatically migrating initial data to PostgreSQL...");
             try {
-                execSync('npx tsx src/scripts/migrate-json-to-pg.ts', { stdio: 'inherit' });
+                execSync('node dist-init/register.js', { stdio: 'inherit' });
                 console.log("✅ Automatic data migration completed successfully.");
             } catch (migrateErr) {
                 console.error("⚠️ Warning: Automatic database sync from db.json failed or skipped some tables. (Non-fatal, starting app anyway):", migrateErr);

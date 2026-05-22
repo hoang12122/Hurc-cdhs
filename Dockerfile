@@ -21,7 +21,7 @@ RUN npx prisma generate --schema=prisma/auth/schema.prisma
 RUN npx prisma generate --schema=prisma/metro/schema.prisma
 RUN npx prisma generate --schema=prisma/ops/schema.prisma
 RUN npx prisma generate --schema=prisma/schema.prisma
-RUN npx tsc src/scripts/container-init.ts --esModuleInterop --skipLibCheck --outDir ./dist-init
+RUN npx tsc -p tsconfig.init.json && cp src/scripts/register.js ./dist-init/register.js
 RUN npm run build
 
 FROM cgr.dev/chainguard/node:latest AS runner
@@ -43,7 +43,6 @@ COPY --from=builder /app/dist-init ./dist-init
 COPY --from=builder /app/package.json ./package.json
 COPY --from=builder /app/tsconfig.json ./tsconfig.json
 COPY --from=builder /app/.prisma-runtime ./.prisma-runtime
-COPY --from=builder /app/src/scripts/migrate-json-to-pg.ts ./src/scripts/migrate-json-to-pg.ts
 
 EXPOSE 3000
 ENV PORT 3000

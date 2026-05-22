@@ -262,7 +262,7 @@
       "id": "user-admin-2026",
       "name": "Super Admin",
       "email": "nhhoang@hurc.vn",
-      "password": "$2b$10$v4s09aSjFKj.JnZGRRYPFuElSZoTnEXkCorhYgEEHJ/LbhYgKj92q",
+      "password": "$2b$10$PkEj3IKKkncmH78UCwc8H.iwo96RsImnEvx8.Mxly3IZks9gnLEIu",
       "role": "SUPER_ADMIN",
       "status": "active",
       "createdAt": "2026-04-01T14:00:00.000Z",
