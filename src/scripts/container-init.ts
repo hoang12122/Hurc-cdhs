@@ -53,6 +53,20 @@ async function init() {
                 }
             }
         }
+
+        // Automatically sync initial operational data from db.json if present
+        const dbJsonPath = path.join(process.cwd(), 'db.json');
+        if (fs.existsSync(dbJsonPath)) {
+            console.log("🔄 Found db.json. Automatically migrating initial data to PostgreSQL...");
+            try {
+                execSync('npx tsx src/scripts/migrate-json-to-pg.ts', { stdio: 'inherit' });
+                console.log("✅ Automatic data migration completed successfully.");
+            } catch (migrateErr) {
+                console.error("⚠️ Warning: Automatic database sync from db.json failed or skipped some tables. (Non-fatal, starting app anyway):", migrateErr);
+            }
+        } else {
+            console.log("ℹ️ db.json not found in container root. Skipping automatic data sync.");
+        }
     }
 
     console.log("✅ Initialization complete. Handing over to Next.js...");

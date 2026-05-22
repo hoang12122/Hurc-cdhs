@@ -43,8 +43,8 @@ async function migrate() {
   console.log('🚀 Bắt đầu đồng bộ dữ liệu từ db.json sang PostgreSQL (4 Databases)...');
   
   if (!fs.existsSync(dbPath)) {
-    console.error('❌ Không tìm thấy file db.json!');
-    process.exit(1);
+    console.warn('⚠️ Cảnh báo: Không tìm thấy file db.json! Bỏ qua quá trình đồng bộ dữ liệu ban đầu.');
+    return;
   }
 
   const rawData = fs.readFileSync(dbPath, 'utf8');
