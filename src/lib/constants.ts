@@ -89,7 +89,7 @@ export const ROLE_CLIENT = "Client";
 export const MOCK_CURRENT_USER: User = {
     id: "user-admin-new",
     name: "System Admin",
-    email: "admin@hurc.vn",
+    email: "nhhoang@hurc.vn",
     role: ROLE_SUPER_ADMIN,
     status: "active",
     department: "Ban Quản trị Hệ thống",

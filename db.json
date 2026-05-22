@@ -261,7 +261,7 @@
     {
       "id": "user-admin-new",
       "name": "System Admin",
-      "email": "admin@hurc.vn",
+      "email": "nhhoang@hurc.vn",
       "password": "$2b$10$9XVx0iTD8KLvcxT7tBG1uewCX6n8X5hzNMmPb8uSclj2Dksts39Mq",
       "role": "SUPER_ADMIN",
       "status": "active",
