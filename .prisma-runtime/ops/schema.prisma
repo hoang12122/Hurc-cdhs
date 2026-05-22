@@ -75,32 +75,34 @@ model Notification {
 }
 
 model MaintenanceStandard {
-  id                     String    @id
+  id                     String                    @id
   name                   String
   name_en                String?
   description            String?
   frequency              String? // MaintenanceFrequency
-  scheduledTime          String?   @map("scheduled_time") // HH:mm
-  locationIds            String[]  @default([]) @map("location_ids")
-  recipientId            String?   @map("recipient_id")
+  scheduledTime          String?                   @map("scheduled_time") // HH:mm
+  locationIds            String[]                  @default([]) @map("location_ids")
+  recipientId            String?                   @map("recipient_id")
   abbreviation           String?
-  estimatedDurationHours Float?    @map("estimated_duration_hours")
-  deletedAt              DateTime? @map("deleted_at")
+  estimatedDurationHours Float?                    @map("estimated_duration_hours")
+  deletedAt              DateTime?                 @map("deleted_at")
+  items                  MaintenanceStandardItem[]
 
   @@map("maintenance_standards")
 }
 
 model MaintenanceStandardItem {
-  id                String  @id
-  standardId        String  @map("standard_id")
-  itemCode          String  @map("item_code")
-  itemText          String  @map("item_text")
+  id                String              @id
+  standardId        String              @map("standard_id")
+  itemCode          String              @map("item_code")
+  itemText          String              @map("item_text")
   criteria          String?
   unit              String?
-  standardQuantity  Float?  @map("standard_quantity")
-  toleranceOperator String? @map("tolerance_operator")
-  toleranceValue    Float?  @map("tolerance_value")
-  requiredTools     String? @map("required_tools")
+  standardQuantity  Float?              @map("standard_quantity")
+  toleranceOperator String?             @map("tolerance_operator")
+  toleranceValue    Float?              @map("tolerance_value")
+  requiredTools     String?             @map("required_tools")
+  standard          MaintenanceStandard @relation(fields: [standardId], references: [id], onDelete: Cascade)
 
   @@index([standardId])
   @@map("ops_maintenance_standard_items")

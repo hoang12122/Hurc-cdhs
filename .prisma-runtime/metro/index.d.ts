@@ -1060,6 +1060,8 @@ export namespace Prisma {
     code: string | null
     name: string | null
     subsystem: string | null
+    stationId: string | null
+    systemId: string | null
     parentId: string | null
     criticality: string | null
     createdAt: Date | null
@@ -1072,6 +1074,8 @@ export namespace Prisma {
     code: string | null
     name: string | null
     subsystem: string | null
+    stationId: string | null
+    systemId: string | null
     parentId: string | null
     criticality: string | null
     createdAt: Date | null
@@ -1084,6 +1088,8 @@ export namespace Prisma {
     code: number
     name: number
     subsystem: number
+    stationId: number
+    systemId: number
     parentId: number
     criticality: number
     specification: number
@@ -1099,6 +1105,8 @@ export namespace Prisma {
     code?: true
     name?: true
     subsystem?: true
+    stationId?: true
+    systemId?: true
     parentId?: true
     criticality?: true
     createdAt?: true
@@ -1111,6 +1119,8 @@ export namespace Prisma {
     code?: true
     name?: true
     subsystem?: true
+    stationId?: true
+    systemId?: true
     parentId?: true
     criticality?: true
     createdAt?: true
@@ -1123,6 +1133,8 @@ export namespace Prisma {
     code?: true
     name?: true
     subsystem?: true
+    stationId?: true
+    systemId?: true
     parentId?: true
     criticality?: true
     specification?: true
@@ -1209,6 +1221,8 @@ export namespace Prisma {
     code: string
     name: string
     subsystem: string
+    stationId: string | null
+    systemId: string | null
     parentId: string | null
     criticality: string
     specification: JsonValue | null
@@ -1239,6 +1253,8 @@ export namespace Prisma {
     code?: boolean
     name?: boolean
     subsystem?: boolean
+    stationId?: boolean
+    systemId?: boolean
     parentId?: boolean
     criticality?: boolean
     specification?: boolean
@@ -1255,6 +1271,8 @@ export namespace Prisma {
     code?: boolean
     name?: boolean
     subsystem?: boolean
+    stationId?: boolean
+    systemId?: boolean
     parentId?: boolean
     criticality?: boolean
     specification?: boolean
@@ -1269,6 +1287,8 @@ export namespace Prisma {
     code?: boolean
     name?: boolean
     subsystem?: boolean
+    stationId?: boolean
+    systemId?: boolean
     parentId?: boolean
     criticality?: boolean
     specification?: boolean
@@ -1297,6 +1317,8 @@ export namespace Prisma {
       code: string
       name: string
       subsystem: string
+      stationId: string | null
+      systemId: string | null
       parentId: string | null
       criticality: string
       specification: Prisma.JsonValue | null
@@ -1702,6 +1724,8 @@ export namespace Prisma {
     readonly code: FieldRef<"Asset", 'String'>
     readonly name: FieldRef<"Asset", 'String'>
     readonly subsystem: FieldRef<"Asset", 'String'>
+    readonly stationId: FieldRef<"Asset", 'String'>
+    readonly systemId: FieldRef<"Asset", 'String'>
     readonly parentId: FieldRef<"Asset", 'String'>
     readonly criticality: FieldRef<"Asset", 'String'>
     readonly specification: FieldRef<"Asset", 'Json'>
@@ -3966,6 +3990,8 @@ export namespace Prisma {
     code: 'code',
     name: 'name',
     subsystem: 'subsystem',
+    stationId: 'stationId',
+    systemId: 'systemId',
     parentId: 'parentId',
     criticality: 'criticality',
     specification: 'specification',
@@ -4123,6 +4149,8 @@ export namespace Prisma {
     code?: StringFilter<"Asset"> | string
     name?: StringFilter<"Asset"> | string
     subsystem?: StringFilter<"Asset"> | string
+    stationId?: StringNullableFilter<"Asset"> | string | null
+    systemId?: StringNullableFilter<"Asset"> | string | null
     parentId?: StringNullableFilter<"Asset"> | string | null
     criticality?: StringFilter<"Asset"> | string
     specification?: JsonNullableFilter<"Asset">
@@ -4138,6 +4166,8 @@ export namespace Prisma {
     code?: SortOrder
     name?: SortOrder
     subsystem?: SortOrder
+    stationId?: SortOrderInput | SortOrder
+    systemId?: SortOrderInput | SortOrder
     parentId?: SortOrderInput | SortOrder
     criticality?: SortOrder
     specification?: SortOrderInput | SortOrder
@@ -4156,6 +4186,8 @@ export namespace Prisma {
     NOT?: AssetWhereInput | AssetWhereInput[]
     name?: StringFilter<"Asset"> | string
     subsystem?: StringFilter<"Asset"> | string
+    stationId?: StringNullableFilter<"Asset"> | string | null
+    systemId?: StringNullableFilter<"Asset"> | string | null
     parentId?: StringNullableFilter<"Asset"> | string | null
     criticality?: StringFilter<"Asset"> | string
     specification?: JsonNullableFilter<"Asset">
@@ -4171,6 +4203,8 @@ export namespace Prisma {
     code?: SortOrder
     name?: SortOrder
     subsystem?: SortOrder
+    stationId?: SortOrderInput | SortOrder
+    systemId?: SortOrderInput | SortOrder
     parentId?: SortOrderInput | SortOrder
     criticality?: SortOrder
     specification?: SortOrderInput | SortOrder
@@ -4190,6 +4224,8 @@ export namespace Prisma {
     code?: StringWithAggregatesFilter<"Asset"> | string
     name?: StringWithAggregatesFilter<"Asset"> | string
     subsystem?: StringWithAggregatesFilter<"Asset"> | string
+    stationId?: StringNullableWithAggregatesFilter<"Asset"> | string | null
+    systemId?: StringNullableWithAggregatesFilter<"Asset"> | string | null
     parentId?: StringNullableWithAggregatesFilter<"Asset"> | string | null
     criticality?: StringWithAggregatesFilter<"Asset"> | string
     specification?: JsonNullableWithAggregatesFilter<"Asset">
@@ -4331,6 +4367,8 @@ export namespace Prisma {
     code: string
     name: string
     subsystem: string
+    stationId?: string | null
+    systemId?: string | null
     criticality?: string
     specification?: NullableJsonNullValueInput | InputJsonValue
     createdAt?: Date | string
@@ -4345,6 +4383,8 @@ export namespace Prisma {
     code: string
     name: string
     subsystem: string
+    stationId?: string | null
+    systemId?: string | null
     parentId?: string | null
     criticality?: string
     specification?: NullableJsonNullValueInput | InputJsonValue
@@ -4359,6 +4399,8 @@ export namespace Prisma {
     code?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     subsystem?: StringFieldUpdateOperationsInput | string
+    stationId?: NullableStringFieldUpdateOperationsInput | string | null
+    systemId?: NullableStringFieldUpdateOperationsInput | string | null
     criticality?: StringFieldUpdateOperationsInput | string
     specification?: NullableJsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -4373,6 +4415,8 @@ export namespace Prisma {
     code?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     subsystem?: StringFieldUpdateOperationsInput | string
+    stationId?: NullableStringFieldUpdateOperationsInput | string | null
+    systemId?: NullableStringFieldUpdateOperationsInput | string | null
     parentId?: NullableStringFieldUpdateOperationsInput | string | null
     criticality?: StringFieldUpdateOperationsInput | string
     specification?: NullableJsonNullValueInput | InputJsonValue
@@ -4387,6 +4431,8 @@ export namespace Prisma {
     code: string
     name: string
     subsystem: string
+    stationId?: string | null
+    systemId?: string | null
     parentId?: string | null
     criticality?: string
     specification?: NullableJsonNullValueInput | InputJsonValue
@@ -4400,6 +4446,8 @@ export namespace Prisma {
     code?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     subsystem?: StringFieldUpdateOperationsInput | string
+    stationId?: NullableStringFieldUpdateOperationsInput | string | null
+    systemId?: NullableStringFieldUpdateOperationsInput | string | null
     criticality?: StringFieldUpdateOperationsInput | string
     specification?: NullableJsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -4412,6 +4460,8 @@ export namespace Prisma {
     code?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     subsystem?: StringFieldUpdateOperationsInput | string
+    stationId?: NullableStringFieldUpdateOperationsInput | string | null
+    systemId?: NullableStringFieldUpdateOperationsInput | string | null
     parentId?: NullableStringFieldUpdateOperationsInput | string | null
     criticality?: StringFieldUpdateOperationsInput | string
     specification?: NullableJsonNullValueInput | InputJsonValue
@@ -4659,6 +4709,8 @@ export namespace Prisma {
     code?: SortOrder
     name?: SortOrder
     subsystem?: SortOrder
+    stationId?: SortOrder
+    systemId?: SortOrder
     parentId?: SortOrder
     criticality?: SortOrder
     specification?: SortOrder
@@ -4672,6 +4724,8 @@ export namespace Prisma {
     code?: SortOrder
     name?: SortOrder
     subsystem?: SortOrder
+    stationId?: SortOrder
+    systemId?: SortOrder
     parentId?: SortOrder
     criticality?: SortOrder
     createdAt?: SortOrder
@@ -4684,6 +4738,8 @@ export namespace Prisma {
     code?: SortOrder
     name?: SortOrder
     subsystem?: SortOrder
+    stationId?: SortOrder
+    systemId?: SortOrder
     parentId?: SortOrder
     criticality?: SortOrder
     createdAt?: SortOrder
@@ -4934,6 +4990,10 @@ export namespace Prisma {
     set?: string
   }
 
+  export type NullableStringFieldUpdateOperationsInput = {
+    set?: string | null
+  }
+
   export type DateTimeFieldUpdateOperationsInput = {
     set?: Date | string
   }
@@ -4964,10 +5024,6 @@ export namespace Prisma {
     update?: AssetUpdateWithWhereUniqueWithoutParentInput | AssetUpdateWithWhereUniqueWithoutParentInput[]
     updateMany?: AssetUpdateManyWithWhereWithoutParentInput | AssetUpdateManyWithWhereWithoutParentInput[]
     deleteMany?: AssetScalarWhereInput | AssetScalarWhereInput[]
-  }
-
-  export type NullableStringFieldUpdateOperationsInput = {
-    set?: string | null
   }
 
   export type AssetUncheckedUpdateManyWithoutParentNestedInput = {
@@ -5204,6 +5260,8 @@ export namespace Prisma {
     code: string
     name: string
     subsystem: string
+    stationId?: string | null
+    systemId?: string | null
     criticality?: string
     specification?: NullableJsonNullValueInput | InputJsonValue
     createdAt?: Date | string
@@ -5217,6 +5275,8 @@ export namespace Prisma {
     code: string
     name: string
     subsystem: string
+    stationId?: string | null
+    systemId?: string | null
     parentId?: string | null
     criticality?: string
     specification?: NullableJsonNullValueInput | InputJsonValue
@@ -5235,6 +5295,8 @@ export namespace Prisma {
     code: string
     name: string
     subsystem: string
+    stationId?: string | null
+    systemId?: string | null
     criticality?: string
     specification?: NullableJsonNullValueInput | InputJsonValue
     createdAt?: Date | string
@@ -5248,6 +5310,8 @@ export namespace Prisma {
     code: string
     name: string
     subsystem: string
+    stationId?: string | null
+    systemId?: string | null
     criticality?: string
     specification?: NullableJsonNullValueInput | InputJsonValue
     createdAt?: Date | string
@@ -5282,6 +5346,8 @@ export namespace Prisma {
     code?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     subsystem?: StringFieldUpdateOperationsInput | string
+    stationId?: NullableStringFieldUpdateOperationsInput | string | null
+    systemId?: NullableStringFieldUpdateOperationsInput | string | null
     criticality?: StringFieldUpdateOperationsInput | string
     specification?: NullableJsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -5295,6 +5361,8 @@ export namespace Prisma {
     code?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     subsystem?: StringFieldUpdateOperationsInput | string
+    stationId?: NullableStringFieldUpdateOperationsInput | string | null
+    systemId?: NullableStringFieldUpdateOperationsInput | string | null
     parentId?: NullableStringFieldUpdateOperationsInput | string | null
     criticality?: StringFieldUpdateOperationsInput | string
     specification?: NullableJsonNullValueInput | InputJsonValue
@@ -5327,6 +5395,8 @@ export namespace Prisma {
     code?: StringFilter<"Asset"> | string
     name?: StringFilter<"Asset"> | string
     subsystem?: StringFilter<"Asset"> | string
+    stationId?: StringNullableFilter<"Asset"> | string | null
+    systemId?: StringNullableFilter<"Asset"> | string | null
     parentId?: StringNullableFilter<"Asset"> | string | null
     criticality?: StringFilter<"Asset"> | string
     specification?: JsonNullableFilter<"Asset">
@@ -5340,6 +5410,8 @@ export namespace Prisma {
     code: string
     name: string
     subsystem: string
+    stationId?: string | null
+    systemId?: string | null
     criticality?: string
     specification?: NullableJsonNullValueInput | InputJsonValue
     createdAt?: Date | string
@@ -5352,6 +5424,8 @@ export namespace Prisma {
     code?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     subsystem?: StringFieldUpdateOperationsInput | string
+    stationId?: NullableStringFieldUpdateOperationsInput | string | null
+    systemId?: NullableStringFieldUpdateOperationsInput | string | null
     criticality?: StringFieldUpdateOperationsInput | string
     specification?: NullableJsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -5365,6 +5439,8 @@ export namespace Prisma {
     code?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     subsystem?: StringFieldUpdateOperationsInput | string
+    stationId?: NullableStringFieldUpdateOperationsInput | string | null
+    systemId?: NullableStringFieldUpdateOperationsInput | string | null
     criticality?: StringFieldUpdateOperationsInput | string
     specification?: NullableJsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -5378,6 +5454,8 @@ export namespace Prisma {
     code?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     subsystem?: StringFieldUpdateOperationsInput | string
+    stationId?: NullableStringFieldUpdateOperationsInput | string | null
+    systemId?: NullableStringFieldUpdateOperationsInput | string | null
     criticality?: StringFieldUpdateOperationsInput | string
     specification?: NullableJsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string

@@ -100,41 +100,39 @@ export async function getInternalSubsystems(): Promise<Subsystem[]> {
 }
 
 export async function createInternalSubsystem(id: string, label: any) {
-    const label_vi = typeof label === 'string' ? label : (label?.vi || '');
-    const label_en = typeof label === 'string' ? label : (label?.en || '');
+    const labelObj = typeof label === 'string' ? { vi: label, en: label } : { vi: label?.vi || '', en: label?.en || '' };
     
     if (!IS_DATABASE_OFFLINE) {
         try {
             const record = await opsDb.subsystem.create({
-                data: { id, label_vi, label_en }
+                data: { id, label: labelObj }
             });
             cache.invalidate(CACHE_KEYS.SUBSYSTEMS);
             return record;
         } catch (e) { /* fallback */ }
     }
 
-    const record = { id, label_vi, label_en };
+    const record = { id, label_vi: labelObj.vi, label_en: labelObj.en, label: labelObj };
     const result = await jsonDb.insertRecord<any>('sub_systems', record);
     cache.invalidate(CACHE_KEYS.SUBSYSTEMS);
     return result;
 }
 
 export async function updateInternalSubsystem(id: string, label: any) {
-    const label_vi = typeof label === 'string' ? label : (label?.vi || '');
-    const label_en = typeof label === 'string' ? label : (label?.en || '');
+    const labelObj = typeof label === 'string' ? { vi: label, en: label } : { vi: label?.vi || '', en: label?.en || '' };
 
     if (!IS_DATABASE_OFFLINE) {
         try {
             const record = await opsDb.subsystem.update({
                 where: { id },
-                data: { label_vi, label_en }
+                data: { label: labelObj }
             });
             cache.invalidate(CACHE_KEYS.SUBSYSTEMS);
             return record;
         } catch (e) { /* fallback */ }
     }
 
-    const result = await jsonDb.updateRecord<any>('sub_systems', id, { label_vi, label_en });
+    const result = await jsonDb.updateRecord<any>('sub_systems', id, { label_vi: labelObj.vi, label_en: labelObj.en, label: labelObj });
     cache.invalidate(CACHE_KEYS.SUBSYSTEMS);
     return result;
 }

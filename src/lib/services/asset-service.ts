@@ -1,6 +1,6 @@
 import { jsonDb } from '../db/json-db';
 import { generateAssetQR } from '@/lib/services/qr-gen';
-import { opsDb, IS_DATABASE_OFFLINE } from '../prisma';
+import { metroDb, IS_DATABASE_OFFLINE } from '../prisma';
 
 /**
  * ASSET SERVICE — Hardened Atomic JSON
@@ -9,7 +9,7 @@ import { opsDb, IS_DATABASE_OFFLINE } from '../prisma';
 export async function getAssetsInternal() {
     if (!IS_DATABASE_OFFLINE) {
         try {
-            return await opsDb.asset.findMany();
+            return await metroDb.asset.findMany();
         } catch (e) { /* fallback */ }
     }
     return await jsonDb.getCollection<any>('assets');
@@ -20,7 +20,7 @@ export async function getEquipmentInternal(filters?: { stationId?: string; syste
 
     if (!IS_DATABASE_OFFLINE) {
         try {
-            equipment = await opsDb.asset.findMany({
+            equipment = await metroDb.asset.findMany({
                 where: {
                     AND: [
                         filters?.stationId ? { stationId: filters.stationId } : {},
@@ -60,7 +60,7 @@ export async function getEquipmentInternal(filters?: { stationId?: string; syste
 export async function getEquipmentByIdInternal(id: string) {
     if (!IS_DATABASE_OFFLINE) {
         try {
-            const asset = await opsDb.asset.findUnique({ where: { id } });
+            const asset = await metroDb.asset.findUnique({ where: { id } });
             if (asset) return asset;
         } catch (e) { /* fallback */ }
     }

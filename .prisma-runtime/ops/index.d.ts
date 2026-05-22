@@ -1957,6 +1957,37 @@ export namespace Prisma {
 
 
   /**
+   * Count Type MaintenanceStandardCountOutputType
+   */
+
+  export type MaintenanceStandardCountOutputType = {
+    items: number
+  }
+
+  export type MaintenanceStandardCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    items?: boolean | MaintenanceStandardCountOutputTypeCountItemsArgs
+  }
+
+  // Custom InputTypes
+  /**
+   * MaintenanceStandardCountOutputType without action
+   */
+  export type MaintenanceStandardCountOutputTypeDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MaintenanceStandardCountOutputType
+     */
+    select?: MaintenanceStandardCountOutputTypeSelect<ExtArgs> | null
+  }
+
+  /**
+   * MaintenanceStandardCountOutputType without action
+   */
+  export type MaintenanceStandardCountOutputTypeCountItemsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: MaintenanceStandardItemWhereInput
+  }
+
+
+  /**
    * Count Type DnfDocumentCountOutputType
    */
 
@@ -7461,6 +7492,8 @@ export namespace Prisma {
     abbreviation?: boolean
     estimatedDurationHours?: boolean
     deletedAt?: boolean
+    items?: boolean | MaintenanceStandard$itemsArgs<ExtArgs>
+    _count?: boolean | MaintenanceStandardCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["maintenanceStandard"]>
 
   export type MaintenanceStandardSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
@@ -7491,10 +7524,17 @@ export namespace Prisma {
     deletedAt?: boolean
   }
 
+  export type MaintenanceStandardInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    items?: boolean | MaintenanceStandard$itemsArgs<ExtArgs>
+    _count?: boolean | MaintenanceStandardCountOutputTypeDefaultArgs<ExtArgs>
+  }
+  export type MaintenanceStandardIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {}
 
   export type $MaintenanceStandardPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     name: "MaintenanceStandard"
-    objects: {}
+    objects: {
+      items: Prisma.$MaintenanceStandardItemPayload<ExtArgs>[]
+    }
     scalars: $Extensions.GetPayloadResult<{
       id: string
       name: string
@@ -7871,6 +7911,7 @@ export namespace Prisma {
    */
   export interface Prisma__MaintenanceStandardClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
     readonly [Symbol.toStringTag]: "PrismaPromise"
+    items<T extends MaintenanceStandard$itemsArgs<ExtArgs> = {}>(args?: Subset<T, MaintenanceStandard$itemsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MaintenanceStandardItemPayload<ExtArgs>, T, "findMany"> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -7924,6 +7965,10 @@ export namespace Prisma {
      */
     select?: MaintenanceStandardSelect<ExtArgs> | null
     /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MaintenanceStandardInclude<ExtArgs> | null
+    /**
      * Filter, which MaintenanceStandard to fetch.
      */
     where: MaintenanceStandardWhereUniqueInput
@@ -7938,6 +7983,10 @@ export namespace Prisma {
      */
     select?: MaintenanceStandardSelect<ExtArgs> | null
     /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MaintenanceStandardInclude<ExtArgs> | null
+    /**
      * Filter, which MaintenanceStandard to fetch.
      */
     where: MaintenanceStandardWhereUniqueInput
@@ -7951,6 +8000,10 @@ export namespace Prisma {
      * Select specific fields to fetch from the MaintenanceStandard
      */
     select?: MaintenanceStandardSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MaintenanceStandardInclude<ExtArgs> | null
     /**
      * Filter, which MaintenanceStandard to fetch.
      */
@@ -7996,6 +8049,10 @@ export namespace Prisma {
      */
     select?: MaintenanceStandardSelect<ExtArgs> | null
     /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MaintenanceStandardInclude<ExtArgs> | null
+    /**
      * Filter, which MaintenanceStandard to fetch.
      */
     where?: MaintenanceStandardWhereInput
@@ -8040,6 +8097,10 @@ export namespace Prisma {
      */
     select?: MaintenanceStandardSelect<ExtArgs> | null
     /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MaintenanceStandardInclude<ExtArgs> | null
+    /**
      * Filter, which MaintenanceStandards to fetch.
      */
     where?: MaintenanceStandardWhereInput
@@ -8078,6 +8139,10 @@ export namespace Prisma {
      * Select specific fields to fetch from the MaintenanceStandard
      */
     select?: MaintenanceStandardSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MaintenanceStandardInclude<ExtArgs> | null
     /**
      * The data needed to create a MaintenanceStandard.
      */
@@ -8119,6 +8184,10 @@ export namespace Prisma {
      */
     select?: MaintenanceStandardSelect<ExtArgs> | null
     /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MaintenanceStandardInclude<ExtArgs> | null
+    /**
      * The data needed to update a MaintenanceStandard.
      */
     data: XOR<MaintenanceStandardUpdateInput, MaintenanceStandardUncheckedUpdateInput>
@@ -8151,6 +8220,10 @@ export namespace Prisma {
      */
     select?: MaintenanceStandardSelect<ExtArgs> | null
     /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MaintenanceStandardInclude<ExtArgs> | null
+    /**
      * The filter to search for the MaintenanceStandard to update in case it exists.
      */
     where: MaintenanceStandardWhereUniqueInput
@@ -8173,6 +8246,10 @@ export namespace Prisma {
      */
     select?: MaintenanceStandardSelect<ExtArgs> | null
     /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MaintenanceStandardInclude<ExtArgs> | null
+    /**
      * Filter which MaintenanceStandard to delete.
      */
     where: MaintenanceStandardWhereUniqueInput
@@ -8189,6 +8266,26 @@ export namespace Prisma {
   }
 
   /**
+   * MaintenanceStandard.items
+   */
+  export type MaintenanceStandard$itemsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MaintenanceStandardItem
+     */
+    select?: MaintenanceStandardItemSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MaintenanceStandardItemInclude<ExtArgs> | null
+    where?: MaintenanceStandardItemWhereInput
+    orderBy?: MaintenanceStandardItemOrderByWithRelationInput | MaintenanceStandardItemOrderByWithRelationInput[]
+    cursor?: MaintenanceStandardItemWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: MaintenanceStandardItemScalarFieldEnum | MaintenanceStandardItemScalarFieldEnum[]
+  }
+
+  /**
    * MaintenanceStandard without action
    */
   export type MaintenanceStandardDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -8196,6 +8293,10 @@ export namespace Prisma {
      * Select specific fields to fetch from the MaintenanceStandard
      */
     select?: MaintenanceStandardSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MaintenanceStandardInclude<ExtArgs> | null
   }
 
 
@@ -8441,6 +8542,7 @@ export namespace Prisma {
     toleranceOperator?: boolean
     toleranceValue?: boolean
     requiredTools?: boolean
+    standard?: boolean | MaintenanceStandardDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["maintenanceStandardItem"]>
 
   export type MaintenanceStandardItemSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
@@ -8454,6 +8556,7 @@ export namespace Prisma {
     toleranceOperator?: boolean
     toleranceValue?: boolean
     requiredTools?: boolean
+    standard?: boolean | MaintenanceStandardDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["maintenanceStandardItem"]>
 
   export type MaintenanceStandardItemSelectScalar = {
@@ -8469,10 +8572,18 @@ export namespace Prisma {
     requiredTools?: boolean
   }
 
+  export type MaintenanceStandardItemInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    standard?: boolean | MaintenanceStandardDefaultArgs<ExtArgs>
+  }
+  export type MaintenanceStandardItemIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    standard?: boolean | MaintenanceStandardDefaultArgs<ExtArgs>
+  }
 
   export type $MaintenanceStandardItemPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     name: "MaintenanceStandardItem"
-    objects: {}
+    objects: {
+      standard: Prisma.$MaintenanceStandardPayload<ExtArgs>
+    }
     scalars: $Extensions.GetPayloadResult<{
       id: string
       standardId: string
@@ -8848,6 +8959,7 @@ export namespace Prisma {
    */
   export interface Prisma__MaintenanceStandardItemClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
     readonly [Symbol.toStringTag]: "PrismaPromise"
+    standard<T extends MaintenanceStandardDefaultArgs<ExtArgs> = {}>(args?: Subset<T, MaintenanceStandardDefaultArgs<ExtArgs>>): Prisma__MaintenanceStandardClient<$Result.GetResult<Prisma.$MaintenanceStandardPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -8900,6 +9012,10 @@ export namespace Prisma {
      */
     select?: MaintenanceStandardItemSelect<ExtArgs> | null
     /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MaintenanceStandardItemInclude<ExtArgs> | null
+    /**
      * Filter, which MaintenanceStandardItem to fetch.
      */
     where: MaintenanceStandardItemWhereUniqueInput
@@ -8914,6 +9030,10 @@ export namespace Prisma {
      */
     select?: MaintenanceStandardItemSelect<ExtArgs> | null
     /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MaintenanceStandardItemInclude<ExtArgs> | null
+    /**
      * Filter, which MaintenanceStandardItem to fetch.
      */
     where: MaintenanceStandardItemWhereUniqueInput
@@ -8927,6 +9047,10 @@ export namespace Prisma {
      * Select specific fields to fetch from the MaintenanceStandardItem
      */
     select?: MaintenanceStandardItemSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MaintenanceStandardItemInclude<ExtArgs> | null
     /**
      * Filter, which MaintenanceStandardItem to fetch.
      */
@@ -8972,6 +9096,10 @@ export namespace Prisma {
      */
     select?: MaintenanceStandardItemSelect<ExtArgs> | null
     /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MaintenanceStandardItemInclude<ExtArgs> | null
+    /**
      * Filter, which MaintenanceStandardItem to fetch.
      */
     where?: MaintenanceStandardItemWhereInput
@@ -9016,6 +9144,10 @@ export namespace Prisma {
      */
     select?: MaintenanceStandardItemSelect<ExtArgs> | null
     /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MaintenanceStandardItemInclude<ExtArgs> | null
+    /**
      * Filter, which MaintenanceStandardItems to fetch.
      */
     where?: MaintenanceStandardItemWhereInput
@@ -9055,6 +9187,10 @@ export namespace Prisma {
      */
     select?: MaintenanceStandardItemSelect<ExtArgs> | null
     /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MaintenanceStandardItemInclude<ExtArgs> | null
+    /**
      * The data needed to create a MaintenanceStandardItem.
      */
     data: XOR<MaintenanceStandardItemCreateInput, MaintenanceStandardItemUncheckedCreateInput>
@@ -9084,6 +9220,10 @@ export namespace Prisma {
      */
     data: MaintenanceStandardItemCreateManyInput | MaintenanceStandardItemCreateManyInput[]
     skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MaintenanceStandardItemIncludeCreateManyAndReturn<ExtArgs> | null
   }
 
   /**
@@ -9094,6 +9234,10 @@ export namespace Prisma {
      * Select specific fields to fetch from the MaintenanceStandardItem
      */
     select?: MaintenanceStandardItemSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MaintenanceStandardItemInclude<ExtArgs> | null
     /**
      * The data needed to update a MaintenanceStandardItem.
      */
@@ -9127,6 +9271,10 @@ export namespace Prisma {
      */
     select?: MaintenanceStandardItemSelect<ExtArgs> | null
     /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MaintenanceStandardItemInclude<ExtArgs> | null
+    /**
      * The filter to search for the MaintenanceStandardItem to update in case it exists.
      */
     where: MaintenanceStandardItemWhereUniqueInput
@@ -9148,6 +9296,10 @@ export namespace Prisma {
      * Select specific fields to fetch from the MaintenanceStandardItem
      */
     select?: MaintenanceStandardItemSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MaintenanceStandardItemInclude<ExtArgs> | null
     /**
      * Filter which MaintenanceStandardItem to delete.
      */
@@ -9172,6 +9324,10 @@ export namespace Prisma {
      * Select specific fields to fetch from the MaintenanceStandardItem
      */
     select?: MaintenanceStandardItemSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MaintenanceStandardItemInclude<ExtArgs> | null
   }
 
 
@@ -16329,6 +16485,7 @@ export namespace Prisma {
     abbreviation?: StringNullableFilter<"MaintenanceStandard"> | string | null
     estimatedDurationHours?: FloatNullableFilter<"MaintenanceStandard"> | number | null
     deletedAt?: DateTimeNullableFilter<"MaintenanceStandard"> | Date | string | null
+    items?: MaintenanceStandardItemListRelationFilter
   }
 
   export type MaintenanceStandardOrderByWithRelationInput = {
@@ -16343,6 +16500,7 @@ export namespace Prisma {
     abbreviation?: SortOrderInput | SortOrder
     estimatedDurationHours?: SortOrderInput | SortOrder
     deletedAt?: SortOrderInput | SortOrder
+    items?: MaintenanceStandardItemOrderByRelationAggregateInput
   }
 
   export type MaintenanceStandardWhereUniqueInput = Prisma.AtLeast<{
@@ -16360,6 +16518,7 @@ export namespace Prisma {
     abbreviation?: StringNullableFilter<"MaintenanceStandard"> | string | null
     estimatedDurationHours?: FloatNullableFilter<"MaintenanceStandard"> | number | null
     deletedAt?: DateTimeNullableFilter<"MaintenanceStandard"> | Date | string | null
+    items?: MaintenanceStandardItemListRelationFilter
   }, "id">
 
   export type MaintenanceStandardOrderByWithAggregationInput = {
@@ -16412,6 +16571,7 @@ export namespace Prisma {
     toleranceOperator?: StringNullableFilter<"MaintenanceStandardItem"> | string | null
     toleranceValue?: FloatNullableFilter<"MaintenanceStandardItem"> | number | null
     requiredTools?: StringNullableFilter<"MaintenanceStandardItem"> | string | null
+    standard?: XOR<MaintenanceStandardRelationFilter, MaintenanceStandardWhereInput>
   }
 
   export type MaintenanceStandardItemOrderByWithRelationInput = {
@@ -16425,6 +16585,7 @@ export namespace Prisma {
     toleranceOperator?: SortOrderInput | SortOrder
     toleranceValue?: SortOrderInput | SortOrder
     requiredTools?: SortOrderInput | SortOrder
+    standard?: MaintenanceStandardOrderByWithRelationInput
   }
 
   export type MaintenanceStandardItemWhereUniqueInput = Prisma.AtLeast<{
@@ -16441,6 +16602,7 @@ export namespace Prisma {
     toleranceOperator?: StringNullableFilter<"MaintenanceStandardItem"> | string | null
     toleranceValue?: FloatNullableFilter<"MaintenanceStandardItem"> | number | null
     requiredTools?: StringNullableFilter<"MaintenanceStandardItem"> | string | null
+    standard?: XOR<MaintenanceStandardRelationFilter, MaintenanceStandardWhereInput>
   }, "id">
 
   export type MaintenanceStandardItemOrderByWithAggregationInput = {
@@ -17517,6 +17679,7 @@ export namespace Prisma {
     abbreviation?: string | null
     estimatedDurationHours?: number | null
     deletedAt?: Date | string | null
+    items?: MaintenanceStandardItemCreateNestedManyWithoutStandardInput
   }
 
   export type MaintenanceStandardUncheckedCreateInput = {
@@ -17531,6 +17694,7 @@ export namespace Prisma {
     abbreviation?: string | null
     estimatedDurationHours?: number | null
     deletedAt?: Date | string | null
+    items?: MaintenanceStandardItemUncheckedCreateNestedManyWithoutStandardInput
   }
 
   export type MaintenanceStandardUpdateInput = {
@@ -17545,6 +17709,7 @@ export namespace Prisma {
     abbreviation?: NullableStringFieldUpdateOperationsInput | string | null
     estimatedDurationHours?: NullableFloatFieldUpdateOperationsInput | number | null
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    items?: MaintenanceStandardItemUpdateManyWithoutStandardNestedInput
   }
 
   export type MaintenanceStandardUncheckedUpdateInput = {
@@ -17559,6 +17724,7 @@ export namespace Prisma {
     abbreviation?: NullableStringFieldUpdateOperationsInput | string | null
     estimatedDurationHours?: NullableFloatFieldUpdateOperationsInput | number | null
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    items?: MaintenanceStandardItemUncheckedUpdateManyWithoutStandardNestedInput
   }
 
   export type MaintenanceStandardCreateManyInput = {
@@ -17605,7 +17771,6 @@ export namespace Prisma {
 
   export type MaintenanceStandardItemCreateInput = {
     id: string
-    standardId: string
     itemCode: string
     itemText: string
     criteria?: string | null
@@ -17614,6 +17779,7 @@ export namespace Prisma {
     toleranceOperator?: string | null
     toleranceValue?: number | null
     requiredTools?: string | null
+    standard: MaintenanceStandardCreateNestedOneWithoutItemsInput
   }
 
   export type MaintenanceStandardItemUncheckedCreateInput = {
@@ -17631,7 +17797,6 @@ export namespace Prisma {
 
   export type MaintenanceStandardItemUpdateInput = {
     id?: StringFieldUpdateOperationsInput | string
-    standardId?: StringFieldUpdateOperationsInput | string
     itemCode?: StringFieldUpdateOperationsInput | string
     itemText?: StringFieldUpdateOperationsInput | string
     criteria?: NullableStringFieldUpdateOperationsInput | string | null
@@ -17640,6 +17805,7 @@ export namespace Prisma {
     toleranceOperator?: NullableStringFieldUpdateOperationsInput | string | null
     toleranceValue?: NullableFloatFieldUpdateOperationsInput | number | null
     requiredTools?: NullableStringFieldUpdateOperationsInput | string | null
+    standard?: MaintenanceStandardUpdateOneRequiredWithoutItemsNestedInput
   }
 
   export type MaintenanceStandardItemUncheckedUpdateInput = {
@@ -17670,7 +17836,6 @@ export namespace Prisma {
 
   export type MaintenanceStandardItemUpdateManyMutationInput = {
     id?: StringFieldUpdateOperationsInput | string
-    standardId?: StringFieldUpdateOperationsInput | string
     itemCode?: StringFieldUpdateOperationsInput | string
     itemText?: StringFieldUpdateOperationsInput | string
     criteria?: NullableStringFieldUpdateOperationsInput | string | null
@@ -18905,6 +19070,16 @@ export namespace Prisma {
     not?: NestedFloatNullableFilter<$PrismaModel> | number | null
   }
 
+  export type MaintenanceStandardItemListRelationFilter = {
+    every?: MaintenanceStandardItemWhereInput
+    some?: MaintenanceStandardItemWhereInput
+    none?: MaintenanceStandardItemWhereInput
+  }
+
+  export type MaintenanceStandardItemOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
   export type MaintenanceStandardCountOrderByAggregateInput = {
     id?: SortOrder
     name?: SortOrder
@@ -18967,6 +19142,11 @@ export namespace Prisma {
     _sum?: NestedFloatNullableFilter<$PrismaModel>
     _min?: NestedFloatNullableFilter<$PrismaModel>
     _max?: NestedFloatNullableFilter<$PrismaModel>
+  }
+
+  export type MaintenanceStandardRelationFilter = {
+    is?: MaintenanceStandardWhereInput
+    isNot?: MaintenanceStandardWhereInput
   }
 
   export type MaintenanceStandardItemCountOrderByAggregateInput = {
@@ -19547,6 +19727,20 @@ export namespace Prisma {
     set: string[]
   }
 
+  export type MaintenanceStandardItemCreateNestedManyWithoutStandardInput = {
+    create?: XOR<MaintenanceStandardItemCreateWithoutStandardInput, MaintenanceStandardItemUncheckedCreateWithoutStandardInput> | MaintenanceStandardItemCreateWithoutStandardInput[] | MaintenanceStandardItemUncheckedCreateWithoutStandardInput[]
+    connectOrCreate?: MaintenanceStandardItemCreateOrConnectWithoutStandardInput | MaintenanceStandardItemCreateOrConnectWithoutStandardInput[]
+    createMany?: MaintenanceStandardItemCreateManyStandardInputEnvelope
+    connect?: MaintenanceStandardItemWhereUniqueInput | MaintenanceStandardItemWhereUniqueInput[]
+  }
+
+  export type MaintenanceStandardItemUncheckedCreateNestedManyWithoutStandardInput = {
+    create?: XOR<MaintenanceStandardItemCreateWithoutStandardInput, MaintenanceStandardItemUncheckedCreateWithoutStandardInput> | MaintenanceStandardItemCreateWithoutStandardInput[] | MaintenanceStandardItemUncheckedCreateWithoutStandardInput[]
+    connectOrCreate?: MaintenanceStandardItemCreateOrConnectWithoutStandardInput | MaintenanceStandardItemCreateOrConnectWithoutStandardInput[]
+    createMany?: MaintenanceStandardItemCreateManyStandardInputEnvelope
+    connect?: MaintenanceStandardItemWhereUniqueInput | MaintenanceStandardItemWhereUniqueInput[]
+  }
+
   export type MaintenanceStandardUpdatelocationIdsInput = {
     set?: string[]
     push?: string | string[]
@@ -19558,6 +19752,48 @@ export namespace Prisma {
     decrement?: number
     multiply?: number
     divide?: number
+  }
+
+  export type MaintenanceStandardItemUpdateManyWithoutStandardNestedInput = {
+    create?: XOR<MaintenanceStandardItemCreateWithoutStandardInput, MaintenanceStandardItemUncheckedCreateWithoutStandardInput> | MaintenanceStandardItemCreateWithoutStandardInput[] | MaintenanceStandardItemUncheckedCreateWithoutStandardInput[]
+    connectOrCreate?: MaintenanceStandardItemCreateOrConnectWithoutStandardInput | MaintenanceStandardItemCreateOrConnectWithoutStandardInput[]
+    upsert?: MaintenanceStandardItemUpsertWithWhereUniqueWithoutStandardInput | MaintenanceStandardItemUpsertWithWhereUniqueWithoutStandardInput[]
+    createMany?: MaintenanceStandardItemCreateManyStandardInputEnvelope
+    set?: MaintenanceStandardItemWhereUniqueInput | MaintenanceStandardItemWhereUniqueInput[]
+    disconnect?: MaintenanceStandardItemWhereUniqueInput | MaintenanceStandardItemWhereUniqueInput[]
+    delete?: MaintenanceStandardItemWhereUniqueInput | MaintenanceStandardItemWhereUniqueInput[]
+    connect?: MaintenanceStandardItemWhereUniqueInput | MaintenanceStandardItemWhereUniqueInput[]
+    update?: MaintenanceStandardItemUpdateWithWhereUniqueWithoutStandardInput | MaintenanceStandardItemUpdateWithWhereUniqueWithoutStandardInput[]
+    updateMany?: MaintenanceStandardItemUpdateManyWithWhereWithoutStandardInput | MaintenanceStandardItemUpdateManyWithWhereWithoutStandardInput[]
+    deleteMany?: MaintenanceStandardItemScalarWhereInput | MaintenanceStandardItemScalarWhereInput[]
+  }
+
+  export type MaintenanceStandardItemUncheckedUpdateManyWithoutStandardNestedInput = {
+    create?: XOR<MaintenanceStandardItemCreateWithoutStandardInput, MaintenanceStandardItemUncheckedCreateWithoutStandardInput> | MaintenanceStandardItemCreateWithoutStandardInput[] | MaintenanceStandardItemUncheckedCreateWithoutStandardInput[]
+    connectOrCreate?: MaintenanceStandardItemCreateOrConnectWithoutStandardInput | MaintenanceStandardItemCreateOrConnectWithoutStandardInput[]
+    upsert?: MaintenanceStandardItemUpsertWithWhereUniqueWithoutStandardInput | MaintenanceStandardItemUpsertWithWhereUniqueWithoutStandardInput[]
+    createMany?: MaintenanceStandardItemCreateManyStandardInputEnvelope
+    set?: MaintenanceStandardItemWhereUniqueInput | MaintenanceStandardItemWhereUniqueInput[]
+    disconnect?: MaintenanceStandardItemWhereUniqueInput | MaintenanceStandardItemWhereUniqueInput[]
+    delete?: MaintenanceStandardItemWhereUniqueInput | MaintenanceStandardItemWhereUniqueInput[]
+    connect?: MaintenanceStandardItemWhereUniqueInput | MaintenanceStandardItemWhereUniqueInput[]
+    update?: MaintenanceStandardItemUpdateWithWhereUniqueWithoutStandardInput | MaintenanceStandardItemUpdateWithWhereUniqueWithoutStandardInput[]
+    updateMany?: MaintenanceStandardItemUpdateManyWithWhereWithoutStandardInput | MaintenanceStandardItemUpdateManyWithWhereWithoutStandardInput[]
+    deleteMany?: MaintenanceStandardItemScalarWhereInput | MaintenanceStandardItemScalarWhereInput[]
+  }
+
+  export type MaintenanceStandardCreateNestedOneWithoutItemsInput = {
+    create?: XOR<MaintenanceStandardCreateWithoutItemsInput, MaintenanceStandardUncheckedCreateWithoutItemsInput>
+    connectOrCreate?: MaintenanceStandardCreateOrConnectWithoutItemsInput
+    connect?: MaintenanceStandardWhereUniqueInput
+  }
+
+  export type MaintenanceStandardUpdateOneRequiredWithoutItemsNestedInput = {
+    create?: XOR<MaintenanceStandardCreateWithoutItemsInput, MaintenanceStandardUncheckedCreateWithoutItemsInput>
+    connectOrCreate?: MaintenanceStandardCreateOrConnectWithoutItemsInput
+    upsert?: MaintenanceStandardUpsertWithoutItemsInput
+    connect?: MaintenanceStandardWhereUniqueInput
+    update?: XOR<XOR<MaintenanceStandardUpdateToOneWithWhereWithoutItemsInput, MaintenanceStandardUpdateWithoutItemsInput>, MaintenanceStandardUncheckedUpdateWithoutItemsInput>
   }
 
   export type InspectionDetailCreateareaIdsInput = {
@@ -19922,6 +20158,144 @@ export namespace Prisma {
     not?: NestedFloatFilter<$PrismaModel> | number
   }
 
+  export type MaintenanceStandardItemCreateWithoutStandardInput = {
+    id: string
+    itemCode: string
+    itemText: string
+    criteria?: string | null
+    unit?: string | null
+    standardQuantity?: number | null
+    toleranceOperator?: string | null
+    toleranceValue?: number | null
+    requiredTools?: string | null
+  }
+
+  export type MaintenanceStandardItemUncheckedCreateWithoutStandardInput = {
+    id: string
+    itemCode: string
+    itemText: string
+    criteria?: string | null
+    unit?: string | null
+    standardQuantity?: number | null
+    toleranceOperator?: string | null
+    toleranceValue?: number | null
+    requiredTools?: string | null
+  }
+
+  export type MaintenanceStandardItemCreateOrConnectWithoutStandardInput = {
+    where: MaintenanceStandardItemWhereUniqueInput
+    create: XOR<MaintenanceStandardItemCreateWithoutStandardInput, MaintenanceStandardItemUncheckedCreateWithoutStandardInput>
+  }
+
+  export type MaintenanceStandardItemCreateManyStandardInputEnvelope = {
+    data: MaintenanceStandardItemCreateManyStandardInput | MaintenanceStandardItemCreateManyStandardInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type MaintenanceStandardItemUpsertWithWhereUniqueWithoutStandardInput = {
+    where: MaintenanceStandardItemWhereUniqueInput
+    update: XOR<MaintenanceStandardItemUpdateWithoutStandardInput, MaintenanceStandardItemUncheckedUpdateWithoutStandardInput>
+    create: XOR<MaintenanceStandardItemCreateWithoutStandardInput, MaintenanceStandardItemUncheckedCreateWithoutStandardInput>
+  }
+
+  export type MaintenanceStandardItemUpdateWithWhereUniqueWithoutStandardInput = {
+    where: MaintenanceStandardItemWhereUniqueInput
+    data: XOR<MaintenanceStandardItemUpdateWithoutStandardInput, MaintenanceStandardItemUncheckedUpdateWithoutStandardInput>
+  }
+
+  export type MaintenanceStandardItemUpdateManyWithWhereWithoutStandardInput = {
+    where: MaintenanceStandardItemScalarWhereInput
+    data: XOR<MaintenanceStandardItemUpdateManyMutationInput, MaintenanceStandardItemUncheckedUpdateManyWithoutStandardInput>
+  }
+
+  export type MaintenanceStandardItemScalarWhereInput = {
+    AND?: MaintenanceStandardItemScalarWhereInput | MaintenanceStandardItemScalarWhereInput[]
+    OR?: MaintenanceStandardItemScalarWhereInput[]
+    NOT?: MaintenanceStandardItemScalarWhereInput | MaintenanceStandardItemScalarWhereInput[]
+    id?: StringFilter<"MaintenanceStandardItem"> | string
+    standardId?: StringFilter<"MaintenanceStandardItem"> | string
+    itemCode?: StringFilter<"MaintenanceStandardItem"> | string
+    itemText?: StringFilter<"MaintenanceStandardItem"> | string
+    criteria?: StringNullableFilter<"MaintenanceStandardItem"> | string | null
+    unit?: StringNullableFilter<"MaintenanceStandardItem"> | string | null
+    standardQuantity?: FloatNullableFilter<"MaintenanceStandardItem"> | number | null
+    toleranceOperator?: StringNullableFilter<"MaintenanceStandardItem"> | string | null
+    toleranceValue?: FloatNullableFilter<"MaintenanceStandardItem"> | number | null
+    requiredTools?: StringNullableFilter<"MaintenanceStandardItem"> | string | null
+  }
+
+  export type MaintenanceStandardCreateWithoutItemsInput = {
+    id: string
+    name: string
+    name_en?: string | null
+    description?: string | null
+    frequency?: string | null
+    scheduledTime?: string | null
+    locationIds?: MaintenanceStandardCreatelocationIdsInput | string[]
+    recipientId?: string | null
+    abbreviation?: string | null
+    estimatedDurationHours?: number | null
+    deletedAt?: Date | string | null
+  }
+
+  export type MaintenanceStandardUncheckedCreateWithoutItemsInput = {
+    id: string
+    name: string
+    name_en?: string | null
+    description?: string | null
+    frequency?: string | null
+    scheduledTime?: string | null
+    locationIds?: MaintenanceStandardCreatelocationIdsInput | string[]
+    recipientId?: string | null
+    abbreviation?: string | null
+    estimatedDurationHours?: number | null
+    deletedAt?: Date | string | null
+  }
+
+  export type MaintenanceStandardCreateOrConnectWithoutItemsInput = {
+    where: MaintenanceStandardWhereUniqueInput
+    create: XOR<MaintenanceStandardCreateWithoutItemsInput, MaintenanceStandardUncheckedCreateWithoutItemsInput>
+  }
+
+  export type MaintenanceStandardUpsertWithoutItemsInput = {
+    update: XOR<MaintenanceStandardUpdateWithoutItemsInput, MaintenanceStandardUncheckedUpdateWithoutItemsInput>
+    create: XOR<MaintenanceStandardCreateWithoutItemsInput, MaintenanceStandardUncheckedCreateWithoutItemsInput>
+    where?: MaintenanceStandardWhereInput
+  }
+
+  export type MaintenanceStandardUpdateToOneWithWhereWithoutItemsInput = {
+    where?: MaintenanceStandardWhereInput
+    data: XOR<MaintenanceStandardUpdateWithoutItemsInput, MaintenanceStandardUncheckedUpdateWithoutItemsInput>
+  }
+
+  export type MaintenanceStandardUpdateWithoutItemsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    name_en?: NullableStringFieldUpdateOperationsInput | string | null
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    frequency?: NullableStringFieldUpdateOperationsInput | string | null
+    scheduledTime?: NullableStringFieldUpdateOperationsInput | string | null
+    locationIds?: MaintenanceStandardUpdatelocationIdsInput | string[]
+    recipientId?: NullableStringFieldUpdateOperationsInput | string | null
+    abbreviation?: NullableStringFieldUpdateOperationsInput | string | null
+    estimatedDurationHours?: NullableFloatFieldUpdateOperationsInput | number | null
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type MaintenanceStandardUncheckedUpdateWithoutItemsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    name_en?: NullableStringFieldUpdateOperationsInput | string | null
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    frequency?: NullableStringFieldUpdateOperationsInput | string | null
+    scheduledTime?: NullableStringFieldUpdateOperationsInput | string | null
+    locationIds?: MaintenanceStandardUpdatelocationIdsInput | string[]
+    recipientId?: NullableStringFieldUpdateOperationsInput | string | null
+    abbreviation?: NullableStringFieldUpdateOperationsInput | string | null
+    estimatedDurationHours?: NullableFloatFieldUpdateOperationsInput | number | null
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
   export type CorrectiveActionCreateWithoutDnfInput = {
     id: string
     description: string
@@ -20160,6 +20534,54 @@ export namespace Prisma {
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
+  export type MaintenanceStandardItemCreateManyStandardInput = {
+    id: string
+    itemCode: string
+    itemText: string
+    criteria?: string | null
+    unit?: string | null
+    standardQuantity?: number | null
+    toleranceOperator?: string | null
+    toleranceValue?: number | null
+    requiredTools?: string | null
+  }
+
+  export type MaintenanceStandardItemUpdateWithoutStandardInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    itemCode?: StringFieldUpdateOperationsInput | string
+    itemText?: StringFieldUpdateOperationsInput | string
+    criteria?: NullableStringFieldUpdateOperationsInput | string | null
+    unit?: NullableStringFieldUpdateOperationsInput | string | null
+    standardQuantity?: NullableFloatFieldUpdateOperationsInput | number | null
+    toleranceOperator?: NullableStringFieldUpdateOperationsInput | string | null
+    toleranceValue?: NullableFloatFieldUpdateOperationsInput | number | null
+    requiredTools?: NullableStringFieldUpdateOperationsInput | string | null
+  }
+
+  export type MaintenanceStandardItemUncheckedUpdateWithoutStandardInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    itemCode?: StringFieldUpdateOperationsInput | string
+    itemText?: StringFieldUpdateOperationsInput | string
+    criteria?: NullableStringFieldUpdateOperationsInput | string | null
+    unit?: NullableStringFieldUpdateOperationsInput | string | null
+    standardQuantity?: NullableFloatFieldUpdateOperationsInput | number | null
+    toleranceOperator?: NullableStringFieldUpdateOperationsInput | string | null
+    toleranceValue?: NullableFloatFieldUpdateOperationsInput | number | null
+    requiredTools?: NullableStringFieldUpdateOperationsInput | string | null
+  }
+
+  export type MaintenanceStandardItemUncheckedUpdateManyWithoutStandardInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    itemCode?: StringFieldUpdateOperationsInput | string
+    itemText?: StringFieldUpdateOperationsInput | string
+    criteria?: NullableStringFieldUpdateOperationsInput | string | null
+    unit?: NullableStringFieldUpdateOperationsInput | string | null
+    standardQuantity?: NullableFloatFieldUpdateOperationsInput | number | null
+    toleranceOperator?: NullableStringFieldUpdateOperationsInput | string | null
+    toleranceValue?: NullableFloatFieldUpdateOperationsInput | number | null
+    requiredTools?: NullableStringFieldUpdateOperationsInput | string | null
+  }
+
   export type CorrectiveActionCreateManyDnfInput = {
     id: string
     description: string
@@ -20229,6 +20651,10 @@ export namespace Prisma {
   /**
    * Aliases for legacy arg types
    */
+    /**
+     * @deprecated Use MaintenanceStandardCountOutputTypeDefaultArgs instead
+     */
+    export type MaintenanceStandardCountOutputTypeArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = MaintenanceStandardCountOutputTypeDefaultArgs<ExtArgs>
     /**
      * @deprecated Use DnfDocumentCountOutputTypeDefaultArgs instead
      */

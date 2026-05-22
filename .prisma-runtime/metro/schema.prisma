@@ -14,6 +14,8 @@ model Asset {
   code          String    @unique // e.g., 'STN-L1-A'
   name          String
   subsystem     String // 'Signaling', 'Power', 'Track', etc.
+  stationId     String?   @map("station_id")
+  systemId      String?   @map("system_id")
   parentId      String?
   parent        Asset?    @relation("AssetHierarchy", fields: [parentId], references: [id])
   children      Asset[]   @relation("AssetHierarchy")

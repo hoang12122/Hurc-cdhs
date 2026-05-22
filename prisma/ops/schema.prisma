@@ -83,9 +83,10 @@ model MaintenanceStandard {
   scheduledTime         String?  @map("scheduled_time") // HH:mm
   locationIds           String[] @default([]) @map("location_ids")
   recipientId           String?  @map("recipient_id")
-  abbreviation          String?
+  abbreviation           String?
   estimatedDurationHours Float?   @map("estimated_duration_hours")
   deletedAt              DateTime? @map("deleted_at")
+  items                  MaintenanceStandardItem[]
 
   @@map("maintenance_standards")
 }
@@ -101,6 +102,7 @@ model MaintenanceStandardItem {
   toleranceOperator String?  @map("tolerance_operator")
   toleranceValue    Float?   @map("tolerance_value")
   requiredTools     String?  @map("required_tools")
+  standard          MaintenanceStandard @relation(fields: [standardId], references: [id], onDelete: Cascade)
 
   @@index([standardId])
   @@map("ops_maintenance_standard_items")

@@ -127,6 +127,8 @@ exports.Prisma.AssetScalarFieldEnum = {
   code: 'code',
   name: 'name',
   subsystem: 'subsystem',
+  stationId: 'stationId',
+  systemId: 'systemId',
   parentId: 'parentId',
   criticality: 'criticality',
   specification: 'specification',

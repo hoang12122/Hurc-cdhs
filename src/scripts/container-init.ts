@@ -41,11 +41,11 @@ async function init() {
                 attempts++;
                 console.log(`Migrating schema: ${s} (Attempt ${attempts}/${MAX_RETRIES})...`);
                 try {
-                    execSync(`npx prisma migrate deploy --schema=prisma/${s}/schema.prisma`, { stdio: 'inherit' });
+                    execSync(`npx prisma db push --schema=prisma/${s}/schema.prisma --accept-data-loss --skip-generate`, { stdio: 'inherit' });
                     success = true;
                 } catch (e) {
                     if (attempts >= MAX_RETRIES) {
-                        console.error(`❌ Migration failed for ${s} after ${MAX_RETRIES} attempts. Exiting.`);
+                        console.error(`❌ DB Push failed for ${s} after ${MAX_RETRIES} attempts. Exiting.`);
                         process.exit(1);
                     }
                     console.warn(`⚠️ Migration attempt ${attempts} failed. Database might be booting. Retrying in 5s...`);
