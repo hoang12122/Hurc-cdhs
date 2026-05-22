@@ -1,7 +1,7 @@
 import { cookies } from 'next/headers';
 import { type User, ROLE_SUPER_ADMIN } from '../constants';
 import { jsonDb } from '../db/json-db';
-import { getInternalUserById } from './user-service';
+import { getInternalUserById, getInternalRoles } from './user-service';
 import { dbProvider } from './db-wrapper';
 
 /**
@@ -57,8 +57,8 @@ export async function getSessionUser(): Promise<User | null> {
 
         if (!dbUser || dbUser.status !== 'active') return null;
 
-        // Fetch roles using dbProvider (which is now hardened via db-wrapper.ts)
-        const roles: any[] = await dbProvider.findMany('Role');
+        // Fetch roles using getInternalRoles() which handles ONLINE (authDb) and OFFLINE (jsonDb) modes
+        const roles: any[] = await getInternalRoles();
         const userRole = roles.find((r: any) => r.id === dbUser.role || r.name === dbUser.role);
         const permissions = userRole?.permissions || [];
 

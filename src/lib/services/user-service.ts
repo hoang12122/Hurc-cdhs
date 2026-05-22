@@ -202,25 +202,33 @@ export async function deleteInternalUser(id: string) {
 }
 
 export async function getInternalUserByEmail(email: string): Promise<User | null> {
+    let dbUser: any = null;
     if (!IS_DATABASE_OFFLINE) {
         try {
-            const user = await authDb.user.findUnique({ where: { email } });
-            return user ? omitPassword(user) : null;
-        } catch (e) {}
+            dbUser = await authDb.user.findUnique({ where: { email } });
+        } catch (e) {
+            console.warn("[USER-SERVICE] DB unreachable during getInternalUserByEmail, checking local store.");
+        }
     }
-    const user = await jsonDb.findFirst<any>('users', (u: any) => u.email === email);
-    return user ? omitPassword(user) : null;
+    if (!dbUser) {
+        dbUser = await jsonDb.findFirst<any>('users', (u: any) => u.email === email);
+    }
+    return dbUser ? omitPassword(dbUser) : null;
 }
 
 export async function getInternalUserById(id: string): Promise<User | null> {
+    let dbUser: any = null;
     if (!IS_DATABASE_OFFLINE) {
         try {
-            const user = await authDb.user.findUnique({ where: { id } });
-            return user ? omitPassword(user) : null;
-        } catch (e) {}
+            dbUser = await authDb.user.findUnique({ where: { id } });
+        } catch (e) {
+            console.warn("[USER-SERVICE] DB unreachable during getInternalUserById, checking local store.");
+        }
     }
-    const user = await jsonDb.findFirst<any>('users', (u: any) => u.id === id);
-    return user ? omitPassword(user) : null;
+    if (!dbUser) {
+        dbUser = await jsonDb.findFirst<any>('users', (u: any) => u.id === id);
+    }
+    return dbUser ? omitPassword(dbUser) : null;
 }
 
 // Password Reset Requests
@@ -280,8 +288,13 @@ export async function updateInternalPasswordResetRequest(id: string, status: str
 export async function getInternalRoles() {
     if (!IS_DATABASE_OFFLINE) {
         try {
-            return await authDb.role.findMany();
-        } catch (e) {}
+            const roles = await authDb.role.findMany();
+            if (roles && roles.length > 0) {
+                return roles;
+            }
+        } catch (e) {
+            console.warn("[USER-SERVICE] DB unreachable during getInternalRoles, checking local store.");
+        }
     }
     return await jsonDb.getCollection<any>('roles');
 }
