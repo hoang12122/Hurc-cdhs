@@ -1,6 +1,8 @@
 // src/lib/services/db-wrapper.ts
 import { opsDb } from '../db/ops-db';
 import { aiDb } from '../db/ai-db';
+import { authDb } from '../db/auth-db';
+import { metroDb } from '../db/metro-db';
 import { CryptoUtility } from '../utils/crypto';
 import { jsonDb } from '../db/json-db';
 import { DB_CONFIG } from '../config/db-config';
@@ -19,13 +21,13 @@ export interface IDataProvider {
  * Prisma implementation of Data Provider
  */
 export class PrismaProvider implements IDataProvider {
-  private client: any;
+  protected client: any;
 
   constructor(client: any) {
     this.client = client;
   }
 
-  private getModelClient(model: string): any {
+  protected getModelClient(model: string): any {
     if (!this.client) throw new Error('Prisma Client is not initialized');
     if (this.client[model]) return this.client[model];
     const camelCased = model.charAt(0).toLowerCase() + model.slice(1);
@@ -225,8 +227,91 @@ export class JsonProvider implements IDataProvider {
 }
 
 /**
+ * Routed Prisma implementation of Data Provider to support 4 independent DB clients
+ */
+export class RoutedPrismaProvider extends PrismaProvider {
+  constructor() {
+    // Pass opsDb as a default fallback client to constructor
+    super(opsDb);
+  }
+
+  protected getModelClient(model: string): any {
+    const client = this.getClientForModel(model);
+    if (!client) throw new Error(`Prisma Client for model '${model}' is not initialized`);
+    if (client[model]) return client[model];
+    const camelCased = model.charAt(0).toLowerCase() + model.slice(1);
+    if (client[camelCased]) return client[camelCased];
+    throw new Error(`Model '${model}' or its camelCase variant '${camelCased}' does not exist on the routed Prisma client.`);
+  }
+
+  private getClientForModel(model: string): any {
+    const normalized = model.charAt(0).toLowerCase() + model.slice(1);
+    
+    const mappings: Record<string, any> = {
+      // authDb
+      user: authDb,
+      role: authDb,
+      passwordResetRequest: authDb,
+
+      // aiDb
+      aiAgent: aiDb,
+      aiKnowledgeSnippet: aiDb,
+      aiConversation: aiDb,
+      aiConversationMessage: aiDb,
+      aiInsight: aiDb,
+      aiSyncLog: aiDb,
+      aiVerificationLog: aiDb,
+      aiSafetyLog: aiDb,
+      aiRequestLog: aiDb,
+      trustGraphNode: aiDb,
+      trustGraphEdge: aiDb,
+      trustGraphSyncLog: aiDb,
+      auditConsistencyCheckLog: aiDb,
+      graphConsistencyLog: aiDb,
+      integrityJobLog: aiDb,
+      aiRiskReport: aiDb,
+      aiReportAudit: aiDb,
+      predictiveAlert: aiDb,
+      riskScoreHistory: aiDb,
+
+      // metroDb
+      asset: metroDb,
+      telemetryReading: metroDb,
+      snmpConfig: metroDb,
+
+      // opsDb
+      systemLog: opsDb,
+      responsibleUnit: opsDb,
+      subsystem: opsDb,
+      patrolLocation: opsDb,
+      comment: opsDb,
+      notification: opsDb,
+      maintenanceStandard: opsDb,
+      maintenanceStandardItem: opsDb,
+      inspectionDetail: opsDb,
+      dnfDocument: opsDb,
+      correctiveAction: opsDb,
+      hazardRecord: opsDb,
+      improvement: opsDb,
+      systemState: opsDb,
+      task: opsDb,
+    };
+
+    return mappings[normalized];
+  }
+}
+
+/**
  * Factory to get specific providers
  */
+export function getDbProvider(): IDataProvider {
+  if (DB_CONFIG.useFallback) {
+    return new JsonProvider();
+  } else {
+    return new RoutedPrismaProvider();
+  }
+}
+
 export function getOpsDbProvider(): IDataProvider {
   if (DB_CONFIG.useFallback) {
     return new JsonProvider();
@@ -245,4 +330,4 @@ export function getAiDbProvider(): IDataProvider {
 
 export const opsDbProvider = getOpsDbProvider();
 export const aiDbProvider = getAiDbProvider();
-export const dbProvider = opsDbProvider;
+export const dbProvider = getDbProvider();

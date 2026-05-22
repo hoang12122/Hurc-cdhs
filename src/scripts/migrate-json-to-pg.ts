@@ -517,6 +517,72 @@ async function migrate() {
       console.log('✅ Improvements đồng bộ thành công.');
     }
 
+    // Tasks
+    if (db.tasks && db.tasks.length > 0) {
+      console.log(`📦 Đang đồng bộ ${db.tasks.length} Tasks...`);
+      for (const t of db.tasks) {
+        await opsDb.task.upsert({
+          where: { id: t.id },
+          update: {
+            title: t.title,
+            description: t.description || null,
+            status: t.status,
+            priority: t.priority,
+            dueDate: new Date(t.dueDate),
+            deadline: parseDate(t.deadline),
+            progress: t.progress !== undefined ? (typeof t.progress === 'number' ? t.progress : parseInt(String(t.progress)) || 0) : 0,
+            createdById: t.createdById,
+            createdByName: t.createdByName,
+            assignedToId: t.assignedToId || null,
+            assignedToName: t.assignedToName || null,
+            visibility: t.visibility || 'private',
+            createdAt: t.createdAt ? new Date(t.createdAt) : new Date(),
+            deletedAt: parseDate(t.deletedAt),
+            updatedAt: t.updatedAt ? new Date(t.updatedAt) : new Date(),
+            isNotified24h: t.isNotified24h || false,
+            parentId: t.parentId || null,
+            todoType: t.todoType || null,
+            department: t.department || null,
+            startDate: parseDate(t.startDate),
+            estimatedHours: t.estimatedHours ? parseFloat(String(t.estimatedHours)) : null,
+            spentHours: t.spentHours ? parseFloat(String(t.spentHours)) : null,
+            watchers: typeof t.watchers === 'string' ? t.watchers : (t.watchers ? JSON.stringify(t.watchers) : null),
+            activityHistory: typeof t.activityHistory === 'string' ? t.activityHistory : (t.activityHistory ? JSON.stringify(t.activityHistory) : null),
+            attachments: typeof t.attachments === 'string' ? t.attachments : (t.attachments ? JSON.stringify(t.attachments) : null)
+          },
+          create: {
+            id: t.id,
+            title: t.title,
+            description: t.description || null,
+            status: t.status,
+            priority: t.priority,
+            dueDate: new Date(t.dueDate),
+            deadline: parseDate(t.deadline),
+            progress: t.progress !== undefined ? (typeof t.progress === 'number' ? t.progress : parseInt(String(t.progress)) || 0) : 0,
+            createdById: t.createdById,
+            createdByName: t.createdByName,
+            assignedToId: t.assignedToId || null,
+            assignedToName: t.assignedToName || null,
+            visibility: t.visibility || 'private',
+            createdAt: t.createdAt ? new Date(t.createdAt) : new Date(),
+            deletedAt: parseDate(t.deletedAt),
+            updatedAt: t.updatedAt ? new Date(t.updatedAt) : new Date(),
+            isNotified24h: t.isNotified24h || false,
+            parentId: t.parentId || null,
+            todoType: t.todoType || null,
+            department: t.department || null,
+            startDate: parseDate(t.startDate),
+            estimatedHours: t.estimatedHours ? parseFloat(String(t.estimatedHours)) : null,
+            spentHours: t.spentHours ? parseFloat(String(t.spentHours)) : null,
+            watchers: typeof t.watchers === 'string' ? t.watchers : (t.watchers ? JSON.stringify(t.watchers) : null),
+            activityHistory: typeof t.activityHistory === 'string' ? t.activityHistory : (t.activityHistory ? JSON.stringify(t.activityHistory) : null),
+            attachments: typeof t.attachments === 'string' ? t.attachments : (t.attachments ? JSON.stringify(t.attachments) : null)
+          }
+        });
+      }
+      console.log('✅ Tasks đồng bộ thành công.');
+    }
+
     // ==========================================
     // 3. METRO DATABASE MIGRATION
     // ==========================================

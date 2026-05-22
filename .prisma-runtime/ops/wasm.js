@@ -319,6 +319,35 @@ exports.Prisma.SystemStateScalarFieldEnum = {
   aiModelConfig: 'aiModelConfig'
 };
 
+exports.Prisma.TaskScalarFieldEnum = {
+  id: 'id',
+  title: 'title',
+  description: 'description',
+  status: 'status',
+  priority: 'priority',
+  dueDate: 'dueDate',
+  deadline: 'deadline',
+  progress: 'progress',
+  createdById: 'createdById',
+  createdByName: 'createdByName',
+  assignedToId: 'assignedToId',
+  assignedToName: 'assignedToName',
+  visibility: 'visibility',
+  createdAt: 'createdAt',
+  deletedAt: 'deletedAt',
+  updatedAt: 'updatedAt',
+  isNotified24h: 'isNotified24h',
+  parentId: 'parentId',
+  todoType: 'todoType',
+  department: 'department',
+  startDate: 'startDate',
+  estimatedHours: 'estimatedHours',
+  spentHours: 'spentHours',
+  watchers: 'watchers',
+  activityHistory: 'activityHistory',
+  attachments: 'attachments'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -364,7 +393,8 @@ exports.Prisma.ModelName = {
   CorrectiveAction: 'CorrectiveAction',
   HazardRecord: 'HazardRecord',
   Improvement: 'Improvement',
-  SystemState: 'SystemState'
+  SystemState: 'SystemState',
+  Task: 'Task'
 };
 
 /**

@@ -274,3 +274,38 @@ model SystemState {
 
   @@map("ops_system_state")
 }
+
+model Task {
+  id              String    @id @default(uuid())
+  title           String
+  description     String?
+  status          String
+  priority        String
+  dueDate         DateTime  @map("due_date")
+  deadline        DateTime?
+  progress        Int       @default(0)
+  createdById     String    @map("created_by_id")
+  createdByName   String    @map("created_by_name")
+  assignedToId    String?   @map("assigned_to_id")
+  assignedToName  String?   @map("assigned_to_name")
+  visibility      String    @default("private")
+  createdAt       DateTime  @default(now()) @map("created_at")
+  deletedAt       DateTime? @map("deleted_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+  isNotified24h   Boolean   @default(false) @map("is_notified_24h")
+  parentId        String?   @map("parent_id")
+  todoType        String?   @map("todo_type")
+  department      String?
+  startDate       DateTime? @map("start_date")
+  estimatedHours  Float?    @map("estimated_hours")
+  spentHours      Float?    @map("spent_hours")
+  watchers        String?
+  activityHistory String?   @map("activity_history")
+  attachments     String?
+
+  @@index([status])
+  @@index([createdAt])
+  @@index([assignedToId])
+  @@index([createdById])
+  @@map("ops_tasks")
+}
