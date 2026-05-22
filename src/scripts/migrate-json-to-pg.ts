@@ -72,6 +72,19 @@ async function migrate() {
     // Users
     if (db.users && db.users.length > 0) {
       console.log(`👤 Đang đồng bộ ${db.users.length} Users...`);
+      
+      // Xóa toàn bộ user admin và super admin cũ (không nằm trong danh sách users của db.json)
+      const dbUserIds = db.users.map((u: any) => u.id);
+      const deleteResult = await authDb.user.deleteMany({
+        where: {
+          id: { notIn: dbUserIds },
+          role: { in: ['SUPER_ADMIN', 'ADMIN', 'Admin (P.KTAT)'] }
+        }
+      });
+      if (deleteResult.count > 0) {
+        console.log(`🗑️ Đã xóa ${deleteResult.count} user admin và super admin cũ khỏi PostgreSQL.`);
+      }
+
       for (const user of db.users) {
         await authDb.user.upsert({
           where: { id: user.id },

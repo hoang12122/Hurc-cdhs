@@ -259,18 +259,18 @@
   ],
   "users": [
     {
-      "id": "user-admin-2026",
-      "name": "Super Admin",
-      "email": "nhhoang@hurc.vn",
-      "password": "$2b$10$PkEj3IKKkncmH78UCwc8H.iwo96RsImnEvx8.Mxly3IZks9gnLEIu",
+      "id": "user-admin-new",
+      "name": "System Admin",
+      "email": "admin@hurc.vn",
+      "password": "$2b$10$9XVx0iTD8KLvcxT7tBG1uewCX6n8X5hzNMmPb8uSclj2Dksts39Mq",
       "role": "SUPER_ADMIN",
       "status": "active",
-      "createdAt": "2026-04-01T14:00:00.000Z",
-      "updatedAt": "2026-05-10T06:39:41.714Z",
+      "createdAt": "2026-05-22T07:30:00.000Z",
+      "updatedAt": "2026-05-22T07:30:00.000Z",
       "failedLoginAttempts": 0,
       "lockoutUntil": null,
-      "lastLoginAt": "2026-05-10T06:39:41.459Z",
-      "lastLoginIp": "unknown"
+      "lastLoginAt": null,
+      "lastLoginIp": null
     }
   ],
   "roles": [

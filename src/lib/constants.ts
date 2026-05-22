@@ -87,15 +87,15 @@ export const ROLE_CLIENT = "Client";
 // This is a stand-in for a proper user session management.
 // In a real app, this would be derived from a cookie, JWT, or session store.
 export const MOCK_CURRENT_USER: User = {
-    id: "user-admin-2026",
-    name: "Super Admin",
-    email: "nhhoang@hurc.vn",
+    id: "user-admin-new",
+    name: "System Admin",
+    email: "admin@hurc.vn",
     role: ROLE_SUPER_ADMIN,
     status: "active",
     department: "Ban Quản trị Hệ thống",
     isVerified: true,
     mustChangePassword: false,
-    passwordLastChangedAt: "2025-07-01T00:00:00.000Z",
+    passwordLastChangedAt: "2026-05-22T07:30:00.000Z",
     permissions: [
         "inspections:create",
         "inspections:view_all",
