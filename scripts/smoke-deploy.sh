@@ -77,31 +77,60 @@ if [ "$PROFILE" = "core" ] || [ "$PROFILE" = "all" ]; then
   
   # 2.1: Ping PostgreSQL
   echo -n "🔎 Đang kiểm tra PostgreSQL (hurc_postgres)... "
-  if docker exec hurc_postgres pg_isready -U postgres > /dev/null 2>&1; then
-    echo -e "${GREEN}ĐÃ SẴN SÀNG (pg_isready -OK)${NC}"
-  else
+  ATTEMPT=1
+  DB_SUCCESS=0
+  while [ $ATTEMPT -le 10 ]; do
+    if docker exec hurc_postgres pg_isready -U postgres > /dev/null 2>&1; then
+      echo -e "${GREEN}ĐÃ SẴN SÀNG (pg_isready -OK)${NC}"
+      DB_SUCCESS=1
+      break
+    fi
+    echo -e "${YELLOW}Chưa sẵn sàng, thử lại sau 3s... ($ATTEMPT/10)${NC}"
+    sleep 3
+    ATTEMPT=$((ATTEMPT + 1))
+  done
+  if [ $DB_SUCCESS -ne 1 ]; then
     echo -e "${RED}THẤT BẠI! PostgreSQL không phản hồi.${NC}"
     exit 1
   fi
 
   # 2.2: Ping MongoDB
   echo -n "🔎 Đang kiểm tra MongoDB (hurc_mongo)... "
-  if docker exec hurc_mongo mongosh --eval "db.runCommand({ping:1})" --quiet > /dev/null 2>&1; then
-    echo -e "${GREEN}ĐÃ SẴN SÀNG (mongosh ping -OK)${NC}"
-  elif docker exec hurc_mongo mongo --eval "db.runCommand({ping:1})" --quiet > /dev/null 2>&1; then
-    echo -e "${GREEN}ĐÃ SẴN SÀNG (mongo legacy ping -OK)${NC}"
-  else
+  ATTEMPT=1
+  DB_SUCCESS=0
+  while [ $ATTEMPT -le 10 ]; do
+    if docker exec hurc_mongo mongosh --eval "db.runCommand({ping:1})" --quiet > /dev/null 2>&1 || \
+       docker exec hurc_mongo mongo --eval "db.runCommand({ping:1})" --quiet > /dev/null 2>&1; then
+      echo -e "${GREEN}ĐÃ SẴN SÀNG (ping -OK)${NC}"
+      DB_SUCCESS=1
+      break
+    fi
+    echo -e "${YELLOW}Chưa sẵn sàng, thử lại sau 3s... ($ATTEMPT/10)${NC}"
+    sleep 3
+    ATTEMPT=$((ATTEMPT + 1))
+  done
+  if [ $DB_SUCCESS -ne 1 ]; then
     echo -e "${RED}THẤT BẠI! MongoDB không phản hồi.${NC}"
     exit 1
   fi
 
   # 2.3: Ping Redis
   echo -n "🔎 Đang kiểm tra Redis (hurc_redis)... "
-  REDIS_PING=$(docker exec hurc_redis redis-cli ping 2>/dev/null | tr -d '\r' | tr -d '\n')
-  if [ "$REDIS_PING" = "PONG" ]; then
-    echo -e "${GREEN}ĐÃ SẴN SÀNG (redis-cli PING -> PONG)${NC}"
-  else
-    echo -e "${RED}THẤT BẠI! Redis không phản hồi (Nhận được: $REDIS_PING).${NC}"
+  ATTEMPT=1
+  DB_SUCCESS=0
+  while [ $ATTEMPT -le 10 ]; do
+    REDIS_PING=$(docker exec hurc_redis redis-cli ping 2>/dev/null | tr -d '\r' | tr -d '\n')
+    if [ "$REDIS_PING" = "PONG" ]; then
+      echo -e "${GREEN}ĐÃ SẴN SÀNG (redis-cli PING -> PONG)${NC}"
+      DB_SUCCESS=1
+      break
+    fi
+    echo -e "${YELLOW}Chưa sẵn sàng, thử lại sau 3s... ($ATTEMPT/10)${NC}"
+    sleep 3
+    ATTEMPT=$((ATTEMPT + 1))
+  done
+  if [ $DB_SUCCESS -ne 1 ]; then
+    echo -e "${RED}THẤT BẠI! Redis không phản hồi.${NC}"
     exit 1
   fi
 
@@ -132,9 +161,23 @@ if [ "$PROFILE" = "core" ] || [ "$PROFILE" = "all" ]; then
 
   # 2.5: HTTP Check Nginx Reverse Proxy
   echo -e "\n${YELLOW}[BƯỚC 4] HTTP Check Nginx Reverse Proxy (Port 80)...${NC}"
-  NGINX_STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$NGINX_URL" || echo "000")
-  echo -e "🔎 Kết nối thử đến cổng Nginx: $NGINX_URL -> HTTP Code: ${GREEN}$NGINX_STATUS${NC}"
-  if [[ ! "$NGINX_STATUS" =~ ^[23][0-9][0-9]$ ]]; then
+  ATTEMPT=1
+  SUCCESS=0
+  while [ $ATTEMPT -le $MAX_ATTEMPTS ]; do
+    echo -n "🔎 Thử lần $ATTEMPT/$MAX_ATTEMPTS kết nối đến Nginx: $NGINX_URL... "
+    NGINX_STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$NGINX_URL" || echo "000")
+    if [[ "$NGINX_STATUS" =~ ^[23][0-9][0-9]$ ]]; then
+      echo -e "${GREEN}THÀNH CÔNG (HTTP $NGINX_STATUS)${NC}"
+      SUCCESS=1
+      break
+    else
+      echo -e "${YELLOW}Chưa sẵn sàng (HTTP $NGINX_STATUS). Thử lại sau ${SLEEP_INTERVAL}s...${NC}"
+      sleep $SLEEP_INTERVAL
+      ATTEMPT=$((ATTEMPT + 1))
+    fi
+  done
+
+  if [ $SUCCESS -ne 1 ]; then
     echo -e "❌ ${RED}LỖI NGHIÊM TRỌNG: Nginx Reverse Proxy lỗi! (HTTP Code: $NGINX_STATUS)${NC}"
     docker logs --tail 30 hurc_nginx
     exit 1
@@ -165,14 +208,28 @@ if [ "$PROFILE" = "ai" ] || [ "$PROFILE" = "all" ]; then
   echo -e "\n${YELLOW}[BƯỚC 3 (AI)] Kiểm nghiệm tích hợp sâu các Dịch vụ Trí tuệ Nhân tạo (YOLO, Ollama)...${NC}"
 
   # 3.1: Kiểm tra YOLO Service API
-  echo -n "🔎 Đang kết nối thử đến YOLO Service API (cổng 5005)... "
-  YOLO_STATUS=$(curl -s -o /dev/null -w "%{http_code}" "http://localhost:5005/health" || echo "000")
-  if [ "$YOLO_STATUS" = "200" ]; then
-    echo -e "${GREEN}THÀNH CÔNG (HTTP 200)${NC}"
-  else
+  echo -e "\n🔎 Đang kiểm tra YOLO Service API (cổng 5005)..."
+  ATTEMPT=1
+  SUCCESS=0
+  while [ $ATTEMPT -le $MAX_ATTEMPTS ]; do
+    echo -n "🔎 Thử lần $ATTEMPT/$MAX_ATTEMPTS kết nối đến YOLO Service: http://localhost:5005/health... "
+    YOLO_STATUS=$(curl -s -o /dev/null -w "%{http_code}" "http://localhost:5005/health" || echo "000")
+    if [ "$YOLO_STATUS" = "200" ]; then
+      echo -e "${GREEN}THÀNH CÔNG (HTTP 200)${NC}"
+      SUCCESS=1
+      break
+    else
+      echo -e "${YELLOW}Chưa sẵn sàng (HTTP $YOLO_STATUS). Thử lại sau ${SLEEP_INTERVAL}s...${NC}"
+      sleep $SLEEP_INTERVAL
+      ATTEMPT=$((ATTEMPT + 1))
+    fi
+  done
+
+  if [ $SUCCESS -ne 1 ]; then
     echo -e "${RED}THẤT BẠI! YOLO Service không phản hồi (HTTP Code: $YOLO_STATUS).${NC}"
     exit 1
   fi
+
 
   # 3.2: Kiểm tra Ollama CLI ping
   echo -n "🔎 Đang kiểm tra Ollama Engine (hurc_ollama CLI)... "

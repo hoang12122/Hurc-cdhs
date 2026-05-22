@@ -16,6 +16,10 @@ echo -e "${BLUE}================================================================
 echo -e "${BLUE}🚀 TIẾN TRÌNH TRIỂN KHAI PHÂN LỚP PRODUCTION (TIÊU CHUẨN GA METRO METICULOUS)${NC}"
 echo -e "${BLUE}==============================================================================${NC}"
 
+# Đọc biến cấu hình hồ sơ triển khai
+DEPLOY_PROFILE=${DEPLOY_PROFILE:-all}
+echo -e "🔎 Hồ sơ triển khai được cấu hình: ${YELLOW}${DEPLOY_PROFILE^^}${NC}"
+
 # 1. Chạy Preflight Check cục bộ trước khi bắt đầu
 echo -e "\n${YELLOW}[BƯỚC CHUẨN BỊ] Chạy Preflight Validation phiên bản Node.js...${NC}"
 if ! node scripts/preflight-node.js; then
@@ -61,6 +65,14 @@ if [ $? -ne 0 ]; then
 fi
 echo -e "✅ ${GREEN}LỚP 1 (CORE) ĐÃ ĐƯỢC TRIỂN KHAI THÀNH CÔNG VÀ AN TOÀN TUYỆT ĐỐI!${NC}"
 
+# Kiểm tra nếu chỉ cần triển khai CORE
+if [ "$DEPLOY_PROFILE" = "core" ]; then
+  echo -e "\n${GREEN}==============================================================================${NC}"
+  echo -e "${GREEN}🎉 TRIỂN KHAI PHÂN HỆ CỐT LÕI (CORE ONLY) HOÀN TẤT VÀ THÀNH CÔNG RỰC RỠ!${NC}"
+  echo -e "${GREEN}==============================================================================${NC}"
+  exit 0
+fi
+
 # ==============================================================================
 # LỚP 2: TRIỂN KHAI PHÂN HỆ TRÍ TUỆ NHÂN TẠO (AI SERVICES)
 # ==============================================================================
@@ -68,10 +80,10 @@ echo -e "\n${BLUE}==============================================================
 echo -e "${BLUE}🧠 LỚP 2/3: TRIỂN KHAI PHÂN HỆ TRÍ TUỆ NHÂN TẠO (yolo, ollama, pull-model)${NC}"
 echo -e "${BLUE}==============================================================================${NC}"
 
-docker compose --profile ai up -d --build
+docker compose --profile core --profile ai up -d --build
 if [ $? -ne 0 ]; then
   echo -e "❌ ${RED}LỖI NGHIÊM TRỌNG: Không thể kích hoạt Docker Compose AI! Hủy toàn bộ hệ thống...${NC}"
-  docker compose down
+  docker compose --profile core --profile ai --profile obs down
   exit 1
 fi
 
@@ -84,7 +96,7 @@ if [ $? -ne 0 ]; then
   echo -e "🔎 Trích xuất nhật ký logs lỗi của YOLO Service:"
   docker logs --tail 30 hurc_yolo 2>&1
   
-  docker compose down
+  docker compose --profile core --profile ai --profile obs down
   echo -e "❌ ${RED}ROLLBACK TOÀN HỆ THỐNG HOÀN TẤT. Tiến trình triển khai thất bại.${NC}"
   exit 1
 fi
@@ -97,7 +109,7 @@ echo -e "\n${BLUE}==============================================================
 echo -e "${BLUE}📈 LỚP 3/3: TRIỂN KHAI PHÂN HỆ GIÁM SÁT (loki, grafana)${NC}"
 echo -e "${BLUE}==============================================================================${NC}"
 
-docker compose --profile obs up -d --build
+docker compose --profile core --profile ai --profile obs up -d --build
 if [ $? -ne 0 ]; then
   echo -e "⚠️ ${YELLOW}Cảnh báo: Không thể kích hoạt phân hệ giám sát. Tuy nhiên phân hệ Core & AI vẫn chạy ổn định.${NC}"
 else
