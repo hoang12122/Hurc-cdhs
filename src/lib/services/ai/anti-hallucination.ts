@@ -3,6 +3,17 @@
  * Strict validation and self-reflection loops to ensure AI responses match CRM database facts.
  */
 
+export const STRICT_CONSTRAINT = `
+[LƯU Ý AN TOÀN QUAN TRỌNG - CHẾ ĐỘ CỐ VẤN THỤ ĐỘNG & CHỈ ĐỌC (READ-ONLY)]
+1. VAI TRÒ CHÍNH (READ-ONLY): Bạn là một CỐ VẤN THỤ ĐỘNG (Advisory Only). Bạn tuyệt đối KHÔNG bao giờ được tự ý can thiệp trực tiếp, không ghi, sửa, tạo mới hoặc xóa bất kỳ dữ liệu cấu hình hay bản ghi nào của hệ thống. Bạn KHÔNG được thực hiện các hành động thay đổi trạng thái hệ thống.
+2. NGUYÊN TẮC HOẠT ĐỘNG: Quyền hạn của bạn chỉ được phép: Ghi nhận thông tin, Học hỏi từ ngữ cảnh, và đưa ra Gợi ý/Đề xuất giải pháp ở mức độ siêu tinh vi, chính xác nhất để người vận hành (con người) xem xét và tự thực hiện thủ công.
+3. CHỐNG ẢO TƯỞNG (ANTI-HALLUCINATION):
+- Trả lời chính xác 100% dựa vào dữ liệu ngữ cảnh thực tế được cung cấp.
+- Tuyệt đối không bịa đặt hoặc tự động thay đổi mã sự cố, mã mối nguy, mã kiểm tra (ví dụ DNF-XXX, HAZ-XXX, INS-XXX).
+- Trạng thái, mức độ ưu tiên và các thông tin liên quan phải trùng khớp hoàn toàn với dữ liệu thực tế. Nếu không tìm thấy dữ liệu, phải báo rõ "Không tìm thấy thông tin phù hợp trong cơ sở dữ liệu". Không phỏng đoán, không bịa đặt.
+4. TỐI ƯU HÓA NGỮ CẢNH: Hệ thống tự động thu gọn lịch sử khi vượt giới hạn để đảm bảo token được cập nhật và kiểm soát tối ưu.
+`.trim();
+
 export interface AuditResult {
     isSafe: boolean;
     reason?: string;
@@ -251,4 +262,44 @@ ${currentResponse}
     // Fallback if AI cannot fix itself after maximum retries
     console.error("❌ [ANTI-HALLUCINATION] Max reflection attempts reached. Triggering Safe-Mode Fallback.");
     return generateSafeFallbackResponse(query, context);
+}
+
+export interface NcChatMessage {
+    role: 'system' | 'user' | 'assistant' | 'tool';
+    content: string | null;
+    [key: string]: any;
+}
+
+/**
+ * Quản lý ngữ cảnh thông minh, tự động nén/thu gọn các tool output quá dài và kiểm soát số lượng token
+ */
+export function manageAgentContext(history: NcChatMessage[]): NcChatMessage[] {
+    const threshold = 25000;
+    const processedHistory = history.map(msg => {
+        if (msg.content && msg.content.length > 5000) {
+            const truncatedContent = msg.content.substring(0, 2000) + 
+                "\n\n... [NỘI DUNG ĐƯỢC TỰ ĐỘNG THU GỌN ĐỂ TỐI ƯU HÓA TOKEN / CONTEXT WINDOW] ...\n\n" + 
+                msg.content.substring(msg.content.length - 2000);
+            return {
+                ...msg,
+                content: truncatedContent
+            };
+        }
+        return msg;
+    });
+
+    const newTotalChars = processedHistory.reduce((acc, msg) => acc + (msg.content?.length || 0), 0);
+    if (newTotalChars <= threshold) {
+        return processedHistory;
+    }
+
+    const systemMsgs = processedHistory.filter(m => m.role === 'system');
+    const recentMsgs = processedHistory.slice(-6);
+    const filteredRecent = recentMsgs.filter(m => m.role !== 'system');
+    
+    return [
+        ...systemMsgs,
+        { role: 'assistant' as const, content: "[HỆ THỐNG]: Lịch sử hội thoại đã được tự động nén để tiết kiệm token và tránh tràn cửa sổ ngữ cảnh." },
+        ...filteredRecent
+    ];
 }

@@ -9,6 +9,7 @@
  */
 
 import { AI_CONFIG } from '../config/ai-config';
+import { STRICT_CONSTRAINT } from './ai/anti-hallucination';
 
 const NEMOCLAW_API_URL = process.env.NEMOCLAW_API_URL || process.env.LLM_ENDPOINT || 'http://ollama:11434'; // Đảm bảo đồng bộ với Docker Compose
 const NEMOCLAW_API_KEY = process.env.NEMOCLAW_API_KEY || '';
@@ -285,7 +286,9 @@ ${userContext}
 - Câu hỏi về số liệu → Trả lời bằng số cụ thể + bảng
 - Câu hỏi về quy trình → Trả lời bằng bước 1-2-3
 - Câu hỏi phân tích → Trả lời: Vấn đề → Nguyên nhân → Đề xuất
-- Câu hỏi có/không → Trả lời thẳng Có/Không trước, giải thích ngắn sau`;
+- Câu hỏi có/không → Trả lời thẳng Có/Không trước, giải thích ngắn sau
+
+${STRICT_CONSTRAINT}`;
 }
 
 // ============ ERROR CLASS ============

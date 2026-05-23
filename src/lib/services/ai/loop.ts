@@ -2,7 +2,7 @@ import { getNemoClawClient, type ChatMessage as NcChatMessage } from "./nemoclaw
 import { crmToolDeclarations, executeCrmTool, openAiToolDeclarations } from "../../ai-tools/crm-tools";
 import { mcpService } from "./mcp-service";
 import { jsonDb } from "../../db/json-db";
-import { runReflectionLoop } from "./anti-hallucination";
+import { runReflectionLoop, STRICT_CONSTRAINT, manageAgentContext } from "./anti-hallucination";
 import { askAI } from "../ai";
 
 const MAX_AGENT_ITERATIONS = 12;
@@ -44,18 +44,7 @@ async function resolveContextMentions(prompt: string): Promise<string[]> {
     return attachments;
 }
 
-/**
- * Quản lý ngữ cảnh để tránh tràn context window
- */
-function manageAgentContext(history: NcChatMessage[]): NcChatMessage[] {
-    const contextLimit = 15;
-    if (history.length > contextLimit) {
-        const systemMessages = history.filter(m => m.role === 'system');
-        const recentMessages = history.slice(-contextLimit);
-        return [...systemMessages, ...recentMessages.filter(m => m.role !== 'system')];
-    }
-    return history;
-}
+
 
 /**
  * Robust Agent Loop — Triển khai mô hình GoClaw giúp Agent hoạt động ổn định.
@@ -115,9 +104,11 @@ export async function runRobustAgentLoop(question: string, options: {
             }
         }));
 
+        const loopSystemPrompt = `Bạn là trợ lý kỹ thuật HURC1. \n\n${projectContext}\n\n${STRICT_CONSTRAINT}`;
+
         const response = await nc.chatCompletion({
             messages: [
-                { role: 'system', content: `Bạn là trợ lý kỹ thuật HURC1. \n\n${projectContext}` },
+                { role: 'system', content: loopSystemPrompt },
                 ...currentHistory
             ],
             tools: [...openAiToolDeclarations, ...mcpToolDecls] as any,
@@ -154,9 +145,9 @@ export async function runRobustAgentLoop(question: string, options: {
                 question,
                 answer,
                 contextStr,
-                "Bạn là trợ lý kỹ thuật chuyên nghiệp của HURC1 CRM.",
+                loopSystemPrompt,
                 async (p, opts) => {
-                    return await askAI(p, { systemPrompt: "Bạn là trợ lý kỹ thuật chuyên nghiệp của HURC1 CRM.", temperature: opts?.temperature ?? 0.1, skipReflection: true });
+                    return await askAI(p, { systemPrompt: loopSystemPrompt, temperature: opts?.temperature ?? 0.1, skipReflection: true });
                 }
             );
 

@@ -6,7 +6,7 @@ import { buildUserContext } from "./user-context";
 import { detectObjects as callYoloService, type YoloResponse } from "./yolo";
 import { executeCrmTool, openAiToolDeclarations } from "../ai-tools/crm-tools";
 import { retrieveMemories, storeExperience } from "./agent-memory";
-import { runReflectionLoop } from "./ai/anti-hallucination";
+import { runReflectionLoop, STRICT_CONSTRAINT, manageAgentContext } from "./ai/anti-hallucination";
 
 /**
  * HURC AI SERVICE (LOCAL-ONLY EDITION)
@@ -38,18 +38,9 @@ export async function askAI(prompt: string, options: {
         return askVisionAI(prompt, image, { model, systemPrompt, forceBackend, userId });
     }
 
-    // Strict system prompt for hallucination prevention
-    const strictConstraint = `
-[LƯU Ý AN TOÀN QUAN TRỌNG - CHỐNG ẢO TƯỞNG]
-Bạn chỉ được phép trả lời dựa trên thông tin có sẵn trong dữ liệu ngữ cảnh được cung cấp.
-- Tuyệt đối KHÔNG tự ý bịa đặt hoặc thay đổi mã sự cố, mã mối nguy, mã kiểm tra (ví dụ DNF-XXX, HAZ-XXX, INS-XXX).
-- Trạng thái, mức độ ưu tiên và thông tin chi tiết phải trùng khớp 100% với dữ liệu ngữ cảnh.
-- Nếu dữ liệu ngữ cảnh không có thông tin được hỏi, hãy nói rõ là "Không tìm thấy thông tin phù hợp trong cơ sở dữ liệu". Không đoán mò.
-`.trim();
-
     const enhancedSystemPrompt = systemPrompt 
-        ? `${systemPrompt}\n\n${strictConstraint}`
-        : `Bạn là trợ lý kỹ thuật chuyên nghiệp của HURC1 CRM.\n\n${strictConstraint}`;
+        ? `${systemPrompt}\n\n${STRICT_CONSTRAINT}`
+        : `Bạn là trợ lý kỹ thuật chuyên nghiệp của HURC1 CRM.\n\n${STRICT_CONSTRAINT}`;
 
     let rawResponse = "";
 
@@ -251,9 +242,12 @@ export async function askWithRAG(query: string, options: {
                     return { response: result.answer, intent: 'agent', source: 'trustgraph' };
                 }
                 default: {
+                    const textCompletionSystemPrompt = options.systemPrompt
+                        ? `${options.systemPrompt}\n\n${STRICT_CONSTRAINT}`
+                        : `Bạn là trợ lý kỹ thuật chuyên nghiệp của HURC1 CRM.\n\n${STRICT_CONSTRAINT}`;
                     const result = await tg.textCompletion({
                         prompt: query,
-                        system: options.systemPrompt,
+                        system: textCompletionSystemPrompt,
                     });
                     return { response: result.response, intent: 'text_completion', source: 'trustgraph' };
                 }
@@ -395,9 +389,11 @@ async function runRobustAgentLoop(question: string, options: {
         
         currentHistory = manageAgentContext(currentHistory);
 
+        const agentSystemPrompt = `Bạn là HURC AI - Trợ lý quản trị kỹ thuật chuyên nghiệp. Hãy sử dụng công cụ để lấy dữ liệu. Hãy phân tích kỹ code và log trước khi trả lời.\n\n${STRICT_CONSTRAINT}`;
+
         const response = await nc.chatCompletion({
             messages: [
-                { role: 'system', content: "Bạn là HURC AI - Trợ lý quản trị kỹ thuật chuyên nghiệp. Hãy sử dụng công cụ để lấy dữ liệu. Hãy phân tích kỹ code và log trước khi trả lời." },
+                { role: 'system', content: agentSystemPrompt },
                 ...currentHistory
             ],
             tools: openAiToolDeclarations,
@@ -429,9 +425,9 @@ async function runRobustAgentLoop(question: string, options: {
                 question,
                 answer,
                 contextStr,
-                "Bạn là HURC AI - Trợ lý quản trị kỹ thuật chuyên nghiệp.",
+                agentSystemPrompt,
                 async (p, opts) => {
-                    return await askAI(p, { systemPrompt: "Bạn là HURC AI - Trợ lý quản trị kỹ thuật chuyên nghiệp.", temperature: opts?.temperature ?? 0.1, skipReflection: true });
+                    return await askAI(p, { systemPrompt: agentSystemPrompt, temperature: opts?.temperature ?? 0.1, skipReflection: true });
                 }
             );
 
@@ -537,22 +533,6 @@ export async function askPersonalized(query: string, options: { userId: string, 
 }
 
 // ============ AGENT UTILS ============
-
-function manageAgentContext(history: NcChatMessage[]): NcChatMessage[] {
-    const threshold = 25000;
-    const totalChars = history.reduce((acc, msg) => acc + (msg.content?.length || 0), 0);
-    
-    if (totalChars > threshold) {
-        const systemMsg = history.find(m => m.role === 'system');
-        const recentMsgs = history.slice(-5);
-        return [
-            ...(systemMsg ? [systemMsg] : []),
-            { role: 'assistant', content: "[Context Compressed due to length]" },
-            ...recentMsgs
-        ];
-    }
-    return history;
-}
 
 function estimateTokens(history: NcChatMessage[]): number {
     return Math.floor(history.reduce((acc, m) => acc + (m.content?.length || 0), 0) / 4);
