@@ -8,7 +8,7 @@
  * Each user gets an isolated session via session-id.
  */
 
-import { AI_CONFIG } from '../config/ai-config';
+import { AI_CONFIG, getActiveLLMModel } from '../config/ai-config';
 import { STRICT_CONSTRAINT } from './ai/anti-hallucination';
 
 const NEMOCLAW_API_URL = process.env.NEMOCLAW_API_URL || process.env.LLM_ENDPOINT || 'http://ollama:11434'; // Đảm bảo đồng bộ với Docker Compose
@@ -99,7 +99,7 @@ class NemoClawClient {
         const url = `${this.baseUrl}/v1/chat/completions`;
         
         const body: any = {
-            model: request.model || this.model,
+            model: request.model || getActiveLLMModel(),
             messages: request.messages,
             temperature: request.temperature ?? 0.3, // Lower temp = more precise
             max_tokens: request.max_tokens ?? 2048,

@@ -47,7 +47,16 @@ def load_agent_model(model_id: str, is_vision: bool = False):
             MODELS[model_id] = (None, model)
         else:
             print(f"⏳ [AI SERVER] Loading Language Agent: {model_id}...")
-            processor = AutoProcessor.from_pretrained(model_id)
+            
+            # Robust loading of processor or tokenizer
+            processor = None
+            try:
+                processor = AutoProcessor.from_pretrained(model_id, trust_remote_code=True)
+            except Exception as pe:
+                print(f"⚠️ [AI SERVER] AutoProcessor failed, trying AutoTokenizer: {pe}")
+                from transformers import AutoTokenizer
+                processor = AutoTokenizer.from_pretrained(model_id, trust_remote_code=True)
+
             bnb_config = BitsAndBytesConfig(
                 load_in_4bit=True,
                 bnb_4bit_compute_dtype=torch.bfloat16,
@@ -55,12 +64,14 @@ def load_agent_model(model_id: str, is_vision: bool = False):
                 bnb_4bit_use_double_quant=True,
             ) if DEVICE == "cuda" else None
 
+            is_orthrus = "orthrus" in model_id.lower()
             model = AutoModelForCausalLM.from_pretrained(
                 model_id,
                 quantization_config=bnb_config,
                 torch_dtype=torch.bfloat16 if DEVICE == "cuda" else torch.float32,
                 device_map="auto" if DEVICE == "cuda" else None,
-                low_cpu_mem_usage=True
+                low_cpu_mem_usage=True,
+                trust_remote_code=True if is_orthrus else False
             )
             MODELS[model_id] = (processor, model)
             
@@ -100,6 +111,9 @@ async def list_models():
         "data": [
             {"id": "google/gemma-4-E2B-it", "object": "model", "created": int(time.time()), "owned_by": "google"},
             {"id": "google/gemma-4-E4B-it", "object": "model", "created": int(time.time()), "owned_by": "google"},
+            {"id": "chiennv/Orthrus-Qwen3-1.7B", "object": "model", "created": int(time.time()), "owned_by": "chiennv"},
+            {"id": "chiennv/Orthrus-Qwen3-4B", "object": "model", "created": int(time.time()), "owned_by": "chiennv"},
+            {"id": "chiennv/Orthrus-Qwen3-8B", "object": "model", "created": int(time.time()), "owned_by": "chiennv"},
             {"id": "yolov8n", "object": "model", "created": int(time.time()), "owned_by": "ultralytics"}
         ]
     }
@@ -127,12 +141,20 @@ async def chat_completions(request: ChatCompletionRequest):
         input_len = inputs["input_ids"].shape[-1]
 
         # 3. Generate output
+        generate_kwargs = {
+            "max_new_tokens": request.max_tokens or 1024,
+            "temperature": request.temperature or 0.7,
+            "do_sample": True if (request.temperature or 0.7) > 0 else False
+        }
+        
+        # Activating diffusion mode for Orthrus models to speed up LLM generation
+        if "orthrus" in request.model.lower():
+            generate_kwargs["use_diffusion_mode"] = True
+
         with torch.no_grad():
             outputs = model.generate(
-                **inputs, 
-                max_new_tokens=request.max_tokens or 1024,
-                temperature=request.temperature or 0.7,
-                do_sample=True if (request.temperature or 0.7) > 0 else False
+                **inputs,
+                **generate_kwargs
             )
         
         # 4. Decode Response

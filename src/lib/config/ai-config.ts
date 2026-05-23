@@ -18,11 +18,12 @@ export const AI_CONFIG = {
         ENDPOINT: process.env.YOLO_ENDPOINT || 'http://yolo-service:5005/detect',
     },
 
-    // Cấu hình module Xử lý ngôn ngữ (Gemma-4 Local - BẢO MẬT TUYỆT ĐỐI)
+    // Cấu hình module Xử lý ngôn ngữ (Gemma-4 / Orthrus Local - BẢO MẬT TUYỆT ĐỐI)
     LLM: {
-        // Sử dụng phiên bản cao nhất của Gemma-4 để tối ưu hóa suy luận local
+        // Sử dụng phiên bản cao nhất của Gemma-4 làm model ổn định
         STABLE_MODEL: 'google/gemma-4-E4B-it', 
-        EXPERIMENTAL_MODEL: 'google/gemma-4-E4B-it', 
+        // Sử dụng Orthrus Qwen3 làm model thử nghiệm tăng tốc (đáp ứng nhanh mà không giảm chất lượng)
+        EXPERIMENTAL_MODEL: process.env.NEXT_PUBLIC_LLM_EXPERIMENTAL_MODEL || 'chiennv/Orthrus-Qwen3-8B', 
         ENDPOINT: process.env.LLM_ENDPOINT || 'http://ollama:11434/v1/chat/completions',
     },
     

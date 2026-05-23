@@ -5,6 +5,8 @@
  * Routes inference to local Ollama or fallback to cloud providers.
  */
 
+import { getActiveLLMModel } from '../../config/ai-config';
+
 const NEMOCLAW_API_URL = process.env.NEMOCLAW_API_URL || 'http://localhost:3002';
 const NEMOCLAW_API_KEY = process.env.NEMOCLAW_API_KEY || '';
 const NEMOCLAW_MODEL = process.env.NEMOCLAW_MODEL || 'llama3:8b';
@@ -85,7 +87,7 @@ class NemoClawClient {
         const url = `${this.baseUrl}/v1/chat/completions`;
         
         const body: any = {
-            model: request.model || this.model,
+            model: request.model || getActiveLLMModel(),
             messages: request.messages,
             temperature: request.temperature ?? 0.3,
             max_tokens: request.max_tokens ?? 2048,
