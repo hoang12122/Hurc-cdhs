@@ -7,6 +7,7 @@ import { detectObjects as callYoloService, type YoloResponse } from "./yolo";
 import { executeCrmTool, openAiToolDeclarations } from "../ai-tools/crm-tools";
 import { retrieveMemories, storeExperience } from "./agent-memory";
 import { runReflectionLoop, STRICT_CONSTRAINT, manageAgentContext } from "./ai/anti-hallucination";
+import { jsonDb } from "../db/json-db";
 
 /**
  * HURC AI SERVICE (LOCAL-ONLY EDITION)
@@ -340,20 +341,33 @@ export async function detectObjects(imageBuffer: Buffer) {
 async function resolveContextMentions(prompt: string): Promise<string[]> {
     const mentions = prompt.match(/@([a-zA-Z0-9]+)-([a-zA-Z0-9.@_-]+)/g);
     if (!mentions) return [];
+
     const attachments: string[] = [];
-    try {
-        const { readDb } = await import('../json-db-service');
-        const db = readDb();
-        for (const mention of mentions) {
-            const match = mention.match(/@([a-zA-Z0-9]+)-([a-zA-Z0-9.@_-]+)/);
-            if (!match) continue;
-            const [_, type, id] = match;
+
+    for (const mention of mentions) {
+        const match = mention.match(/@([a-zA-Z0-9]+)-([a-zA-Z0-9.@_-]+)/);
+        if (!match) continue;
+        const [_, type, id] = match;
+        
+        try {
             if (type.toLowerCase() === 'dnf') {
-                const item = (db.dnfs || []).find((d: any) => d.id === id || d.failureReportNo === id);
+                const item = await jsonDb.findFirst<any>('dnf_documents', (d: any) => d.id === id || d.failureReportNo === id);
                 if (item) attachments.push(`[ATTACHMENT: DNF ${id}]\n${JSON.stringify(item, null, 2)}`);
+            } else if (type.toLowerCase() === 'log') {
+                const item = await jsonDb.findFirst<any>('system_logs', (l: any) => l.id === id);
+                if (item) attachments.push(`[ATTACHMENT: LOG ${id}]\n${JSON.stringify(item, null, 2)}`);
+            } else if (type.toLowerCase() === 'user') {
+                const item = await jsonDb.findFirst<any>('users', (u: any) => u.id === id || u.email === id);
+                if (item) attachments.push(`[ATTACHMENT: USER ${id}]\n${JSON.stringify({ ...item, password: '[REDACTED]' }, null, 2)}`);
+            } else if (type.toLowerCase() === 'hazard') {
+                const item = await jsonDb.findFirst<any>('hazards', (h: any) => h.id === id);
+                if (item) attachments.push(`[ATTACHMENT: HAZARD ${id}]\n${JSON.stringify(item, null, 2)}`);
             }
+        } catch (e) {
+            console.error(`Lỗi khi trích xuất dữ liệu cho @${type}-${id}:`, e);
         }
-    } catch (e) { console.error("Mention resolution failed", e); }
+    }
+
     return attachments;
 }
 

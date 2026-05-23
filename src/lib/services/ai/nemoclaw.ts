@@ -7,7 +7,7 @@
 
 import { getActiveLLMModel } from '../../config/ai-config';
 
-const NEMOCLAW_API_URL = process.env.NEMOCLAW_API_URL || 'http://localhost:3002';
+const NEMOCLAW_API_URL = process.env.NEMOCLAW_API_URL || process.env.LLM_ENDPOINT || 'http://localhost:3002';
 const NEMOCLAW_API_KEY = process.env.NEMOCLAW_API_KEY || '';
 const NEMOCLAW_MODEL = process.env.NEMOCLAW_MODEL || 'llama3:8b';
 

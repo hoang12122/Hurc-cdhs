@@ -68,6 +68,16 @@ export function extractAttributesForId(id: string, context: string): EntityAttri
 }
 
 /**
+ * Check if a matched keyword is negated in the response chunk to avoid false positives (e.g. "không còn đang xử lý" is NOT asserting "đang xử lý")
+ */
+function isNegated(chunk: string, keyword: string): boolean {
+    const index = chunk.toLowerCase().indexOf(keyword.toLowerCase());
+    if (index === -1) return false;
+    const before = chunk.substring(Math.max(0, index - 25), index).toLowerCase();
+    return before.includes("chưa") || before.includes("không") || before.includes("không còn") || before.includes("chưa được");
+}
+
+/**
  * Audit AI response against query and context
  */
 export async function auditResponse(query: string, response: string, context: string): Promise<AuditResult> {
@@ -121,11 +131,14 @@ export async function auditResponse(query: string, response: string, context: st
 
             // Check closed mismatch
             if (statusLower.includes("đóng") || statusLower.includes("closed") || statusLower.includes("hủy")) {
-                if (responseChunk.includes("chưa đóng") || 
+                const assertsOpen = 
+                    responseChunk.includes("chưa đóng") || 
                     responseChunk.includes("đang mở") || 
                     responseChunk.includes("chưa giải quyết") || 
-                    responseChunk.includes("đang xử lý") ||
-                    responseChunk.includes("chưa được giải quyết")) {
+                    (responseChunk.includes("đang xử lý") && !isNegated(responseChunk, "đang xử lý")) ||
+                    responseChunk.includes("chưa được giải quyết");
+
+                if (assertsOpen) {
                     return { 
                         isSafe: false, 
                         reason: `Phát hiện mâu thuẫn thông tin: Thực thể ${id} đã đóng/hủy trong cơ sở dữ liệu thực tế nhưng câu trả lời AI ghi là chưa đóng/đang mở/đang xử lý.` 
@@ -135,12 +148,15 @@ export async function auditResponse(query: string, response: string, context: st
 
             // Check active mismatch
             if (statusLower.includes("mới") || statusLower.includes("đang xử lý") || statusLower.includes("open") || statusLower.includes("pending")) {
-                if (responseChunk.includes("đã đóng") || 
-                    responseChunk.includes("đã được đóng") || 
-                    responseChunk.includes("đã giải quyết") ||
-                    responseChunk.includes("giải quyết xong") ||
-                    responseChunk.includes("hoàn thành") ||
-                    responseChunk.includes("đã xử lý xong")) {
+                const assertsClosed = 
+                    (responseChunk.includes("đã đóng") && !isNegated(responseChunk, "đã đóng")) || 
+                    (responseChunk.includes("đã được đóng") && !isNegated(responseChunk, "đã được đóng")) || 
+                    (responseChunk.includes("đã giải quyết") && !isNegated(responseChunk, "đã giải quyết")) ||
+                    (responseChunk.includes("giải quyết xong") && !isNegated(responseChunk, "giải quyết xong")) ||
+                    (responseChunk.includes("hoàn thành") && !isNegated(responseChunk, "hoàn thành")) ||
+                    (responseChunk.includes("đã xử lý xong") && !isNegated(responseChunk, "đã xử lý xong"));
+
+                if (assertsClosed) {
                     return { 
                         isSafe: false, 
                         reason: `Phát hiện mâu thuẫn thông tin: Thực thể ${id} chưa đóng (đang xử lý/mới) trong cơ sở dữ liệu thực tế nhưng câu trả lời AI ghi là đã giải quyết/đã đóng.` 
