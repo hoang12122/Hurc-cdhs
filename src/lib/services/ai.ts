@@ -6,6 +6,7 @@ import { buildUserContext } from "./user-context";
 import { detectObjects as callYoloService, type YoloResponse } from "./yolo";
 import { executeCrmTool, openAiToolDeclarations } from "../ai-tools/crm-tools";
 import { retrieveMemories, storeExperience } from "./agent-memory";
+import { runReflectionLoop } from "./ai/anti-hallucination";
 
 /**
  * HURC AI SERVICE (LOCAL-ONLY EDITION)
@@ -23,8 +24,9 @@ export async function askAI(prompt: string, options: {
     image?: { data: string, mimeType: string },
     temperature?: number,
     reflect?: boolean, // New: Enable Self-Reflection (Task 2.1 AI-Hardening)
+    skipReflection?: boolean, // Bypass reflection loop recursively
 } = {}) {
-    const { model, systemPrompt, groundingContext, forceBackend, userId, image, temperature, reflect } = options;
+    const { model, systemPrompt, groundingContext, forceBackend, userId, image, temperature, reflect, skipReflection } = options;
 
     // Retrieve Long-term Memory (TencentDB Agent Memory Logic)
     let memoryContext = "";
@@ -35,6 +37,21 @@ export async function askAI(prompt: string, options: {
     if (image) {
         return askVisionAI(prompt, image, { model, systemPrompt, forceBackend, userId });
     }
+
+    // Strict system prompt for hallucination prevention
+    const strictConstraint = `
+[LƯU Ý AN TOÀN QUAN TRỌNG - CHỐNG ẢO TƯỞNG]
+Bạn chỉ được phép trả lời dựa trên thông tin có sẵn trong dữ liệu ngữ cảnh được cung cấp.
+- Tuyệt đối KHÔNG tự ý bịa đặt hoặc thay đổi mã sự cố, mã mối nguy, mã kiểm tra (ví dụ DNF-XXX, HAZ-XXX, INS-XXX).
+- Trạng thái, mức độ ưu tiên và thông tin chi tiết phải trùng khớp 100% với dữ liệu ngữ cảnh.
+- Nếu dữ liệu ngữ cảnh không có thông tin được hỏi, hãy nói rõ là "Không tìm thấy thông tin phù hợp trong cơ sở dữ liệu". Không đoán mò.
+`.trim();
+
+    const enhancedSystemPrompt = systemPrompt 
+        ? `${systemPrompt}\n\n${strictConstraint}`
+        : `Bạn là trợ lý kỹ thuật chuyên nghiệp của HURC1 CRM.\n\n${strictConstraint}`;
+
+    let rawResponse = "";
 
     // 0. Try NemoClaw first (highest priority)
     if (!forceBackend || forceBackend === 'nemoclaw') {
@@ -47,9 +64,9 @@ export async function askAI(prompt: string, options: {
             const result = await nc.ask(
                 enhancedPrompt,
                 {
-                    systemPrompt,
+                    systemPrompt: enhancedSystemPrompt,
                     userId,
-                    temperature: 0.3,
+                    temperature: temperature ?? 0.3,
                 }
             );
 
@@ -58,14 +75,14 @@ export async function askAI(prompt: string, options: {
                 await storeExperience(userId, prompt.substring(0, 50), result.content, 5);
             }
 
-            return result.content;
+            rawResponse = result.content;
         } catch (error) {
             console.warn("NemoClaw request failed, trying TrustGraph fallback:", error instanceof Error ? error.message : error);
         }
     }
     
     // 1. Try TrustGraph
-    if (forceBackend !== 'nemoclaw') {
+    if (!rawResponse && forceBackend !== 'nemoclaw') {
         try {
             const tg = getTrustGraphClient();
             const fullPrompt = groundingContext 
@@ -74,7 +91,7 @@ export async function askAI(prompt: string, options: {
 
             const result = await tg.textCompletion({
                 prompt: fullPrompt,
-                system: systemPrompt,
+                system: enhancedSystemPrompt,
             });
             let finalResponse = result.response.trim();
 
@@ -88,14 +105,36 @@ export async function askAI(prompt: string, options: {
                 finalResponse = reflected.response.trim();
             }
 
-            return finalResponse;
+            rawResponse = finalResponse;
         } catch (error) {
             console.warn("TrustGraph unavailable:", error instanceof Error ? error.message : error);
         }
     }
 
-    // Chế độ dự phòng Core-Only (Không chạy dịch vụ AI): Trả về phản hồi thân thiện thay vì crash ứng dụng
-    return "Tính năng AI tạm thời không khả dụng do hệ thống đang chạy ở chế độ tối giản hạ tầng (Core-Only).";
+    if (!rawResponse) {
+        // Chế độ dự phòng Core-Only (Không chạy dịch vụ AI): Trả về phản hồi thân thiện thay vì crash ứng dụng
+        return "Tính năng AI tạm thời không khả dụng do hệ thống đang chạy ở chế độ tối giản hạ tầng (Core-Only).";
+    }
+
+    // Integrate the self-reflection loop if context is present and reflection not skipped
+    if (groundingContext && !skipReflection) {
+        return await runReflectionLoop(
+            prompt,
+            rawResponse,
+            groundingContext,
+            enhancedSystemPrompt,
+            async (p, opts) => {
+                return await askAI(p, {
+                    ...options,
+                    systemPrompt: enhancedSystemPrompt,
+                    temperature: opts?.temperature ?? 0.1,
+                    skipReflection: true
+                });
+            }
+        );
+    }
+
+    return rawResponse;
 }
 
 // ============ RAG-POWERED QUERY ============
@@ -162,32 +201,16 @@ export async function askWithRAG(query: string, options: {
                 const fusedPrompt = `Sử dụng dữ liệu từ hai nguồn sau để trả lời. Lưu ý: Dữ liệu từ Đồ thị (KNOWLEDGE_GRAPH) có độ tin cậy cao hơn nếu có mâu thuẫn.\n\n[SOURCE: KNOWLEDGE_GRAPH]\n${graphContext}\n\n[SOURCE: TECHNICAL_DOCUMENT]\n${docContext}\n\nCâu hỏi: ${query}`;
                 const fusedResp = await askAI(fusedPrompt, { systemPrompt: options.systemPrompt });
                 
-                // PHASE 6 - AI-HARDENING: Self-Reflection Loop with Retry (Brutal Audit Fix)
-                let reflectionCount = 0;
-                const MAX_REFLECTION_RETRY = 2;
-                let currentResponse = fusedResp;
-                let contextStr = `[GRAPH]\n${graphContext}\n[DOC]\n${docContext}`;
-
-                while (reflectionCount < MAX_REFLECTION_RETRY) {
-                    const audit = await auditAIResponse(query, currentResponse, contextStr);
-                    if (audit.isSafe) break;
-
-                    console.warn(`⚠️ [AI-HARDENING] Hallucination detected (Attempt ${reflectionCount + 1}). Refined prompt...`);
-                    currentResponse = await askAI(
-                        `QUERY: ${query}\n\nPREVIOUS RESPONSE (FLAWED): ${currentResponse}\n\nFEEDBACK: ${audit.reason}\n\nPlease correct the response based on the feedback and use ONLY the provided context.`,
-                        { systemPrompt: options.systemPrompt }
-                    );
-                    reflectionCount++;
-                }
-
-                if (reflectionCount >= MAX_REFLECTION_RETRY) {
-                    console.error("❌ [AI-HARDENING] Max reflection retries reached. Triggering Safe-Mode Fallback.");
-                    return { 
-                        response: "Hệ thống phát hiện mâu thuẫn dữ liệu không thể tự giải quyết sau nhiều lần đối soát. Để đảm bảo an toàn, vui lòng kiểm tra trực tiếp hồ sơ máy móc hoặc liên hệ kỹ thuật viên trưởng.", 
-                        intent: 'ensemble' as any, 
-                        source: 'safe-fallback' 
-                    };
-                }
+                const contextStr = `[GRAPH]\n${graphContext}\n[DOC]\n${docContext}`;
+                const currentResponse = await runReflectionLoop(
+                    query,
+                    fusedResp,
+                    contextStr,
+                    options.systemPrompt || "",
+                    async (p, opts) => {
+                        return await askAI(p, { systemPrompt: options.systemPrompt, temperature: opts?.temperature, skipReflection: true });
+                    }
+                );
 
                 return { response: currentResponse, intent: 'ensemble' as any, source: 'trustgraph-ensemble' };
         } catch (e) {
@@ -394,8 +417,26 @@ async function runRobustAgentLoop(question: string, options: {
         });
 
         if (!message.tool_calls || message.tool_calls.length === 0) {
+            const answer = message.content || "Xong.";
+
+            // Gather context from system/tool responses in history
+            const contextStr = currentHistory
+                .filter(h => h.role === 'system' || h.role === 'tool')
+                .map(h => h.content)
+                .join("\n\n");
+
+            const auditedAnswer = await runReflectionLoop(
+                question,
+                answer,
+                contextStr,
+                "Bạn là HURC AI - Trợ lý quản trị kỹ thuật chuyên nghiệp.",
+                async (p, opts) => {
+                    return await askAI(p, { systemPrompt: "Bạn là HURC AI - Trợ lý quản trị kỹ thuật chuyên nghiệp.", temperature: opts?.temperature ?? 0.1, skipReflection: true });
+                }
+            );
+
             return {
-                answer: message.content || "Xong.",
+                answer: auditedAnswer,
                 state: null,
                 history: currentHistory,
                 source: 'nemoclaw-robust-agent',
@@ -517,22 +558,4 @@ function estimateTokens(history: NcChatMessage[]): number {
     return Math.floor(history.reduce((acc, m) => acc + (m.content?.length || 0), 0) / 4);
 }
 
-/**
- * AI AUDITOR (HURC1 AI-HARDENING)
- * Simple logic to detect obvious hallucinations or generic refusals.
- */
-async function auditAIResponse(query: string, response: string, context: string): Promise<{ isSafe: boolean; reason?: string }> {
-    const lowerResp = response.toLowerCase();
-    
-    // 1. Kiểm tra sự từ chối mặc dù có context
-    if (context.length > 50 && (lowerResp.includes("tôi không biết") || lowerResp.includes("không có thông tin"))) {
-        return { isSafe: false, reason: "AI refused to answer despite having available context data." };
-    }
-    
-    // 2. Kiểm tra việc trích dẫn (Evidence Check)
-    if (context.includes("DNF-") && !response.includes("DNF-")) {
-        return { isSafe: false, reason: "Response lacks specific ID citations (DNF-) from the context." };
-    }
-    
-    return { isSafe: true };
-}
+

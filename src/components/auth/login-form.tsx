@@ -110,11 +110,13 @@ export function LoginForm() {
       if (user) {
         setAuthInfo({ user });
         
-        // Priority 1: Verify OTP (Not yet verified)
+        // OTP Verification bypassed by request
+        /*
         if (user.isVerified === false) {
             router.push('/verify-otp?reason=first_login');
             return;
         }
+        */
 
         // Priority 2: Mandatory Password Change (Admin set or New user)
         if (user.mustChangePassword) {

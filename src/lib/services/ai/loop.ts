@@ -2,6 +2,8 @@ import { getNemoClawClient, type ChatMessage as NcChatMessage } from "./nemoclaw
 import { crmToolDeclarations, executeCrmTool, openAiToolDeclarations } from "../../ai-tools/crm-tools";
 import { mcpService } from "./mcp-service";
 import { jsonDb } from "../../db/json-db";
+import { runReflectionLoop } from "./anti-hallucination";
+import { askAI } from "../ai";
 
 const MAX_AGENT_ITERATIONS = 12;
 
@@ -141,9 +143,26 @@ export async function runRobustAgentLoop(question: string, options: {
         if (!message.tool_calls || message.tool_calls.length === 0) {
             steps.push("Đã hoàn thành phân tích và chuẩn bị câu trả lời.");
             const answer = message.content || "Tôi đã xử lý xong yêu cầu của bạn.";
-            mcpService.addManualTrace("Final Answer", answer, 'final_answer');
-            return {
+
+            // Gather context from system/tool responses in history
+            const contextStr = currentHistory
+                .filter(h => h.role === 'system' || h.role === 'tool')
+                .map(h => h.content)
+                .join("\n\n");
+
+            const auditedAnswer = await runReflectionLoop(
+                question,
                 answer,
+                contextStr,
+                "Bạn là trợ lý kỹ thuật chuyên nghiệp của HURC1 CRM.",
+                async (p, opts) => {
+                    return await askAI(p, { systemPrompt: "Bạn là trợ lý kỹ thuật chuyên nghiệp của HURC1 CRM.", temperature: opts?.temperature ?? 0.1, skipReflection: true });
+                }
+            );
+
+            mcpService.addManualTrace("Final Answer", auditedAnswer, 'final_answer');
+            return {
+                answer: auditedAnswer,
                 state: null,
                 history: currentHistory,
                 source: 'nemoclaw-robust-agent',

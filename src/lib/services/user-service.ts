@@ -109,7 +109,7 @@ export async function createInternalUser(user: Partial<User>) {
         role: user.role,
         status: "active",
         department: user.department,
-        isVerified: user.isVerified || false,
+        isVerified: user.isVerified !== false,
         verificationOtp: otp,
         otpExpiry: expiry.toISOString(),
         mustChangePassword: user.mustChangePassword || false,
