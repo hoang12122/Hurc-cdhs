@@ -99,29 +99,42 @@ export async function auditResponse(query: string, response: string, context: st
         if (!actual.status) continue;
 
         const statusLower = actual.status.toLowerCase();
+        const idLower = id.toLowerCase();
+        const idIndex = lowerResp.indexOf(idLower);
         
-        // Check closed mismatch
-        if (statusLower.includes("đóng") || statusLower.includes("closed") || statusLower.includes("hủy")) {
-            if (lowerResp.includes("chưa đóng") || 
-                lowerResp.includes("đang mở") || 
-                lowerResp.includes("chưa giải quyết") || 
-                lowerResp.includes("đang xử lý")) {
-                return { 
-                    isSafe: false, 
-                    reason: `Phát hiện mâu thuẫn thông tin: Thực thể ${id} đã đóng/hủy trong cơ sở dữ liệu thực tế nhưng câu trả lời AI ghi là đang mở/chưa giải quyết/đang xử lý.` 
-                };
-            }
-        }
+        if (idIndex !== -1) {
+            // Check a window of 100 characters before and after the ID in response
+            const windowStart = Math.max(0, idIndex - 100);
+            const windowEnd = Math.min(lowerResp.length, idIndex + 100);
+            const responseChunk = lowerResp.substring(windowStart, windowEnd);
 
-        // Check active mismatch
-        if (statusLower.includes("mới") || statusLower.includes("đang xử lý") || statusLower.includes("open") || statusLower.includes("pending")) {
-            if (lowerResp.includes(`thực thể ${id.toLowerCase()} đã đóng`) || 
-                lowerResp.includes(`sự cố ${id.toLowerCase()} đã đóng`) || 
-                lowerResp.includes(`đã được giải quyết hoàn toàn`)) {
-                return { 
-                    isSafe: false, 
-                    reason: `Phát hiện mâu thuẫn thông tin: Thực thể ${id} chưa đóng (đang xử lý/mới) trong cơ sở dữ liệu thực tế nhưng câu trả lời AI ghi là đã giải quyết/đã đóng.` 
-                };
+            // Check closed mismatch
+            if (statusLower.includes("đóng") || statusLower.includes("closed") || statusLower.includes("hủy")) {
+                if (responseChunk.includes("chưa đóng") || 
+                    responseChunk.includes("đang mở") || 
+                    responseChunk.includes("chưa giải quyết") || 
+                    responseChunk.includes("đang xử lý") ||
+                    responseChunk.includes("chưa được giải quyết")) {
+                    return { 
+                        isSafe: false, 
+                        reason: `Phát hiện mâu thuẫn thông tin: Thực thể ${id} đã đóng/hủy trong cơ sở dữ liệu thực tế nhưng câu trả lời AI ghi là chưa đóng/đang mở/đang xử lý.` 
+                    };
+                }
+            }
+
+            // Check active mismatch
+            if (statusLower.includes("mới") || statusLower.includes("đang xử lý") || statusLower.includes("open") || statusLower.includes("pending")) {
+                if (responseChunk.includes("đã đóng") || 
+                    responseChunk.includes("đã được đóng") || 
+                    responseChunk.includes("đã giải quyết") ||
+                    responseChunk.includes("giải quyết xong") ||
+                    responseChunk.includes("hoàn thành") ||
+                    responseChunk.includes("đã xử lý xong")) {
+                    return { 
+                        isSafe: false, 
+                        reason: `Phát hiện mâu thuẫn thông tin: Thực thể ${id} chưa đóng (đang xử lý/mới) trong cơ sở dữ liệu thực tế nhưng câu trả lời AI ghi là đã giải quyết/đã đóng.` 
+                    };
+                }
             }
         }
     }

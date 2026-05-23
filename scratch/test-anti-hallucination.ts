@@ -1,4 +1,4 @@
-import { extractEntityIds, extractAttributesForId, auditResponse, generateSafeFallbackResponse } from '../src/lib/services/ai/anti-hallucination';
+import { extractEntityIds, extractAttributesForId, auditResponse, generateSafeFallbackResponse, runReflectionLoop } from '../src/lib/services/ai/anti-hallucination';
 
 async function runTests() {
     console.log("=== STARTING ANTI-HALLUCINATION TEST SUITE ===");
@@ -81,6 +81,55 @@ async function runTests() {
     console.log("\n[Test 8] Generating Safe Fallback Response:");
     const fallbackText = generateSafeFallbackResponse("Thông tin DNF-001-0001 và HAZ-003-001?", mockContext);
     console.log("Fallback Output:\n", fallbackText);
+    
+    // Test 9: Self-Reflection and Correction Loop (Simulating Flawed AI that corrects itself)
+    console.log("\n[Test 9] Simulating AI Self-Correction Reflection Loop:");
+    
+    let simulatedCallCount = 0;
+    const mockAskAI = async (promptText: string) => {
+        simulatedCallCount++;
+        console.log(`   -> [Simulated LLM] Called (Attempt ${simulatedCallCount})`);
+        
+        if (simulatedCallCount === 1) {
+            // First answer contains status contradiction (claiming DNF-001-0001 is closed when it is actually new/active)
+            return "Sự cố DNF-001-0001 đã được đóng thành công.";
+        }
+        
+        // In the next attempt, after receiving audit feedback, simulated AI corrects itself
+        console.log("   -> [Simulated LLM] Detected audit report in prompt. Correcting output...");
+        return "Sự cố DNF-001-0001 có trạng thái thực tế là Mới và độ ưu tiên Cao.";
+    };
+
+    const finalCorrectedResult = await runReflectionLoop(
+        "Trạng thái DNF-001-0001?",
+        "Sự cố DNF-001-0001 đã được đóng thành công.", // initial flawed response
+        mockContext,
+        "System prompt",
+        mockAskAI
+    );
+    console.log("Final Loop Result (expecting corrected answer):", finalCorrectedResult);
+    console.log("Total LLM Calls:", simulatedCallCount);
+
+    // Test 10: Reflection Loop Fallback (Simulating Stubborn AI that keeps hallucinating)
+    console.log("\n[Test 10] Simulating AI Reflection Fallback (Stubborn AI):");
+    
+    let simulatedStubbornCallCount = 0;
+    const mockStubbornAskAI = async (promptText: string) => {
+        simulatedStubbornCallCount++;
+        console.log(`   -> [Stubborn Simulated LLM] Called (Attempt ${simulatedStubbornCallCount})`);
+        // Keep returning the flawed response despite feedback
+        return "Sự cố DNF-001-0001 đã được đóng và giải quyết xong.";
+    };
+
+    const finalFallbackResult = await runReflectionLoop(
+        "Trạng thái DNF-001-0001?",
+        "Sự cố DNF-001-0001 đã được đóng và giải quyết xong.", // initial flawed response
+        mockContext,
+        "System prompt",
+        mockStubbornAskAI
+    );
+    console.log("Final Loop Result (expecting Safe-Mode direct database retrieval):");
+    console.log(finalFallbackResult);
     
     console.log("\n=== TEST SUITE COMPLETED ===");
 }
