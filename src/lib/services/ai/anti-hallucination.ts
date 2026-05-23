@@ -48,7 +48,13 @@ export function extractAttributesForId(id: string, context: string): EntityAttri
     if (index === -1) return attrs;
 
     // Grab a chunk of 500 characters around the ID in the context to parse attributes
-    const chunk = context.substring(index, Math.min(index + 500, context.length));
+    let chunk = context.substring(index, Math.min(index + 500, context.length));
+
+    // Truncate chunk at the next entity ID to prevent attribute leakage from other entities
+    const nextEntityMatches = chunk.substring(id.length).match(/(?:DNF|HAZ|INS|CA)-[A-Z0-9_-]+/i);
+    if (nextEntityMatches && nextEntityMatches.index !== undefined) {
+        chunk = chunk.substring(0, id.length + nextEntityMatches.index);
+    }
 
     // 1. Parse Status (Trạng thái)
     // Matches: "status": "active" OR "- Status: Mới" or "Trạng thái: Đang xử lý"
@@ -73,8 +79,9 @@ export function extractAttributesForId(id: string, context: string): EntityAttri
 function isNegated(chunk: string, keyword: string): boolean {
     const index = chunk.toLowerCase().indexOf(keyword.toLowerCase());
     if (index === -1) return false;
-    const before = chunk.substring(Math.max(0, index - 25), index).toLowerCase();
-    return before.includes("chưa") || before.includes("không") || before.includes("không còn") || before.includes("chưa được");
+    const before = chunk.substring(Math.max(0, index - 30), index).toLowerCase();
+    // Match negation words as complete words/phrases using regex to avoid sub-word matching (e.g., "chương" matching "chưa")
+    return /(?:^|\s|[^a-z\u00C0-\u1EF9])(chưa|không|không còn|chưa được)(?:\s|$|[^a-z\u00C0-\u1EF9])/i.test(before);
 }
 
 /**
@@ -183,8 +190,13 @@ export async function auditResponse(query: string, response: string, context: st
  * Generate safe, deterministic fallback response by parsing the context thâu
  */
 export function generateSafeFallbackResponse(query: string, context: string): string {
-    const queryIds = extractEntityIds(query).concat(extractEntityIds(context));
-    const uniqueIds = Array.from(new Set(queryIds));
+    const queryIds = extractEntityIds(query);
+    const contextIds = extractEntityIds(context);
+    // Prioritize IDs mentioned in the query; fall back to all context IDs if none are specified
+    const targetIds = queryIds.length > 0 
+        ? queryIds.filter(id => contextIds.includes(id)) 
+        : contextIds;
+    const uniqueIds = Array.from(new Set(targetIds));
 
     if (uniqueIds.length === 0) {
         return "⚠️ [CHẾ ĐỘ AN TOÀN - HỆ THỐNG BẢO VỆ]\n\nHệ thống phát hiện mâu thuẫn thông tin liên tục khi tạo câu trả lời và đã kích hoạt Chế độ An toàn (Safe-Mode). Vui lòng kiểm tra lại câu hỏi hoặc truy cập hồ sơ chi tiết để có thông tin chính xác.";
@@ -209,14 +221,21 @@ export function generateSafeFallbackResponse(query: string, context: string): st
         const idLineIndex = lines.findIndex(l => l.toUpperCase().includes(id));
         if (idLineIndex !== -1) {
             const descLines = lines.slice(idLineIndex + 1, idLineIndex + 8);
-            descLines.forEach(l => {
+            for (const l of descLines) {
                 const trimmed = l.trim();
+                // Stop if we hit a line containing another entity ID to prevent description leakage
+                const entityMatches = trimmed.match(/(?:DNF|HAZ|INS|CA)-[A-Z0-9_-]+/gi);
+                const containsOtherEntity = entityMatches && entityMatches.some(matchId => matchId.toUpperCase() !== id.toUpperCase());
+                if (containsOtherEntity) {
+                    break;
+                }
+                
                 if ((trimmed.startsWith('-') || trimmed.startsWith('*') || trimmed.includes(':')) && 
                     !trimmed.toLowerCase().includes("report id") && 
                     !trimmed.toLowerCase().includes("hazard id")) {
                     fallbackMsg += `${l}\n`;
                 }
-            });
+            }
         }
         fallbackMsg += "\n";
     }

@@ -68,6 +68,7 @@ interface NemoClawHealthStatus {
     model: string;
     latencyMs?: number;
     error?: string;
+    isDockerIssue?: boolean;
 }
 
 class NemoClawClient {
@@ -118,25 +119,36 @@ class NemoClawClient {
             body.user = request.user;
         }
 
-        const response = await fetch(url, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                ...(this.apiKey ? { 'Authorization': `Bearer ${this.apiKey}` } : {}),
-            },
-            body: JSON.stringify(body),
-            signal: AbortSignal.timeout(90000), // Tăng timeout lên 90s cho Gemma-4 31B
-        });
+        try {
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...(this.apiKey ? { 'Authorization': `Bearer ${this.apiKey}` } : {}),
+                },
+                body: JSON.stringify(body),
+                signal: AbortSignal.timeout(90000), // Tăng timeout lên 90s cho Gemma-4 31B
+            });
 
-        if (!response.ok) {
-            const errorText = await response.text().catch(() => '');
-            throw new NemoClawError(
-                `NemoClaw API error (${response.status}): ${errorText.substring(0, 200)}`,
-                response.status
-            );
+            if (!response.ok) {
+                const errorText = await response.text().catch(() => '');
+                throw new NemoClawError(
+                    `NemoClaw API error (${response.status}): ${errorText.substring(0, 200)}`,
+                    response.status
+                );
+            }
+
+            return response.json();
+        } catch (error: any) {
+            // DETECT NATIVE SERVER DOWN / CONNECTION REFUSED
+            if (error.name === 'AbortError' || error.cause?.code === 'ECONNREFUSED' || error.message?.includes('fetch failed')) {
+                throw new NemoClawError(
+                    'NEMOCLAW_SERVER_UNREACHABLE: Dịch vụ AI Local (Native Spine) chưa khởi động hoặc bị gián đoạn.',
+                    503
+                );
+            }
+            throw error;
         }
-
-        return response.json();
     }
 
     /**
@@ -244,16 +256,18 @@ class NemoClawClient {
                     error: `HTTP ${response.status}`,
                 };
             }
-        } catch (error) {
+        } catch (error: any) {
+            const isDockerIssue = error.cause?.code === 'ECONNREFUSED' || error.message?.includes('fetch failed');
             this._lastHealthCheck = {
                 available: false,
                 gateway: this.baseUrl,
                 model: this.model,
-                error: error instanceof Error ? error.message : 'Connection failed',
+                isDockerIssue,
+                error: isDockerIssue ? 'HURC1_DOCKER_DOWN' : (error instanceof Error ? error.message : 'Connection failed'),
             };
         }
 
-        this._healthCheckExpiry = Date.now() + 30_000;
+        this._healthCheckExpiry = Date.now() + 15_000;
         return this._lastHealthCheck;
     }
 

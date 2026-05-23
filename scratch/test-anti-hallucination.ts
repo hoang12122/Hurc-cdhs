@@ -130,6 +130,53 @@ async function runTests() {
     );
     console.log("Final Loop Result (expecting Safe-Mode direct database retrieval):");
     console.log(finalFallbackResult);
+
+    // Test 11: Attribute/Description Leakage and Word Boundary Negation Check
+    console.log("\n[Test 11] Testing Attribute/Description Leakage and Negation Word Boundaries:");
+    
+    const leakContext = `
+### Report ID: DNF-001
+- Description: Báo cáo hỏng hóc hệ thống phanh tàu số 3.
+
+### Report ID: DNF-002
+- Status: Đã đóng
+- Priority: Cao
+- Description: Hỏng hóc bóng đèn cabin đã được thay thế.
+    `.trim();
+
+    // 1. Attribute Leakage Check: DNF-001 should not leak status/priority from DNF-002
+    const attrsLeak1 = extractAttributesForId("DNF-001", leakContext);
+    console.log("DNF-001 Extracted (expecting status/priority to be undefined):", 
+        attrsLeak1.status === undefined ? "PASSED (status is undefined)" : `FAILED (status leaked: ${attrsLeak1.status})`,
+        attrsLeak1.priority === undefined ? "PASSED (priority is undefined)" : `FAILED (priority leaked: ${attrsLeak1.priority})`
+    );
+
+    const attrsLeak2 = extractAttributesForId("DNF-002", leakContext);
+    console.log("DNF-002 Extracted (expecting status: Đã đóng, priority: Cao):", 
+        attrsLeak2.status === "Đã đóng" ? "PASSED" : `FAILED (${attrsLeak2.status})`,
+        attrsLeak2.priority === "Cao" ? "PASSED" : `FAILED (${attrsLeak2.priority})`
+    );
+
+    // 2. Description Leakage in Fallback Response Check
+    const fallbackLeakResp = generateSafeFallbackResponse("Thông tin DNF-001?", leakContext);
+    console.log("Fallback for DNF-001 (should NOT contain DNF-002 info or description):");
+    console.log(fallbackLeakResp);
+    const leakedDnf002 = fallbackLeakResp.includes("DNF-002") || fallbackLeakResp.includes("bóng đèn");
+    console.log("Fallback Leak Test:", leakedDnf002 ? "FAILED (leaked DNF-002 details)" : "PASSED (isolated description)");
+
+    // 3. Negation Word Boundary Check
+    // If "chương trình đang xử lý" is processed, "chương" should NOT trigger negation, so it's not negated.
+    // DNF-002 is Closed. If response says "Chương trình đang xử lý DNF-002", it asserts DNF-002 is active.
+    // Since DNF-002 is Closed, this is a contradiction -> isSafe should be false.
+    // If boundary check is buggy, "chương trình" triggers negation, so AI asserts DNF-002 is "NOT active" (which matches Closed) -> isSafe would be true.
+    const negationTestResult = await auditResponse(
+        "Trạng thái DNF-002?",
+        "Chương trình đang xử lý sự cố DNF-002.",
+        leakContext
+    );
+    console.log("Vietnamese Negation Word Boundary Test (expecting isSafe: false due to contradiction):",
+        negationTestResult.isSafe === false ? "PASSED" : "FAILED (word boundary bug, false positive safety)"
+    );
     
     console.log("\n=== TEST SUITE COMPLETED ===");
 }

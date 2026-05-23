@@ -26,7 +26,7 @@ export async function askAI(prompt: string, options: {
     temperature?: number,
     reflect?: boolean, // New: Enable Self-Reflection (Task 2.1 AI-Hardening)
     skipReflection?: boolean, // Bypass reflection loop recursively
-} = {}) {
+} = {}): Promise<string> {
     const { model, systemPrompt, groundingContext, forceBackend, userId, image, temperature, reflect, skipReflection } = options;
 
     // Retrieve Long-term Memory (TencentDB Agent Memory Logic)
@@ -158,13 +158,19 @@ export async function askWithRAG(query: string, options: {
     // 0. AI-driven Intent Classification (Hybrid)
     let intent: QueryIntent = options.forceIntent || 'text_completion';
     if (!options.forceIntent) {
-        try {
-            const aiClass = await askAI(AI_CLASSIFICATION_PROMPT.replace('{query}', query), { temperature: 0 });
-            intent = aiClass.trim().toLowerCase() as QueryIntent;
-            if (!['graph_rag', 'document_rag', 'agent', 'text_completion'].includes(intent)) {
+        const nc = getNemoClawClient();
+        const isNcAvailable = await nc.isAvailable().catch(() => false);
+        if (isNcAvailable) {
+            try {
+                const aiClass = await askAI(AI_CLASSIFICATION_PROMPT.replace('{query}', query), { temperature: 0 });
+                intent = aiClass.trim().toLowerCase() as QueryIntent;
+                if (!['graph_rag', 'document_rag', 'agent', 'text_completion'].includes(intent)) {
+                    intent = classifyQueryIntent(query).intent; // Fallback to Regex
+                }
+            } catch {
                 intent = classifyQueryIntent(query).intent; // Fallback to Regex
             }
-        } catch {
+        } else {
             intent = classifyQueryIntent(query).intent; // Fallback to Regex
         }
     }

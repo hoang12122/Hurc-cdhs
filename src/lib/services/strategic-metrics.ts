@@ -102,7 +102,7 @@ export async function generateCEOInsights(scorecard: StrategicScorecard): Promis
 
     try {
         const result = await askAI(prompt, { systemPrompt: "Bạn là bộ não chiến lược của CEO. Hãy phân tích dữ liệu và ra quyết định." });
-        return result.split('\n').filter(line => line.trim().length > 0);
+        return result.split('\n').filter((line: string) => line.trim().length > 0);
     } catch (e) {
         return ["AI Insight currently offline. Check local infrastructure."];
     }

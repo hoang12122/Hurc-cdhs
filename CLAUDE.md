@@ -26,6 +26,7 @@ Professional technical management and maintenance system for Metro infrastructur
 - **Logging**: Use `@/lib/services/log-service` for all critical operations.
 - **Security**: Never expose raw database IDs or internal credentials in client components.
 - **DB Wrapper**: Use `db-wrapper.ts` for all AI-related database operations. Fixed location: `src/lib/services/db-wrapper.ts`.
+- **System Design Rules**: Adhere to the Micro-frontend & Decoupling standards in [SYSTEM_DESIGN_RULES.md](file:///d:/Hurc1CRM-main/Hurc-cdhs/docs/SYSTEM_DESIGN_RULES.md).
 
 ## AI Constraints
 
