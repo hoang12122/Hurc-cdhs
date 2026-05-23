@@ -1,3 +1,5 @@
+import crypto from 'crypto';
+
 export interface AISafetyLogEntry {
     logId: string;
     timestamp: number;
@@ -30,7 +32,7 @@ class AISafetyLogService {
     async log(entry: Omit<AISafetyLogEntry, 'logId' | 'timestamp'>) {
         const fullEntry: AISafetyLogEntry = {
             ...entry,
-            logId: `LOG-AI-${Date.now()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`,
+            logId: `LOG-AI-${Date.now()}-${crypto.randomBytes(4).toString('hex').toUpperCase()}`,
             timestamp: Date.now()
         };
 

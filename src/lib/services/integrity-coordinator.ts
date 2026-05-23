@@ -5,6 +5,7 @@ import { exec } from 'child_process';
 import { promisify } from 'util';
 import * as fs from 'fs';
 import * as path from 'path';
+import crypto from 'crypto';
 
 const execAsync = promisify(exec);
 
@@ -18,7 +19,7 @@ export class IntegrityCoordinator {
    */
   static async runFullIntegrityCheck() {
     const startTime = new Date();
-    const jobId = Math.random().toString(36).substring(2, 11).toUpperCase();
+    const jobId = crypto.randomBytes(4).toString('hex').toUpperCase();
     console.log(`\n🕒 [IntegrityCoordinator] Job [${jobId}] started at: ${startTime.toISOString()}`);
     
     try {

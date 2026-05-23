@@ -1,6 +1,7 @@
 import { askAI } from './ai';
 import fs from 'fs';
 import path from 'path';
+import crypto from 'crypto';
 
 /**
  * SHANNON SECURITY PATCHER
@@ -45,7 +46,7 @@ export async function runShannonAudit(filePaths: string[]): Promise<Vulnerabilit
             const analysis = JSON.parse(aiResponse.substring(aiResponse.indexOf('{'), aiResponse.lastIndexOf('}') + 1));
             
             reports.push({
-                id: `vult-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`,
+                id: `vult-${Date.now()}-${crypto.randomBytes(3).toString('hex')}`,
                 target: fileName,
                 ...analysis,
                 timestamp: new Date().toISOString()

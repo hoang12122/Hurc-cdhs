@@ -90,23 +90,15 @@ export async function updateUserPassword(userId: string, newPassword: string): P
 }
 
 export async function requestPasswordReset(email: string): Promise<void> {
-    // Public action
-    await updateInternalUser(email, { verificationOtp: '123456' }); 
+    throw new Error("Tính năng đặt lại mật khẩu bằng email đã bị vô hiệu hóa do hệ thống chưa cấu hình dịch vụ gửi email SMTP.");
 }
 
 export async function resetPassword(email: string, otp: string, newPassword: string): Promise<User> {
-    // Public action
-    await updateInternalUser(email, { password: newPassword });
-    const updated = await getInternalUserByEmail(email);
-    return updated ? omitPassword(updated) : null as any;
+    throw new Error("Tính năng đặt lại mật khẩu đã bị vô hiệu hóa do hệ thống chưa cấu hình dịch vụ gửi email SMTP.");
 }
 
 export async function requestPasswordResetToAdmin(email: string) {
-    // Public action
-    const user = await getInternalUserByEmail(email);
-    if (user) {
-        await createInternalPasswordResetRequest(user.id, user.email, user.name);
-    }
+    throw new Error("Tính năng yêu cầu quản trị viên đặt lại mật khẩu tạm thời bị vô hiệu hóa do hệ thống chưa cấu hình dịch vụ gửi email SMTP.");
 }
 
 export async function getPendingPasswordResetRequests(): Promise<PasswordResetRequest[]> {

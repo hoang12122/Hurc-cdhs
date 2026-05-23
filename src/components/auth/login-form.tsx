@@ -180,9 +180,6 @@ export function LoginForm() {
                 <FormItem>
                   <div className="flex items-center justify-between">
                     <FormLabel>{t.passwordLabel}</FormLabel>
-                     <Link href="/forgot-password" className="text-sm text-primary hover:underline">
-                      {t.forgotPasswordLink}
-                    </Link>
                   </div>
                   <div className="relative">
                     <FormControl>

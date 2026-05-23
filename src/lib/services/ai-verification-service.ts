@@ -1,5 +1,6 @@
 import { aiSafetyLogService } from "./ai-safety-log-service";
 import { AI_SAFETY_RULES } from "../config/ai-safety-rules";
+import crypto from "crypto";
 
 export type AIVerificationStatus = 'PROPOSED' | 'APPROVED' | 'REJECTED' | 'EDITED' | 'OVERRIDDEN';
 export type AIRiskLevel = 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
@@ -27,7 +28,7 @@ class AIVerificationService {
      */
     async propose(module: AIVerificationLog['module'], targetId: string, content: any, riskLevel: AIRiskLevel = 'MEDIUM', requiredRole: string[] = ['MANAGER'], modelVersion?: string) {
         const log: AIVerificationLog = {
-            id: typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(2),
+            id: crypto.randomUUID(),
             targetId,
             module,
             riskLevel,
