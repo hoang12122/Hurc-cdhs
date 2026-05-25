@@ -14,7 +14,7 @@ import {
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { 
-    AlertTriangle, ClipboardList, ListTodo, ShieldAlert, FileWarning, ArrowRight, MapPin, Filter, ArrowDownUp, ChevronDown, CheckCircle, Clock
+    AlertTriangle, ClipboardList, ListTodo, ShieldAlert, FileWarning, ArrowRight, MapPin, Filter, ArrowDownUp, ChevronDown, CheckCircle, Clock, AlertCircle, Info
 } from "lucide-react";
 import { useLanguage } from "@/contexts/language-context";
 import { getTasksForCurrentUser } from "@/lib/actions/task.actions";
@@ -172,7 +172,6 @@ const getTaskTypeVisuals = (taskType: UnifiedTask['type'], t: any): { icon: Reac
 
 function PriorityBadge({ priority }: { priority?: 'Cao' | 'Trung bình' | 'Thấp' }) {
     if (!priority) return null;
-    const { AlertCircle: AlertCircleIcon, Info } = require('lucide-react');
 
     const variant = {
         'Cao': 'destructive',
@@ -182,7 +181,7 @@ function PriorityBadge({ priority }: { priority?: 'Cao' | 'Trung bình' | 'Thấ
     
     const Icon = {
         'Cao': AlertTriangle,
-        'Trung bình': AlertCircleIcon,
+        'Trung bình': AlertCircle,
         'Thấp': Info,
     }[priority];
 

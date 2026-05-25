@@ -411,7 +411,7 @@ export function TodoList() {
                   {t.addTask}
                 </Button>
               </DialogTrigger>
-              <DialogContent className="sm:max-w-[425px]">
+              <DialogContent className="sm:max-w-[425px]" aria-describedby={undefined}>
                 <DialogHeader><DialogTitle>{t.newTodo}</DialogTitle></DialogHeader>
                 <form onSubmit={handleCreate} className="space-y-4 pt-4">
                   <div className="space-y-2">
@@ -560,7 +560,7 @@ export function TodoList() {
       {/* Detail Dialog */}
       <Dialog open={!!selectedTaskId} onOpenChange={(open) => !open && setSelectedTaskId(null)}>
           {selectedTask && (
-              <DialogContent className="sm:max-w-[900px] max-h-[90vh] flex flex-col p-0 overflow-hidden">
+              <DialogContent className="sm:max-w-[900px] max-h-[90vh] flex flex-col p-0 overflow-hidden" aria-describedby={undefined}>
                   <DialogHeader className="p-6 pb-2 border-b">
                       <div className="flex justify-between items-center w-full">
                           <div className="space-y-1">
@@ -675,7 +675,7 @@ export function TodoList() {
                                                         <Clock className="h-3 w-3" /> {t.logTime}
                                                     </Button>
                                                 </DialogTrigger>
-                                                <DialogContent className="sm:max-w-[300px]">
+                                                <DialogContent className="sm:max-w-[300px]" aria-describedby={undefined}>
                                                     <DialogHeader><DialogTitle className="text-sm">{t.addTime}</DialogTitle></DialogHeader>
                                                     <form onSubmit={handleLogTime} className="space-y-4 pt-2">
                                                         <div className="space-y-2">
@@ -718,7 +718,7 @@ export function TodoList() {
                                         <DialogTrigger asChild>
                                             <Button size="sm" className="h-8 gap-2"><Plus className="h-3 w-3" /> {t.addTask}</Button>
                                         </DialogTrigger>
-                                        <DialogContent className="sm:max-w-[400px]">
+                                        <DialogContent className="sm:max-w-[400px]" aria-describedby={undefined}>
                                             <DialogHeader><DialogTitle className="text-sm">Thêm nhiệm vụ con</DialogTitle></DialogHeader>
                                             <form onSubmit={(e) => {
                                                 e.preventDefault();
