@@ -73,16 +73,16 @@ export async function deleteInternalResponsibleUnit(id: string) {
     return result;
 }
 
-// Subsystems
 export async function getInternalSubsystems(): Promise<Subsystem[]> {
-    const transform = (sub: any): Subsystem => ({
-        id: sub.id,
-        label: {
-            vi: sub.label_vi || sub.label || '',
-            en: sub.label_en || sub.label || ''
-        }
-    });
-
+    const transform = (sub: any): Subsystem => {
+        const rawLabel = sub.label;
+        const vi = sub.label_vi || (typeof rawLabel === 'object' && rawLabel ? rawLabel.vi : rawLabel) || '';
+        const en = sub.label_en || (typeof rawLabel === 'object' && rawLabel ? rawLabel.en : rawLabel) || '';
+        return {
+            id: sub.id,
+            label: { vi, en }
+        };
+    };
     return cache.getOrFetch(
         CACHE_KEYS.SUBSYSTEMS,
         async () => {
