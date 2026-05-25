@@ -33,6 +33,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
+import { cn } from "@/lib/utils";
 import { UploadCloud, XCircle, PlusCircle, Trash2, RefreshCcw, FilePlus, Wrench, MapPin, ChevronsUpDown } from "lucide-react";
 import {
   SEVERITY_LEVELS,
@@ -609,18 +610,16 @@ export function InspectionForm({ initialData, isEditMode = false }: InspectionFo
                 name="areaIds"
                 render={({ field }) => (
                   <FormItem className="flex flex-col">
-                    <FormLabel>{t.areaLabel}</FormLabel>
+                    <Label htmlFor="inspection-area-select" className={cn(form.formState.errors.areaIds && "text-destructive")}>{t.areaLabel}</Label>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <FormControl>
-                          <Button variant="outline" className="w-full justify-between text-left font-normal h-10">
-                            {field.value && field.value.length > 0
-                                ? t.locationsSelected(field.value.length)
-                                : t.areaPlaceholder
-                            }
-                            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                          </Button>
-                        </FormControl>
+                        <Button id="inspection-area-select" variant="outline" className="w-full justify-between text-left font-normal h-10">
+                          {field.value && field.value.length > 0
+                              ? t.locationsSelected(field.value.length)
+                              : t.areaPlaceholder
+                          }
+                          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                        </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent className="w-[--radix-dropdown-menu-trigger-width] max-h-60 overflow-y-auto">
                           {locations.map((location) => (

@@ -442,20 +442,18 @@ export function DnfForm({ initialData, isEditMode = false }: DnfFormProps) {
                 name="locationOfFailureIds"
                 render={({ field }) => (
                   <FormItem className="flex flex-col">
-                    <FormLabel>{t.locationOfFailureLabel}</FormLabel>
+                    <Label htmlFor="dnf-location-select" className={cn(form.formState.errors.locationOfFailureIds && "text-destructive")}>{t.locationOfFailureLabel}</Label>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <FormControl>
-                          <Button variant="outline" className="w-full justify-between text-left font-normal h-10">
-                            <span className="truncate pr-2">
-                                {field.value && field.value.length > 0
-                                    ? field.value.map(id => locations.find(l => l.id === id)?.label || id).join(', ')
-                                    : t.locationOfFailurePlaceholder
-                                }
-                            </span>
-                            <ChevronsUpDown className="ml-auto h-4 w-4 shrink-0 opacity-50" />
-                          </Button>
-                        </FormControl>
+                        <Button id="dnf-location-select" variant="outline" className="w-full justify-between text-left font-normal h-10">
+                          <span className="truncate pr-2">
+                              {field.value && field.value.length > 0
+                                  ? field.value.map(id => locations.find(l => l.id === id)?.label || id).join(', ')
+                                  : t.locationOfFailurePlaceholder
+                              }
+                          </span>
+                          <ChevronsUpDown className="ml-auto h-4 w-4 shrink-0 opacity-50" />
+                        </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent className="w-[--radix-dropdown-menu-trigger-width] max-h-60 overflow-y-auto">
                         {locations.map((location) => (
@@ -498,20 +496,18 @@ export function DnfForm({ initialData, isEditMode = false }: DnfFormProps) {
               name="subsystemIds"
               render={({ field }) => (
                 <FormItem className="flex flex-col">
-                  <FormLabel>{t.subsystemLabel}</FormLabel>
+                  <Label htmlFor="dnf-subsystem-select" className={cn(form.formState.errors.subsystemIds && "text-destructive")}>{t.subsystemLabel}</Label>
                    <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                          <FormControl>
-                              <Button variant="outline" className="w-full justify-between text-left font-normal h-10">
-                                  <span className="truncate pr-2">
-                                    {field.value && field.value.length > 0
-                                        ? field.value.map(id => subsystems.find(s => s.id === id)?.label[locale] || id).join(', ')
-                                        : t.subsystemPlaceholder
-                                    }
-                                </span>
-                                   <ChevronsUpDown className="ml-auto h-4 w-4 shrink-0 opacity-50" />
-                              </Button>
-                          </FormControl>
+                          <Button id="dnf-subsystem-select" variant="outline" className="w-full justify-between text-left font-normal h-10">
+                              <span className="truncate pr-2">
+                                {field.value && field.value.length > 0
+                                    ? field.value.map(id => subsystems.find(s => s.id === id)?.label[locale] || id).join(', ')
+                                    : t.subsystemPlaceholder
+                                }
+                            </span>
+                               <ChevronsUpDown className="ml-auto h-4 w-4 shrink-0 opacity-50" />
+                          </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent className="w-[--radix-dropdown-menu-trigger-width] max-h-60 overflow-y-auto">
                           {subsystems.map((sub) => (
@@ -666,11 +662,13 @@ export function DnfForm({ initialData, isEditMode = false }: DnfFormProps) {
              <FormItem>
                 <Label htmlFor="image-upload-dnf">{t.attachmentsLabel}</Label>
                 <div className="flex items-center gap-2">
-                    <label htmlFor="image-upload-dnf" className="cursor-pointer">
-                        <Button type="button" variant="outline" asChild>
-                            <span><UploadCloud className="mr-2 h-4 w-4" /> {t.uploadButton}</span>
-                        </Button>
-                    </label>
+                    <Button 
+                        type="button" 
+                        variant="outline" 
+                        onClick={() => document.getElementById("image-upload-dnf")?.click()}
+                    >
+                        <UploadCloud className="mr-2 h-4 w-4" /> {t.uploadButton}
+                    </Button>
                     <input
                         id="image-upload-dnf"
                         type="file"

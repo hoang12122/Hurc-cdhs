@@ -511,11 +511,13 @@ export function ImprovementForm({ initialData, isEditMode = false }: Improvement
             <FormItem>
                 <Label htmlFor="image-upload-improvement">{t.attachmentsLabel}</Label>
                 <div className="flex items-center gap-2">
-                    <label htmlFor="image-upload-improvement" className="cursor-pointer">
-                        <Button type="button" variant="outline" asChild>
-                            <span><UploadCloud className="mr-2 h-4 w-4" /> {t.uploadButton}</span>
-                        </Button>
-                    </label>
+                    <Button 
+                        type="button" 
+                        variant="outline" 
+                        onClick={() => document.getElementById("image-upload-improvement")?.click()}
+                    >
+                        <UploadCloud className="mr-2 h-4 w-4" /> {t.uploadButton}
+                    </Button>
                     <input
                         id="image-upload-improvement"
                         type="file"

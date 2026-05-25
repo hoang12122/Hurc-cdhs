@@ -461,11 +461,10 @@ export function HazardForm({ initialData, isEditMode = false, sourceReportId }: 
                     name="locationIds"
                     render={({ field }) => (
                     <FormItem className="flex flex-col">
-                        <FormLabel>{t.locationLabel}</FormLabel>
+                        <Label htmlFor="location-select" className={cn(form.formState.errors.locationIds && "text-destructive")}>{t.locationLabel}</Label>
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                                <FormControl>
-                                <Button variant="outline" className="w-full justify-between text-left font-normal h-10">
+                                <Button id="location-select" variant="outline" className="w-full justify-between text-left font-normal h-10">
                                     <span className="truncate pr-2">
                                         {field.value && field.value.length > 0
                                             ? field.value.map(id => locations.find(l => l.id === id)?.label || id).join(', ')
@@ -474,7 +473,6 @@ export function HazardForm({ initialData, isEditMode = false, sourceReportId }: 
                                     </span>
                                     <ChevronsUpDown className="ml-auto h-4 w-4 shrink-0 opacity-50" />
                                 </Button>
-                                </FormControl>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent className="w-[--radix-dropdown-menu-trigger-width] max-h-60 overflow-y-auto">
                                 {locations.map((location) => (
@@ -667,20 +665,18 @@ export function HazardForm({ initialData, isEditMode = false, sourceReportId }: 
                       name="coordinatingUnits"
                       render={({ field }) => (
                         <FormItem className="flex flex-col">
-                            <FormLabel>{t.coordinatingUnitsLabel}</FormLabel>
+                            <Label htmlFor="coordinating-units-select" className={cn(form.formState.errors.coordinatingUnits && "text-destructive")}>{t.coordinatingUnitsLabel}</Label>
                             <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
-                                    <FormControl>
-                                        <Button variant="outline" className="w-full justify-between text-left font-normal h-10">
-                                            <span className="truncate pr-2">
-                                                {field.value && field.value.length > 0
-                                                    ? field.value.join(', ')
-                                                    : t.coordinatingUnitsPlaceholder
-                                                }
-                                            </span>
-                                            <ChevronsUpDown className="ml-auto h-4 w-4 shrink-0 opacity-50" />
-                                        </Button>
-                                    </FormControl>
+                                    <Button id="coordinating-units-select" variant="outline" className="w-full justify-between text-left font-normal h-10">
+                                        <span className="truncate pr-2">
+                                            {field.value && field.value.length > 0
+                                                ? field.value.join(', ')
+                                                : t.coordinatingUnitsPlaceholder
+                                            }
+                                        </span>
+                                        <ChevronsUpDown className="ml-auto h-4 w-4 shrink-0 opacity-50" />
+                                    </Button>
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent className="w-[--radix-dropdown-menu-trigger-width] max-h-60 overflow-y-auto">
                                     {responsibleUnits.map(unit => (
@@ -833,11 +829,13 @@ export function HazardForm({ initialData, isEditMode = false, sourceReportId }: 
                 <FormItem>
                     <Label htmlFor="image-upload-hazard">{t.attachmentsLabel}</Label>
                     <div className="flex items-center gap-2">
-                        <label htmlFor="image-upload-hazard" className="cursor-pointer">
-                            <Button type="button" variant="outline" asChild>
-                                <span><UploadCloud className="mr-2 h-4 w-4" /> {t.uploadButton}</span>
-                            </Button>
-                        </label>
+                        <Button 
+                            type="button" 
+                            variant="outline" 
+                            onClick={() => document.getElementById("image-upload-hazard")?.click()}
+                        >
+                            <UploadCloud className="mr-2 h-4 w-4" /> {t.uploadButton}
+                        </Button>
                         <input
                             id="image-upload-hazard"
                             type="file"
