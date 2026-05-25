@@ -267,3 +267,19 @@ model PatrolLocation {
   label       String
   deletedAt   DateTime?
 }
+model System {
+  id   String @id @default(uuid())
+  name String
+  agents Agent[]
+}
+
+model Agent {
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+  systemId    String
+  system      System   @relation(fields: [systemId], references: [id])
+  history     Json     @default("[]")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
