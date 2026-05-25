@@ -1,9 +1,11 @@
 import { NextResponse } from 'next/server';
 import { calculateStrategicScorecard, generateCEOInsights } from '@/lib/services/strategic-metrics';
 import { generateWeeklyCeoReport } from '@/lib/services/report-service';
+import { requirePermission } from '@/lib/auth-enforcer';
 
 export async function GET() {
     try {
+        await requirePermission('reports:view');
         const scorecard = await calculateStrategicScorecard();
         
         // Chỉ gọi AI Insights nếu cần thiết để tối ưu hiệu suất
@@ -22,6 +24,7 @@ export async function GET() {
 
 export async function POST() {
     try {
+        await requirePermission('reports:view');
         const result = await generateWeeklyCeoReport();
         return NextResponse.json(result);
     } catch (error: any) {
