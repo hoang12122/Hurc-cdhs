@@ -48,8 +48,7 @@ export class AiReportService {
     try {
       const { askAI } = await import('./ai/manager');
       const response = await askAI(prompt, { 
-          systemPrompt: "Bạn là chuyên gia phân tích rủi ro. Chỉ trả về JSON hợp lệ với cấu trúc: {summary, analysis, recommendations: string[], confidence: number}. KHÔNG trả về markdown blocks, KHÔNG giải thích thêm.",
-          forceBackend: "gemini" 
+          systemPrompt: "Bạn là chuyên gia phân tích rủi ro. Chỉ trả về JSON hợp lệ với cấu trúc: {summary, analysis, recommendations: string[], confidence: number}. KHÔNG trả về markdown blocks, KHÔNG giải thích thêm."
       });
       const cleanJson = response.replace(/```json/g, "").replace(/```/g, "").trim();
       aiContent = JSON.parse(cleanJson);

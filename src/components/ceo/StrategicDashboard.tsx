@@ -54,7 +54,15 @@ export default function StrategicDashboard() {
     }, []);
 
     if (loading) return <div className="flex items-center justify-center h-screen bg-[#0a0a0a] text-amber-500"><Brain className="animate-pulse mr-2" /> Loading CEO Brain...</div>;
-    if (!data) return <div>Error loading strategic data.</div>;
+    if (!data || data.error) {
+        return (
+            <div className="flex flex-col items-center justify-center h-screen bg-[#0a0a0a] text-rose-500 p-8 text-center">
+                <ShieldAlert className="h-16 w-16 mb-4 text-rose-500" />
+                <h1 className="text-2xl font-bold mb-2">Không thể tải dữ liệu chỉ số chiến lược</h1>
+                <p className="text-sm opacity-80 max-w-md">{data?.error || "Vui lòng kiểm tra lại kết nối Cơ sở dữ liệu hoặc Dịch vụ AI."}</p>
+            </div>
+        );
+    }
 
     const radarData = [
         { subject: 'Năng suất', A: data.metrics.operations.productivityIndex, fullMark: 100 },

@@ -63,14 +63,25 @@ export async function deleteUser(userId: string) {
 
 export async function verifyUserAccount(userId: string, otp: string): Promise<User> {
     // Public action (from email link)
+    const user = await getInternalUserById(userId);
+    if (!user) throw new Error("Không tìm thấy người dùng.");
+    
+    // Đối sánh khớp mã OTP thực tế và thời gian hiệu lực
+    if (user.verificationOtp !== otp) {
+        throw new Error("Mã xác thực (OTP) không chính xác.");
+    }
+    if (user.otpExpiry && new Date(user.otpExpiry) < new Date()) {
+        throw new Error("Mã xác thực (OTP) đã hết hạn.");
+    }
+
     await updateInternalUser(userId, { isVerified: true, status: 'active', verificationOtp: null, otpExpiry: null });
     const updated = await getInternalUserById(userId);
     return omitPassword(updated);
 }
 
 export async function resendVerificationOtp(userId: string): Promise<void> {
-    // Public action
-    await updateInternalUser(userId, { verificationOtp: '123456', otpExpiry: new Date(Date.now() + 15 * 60000) });
+    // Không cho phép chạy và thông báo rõ ràng về SMTP
+    throw new Error("Không thể gửi lại mã xác thực OTP. Hệ thống SMTP chưa được cấu hình. Vui lòng liên hệ Quản trị viên để xác minh tài khoản trực tiếp.");
 }
 
 export async function updateUserPassword(userId: string, newPassword: string): Promise<User> {
@@ -117,20 +128,24 @@ export async function approvePasswordResetRequest(requestId: string): Promise<vo
     // Generate random password
     const tempPassword = generateRandomPassword();
     
-    // Update the user
+    // 1. Cập nhật mật khẩu tạm thời cho người dùng
     await updateInternalUser(request.userId, { 
         password: tempPassword,
         mustChangePassword: true 
     });
 
-    // Send the email
-    await sendPasswordResetEmail(request.userEmail, tempPassword);
-
-    // Update request status
+    // 2. Cập nhật trạng thái yêu cầu reset password thành công
     await updateInternalPasswordResetRequest(requestId, 'approved');
-    
     await logSystemEvent('APPROVE_RESET', 'INFO', `Approved password reset for ${request.userEmail}`);
     revalidatePath('/admin/users');
+
+    // 3. Cố gắng gửi email (Nếu lỗi SMTP thì cảnh báo và ném lỗi hiển thị mật khẩu tạm cho admin)
+    try {
+        await sendPasswordResetEmail(request.userEmail, tempPassword);
+    } catch (e: any) {
+        console.warn("[approvePasswordResetRequest] Failed to send email via SMTP:", e);
+        throw new Error(`Phê duyệt thành công! Tuy nhiên không thể gửi email tự động. MẬT KHẨU TẠM THỜI MỚI LÀ: ${tempPassword} (Hãy sao chép và gửi thủ công cho người dùng).`);
+    }
 }
 
 export async function rejectPasswordResetRequest(requestId: string): Promise<void> {

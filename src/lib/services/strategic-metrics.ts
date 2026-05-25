@@ -1,6 +1,4 @@
-import { opsDb, authDb } from '../prisma';
-
-import { jsonDb } from '../db/json-db';
+import { opsDbProvider, dbProvider } from './db-wrapper';
 
 export interface StrategicScorecard {
     timestamp: string;
@@ -31,14 +29,12 @@ export interface StrategicScorecard {
  */
 
 export async function calculateStrategicScorecard(): Promise<StrategicScorecard> {
-    const isOffline = process.env.IS_DATABASE_OFFLINE === 'true';
-    
-    // 1. Thu thập dữ liệu thô
-    const dnfs = await (isOffline ? jsonDb.getCollection<any>('dnf_documents') : opsDb.dnfDocument.findMany());
-    const inspections = await (isOffline ? jsonDb.getCollection<any>('inspections') : opsDb.inspectionDetail.findMany());
-    const correctiveActions = await (isOffline ? jsonDb.getCollection<any>('corrective_actions') : opsDb.correctiveAction.findMany());
-    const users = await (isOffline ? jsonDb.getCollection<any>('users') : authDb.user.findMany());
-    const hazards = await (isOffline ? jsonDb.getCollection<any>('hazards') : opsDb.hazardRecord.findMany());
+    // 1. Thu thập dữ liệu qua các centralized DB providers chuẩn hệ thống
+    const dnfs = await opsDbProvider.findMany<any>('DnfDocument');
+    const inspections = await opsDbProvider.findMany<any>('InspectionDetail');
+    const correctiveActions = await opsDbProvider.findMany<any>('CorrectiveAction');
+    const users = await dbProvider.findMany<any>('User');
+    const hazards = await opsDbProvider.findMany<any>('HazardRecord');
 
     // 2. Tính toán Năng suất (Productivity)
     const resolvedDnfs = dnfs.filter((d: any) => d.status === 'Đóng' || d.status === 'Hoàn thành').length;

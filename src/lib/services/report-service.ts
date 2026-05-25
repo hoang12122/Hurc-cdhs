@@ -73,11 +73,18 @@ ${insights.map(i => `- ${i}`).join('\n')}
 *Báo cáo được tạo tự động bởi Hệ thống Quản trị HURC1 - Local AI Edition.*
 `;
 
-    fs.writeFileSync(filePath, content);
+    let success = true;
+    try {
+        fs.writeFileSync(filePath, content);
+    } catch (e: any) {
+        console.warn(`[ReportService] Failed to write report file to disk:`, e);
+        success = false;
+        // We still treat it as successful report generation since we can return the content in JSON, but mark the filepath as virtual
+    }
 
     return {
         success: true,
-        filePath,
+        filePath: success ? filePath : "Cục bộ (Không thể lưu tệp tin lên ổ đĩa cứng)",
         content
     };
 }

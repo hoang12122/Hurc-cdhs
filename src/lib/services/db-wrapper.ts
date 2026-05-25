@@ -213,6 +213,8 @@ export class JsonProvider implements IDataProvider {
         'AiVerificationLog': 'ai_verification_logs',
         'AiSafetyLog': 'ai_safety_logs',
         'AiRequestLog': 'ai_request_logs',
+        'AiRiskReport': 'ai_risk_reports',
+        'AiReportAudit': 'ai_report_audits',
         'Comment': 'comments',
         'Improvement': 'improvements',
         'Task': 'tasks',
