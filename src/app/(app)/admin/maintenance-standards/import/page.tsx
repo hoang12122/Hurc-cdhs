@@ -552,10 +552,20 @@ export default function MaintenanceStandardImportPage() {
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex items-center gap-3 flex-wrap">
-            <Label htmlFor="csv-file-input-standard" className="cursor-pointer">
-              <Button variant="outline" asChild><span><UploadCloud className="mr-2 h-4 w-4" /> {t.selectFile}</span></Button>
-              <Input id="csv-file-input-standard" type="file" accept=".csv" onChange={handleFileChange} className="hidden"/>
-            </Label>
+            <Button 
+              variant="outline" 
+              onClick={() => document.getElementById("csv-file-input-standard")?.click()}
+            >
+              <UploadCloud className="mr-2 h-4 w-4" /> {t.selectFile}
+            </Button>
+            <Input 
+              id="csv-file-input-standard" 
+              type="file" 
+              accept=".csv" 
+              onChange={handleFileChange} 
+              className="hidden"
+              aria-label={t.selectFile}
+            />
             <Button variant="outline" onClick={handleDownloadSampleCsv}>
               <FileDown className="mr-2 h-4 w-4" /> {t.downloadSampleCsv}
             </Button>

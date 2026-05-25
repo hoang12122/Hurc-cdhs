@@ -7,6 +7,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm, useFieldArray, Controller } from "react-hook-form";
 import * as z from "zod";
 import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
 import {
   Form,
   FormControl,
@@ -847,23 +848,24 @@ export function InspectionForm({ initialData, isEditMode = false }: InspectionFo
 
                     <div className="flex flex-col gap-4">
                         <FormItem>
-                            <FormLabel>{t.imagesLabel}</FormLabel>
-                            <FormControl>
-                                <div className="flex items-center gap-2">
-                                    <label htmlFor={`checklist-image-upload-${checklistIndex}`} className="cursor-pointer">
-                                        <Button type="button" variant="outline" size="sm" asChild>
-                                            <span><UploadCloud className="mr-2 h-4 w-4" /> {t.uploadImageButton}</span>
-                                        </Button>
-                                        <input
-                                            id={`checklist-image-upload-${checklistIndex}`}
-                                            type="file"
-                                            accept="image/*"
-                                            className="hidden"
-                                            onChange={(e) => handleChecklistImageUpload(checklistIndex, e)}
-                                        />
-                                    </label>
-                                </div>
-                            </FormControl>
+                            <Label htmlFor={`checklist-image-upload-${checklistIndex}`}>{t.imagesLabel}</Label>
+                            <div className="flex items-center gap-2">
+                                <Button 
+                                    type="button" 
+                                    variant="outline" 
+                                    size="sm" 
+                                    onClick={() => document.getElementById(`checklist-image-upload-${checklistIndex}`)?.click()}
+                                >
+                                    <UploadCloud className="mr-2 h-4 w-4" /> {t.uploadImageButton}
+                                </Button>
+                                <input
+                                    id={`checklist-image-upload-${checklistIndex}`}
+                                    type="file"
+                                    accept="image/*"
+                                    className="hidden"
+                                    onChange={(e) => handleChecklistImageUpload(checklistIndex, e)}
+                                />
+                            </div>
                             <div className="mt-2 grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-2">
                                 {form.watch(`checklistItems.${checklistIndex}.images`)?.map(image => (
                                     <div key={image.id} className="relative group aspect-square h-20 w-20">
@@ -1014,12 +1016,14 @@ export function InspectionForm({ initialData, isEditMode = false }: InspectionFo
                                 )}
                             />
                             <FormItem>
-                                <FormLabel>{t.imagesLabel}</FormLabel>
-                                <FormControl>
+                                <Label htmlFor={`image-upload-${checklistIndex}-${findingIndex}`}>{t.imagesLabel}</Label>
                                 <div className="flex items-center gap-2">
-                                    <label htmlFor={`image-upload-${checklistIndex}-${findingIndex}`} className="cursor-pointer">
-                                    <Button type="button" variant="outline" asChild>
-                                        <span><UploadCloud className="mr-2 h-4 w-4" /> {t.uploadImageButton}</span>
+                                    <Button 
+                                        type="button" 
+                                        variant="outline" 
+                                        onClick={() => document.getElementById(`image-upload-${checklistIndex}-${findingIndex}`)?.click()}
+                                    >
+                                        <UploadCloud className="mr-2 h-4 w-4" /> {t.uploadImageButton}
                                     </Button>
                                     <input
                                         id={`image-upload-${checklistIndex}-${findingIndex}`}
@@ -1028,9 +1032,7 @@ export function InspectionForm({ initialData, isEditMode = false }: InspectionFo
                                         className="hidden"
                                         onChange={(e) => handleImageUpload(checklistIndex, findingIndex, e)}
                                     />
-                                    </label>
                                 </div>
-                                </FormControl>
                                 <div className="mt-2 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
                                 {form.watch(`checklistItems.${checklistIndex}.findings.${findingIndex}.images`)?.map(image => (
                                     <div key={image.id} className="relative group aspect-square">

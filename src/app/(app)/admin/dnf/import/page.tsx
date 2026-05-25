@@ -720,10 +720,20 @@ export default function DnfImportPage() {
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex items-center gap-3">
-            <Label htmlFor="csv-file-input" className="cursor-pointer">
-              <Button variant="outline" asChild><span><UploadCloud className="mr-2 h-4 w-4" /> {t.selectFile}</span></Button>
-              <Input id="csv-file-input" type="file" accept=".csv" onChange={handleFileChange} className="hidden"/>
-            </Label>
+            <Button 
+              variant="outline" 
+              onClick={() => document.getElementById("csv-file-input")?.click()}
+            >
+              <UploadCloud className="mr-2 h-4 w-4" /> {t.selectFile}
+            </Button>
+            <Input 
+              id="csv-file-input" 
+              type="file" 
+              accept=".csv" 
+              onChange={handleFileChange} 
+              className="hidden"
+              aria-label={t.selectFile}
+            />
             {selectedFile && <p className="text-sm text-muted-foreground">{t.fileSelected(selectedFile.name)}</p>}
             {!selectedFile && <p className="text-sm text-muted-foreground">{t.noFileSelected}</p>}
           </div>
