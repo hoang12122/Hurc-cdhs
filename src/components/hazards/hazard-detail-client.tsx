@@ -229,8 +229,8 @@ export function HazardDetailClient({ initialHazard, allHazards, subsystems, resp
   }, []);
 
   const canTransitionToStatus = React.useCallback((currentStatus: HazardStatus, newStatus: HazardStatus, userRole: UserRole): boolean => {
-      if (userRole === ROLE_ADMIN_PKTAT) {
-          return true; // Admin can do any transition
+      if (userRole === ROLE_ADMIN_PKTAT || userRole === 'SUPER_ADMIN' || userRole === 'MANAGER') {
+          return true; // Admin/Manager can do any transition
       }
       const transitionRule = HAZARD_STATUS_TRANSITIONS[currentStatus];
       if (!transitionRule) return false;
@@ -285,7 +285,7 @@ export function HazardDetailClient({ initialHazard, allHazards, subsystems, resp
 
       let canEdit = false;
       if (editAll) canEdit = true;
-      else if (MOCK_CURRENT_USER.role === ROLE_L3_SPECIALIST) {
+      else if (MOCK_CURRENT_USER.role === ROLE_L3_SPECIALIST || MOCK_CURRENT_USER.role === 'MANAGER') {
         canEdit = hazard.status !== "Đóng";
       }
 

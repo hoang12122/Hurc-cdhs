@@ -204,19 +204,19 @@ function getHazardStatusBadgeVariant(status: HazardRecord['status']): "default" 
 }
 
 const canEditSpecificHazard = (hazard: HazardRecord, currentUserRole: UserRole, editAllPermission: boolean) => {
-    if (editAllPermission) return true; // Admin
-    if (currentUserRole === ROLE_L3_SPECIALIST) {
+    if (editAllPermission) return true; // Admin or Manager with edit_all
+    if (currentUserRole === ROLE_L3_SPECIALIST || currentUserRole === 'MANAGER') {
         return hazard.status !== "Đóng" && hazard.status !== "Hủy";
     }
-    if (currentUserRole === ROLE_L2_TECHNICIAN) {
+    if (currentUserRole === ROLE_L2_TECHNICIAN || currentUserRole === 'TECHNICIAN') {
         return hazard.status === "Xử lý";
     }
     return false;
 };
 
 const canUserDeleteHazard = (currentUserRole: UserRole, deletePermission: boolean) => {
-    // Only Admin can delete
-    return currentUserRole === ROLE_ADMIN_PKTAT && deletePermission;
+    // Only Admin or Manager with delete permission can delete
+    return (currentUserRole === ROLE_ADMIN_PKTAT || currentUserRole === 'SUPER_ADMIN' || currentUserRole === 'MANAGER') && deletePermission;
 };
 
 
@@ -249,7 +249,7 @@ export function HazardTableClient({ initialHazards, initialTotalPages = 1 }: Haz
         canCreate: create,
         canEditAny: editAny,
         canDeleteAny: del,
-        canUndo: currentUser?.role === ROLE_ADMIN_PKTAT,
+        canUndo: currentUser?.role === ROLE_ADMIN_PKTAT || currentUser?.role === 'SUPER_ADMIN' || currentUser?.role === 'MANAGER',
       });
     };
     checkPermissions();

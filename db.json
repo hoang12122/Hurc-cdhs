@@ -290,7 +290,13 @@
       "permissions": [
         "improvement:create",
         "improvement:view",
-        "inspections:execute"
+        "inspections:execute",
+        "hazard:create",
+        "hazard:view_all",
+        "hazard:assess",
+        "dnf:manage",
+        "ai:use",
+        "ai:vision"
       ]
     },
     {
@@ -299,8 +305,25 @@
       "description": "Phê duyệt định mức và cải tiến",
       "permissions": [
         "improvement:manage",
+        "improvement:create",
+        "improvement:view",
         "checklist_templates:manage",
-        "inspections:manage"
+        "inspections:manage",
+        "inspections:execute",
+        "hazard:create",
+        "hazard:view_all",
+        "hazard:assess",
+        "hazard:edit_all",
+        "hazard:delete",
+        "hazard:manage_status",
+        "dnf:manage",
+        "reports:view",
+        "reports:manage",
+        "users:manage",
+        "roles:manage",
+        "settings:manage",
+        "ai:use",
+        "ai:vision"
       ]
     }
   ],

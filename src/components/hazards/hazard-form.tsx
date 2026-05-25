@@ -53,7 +53,8 @@ import {
     type Subsystem,
     type PatrolLocation,
     HAZARD_STATUS_TRANSITIONS,
-    ROLE_ADMIN_PKTAT
+    ROLE_ADMIN_PKTAT,
+    ROLE_SUPER_ADMIN
 } from "@/lib/constants";
 import { addHazardRecord, updateHazardRecord } from "@/lib/actions/hazard.actions";
 import { getDnfs } from "@/lib/actions/dnf.actions";
@@ -339,53 +340,62 @@ export function HazardForm({ initialData, isEditMode = false, sourceReportId }: 
   };
 
   const onSubmit = async (data: HazardFormValues) => {
-    const hazardRecordData: Omit<HazardRecord, 'id' | 'createdAt' | 'updatedAt' | 'riskLevelId' | 'createdById'> = {
-        ...data,
-        locationIds: data.locationIds,
-        coordinatingUnits: data.coordinatingUnits,
-        linkedDnfId: data.linkedDnfId,
-        identificationDate: new Date(data.identificationDate).toISOString(),
-        dueDate: data.dueDate ? new Date(data.dueDate).toISOString() : undefined,
-        status: data.status,
-    };
+    try {
+      const hazardRecordData: Omit<HazardRecord, 'id' | 'createdAt' | 'updatedAt' | 'riskLevelId' | 'createdById'> = {
+          ...data,
+          locationIds: data.locationIds,
+          coordinatingUnits: data.coordinatingUnits,
+          linkedDnfId: data.linkedDnfId,
+          identificationDate: new Date(data.identificationDate).toISOString(),
+          dueDate: data.dueDate ? new Date(data.dueDate).toISOString() : undefined,
+          status: data.status,
+      };
 
-    if (isEditMode && initialData?.id) {
-        const fullUpdatedRecord: HazardRecord = {
-            ...initialData,
-            ...hazardRecordData,
-            id: initialData.id,
-            createdAt: initialData.createdAt as string,
-            createdById: initialData.createdById || currentUser?.id || 'system',
-            updatedAt: new Date().toISOString(),
-        };
-        await updateHazardRecord(fullUpdatedRecord);
+      if (isEditMode && initialData?.id) {
+          const fullUpdatedRecord: HazardRecord = {
+              ...initialData,
+              ...hazardRecordData,
+              id: initialData.id,
+              createdAt: initialData.createdAt as string,
+              createdById: initialData.createdById || currentUser?.id || 'system',
+              updatedAt: new Date().toISOString(),
+          };
+          await updateHazardRecord(fullUpdatedRecord);
+          toast({
+              title: t.updateSuccessTitle,
+              description: t.updateSuccessDescription,
+          });
+          router.push(`/hazards/${initialData.id}`);
+      } else {
+          if (!isOnline) {
+              await offlineSync.addAction({
+                  type: 'HAZARD_CREATE',
+                  entityType: 'HAZARD',
+                  data: hazardRecordData,
+              });
+              toast({
+                  title: locale === 'vi' ? "Đã lưu Ngoại tuyến" : "Saved Offline",
+                  description: locale === 'vi' ? "Dữ liệu sẽ được tự động đồng bộ khi có mạng." : "Data will be synced automatically when online.",
+              });
+              router.push("/hazards");
+              return;
+          }
+
+          const savedHazard = await addHazardRecord({...hazardRecordData, status: 'Mới'});
+
+          toast({
+              title: t.saveSuccessTitle,
+              description: t.saveSuccessDescription,
+          });
+          router.push(`/hazards/${savedHazard.id}`);
+      }
+    } catch (error: any) {
+        console.error("Failed to save hazard record:", error);
         toast({
-            title: t.updateSuccessTitle,
-            description: t.updateSuccessDescription,
+            variant: "destructive",
+            title: locale === 'vi' ? "Lỗi hệ thống" : "System Error",
+            description: error.message || (locale === 'vi' ? "Không thể lưu báo cáo mối nguy. Vui lòng liên hệ quản trị viên." : "Could not save hazard report. Please contact administrator."),
         });
-        router.push(`/hazards/${initialData.id}`);
-    } else {
-        if (!isOnline) {
-            await offlineSync.addAction({
-                type: 'HAZARD_CREATE',
-                entityType: 'HAZARD',
-                data: hazardRecordData,
-            });
-            toast({
-                title: locale === 'vi' ? "Đã lưu Ngoại tuyến" : "Saved Offline",
-                description: locale === 'vi' ? "Dữ liệu sẽ được tự động đồng bộ khi có mạng." : "Data will be synced automatically when online.",
-            });
-            router.push("/hazards");
-            return;
-        }
-
-        const savedHazard = await addHazardRecord({...hazardRecordData, status: 'Mới'});
-
-        toast({
-            title: t.saveSuccessTitle,
-            description: t.saveSuccessDescription,
-        });
-        router.push(`/hazards/${savedHazard.id}`);
     }
   };
 
@@ -720,7 +730,7 @@ export function HazardForm({ initialData, isEditMode = false, sourceReportId }: 
                                 {HAZARD_STATUSES.map(status => {
                                     const currentStatus = initialData?.status || 'Mới';
                                     const transitionRule = HAZARD_STATUS_TRANSITIONS[currentStatus as HazardStatus];
-                                    const canTransition = currentUser?.role === ROLE_ADMIN_PKTAT || status === currentStatus || transitionRule.next.includes(status as HazardStatus);
+                                    const canTransition = currentUser?.role === ROLE_ADMIN_PKTAT || currentUser?.role === ROLE_SUPER_ADMIN || currentUser?.role === 'MANAGER' || status === currentStatus || transitionRule.next.includes(status as HazardStatus);
                                     return (
                                     <SelectItem 
                                         key={status} 
