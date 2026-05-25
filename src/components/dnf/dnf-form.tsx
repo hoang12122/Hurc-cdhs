@@ -7,6 +7,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
 import { AiAssistButton } from "@/components/ai/ai-assist-button";
 import {
   Form,
@@ -663,24 +664,22 @@ export function DnfForm({ initialData, isEditMode = false }: DnfFormProps) {
               )}
             />
              <FormItem>
-                <FormLabel>{t.attachmentsLabel}</FormLabel>
-                <FormControl>
-                    <div className="flex items-center gap-2">
+                <Label htmlFor="image-upload-dnf">{t.attachmentsLabel}</Label>
+                <div className="flex items-center gap-2">
                     <label htmlFor="image-upload-dnf" className="cursor-pointer">
                         <Button type="button" variant="outline" asChild>
-                        <span><UploadCloud className="mr-2 h-4 w-4" /> {t.uploadButton}</span>
+                            <span><UploadCloud className="mr-2 h-4 w-4" /> {t.uploadButton}</span>
                         </Button>
-                        <input
+                    </label>
+                    <input
                         id="image-upload-dnf"
                         type="file"
                         accept="image/*"
                         className="hidden"
                         multiple
                         onChange={handleImageUpload}
-                        />
-                    </label>
-                    </div>
-                </FormControl>
+                    />
+                </div>
                 <div className="mt-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
                     {form.watch("attachments")?.map(image => (
                     <div key={image.id} className="relative group aspect-video border rounded-md">
