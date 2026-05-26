@@ -76,7 +76,9 @@ export interface User {
   lastLoginIp?: string;
   passwordHistory?: string[];
   sessionVersion?: number;
+  twoFactorEnabled?: boolean;
 }
+
 
 export interface Role {
   id: string;

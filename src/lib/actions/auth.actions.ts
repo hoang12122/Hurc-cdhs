@@ -36,11 +36,14 @@ async function logSecurityEvent(userId: string, event: string, details?: string)
     await internalLogSystemEvent(event, 'INFO', details || `User ${userId}`, 'security');
 }
 
+import { getUser2FADevices, verifyTOTP, verifyAndUseBackupCode } from '../services/twofa-service';
+import { getInternalUserById } from '../services/user-service';
+
 /**
  * LOGIN: Consolidated and Service-Oriented (PostgreSQL + Fallback)
  * This is the ONLY entry point for authentication via Server Actions.
  */
-export async function login(email: string, password?: string, rememberMe: boolean = false): Promise<{ user?: User; error?: string }> {
+export async function login(email: string, password?: string, rememberMe: boolean = false): Promise<{ user?: User; error?: string; requires2FA?: boolean; userId?: string }> {
     const ip = headers().get('x-forwarded-for') || 'unknown';
     const identifier = `${ip}-${email}`;
     
@@ -59,6 +62,12 @@ export async function login(email: string, password?: string, rememberMe: boolea
 
     const { user } = result;
     if (!user) return { error: "Lỗi hệ thống không xác định." };
+
+    // Check if 2FA is enabled
+    if (user.twoFactorEnabled) {
+        console.log(`[AUTH] User ${user.email} has 2FA enabled, redirecting to verify page.`);
+        return { requires2FA: true, userId: user.id };
+    }
 
     // Create secure session cookie (signed)
     const signedValue = sign(user.id);
@@ -82,6 +91,57 @@ export async function login(email: string, password?: string, rememberMe: boolea
     
     return { user };
 }
+
+/**
+ * 2FA LOGIN VERIFICATION
+ */
+export async function login2FA(userId: string, code: string, rememberMe: boolean = false): Promise<{ user?: User; error?: string }> {
+    const user = await getInternalUserById(userId);
+    if (!user) return { error: "Không tìm thấy người dùng." };
+
+    let isCodeValid = false;
+
+    // 1. Try to verify as TOTP code
+    const devices = await getUser2FADevices(userId);
+    const defaultDevice = devices.find(d => d.isDefault && d.confirmed);
+    
+    if (defaultDevice) {
+        isCodeValid = verifyTOTP(defaultDevice.secret, code);
+    }
+
+    // 2. If not valid, try as backup code
+    if (!isCodeValid) {
+        isCodeValid = await verifyAndUseBackupCode(userId, code);
+    }
+
+    if (!isCodeValid) {
+        await logSecurityEvent(userId, "2FA_LOGIN_FAILED", `Incorrect OTP/Backup code: ${code}`);
+        return { error: "Mã xác thực 2FA không chính xác hoặc đã hết hạn." };
+    }
+
+    // Success - Create secure session cookie (signed)
+    const signedValue = sign(user.id);
+    const maxAge = rememberMe ? 30 * 24 * 60 * 60 : 4 * 60 * 60;
+    
+    const reqHeaders = headers();
+    const isHttps = reqHeaders.get('x-forwarded-proto') === 'https' || reqHeaders.get('referer')?.startsWith('https://');
+
+    cookies().set(SESSION_COOKIE_NAME, signedValue, {
+        httpOnly: true,
+        secure: isHttps,
+        sameSite: 'lax',
+        path: '/',
+        maxAge: maxAge
+    });
+
+    await logSecurityEvent(user.id, "2FA_LOGIN_SUCCESS", `2FA Login successful`);
+    console.log(`[AUTH] 2FA Login success: ${user.email} (${user.role})`);
+    
+    // Omit password
+    const { password, ...userWithoutPassword } = user;
+    return { user: userWithoutPassword as any };
+}
+
 
 /**
  * SESSION HELPERS: Consolidated from the deleted auth.ts

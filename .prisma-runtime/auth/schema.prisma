@@ -10,20 +10,24 @@ datasource db {
 }
 
 model User {
-  id                    String    @id @default(uuid())
+  id                    String        @id @default(uuid())
   name                  String
-  email                 String    @unique
+  email                 String        @unique
   password              String?
   role                  String // References Role.id
   status                String // 'active' | 'inactive'
   department            String?
-  isVerified            Boolean   @default(false)
-  passwordLastChangedAt DateTime? @default(now())
-  permissions           String[]  @default([])
-  assignedSubsystems    String[]  @default([])
+  isVerified            Boolean       @default(false)
+  passwordLastChangedAt DateTime?     @default(now())
+  permissions           String[]      @default([])
+  assignedSubsystems    String[]      @default([])
   avatarUrl             String?
   verificationOtp       String?
   otpExpiry             DateTime?
+  twoFactorEnabled      Boolean       @default(false)
+  twoFADevices          TwoFADevice[]
+  backupCodes           BackupCode[]
+  accessTokens          AccessToken[]
 
   createdAt DateTime  @default(now())
   deletedAt DateTime?
@@ -55,4 +59,51 @@ model PasswordResetRequest {
   @@index([userId])
   @@index([status])
   @@map("password_reset_requests")
+}
+
+model TwoFADevice {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      String // 'totp' | 'sms' etc.
+  name      String
+  secret    String
+  isDefault Boolean  @default(false)
+  confirmed Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@map("two_fa_devices")
+}
+
+model BackupCode {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  codeHash  String
+  used      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@map("backup_codes")
+}
+
+model AccessToken {
+  id              String    @id @default(uuid())
+  userId          String
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type            String // 'api' | 'icalendar' | 'meeting_ical' | 'oauth' | 'rss'
+  name            String
+  tokenHash       String    @unique
+  calendar        String? // for iCalendar
+  project         String? // for iCalendar
+  active          Boolean   @default(true)
+  lastRefreshedAt DateTime?
+  expiresAt       DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@index([userId])
+  @@map("access_tokens")
 }

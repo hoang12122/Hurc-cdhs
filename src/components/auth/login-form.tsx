@@ -19,10 +19,10 @@ import {
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { Eye, EyeOff, Loader2 } from "lucide-react";
+import { Eye, EyeOff, Loader2, KeySquare } from "lucide-react";
 import { useLanguage } from "@/contexts/language-context";
 import { Checkbox } from "@/components/ui/checkbox";
-import { login } from '@/lib/actions/auth.actions';
+import { login, login2FA } from '@/lib/actions/auth.actions';
 import { useAuth } from "@/contexts/auth-context";
 
 const translations = {
@@ -81,6 +81,12 @@ export function LoginForm() {
   const { locale } = useLanguage();
   const t = translations[locale];
   const [showPassword, setShowPassword] = React.useState(false);
+
+  // 2FA States
+  const [show2FA, setShow2FA] = React.useState(false);
+  const [userId2FA, setUserId2FA] = React.useState("");
+  const [otpCode, setOtpCode] = React.useState("");
+  const [isVerifying2FA, setIsVerifying2FA] = React.useState(false);
   
   const loginSchema = createLoginSchema(t);
 
@@ -106,18 +112,16 @@ export function LoginForm() {
           return;
       }
 
+      if (result.requires2FA) {
+          setUserId2FA(result.userId || "");
+          setShow2FA(true);
+          return;
+      }
+
       const user = result.user;
       if (user) {
         setAuthInfo({ user });
         
-        // OTP Verification bypassed by request
-        /*
-        if (user.isVerified === false) {
-            router.push('/verify-otp?reason=first_login');
-            return;
-        }
-        */
-
         // Priority 2: Mandatory Password Change (Admin set or New user)
         if (user.mustChangePassword) {
             router.push('/setup-new-password');
@@ -150,6 +154,104 @@ export function LoginForm() {
         });
     }
   };
+
+  const handle2FAVerify = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!otpCode.trim() || otpCode.trim().length < 6) {
+      toast({
+        variant: "destructive",
+        title: "Lỗi xác thực",
+        description: "Vui lòng nhập mã OTP 6 chữ số hoặc mã dự phòng."
+      });
+      return;
+    }
+    setIsVerifying2FA(true);
+    try {
+      const result = await login2FA(userId2FA, otpCode.trim(), form.getValues("rememberMe"));
+      
+      if (result.error) {
+        toast({
+          variant: "destructive",
+          title: "Xác thực 2FA thất bại",
+          description: result.error,
+        });
+        return;
+      }
+
+      const user = result.user;
+      if (user) {
+        setAuthInfo({ user });
+
+        if (user.mustChangePassword) {
+            router.push('/setup-new-password');
+            return;
+        }
+
+        if (user.passwordLastChangedAt) {
+            const passwordExpiryDate = new Date(user.passwordLastChangedAt);
+            passwordExpiryDate.setMonth(passwordExpiryDate.getMonth() + 6);
+            if (new Date() > passwordExpiryDate) {
+                router.push('/change-password?reason=expired');
+                return;
+            }
+        }
+
+        toast({
+          title: t.loginSuccessTitle,
+          description: t.loginSuccessDesc(user.name),
+        });
+        
+        await new Promise(resolve => setTimeout(resolve, 800));
+        router.push("/dashboard");
+      }
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Lỗi hệ thống",
+        description: "Đã xảy ra lỗi không xác định trong quá trình xác thực 2FA.",
+      });
+    } finally {
+      setIsVerifying2FA(false);
+    }
+  };
+
+  if (show2FA) {
+    return (
+      <Card className="w-full max-w-md shadow-xl border bg-card/60 backdrop-blur-md">
+        <CardHeader className="text-center space-y-4">
+          <CardTitle className="text-2xl font-bold flex items-center justify-center gap-2">
+            <KeySquare className="text-primary h-6 w-6" />
+            Xác thực 2 lớp (2FA)
+          </CardTitle>
+          <CardDescription>
+            Tài khoản của bạn đã được bảo vệ bằng xác thực hai yếu tố. Vui lòng nhập mã OTP từ ứng dụng hoặc mã dự phòng của bạn.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handle2FAVerify} className="space-y-4">
+            <div className="space-y-2">
+              <label className="text-xs uppercase tracking-wider font-semibold text-muted-foreground">Mã xác thực 2FA / Mã dự phòng</label>
+              <Input 
+                placeholder="000 000" 
+                value={otpCode}
+                onChange={(e) => setOtpCode(e.target.value)}
+                className="rounded-xl text-center text-lg font-bold tracking-widest border-input/60 h-11"
+              />
+            </div>
+            
+            <Button type="submit" className="w-full h-11 text-base rounded-xl font-medium mt-2 animate-pulse-subtle" disabled={isVerifying2FA}>
+              {isVerifying2FA && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Xác nhận đăng nhập
+            </Button>
+            
+            <Button type="button" variant="ghost" className="w-full h-10 text-xs rounded-xl" onClick={() => { setShow2FA(false); setOtpCode(""); }}>
+              Quay lại trang đăng nhập thường
+            </Button>
+          </form>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card className="w-full max-w-md shadow-xl">

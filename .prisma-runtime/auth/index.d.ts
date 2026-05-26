@@ -28,6 +28,21 @@ export type Role = $Result.DefaultSelection<Prisma.$RolePayload>
  * 
  */
 export type PasswordResetRequest = $Result.DefaultSelection<Prisma.$PasswordResetRequestPayload>
+/**
+ * Model TwoFADevice
+ * 
+ */
+export type TwoFADevice = $Result.DefaultSelection<Prisma.$TwoFADevicePayload>
+/**
+ * Model BackupCode
+ * 
+ */
+export type BackupCode = $Result.DefaultSelection<Prisma.$BackupCodePayload>
+/**
+ * Model AccessToken
+ * 
+ */
+export type AccessToken = $Result.DefaultSelection<Prisma.$AccessTokenPayload>
 
 /**
  * ##  Prisma Client ʲˢ
@@ -181,6 +196,36 @@ export class PrismaClient<
     * ```
     */
   get passwordResetRequest(): Prisma.PasswordResetRequestDelegate<ExtArgs>;
+
+  /**
+   * `prisma.twoFADevice`: Exposes CRUD operations for the **TwoFADevice** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more TwoFADevices
+    * const twoFADevices = await prisma.twoFADevice.findMany()
+    * ```
+    */
+  get twoFADevice(): Prisma.TwoFADeviceDelegate<ExtArgs>;
+
+  /**
+   * `prisma.backupCode`: Exposes CRUD operations for the **BackupCode** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more BackupCodes
+    * const backupCodes = await prisma.backupCode.findMany()
+    * ```
+    */
+  get backupCode(): Prisma.BackupCodeDelegate<ExtArgs>;
+
+  /**
+   * `prisma.accessToken`: Exposes CRUD operations for the **AccessToken** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more AccessTokens
+    * const accessTokens = await prisma.accessToken.findMany()
+    * ```
+    */
+  get accessToken(): Prisma.AccessTokenDelegate<ExtArgs>;
 }
 
 export namespace Prisma {
@@ -624,7 +669,10 @@ export namespace Prisma {
   export const ModelName: {
     User: 'User',
     Role: 'Role',
-    PasswordResetRequest: 'PasswordResetRequest'
+    PasswordResetRequest: 'PasswordResetRequest',
+    TwoFADevice: 'TwoFADevice',
+    BackupCode: 'BackupCode',
+    AccessToken: 'AccessToken'
   };
 
   export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -640,7 +688,7 @@ export namespace Prisma {
 
   export type TypeMap<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, ClientOptions = {}> = {
     meta: {
-      modelProps: "user" | "role" | "passwordResetRequest"
+      modelProps: "user" | "role" | "passwordResetRequest" | "twoFADevice" | "backupCode" | "accessToken"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -854,6 +902,216 @@ export namespace Prisma {
           }
         }
       }
+      TwoFADevice: {
+        payload: Prisma.$TwoFADevicePayload<ExtArgs>
+        fields: Prisma.TwoFADeviceFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.TwoFADeviceFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$TwoFADevicePayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.TwoFADeviceFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$TwoFADevicePayload>
+          }
+          findFirst: {
+            args: Prisma.TwoFADeviceFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$TwoFADevicePayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.TwoFADeviceFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$TwoFADevicePayload>
+          }
+          findMany: {
+            args: Prisma.TwoFADeviceFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$TwoFADevicePayload>[]
+          }
+          create: {
+            args: Prisma.TwoFADeviceCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$TwoFADevicePayload>
+          }
+          createMany: {
+            args: Prisma.TwoFADeviceCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.TwoFADeviceCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$TwoFADevicePayload>[]
+          }
+          delete: {
+            args: Prisma.TwoFADeviceDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$TwoFADevicePayload>
+          }
+          update: {
+            args: Prisma.TwoFADeviceUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$TwoFADevicePayload>
+          }
+          deleteMany: {
+            args: Prisma.TwoFADeviceDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.TwoFADeviceUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          upsert: {
+            args: Prisma.TwoFADeviceUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$TwoFADevicePayload>
+          }
+          aggregate: {
+            args: Prisma.TwoFADeviceAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateTwoFADevice>
+          }
+          groupBy: {
+            args: Prisma.TwoFADeviceGroupByArgs<ExtArgs>
+            result: $Utils.Optional<TwoFADeviceGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.TwoFADeviceCountArgs<ExtArgs>
+            result: $Utils.Optional<TwoFADeviceCountAggregateOutputType> | number
+          }
+        }
+      }
+      BackupCode: {
+        payload: Prisma.$BackupCodePayload<ExtArgs>
+        fields: Prisma.BackupCodeFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.BackupCodeFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BackupCodePayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.BackupCodeFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BackupCodePayload>
+          }
+          findFirst: {
+            args: Prisma.BackupCodeFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BackupCodePayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.BackupCodeFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BackupCodePayload>
+          }
+          findMany: {
+            args: Prisma.BackupCodeFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BackupCodePayload>[]
+          }
+          create: {
+            args: Prisma.BackupCodeCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BackupCodePayload>
+          }
+          createMany: {
+            args: Prisma.BackupCodeCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.BackupCodeCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BackupCodePayload>[]
+          }
+          delete: {
+            args: Prisma.BackupCodeDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BackupCodePayload>
+          }
+          update: {
+            args: Prisma.BackupCodeUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BackupCodePayload>
+          }
+          deleteMany: {
+            args: Prisma.BackupCodeDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.BackupCodeUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          upsert: {
+            args: Prisma.BackupCodeUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BackupCodePayload>
+          }
+          aggregate: {
+            args: Prisma.BackupCodeAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateBackupCode>
+          }
+          groupBy: {
+            args: Prisma.BackupCodeGroupByArgs<ExtArgs>
+            result: $Utils.Optional<BackupCodeGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.BackupCodeCountArgs<ExtArgs>
+            result: $Utils.Optional<BackupCodeCountAggregateOutputType> | number
+          }
+        }
+      }
+      AccessToken: {
+        payload: Prisma.$AccessTokenPayload<ExtArgs>
+        fields: Prisma.AccessTokenFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.AccessTokenFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AccessTokenPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.AccessTokenFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AccessTokenPayload>
+          }
+          findFirst: {
+            args: Prisma.AccessTokenFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AccessTokenPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.AccessTokenFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AccessTokenPayload>
+          }
+          findMany: {
+            args: Prisma.AccessTokenFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AccessTokenPayload>[]
+          }
+          create: {
+            args: Prisma.AccessTokenCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AccessTokenPayload>
+          }
+          createMany: {
+            args: Prisma.AccessTokenCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.AccessTokenCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AccessTokenPayload>[]
+          }
+          delete: {
+            args: Prisma.AccessTokenDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AccessTokenPayload>
+          }
+          update: {
+            args: Prisma.AccessTokenUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AccessTokenPayload>
+          }
+          deleteMany: {
+            args: Prisma.AccessTokenDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.AccessTokenUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          upsert: {
+            args: Prisma.AccessTokenUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AccessTokenPayload>
+          }
+          aggregate: {
+            args: Prisma.AccessTokenAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateAccessToken>
+          }
+          groupBy: {
+            args: Prisma.AccessTokenGroupByArgs<ExtArgs>
+            result: $Utils.Optional<AccessTokenGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.AccessTokenCountArgs<ExtArgs>
+            result: $Utils.Optional<AccessTokenCountAggregateOutputType> | number
+          }
+        }
+      }
     }
   } & {
     other: {
@@ -1010,6 +1268,54 @@ export namespace Prisma {
    */
 
 
+  /**
+   * Count Type UserCountOutputType
+   */
+
+  export type UserCountOutputType = {
+    twoFADevices: number
+    backupCodes: number
+    accessTokens: number
+  }
+
+  export type UserCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    twoFADevices?: boolean | UserCountOutputTypeCountTwoFADevicesArgs
+    backupCodes?: boolean | UserCountOutputTypeCountBackupCodesArgs
+    accessTokens?: boolean | UserCountOutputTypeCountAccessTokensArgs
+  }
+
+  // Custom InputTypes
+  /**
+   * UserCountOutputType without action
+   */
+  export type UserCountOutputTypeDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserCountOutputType
+     */
+    select?: UserCountOutputTypeSelect<ExtArgs> | null
+  }
+
+  /**
+   * UserCountOutputType without action
+   */
+  export type UserCountOutputTypeCountTwoFADevicesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: TwoFADeviceWhereInput
+  }
+
+  /**
+   * UserCountOutputType without action
+   */
+  export type UserCountOutputTypeCountBackupCodesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: BackupCodeWhereInput
+  }
+
+  /**
+   * UserCountOutputType without action
+   */
+  export type UserCountOutputTypeCountAccessTokensArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: AccessTokenWhereInput
+  }
+
 
   /**
    * Models
@@ -1038,6 +1344,7 @@ export namespace Prisma {
     avatarUrl: string | null
     verificationOtp: string | null
     otpExpiry: Date | null
+    twoFactorEnabled: boolean | null
     createdAt: Date | null
     deletedAt: Date | null
     updatedAt: Date | null
@@ -1056,6 +1363,7 @@ export namespace Prisma {
     avatarUrl: string | null
     verificationOtp: string | null
     otpExpiry: Date | null
+    twoFactorEnabled: boolean | null
     createdAt: Date | null
     deletedAt: Date | null
     updatedAt: Date | null
@@ -1076,6 +1384,7 @@ export namespace Prisma {
     avatarUrl: number
     verificationOtp: number
     otpExpiry: number
+    twoFactorEnabled: number
     createdAt: number
     deletedAt: number
     updatedAt: number
@@ -1096,6 +1405,7 @@ export namespace Prisma {
     avatarUrl?: true
     verificationOtp?: true
     otpExpiry?: true
+    twoFactorEnabled?: true
     createdAt?: true
     deletedAt?: true
     updatedAt?: true
@@ -1114,6 +1424,7 @@ export namespace Prisma {
     avatarUrl?: true
     verificationOtp?: true
     otpExpiry?: true
+    twoFactorEnabled?: true
     createdAt?: true
     deletedAt?: true
     updatedAt?: true
@@ -1134,6 +1445,7 @@ export namespace Prisma {
     avatarUrl?: true
     verificationOtp?: true
     otpExpiry?: true
+    twoFactorEnabled?: true
     createdAt?: true
     deletedAt?: true
     updatedAt?: true
@@ -1227,6 +1539,7 @@ export namespace Prisma {
     avatarUrl: string | null
     verificationOtp: string | null
     otpExpiry: Date | null
+    twoFactorEnabled: boolean
     createdAt: Date
     deletedAt: Date | null
     updatedAt: Date
@@ -1264,9 +1577,14 @@ export namespace Prisma {
     avatarUrl?: boolean
     verificationOtp?: boolean
     otpExpiry?: boolean
+    twoFactorEnabled?: boolean
     createdAt?: boolean
     deletedAt?: boolean
     updatedAt?: boolean
+    twoFADevices?: boolean | User$twoFADevicesArgs<ExtArgs>
+    backupCodes?: boolean | User$backupCodesArgs<ExtArgs>
+    accessTokens?: boolean | User$accessTokensArgs<ExtArgs>
+    _count?: boolean | UserCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["user"]>
 
   export type UserSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
@@ -1284,6 +1602,7 @@ export namespace Prisma {
     avatarUrl?: boolean
     verificationOtp?: boolean
     otpExpiry?: boolean
+    twoFactorEnabled?: boolean
     createdAt?: boolean
     deletedAt?: boolean
     updatedAt?: boolean
@@ -1304,15 +1623,27 @@ export namespace Prisma {
     avatarUrl?: boolean
     verificationOtp?: boolean
     otpExpiry?: boolean
+    twoFactorEnabled?: boolean
     createdAt?: boolean
     deletedAt?: boolean
     updatedAt?: boolean
   }
 
+  export type UserInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    twoFADevices?: boolean | User$twoFADevicesArgs<ExtArgs>
+    backupCodes?: boolean | User$backupCodesArgs<ExtArgs>
+    accessTokens?: boolean | User$accessTokensArgs<ExtArgs>
+    _count?: boolean | UserCountOutputTypeDefaultArgs<ExtArgs>
+  }
+  export type UserIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {}
 
   export type $UserPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     name: "User"
-    objects: {}
+    objects: {
+      twoFADevices: Prisma.$TwoFADevicePayload<ExtArgs>[]
+      backupCodes: Prisma.$BackupCodePayload<ExtArgs>[]
+      accessTokens: Prisma.$AccessTokenPayload<ExtArgs>[]
+    }
     scalars: $Extensions.GetPayloadResult<{
       id: string
       name: string
@@ -1328,6 +1659,7 @@ export namespace Prisma {
       avatarUrl: string | null
       verificationOtp: string | null
       otpExpiry: Date | null
+      twoFactorEnabled: boolean
       createdAt: Date
       deletedAt: Date | null
       updatedAt: Date
@@ -1695,6 +2027,9 @@ export namespace Prisma {
    */
   export interface Prisma__UserClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
     readonly [Symbol.toStringTag]: "PrismaPromise"
+    twoFADevices<T extends User$twoFADevicesArgs<ExtArgs> = {}>(args?: Subset<T, User$twoFADevicesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$TwoFADevicePayload<ExtArgs>, T, "findMany"> | Null>
+    backupCodes<T extends User$backupCodesArgs<ExtArgs> = {}>(args?: Subset<T, User$backupCodesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$BackupCodePayload<ExtArgs>, T, "findMany"> | Null>
+    accessTokens<T extends User$accessTokensArgs<ExtArgs> = {}>(args?: Subset<T, User$accessTokensArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AccessTokenPayload<ExtArgs>, T, "findMany"> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1738,6 +2073,7 @@ export namespace Prisma {
     readonly avatarUrl: FieldRef<"User", 'String'>
     readonly verificationOtp: FieldRef<"User", 'String'>
     readonly otpExpiry: FieldRef<"User", 'DateTime'>
+    readonly twoFactorEnabled: FieldRef<"User", 'Boolean'>
     readonly createdAt: FieldRef<"User", 'DateTime'>
     readonly deletedAt: FieldRef<"User", 'DateTime'>
     readonly updatedAt: FieldRef<"User", 'DateTime'>
@@ -1754,6 +2090,10 @@ export namespace Prisma {
      */
     select?: UserSelect<ExtArgs> | null
     /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserInclude<ExtArgs> | null
+    /**
      * Filter, which User to fetch.
      */
     where: UserWhereUniqueInput
@@ -1768,6 +2108,10 @@ export namespace Prisma {
      */
     select?: UserSelect<ExtArgs> | null
     /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserInclude<ExtArgs> | null
+    /**
      * Filter, which User to fetch.
      */
     where: UserWhereUniqueInput
@@ -1781,6 +2125,10 @@ export namespace Prisma {
      * Select specific fields to fetch from the User
      */
     select?: UserSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserInclude<ExtArgs> | null
     /**
      * Filter, which User to fetch.
      */
@@ -1826,6 +2174,10 @@ export namespace Prisma {
      */
     select?: UserSelect<ExtArgs> | null
     /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserInclude<ExtArgs> | null
+    /**
      * Filter, which User to fetch.
      */
     where?: UserWhereInput
@@ -1870,6 +2222,10 @@ export namespace Prisma {
      */
     select?: UserSelect<ExtArgs> | null
     /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserInclude<ExtArgs> | null
+    /**
      * Filter, which Users to fetch.
      */
     where?: UserWhereInput
@@ -1908,6 +2264,10 @@ export namespace Prisma {
      * Select specific fields to fetch from the User
      */
     select?: UserSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserInclude<ExtArgs> | null
     /**
      * The data needed to create a User.
      */
@@ -1949,6 +2309,10 @@ export namespace Prisma {
      */
     select?: UserSelect<ExtArgs> | null
     /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserInclude<ExtArgs> | null
+    /**
      * The data needed to update a User.
      */
     data: XOR<UserUpdateInput, UserUncheckedUpdateInput>
@@ -1981,6 +2345,10 @@ export namespace Prisma {
      */
     select?: UserSelect<ExtArgs> | null
     /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserInclude<ExtArgs> | null
+    /**
      * The filter to search for the User to update in case it exists.
      */
     where: UserWhereUniqueInput
@@ -2003,6 +2371,10 @@ export namespace Prisma {
      */
     select?: UserSelect<ExtArgs> | null
     /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserInclude<ExtArgs> | null
+    /**
      * Filter which User to delete.
      */
     where: UserWhereUniqueInput
@@ -2019,6 +2391,66 @@ export namespace Prisma {
   }
 
   /**
+   * User.twoFADevices
+   */
+  export type User$twoFADevicesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the TwoFADevice
+     */
+    select?: TwoFADeviceSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TwoFADeviceInclude<ExtArgs> | null
+    where?: TwoFADeviceWhereInput
+    orderBy?: TwoFADeviceOrderByWithRelationInput | TwoFADeviceOrderByWithRelationInput[]
+    cursor?: TwoFADeviceWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: TwoFADeviceScalarFieldEnum | TwoFADeviceScalarFieldEnum[]
+  }
+
+  /**
+   * User.backupCodes
+   */
+  export type User$backupCodesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BackupCode
+     */
+    select?: BackupCodeSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BackupCodeInclude<ExtArgs> | null
+    where?: BackupCodeWhereInput
+    orderBy?: BackupCodeOrderByWithRelationInput | BackupCodeOrderByWithRelationInput[]
+    cursor?: BackupCodeWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: BackupCodeScalarFieldEnum | BackupCodeScalarFieldEnum[]
+  }
+
+  /**
+   * User.accessTokens
+   */
+  export type User$accessTokensArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AccessToken
+     */
+    select?: AccessTokenSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AccessTokenInclude<ExtArgs> | null
+    where?: AccessTokenWhereInput
+    orderBy?: AccessTokenOrderByWithRelationInput | AccessTokenOrderByWithRelationInput[]
+    cursor?: AccessTokenWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: AccessTokenScalarFieldEnum | AccessTokenScalarFieldEnum[]
+  }
+
+  /**
    * User without action
    */
   export type UserDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -2026,6 +2458,10 @@ export namespace Prisma {
      * Select specific fields to fetch from the User
      */
     select?: UserSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserInclude<ExtArgs> | null
   }
 
 
@@ -3782,6 +4218,2937 @@ export namespace Prisma {
 
 
   /**
+   * Model TwoFADevice
+   */
+
+  export type AggregateTwoFADevice = {
+    _count: TwoFADeviceCountAggregateOutputType | null
+    _min: TwoFADeviceMinAggregateOutputType | null
+    _max: TwoFADeviceMaxAggregateOutputType | null
+  }
+
+  export type TwoFADeviceMinAggregateOutputType = {
+    id: string | null
+    userId: string | null
+    type: string | null
+    name: string | null
+    secret: string | null
+    isDefault: boolean | null
+    confirmed: boolean | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type TwoFADeviceMaxAggregateOutputType = {
+    id: string | null
+    userId: string | null
+    type: string | null
+    name: string | null
+    secret: string | null
+    isDefault: boolean | null
+    confirmed: boolean | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type TwoFADeviceCountAggregateOutputType = {
+    id: number
+    userId: number
+    type: number
+    name: number
+    secret: number
+    isDefault: number
+    confirmed: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type TwoFADeviceMinAggregateInputType = {
+    id?: true
+    userId?: true
+    type?: true
+    name?: true
+    secret?: true
+    isDefault?: true
+    confirmed?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type TwoFADeviceMaxAggregateInputType = {
+    id?: true
+    userId?: true
+    type?: true
+    name?: true
+    secret?: true
+    isDefault?: true
+    confirmed?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type TwoFADeviceCountAggregateInputType = {
+    id?: true
+    userId?: true
+    type?: true
+    name?: true
+    secret?: true
+    isDefault?: true
+    confirmed?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type TwoFADeviceAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which TwoFADevice to aggregate.
+     */
+    where?: TwoFADeviceWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of TwoFADevices to fetch.
+     */
+    orderBy?: TwoFADeviceOrderByWithRelationInput | TwoFADeviceOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: TwoFADeviceWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` TwoFADevices from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` TwoFADevices.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned TwoFADevices
+    **/
+    _count?: true | TwoFADeviceCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: TwoFADeviceMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: TwoFADeviceMaxAggregateInputType
+  }
+
+  export type GetTwoFADeviceAggregateType<T extends TwoFADeviceAggregateArgs> = {
+        [P in keyof T & keyof AggregateTwoFADevice]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateTwoFADevice[P]>
+      : GetScalarType<T[P], AggregateTwoFADevice[P]>
+  }
+
+
+
+
+  export type TwoFADeviceGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: TwoFADeviceWhereInput
+    orderBy?: TwoFADeviceOrderByWithAggregationInput | TwoFADeviceOrderByWithAggregationInput[]
+    by: TwoFADeviceScalarFieldEnum[] | TwoFADeviceScalarFieldEnum
+    having?: TwoFADeviceScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: TwoFADeviceCountAggregateInputType | true
+    _min?: TwoFADeviceMinAggregateInputType
+    _max?: TwoFADeviceMaxAggregateInputType
+  }
+
+  export type TwoFADeviceGroupByOutputType = {
+    id: string
+    userId: string
+    type: string
+    name: string
+    secret: string
+    isDefault: boolean
+    confirmed: boolean
+    createdAt: Date
+    updatedAt: Date
+    _count: TwoFADeviceCountAggregateOutputType | null
+    _min: TwoFADeviceMinAggregateOutputType | null
+    _max: TwoFADeviceMaxAggregateOutputType | null
+  }
+
+  type GetTwoFADeviceGroupByPayload<T extends TwoFADeviceGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<TwoFADeviceGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof TwoFADeviceGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], TwoFADeviceGroupByOutputType[P]>
+            : GetScalarType<T[P], TwoFADeviceGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type TwoFADeviceSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    userId?: boolean
+    type?: boolean
+    name?: boolean
+    secret?: boolean
+    isDefault?: boolean
+    confirmed?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["twoFADevice"]>
+
+  export type TwoFADeviceSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    userId?: boolean
+    type?: boolean
+    name?: boolean
+    secret?: boolean
+    isDefault?: boolean
+    confirmed?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["twoFADevice"]>
+
+  export type TwoFADeviceSelectScalar = {
+    id?: boolean
+    userId?: boolean
+    type?: boolean
+    name?: boolean
+    secret?: boolean
+    isDefault?: boolean
+    confirmed?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+  export type TwoFADeviceInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }
+  export type TwoFADeviceIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }
+
+  export type $TwoFADevicePayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "TwoFADevice"
+    objects: {
+      user: Prisma.$UserPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      userId: string
+      type: string
+      name: string
+      secret: string
+      isDefault: boolean
+      confirmed: boolean
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["twoFADevice"]>
+    composites: {}
+  }
+
+  type TwoFADeviceGetPayload<S extends boolean | null | undefined | TwoFADeviceDefaultArgs> = $Result.GetResult<Prisma.$TwoFADevicePayload, S>
+
+  type TwoFADeviceCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+    Omit<TwoFADeviceFindManyArgs, 'select' | 'include' | 'distinct'> & {
+      select?: TwoFADeviceCountAggregateInputType | true
+    }
+
+  export interface TwoFADeviceDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['TwoFADevice'], meta: { name: 'TwoFADevice' } }
+    /**
+     * Find zero or one TwoFADevice that matches the filter.
+     * @param {TwoFADeviceFindUniqueArgs} args - Arguments to find a TwoFADevice
+     * @example
+     * // Get one TwoFADevice
+     * const twoFADevice = await prisma.twoFADevice.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends TwoFADeviceFindUniqueArgs>(args: SelectSubset<T, TwoFADeviceFindUniqueArgs<ExtArgs>>): Prisma__TwoFADeviceClient<$Result.GetResult<Prisma.$TwoFADevicePayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
+
+    /**
+     * Find one TwoFADevice that matches the filter or throw an error with `error.code='P2025'` 
+     * if no matches were found.
+     * @param {TwoFADeviceFindUniqueOrThrowArgs} args - Arguments to find a TwoFADevice
+     * @example
+     * // Get one TwoFADevice
+     * const twoFADevice = await prisma.twoFADevice.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends TwoFADeviceFindUniqueOrThrowArgs>(args: SelectSubset<T, TwoFADeviceFindUniqueOrThrowArgs<ExtArgs>>): Prisma__TwoFADeviceClient<$Result.GetResult<Prisma.$TwoFADevicePayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
+
+    /**
+     * Find the first TwoFADevice that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {TwoFADeviceFindFirstArgs} args - Arguments to find a TwoFADevice
+     * @example
+     * // Get one TwoFADevice
+     * const twoFADevice = await prisma.twoFADevice.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends TwoFADeviceFindFirstArgs>(args?: SelectSubset<T, TwoFADeviceFindFirstArgs<ExtArgs>>): Prisma__TwoFADeviceClient<$Result.GetResult<Prisma.$TwoFADevicePayload<ExtArgs>, T, "findFirst"> | null, null, ExtArgs>
+
+    /**
+     * Find the first TwoFADevice that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {TwoFADeviceFindFirstOrThrowArgs} args - Arguments to find a TwoFADevice
+     * @example
+     * // Get one TwoFADevice
+     * const twoFADevice = await prisma.twoFADevice.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends TwoFADeviceFindFirstOrThrowArgs>(args?: SelectSubset<T, TwoFADeviceFindFirstOrThrowArgs<ExtArgs>>): Prisma__TwoFADeviceClient<$Result.GetResult<Prisma.$TwoFADevicePayload<ExtArgs>, T, "findFirstOrThrow">, never, ExtArgs>
+
+    /**
+     * Find zero or more TwoFADevices that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {TwoFADeviceFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all TwoFADevices
+     * const twoFADevices = await prisma.twoFADevice.findMany()
+     * 
+     * // Get first 10 TwoFADevices
+     * const twoFADevices = await prisma.twoFADevice.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const twoFADeviceWithIdOnly = await prisma.twoFADevice.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends TwoFADeviceFindManyArgs>(args?: SelectSubset<T, TwoFADeviceFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$TwoFADevicePayload<ExtArgs>, T, "findMany">>
+
+    /**
+     * Create a TwoFADevice.
+     * @param {TwoFADeviceCreateArgs} args - Arguments to create a TwoFADevice.
+     * @example
+     * // Create one TwoFADevice
+     * const TwoFADevice = await prisma.twoFADevice.create({
+     *   data: {
+     *     // ... data to create a TwoFADevice
+     *   }
+     * })
+     * 
+     */
+    create<T extends TwoFADeviceCreateArgs>(args: SelectSubset<T, TwoFADeviceCreateArgs<ExtArgs>>): Prisma__TwoFADeviceClient<$Result.GetResult<Prisma.$TwoFADevicePayload<ExtArgs>, T, "create">, never, ExtArgs>
+
+    /**
+     * Create many TwoFADevices.
+     * @param {TwoFADeviceCreateManyArgs} args - Arguments to create many TwoFADevices.
+     * @example
+     * // Create many TwoFADevices
+     * const twoFADevice = await prisma.twoFADevice.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends TwoFADeviceCreateManyArgs>(args?: SelectSubset<T, TwoFADeviceCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many TwoFADevices and returns the data saved in the database.
+     * @param {TwoFADeviceCreateManyAndReturnArgs} args - Arguments to create many TwoFADevices.
+     * @example
+     * // Create many TwoFADevices
+     * const twoFADevice = await prisma.twoFADevice.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many TwoFADevices and only return the `id`
+     * const twoFADeviceWithIdOnly = await prisma.twoFADevice.createManyAndReturn({ 
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends TwoFADeviceCreateManyAndReturnArgs>(args?: SelectSubset<T, TwoFADeviceCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$TwoFADevicePayload<ExtArgs>, T, "createManyAndReturn">>
+
+    /**
+     * Delete a TwoFADevice.
+     * @param {TwoFADeviceDeleteArgs} args - Arguments to delete one TwoFADevice.
+     * @example
+     * // Delete one TwoFADevice
+     * const TwoFADevice = await prisma.twoFADevice.delete({
+     *   where: {
+     *     // ... filter to delete one TwoFADevice
+     *   }
+     * })
+     * 
+     */
+    delete<T extends TwoFADeviceDeleteArgs>(args: SelectSubset<T, TwoFADeviceDeleteArgs<ExtArgs>>): Prisma__TwoFADeviceClient<$Result.GetResult<Prisma.$TwoFADevicePayload<ExtArgs>, T, "delete">, never, ExtArgs>
+
+    /**
+     * Update one TwoFADevice.
+     * @param {TwoFADeviceUpdateArgs} args - Arguments to update one TwoFADevice.
+     * @example
+     * // Update one TwoFADevice
+     * const twoFADevice = await prisma.twoFADevice.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends TwoFADeviceUpdateArgs>(args: SelectSubset<T, TwoFADeviceUpdateArgs<ExtArgs>>): Prisma__TwoFADeviceClient<$Result.GetResult<Prisma.$TwoFADevicePayload<ExtArgs>, T, "update">, never, ExtArgs>
+
+    /**
+     * Delete zero or more TwoFADevices.
+     * @param {TwoFADeviceDeleteManyArgs} args - Arguments to filter TwoFADevices to delete.
+     * @example
+     * // Delete a few TwoFADevices
+     * const { count } = await prisma.twoFADevice.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends TwoFADeviceDeleteManyArgs>(args?: SelectSubset<T, TwoFADeviceDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more TwoFADevices.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {TwoFADeviceUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many TwoFADevices
+     * const twoFADevice = await prisma.twoFADevice.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends TwoFADeviceUpdateManyArgs>(args: SelectSubset<T, TwoFADeviceUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create or update one TwoFADevice.
+     * @param {TwoFADeviceUpsertArgs} args - Arguments to update or create a TwoFADevice.
+     * @example
+     * // Update or create a TwoFADevice
+     * const twoFADevice = await prisma.twoFADevice.upsert({
+     *   create: {
+     *     // ... data to create a TwoFADevice
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the TwoFADevice we want to update
+     *   }
+     * })
+     */
+    upsert<T extends TwoFADeviceUpsertArgs>(args: SelectSubset<T, TwoFADeviceUpsertArgs<ExtArgs>>): Prisma__TwoFADeviceClient<$Result.GetResult<Prisma.$TwoFADevicePayload<ExtArgs>, T, "upsert">, never, ExtArgs>
+
+
+    /**
+     * Count the number of TwoFADevices.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {TwoFADeviceCountArgs} args - Arguments to filter TwoFADevices to count.
+     * @example
+     * // Count the number of TwoFADevices
+     * const count = await prisma.twoFADevice.count({
+     *   where: {
+     *     // ... the filter for the TwoFADevices we want to count
+     *   }
+     * })
+    **/
+    count<T extends TwoFADeviceCountArgs>(
+      args?: Subset<T, TwoFADeviceCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], TwoFADeviceCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a TwoFADevice.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {TwoFADeviceAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends TwoFADeviceAggregateArgs>(args: Subset<T, TwoFADeviceAggregateArgs>): Prisma.PrismaPromise<GetTwoFADeviceAggregateType<T>>
+
+    /**
+     * Group by TwoFADevice.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {TwoFADeviceGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends TwoFADeviceGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: TwoFADeviceGroupByArgs['orderBy'] }
+        : { orderBy?: TwoFADeviceGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, TwoFADeviceGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetTwoFADeviceGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the TwoFADevice model
+   */
+  readonly fields: TwoFADeviceFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for TwoFADevice.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__TwoFADeviceClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    user<T extends UserDefaultArgs<ExtArgs> = {}>(args?: Subset<T, UserDefaultArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the TwoFADevice model
+   */ 
+  interface TwoFADeviceFieldRefs {
+    readonly id: FieldRef<"TwoFADevice", 'String'>
+    readonly userId: FieldRef<"TwoFADevice", 'String'>
+    readonly type: FieldRef<"TwoFADevice", 'String'>
+    readonly name: FieldRef<"TwoFADevice", 'String'>
+    readonly secret: FieldRef<"TwoFADevice", 'String'>
+    readonly isDefault: FieldRef<"TwoFADevice", 'Boolean'>
+    readonly confirmed: FieldRef<"TwoFADevice", 'Boolean'>
+    readonly createdAt: FieldRef<"TwoFADevice", 'DateTime'>
+    readonly updatedAt: FieldRef<"TwoFADevice", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * TwoFADevice findUnique
+   */
+  export type TwoFADeviceFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the TwoFADevice
+     */
+    select?: TwoFADeviceSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TwoFADeviceInclude<ExtArgs> | null
+    /**
+     * Filter, which TwoFADevice to fetch.
+     */
+    where: TwoFADeviceWhereUniqueInput
+  }
+
+  /**
+   * TwoFADevice findUniqueOrThrow
+   */
+  export type TwoFADeviceFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the TwoFADevice
+     */
+    select?: TwoFADeviceSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TwoFADeviceInclude<ExtArgs> | null
+    /**
+     * Filter, which TwoFADevice to fetch.
+     */
+    where: TwoFADeviceWhereUniqueInput
+  }
+
+  /**
+   * TwoFADevice findFirst
+   */
+  export type TwoFADeviceFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the TwoFADevice
+     */
+    select?: TwoFADeviceSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TwoFADeviceInclude<ExtArgs> | null
+    /**
+     * Filter, which TwoFADevice to fetch.
+     */
+    where?: TwoFADeviceWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of TwoFADevices to fetch.
+     */
+    orderBy?: TwoFADeviceOrderByWithRelationInput | TwoFADeviceOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for TwoFADevices.
+     */
+    cursor?: TwoFADeviceWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` TwoFADevices from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` TwoFADevices.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of TwoFADevices.
+     */
+    distinct?: TwoFADeviceScalarFieldEnum | TwoFADeviceScalarFieldEnum[]
+  }
+
+  /**
+   * TwoFADevice findFirstOrThrow
+   */
+  export type TwoFADeviceFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the TwoFADevice
+     */
+    select?: TwoFADeviceSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TwoFADeviceInclude<ExtArgs> | null
+    /**
+     * Filter, which TwoFADevice to fetch.
+     */
+    where?: TwoFADeviceWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of TwoFADevices to fetch.
+     */
+    orderBy?: TwoFADeviceOrderByWithRelationInput | TwoFADeviceOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for TwoFADevices.
+     */
+    cursor?: TwoFADeviceWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` TwoFADevices from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` TwoFADevices.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of TwoFADevices.
+     */
+    distinct?: TwoFADeviceScalarFieldEnum | TwoFADeviceScalarFieldEnum[]
+  }
+
+  /**
+   * TwoFADevice findMany
+   */
+  export type TwoFADeviceFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the TwoFADevice
+     */
+    select?: TwoFADeviceSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TwoFADeviceInclude<ExtArgs> | null
+    /**
+     * Filter, which TwoFADevices to fetch.
+     */
+    where?: TwoFADeviceWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of TwoFADevices to fetch.
+     */
+    orderBy?: TwoFADeviceOrderByWithRelationInput | TwoFADeviceOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing TwoFADevices.
+     */
+    cursor?: TwoFADeviceWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` TwoFADevices from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` TwoFADevices.
+     */
+    skip?: number
+    distinct?: TwoFADeviceScalarFieldEnum | TwoFADeviceScalarFieldEnum[]
+  }
+
+  /**
+   * TwoFADevice create
+   */
+  export type TwoFADeviceCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the TwoFADevice
+     */
+    select?: TwoFADeviceSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TwoFADeviceInclude<ExtArgs> | null
+    /**
+     * The data needed to create a TwoFADevice.
+     */
+    data: XOR<TwoFADeviceCreateInput, TwoFADeviceUncheckedCreateInput>
+  }
+
+  /**
+   * TwoFADevice createMany
+   */
+  export type TwoFADeviceCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many TwoFADevices.
+     */
+    data: TwoFADeviceCreateManyInput | TwoFADeviceCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * TwoFADevice createManyAndReturn
+   */
+  export type TwoFADeviceCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the TwoFADevice
+     */
+    select?: TwoFADeviceSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * The data used to create many TwoFADevices.
+     */
+    data: TwoFADeviceCreateManyInput | TwoFADeviceCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TwoFADeviceIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * TwoFADevice update
+   */
+  export type TwoFADeviceUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the TwoFADevice
+     */
+    select?: TwoFADeviceSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TwoFADeviceInclude<ExtArgs> | null
+    /**
+     * The data needed to update a TwoFADevice.
+     */
+    data: XOR<TwoFADeviceUpdateInput, TwoFADeviceUncheckedUpdateInput>
+    /**
+     * Choose, which TwoFADevice to update.
+     */
+    where: TwoFADeviceWhereUniqueInput
+  }
+
+  /**
+   * TwoFADevice updateMany
+   */
+  export type TwoFADeviceUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update TwoFADevices.
+     */
+    data: XOR<TwoFADeviceUpdateManyMutationInput, TwoFADeviceUncheckedUpdateManyInput>
+    /**
+     * Filter which TwoFADevices to update
+     */
+    where?: TwoFADeviceWhereInput
+  }
+
+  /**
+   * TwoFADevice upsert
+   */
+  export type TwoFADeviceUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the TwoFADevice
+     */
+    select?: TwoFADeviceSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TwoFADeviceInclude<ExtArgs> | null
+    /**
+     * The filter to search for the TwoFADevice to update in case it exists.
+     */
+    where: TwoFADeviceWhereUniqueInput
+    /**
+     * In case the TwoFADevice found by the `where` argument doesn't exist, create a new TwoFADevice with this data.
+     */
+    create: XOR<TwoFADeviceCreateInput, TwoFADeviceUncheckedCreateInput>
+    /**
+     * In case the TwoFADevice was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<TwoFADeviceUpdateInput, TwoFADeviceUncheckedUpdateInput>
+  }
+
+  /**
+   * TwoFADevice delete
+   */
+  export type TwoFADeviceDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the TwoFADevice
+     */
+    select?: TwoFADeviceSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TwoFADeviceInclude<ExtArgs> | null
+    /**
+     * Filter which TwoFADevice to delete.
+     */
+    where: TwoFADeviceWhereUniqueInput
+  }
+
+  /**
+   * TwoFADevice deleteMany
+   */
+  export type TwoFADeviceDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which TwoFADevices to delete
+     */
+    where?: TwoFADeviceWhereInput
+  }
+
+  /**
+   * TwoFADevice without action
+   */
+  export type TwoFADeviceDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the TwoFADevice
+     */
+    select?: TwoFADeviceSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TwoFADeviceInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model BackupCode
+   */
+
+  export type AggregateBackupCode = {
+    _count: BackupCodeCountAggregateOutputType | null
+    _min: BackupCodeMinAggregateOutputType | null
+    _max: BackupCodeMaxAggregateOutputType | null
+  }
+
+  export type BackupCodeMinAggregateOutputType = {
+    id: string | null
+    userId: string | null
+    codeHash: string | null
+    used: boolean | null
+    createdAt: Date | null
+  }
+
+  export type BackupCodeMaxAggregateOutputType = {
+    id: string | null
+    userId: string | null
+    codeHash: string | null
+    used: boolean | null
+    createdAt: Date | null
+  }
+
+  export type BackupCodeCountAggregateOutputType = {
+    id: number
+    userId: number
+    codeHash: number
+    used: number
+    createdAt: number
+    _all: number
+  }
+
+
+  export type BackupCodeMinAggregateInputType = {
+    id?: true
+    userId?: true
+    codeHash?: true
+    used?: true
+    createdAt?: true
+  }
+
+  export type BackupCodeMaxAggregateInputType = {
+    id?: true
+    userId?: true
+    codeHash?: true
+    used?: true
+    createdAt?: true
+  }
+
+  export type BackupCodeCountAggregateInputType = {
+    id?: true
+    userId?: true
+    codeHash?: true
+    used?: true
+    createdAt?: true
+    _all?: true
+  }
+
+  export type BackupCodeAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which BackupCode to aggregate.
+     */
+    where?: BackupCodeWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of BackupCodes to fetch.
+     */
+    orderBy?: BackupCodeOrderByWithRelationInput | BackupCodeOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: BackupCodeWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` BackupCodes from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` BackupCodes.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned BackupCodes
+    **/
+    _count?: true | BackupCodeCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: BackupCodeMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: BackupCodeMaxAggregateInputType
+  }
+
+  export type GetBackupCodeAggregateType<T extends BackupCodeAggregateArgs> = {
+        [P in keyof T & keyof AggregateBackupCode]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateBackupCode[P]>
+      : GetScalarType<T[P], AggregateBackupCode[P]>
+  }
+
+
+
+
+  export type BackupCodeGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: BackupCodeWhereInput
+    orderBy?: BackupCodeOrderByWithAggregationInput | BackupCodeOrderByWithAggregationInput[]
+    by: BackupCodeScalarFieldEnum[] | BackupCodeScalarFieldEnum
+    having?: BackupCodeScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: BackupCodeCountAggregateInputType | true
+    _min?: BackupCodeMinAggregateInputType
+    _max?: BackupCodeMaxAggregateInputType
+  }
+
+  export type BackupCodeGroupByOutputType = {
+    id: string
+    userId: string
+    codeHash: string
+    used: boolean
+    createdAt: Date
+    _count: BackupCodeCountAggregateOutputType | null
+    _min: BackupCodeMinAggregateOutputType | null
+    _max: BackupCodeMaxAggregateOutputType | null
+  }
+
+  type GetBackupCodeGroupByPayload<T extends BackupCodeGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<BackupCodeGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof BackupCodeGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], BackupCodeGroupByOutputType[P]>
+            : GetScalarType<T[P], BackupCodeGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type BackupCodeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    userId?: boolean
+    codeHash?: boolean
+    used?: boolean
+    createdAt?: boolean
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["backupCode"]>
+
+  export type BackupCodeSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    userId?: boolean
+    codeHash?: boolean
+    used?: boolean
+    createdAt?: boolean
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["backupCode"]>
+
+  export type BackupCodeSelectScalar = {
+    id?: boolean
+    userId?: boolean
+    codeHash?: boolean
+    used?: boolean
+    createdAt?: boolean
+  }
+
+  export type BackupCodeInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }
+  export type BackupCodeIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }
+
+  export type $BackupCodePayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "BackupCode"
+    objects: {
+      user: Prisma.$UserPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      userId: string
+      codeHash: string
+      used: boolean
+      createdAt: Date
+    }, ExtArgs["result"]["backupCode"]>
+    composites: {}
+  }
+
+  type BackupCodeGetPayload<S extends boolean | null | undefined | BackupCodeDefaultArgs> = $Result.GetResult<Prisma.$BackupCodePayload, S>
+
+  type BackupCodeCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+    Omit<BackupCodeFindManyArgs, 'select' | 'include' | 'distinct'> & {
+      select?: BackupCodeCountAggregateInputType | true
+    }
+
+  export interface BackupCodeDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['BackupCode'], meta: { name: 'BackupCode' } }
+    /**
+     * Find zero or one BackupCode that matches the filter.
+     * @param {BackupCodeFindUniqueArgs} args - Arguments to find a BackupCode
+     * @example
+     * // Get one BackupCode
+     * const backupCode = await prisma.backupCode.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends BackupCodeFindUniqueArgs>(args: SelectSubset<T, BackupCodeFindUniqueArgs<ExtArgs>>): Prisma__BackupCodeClient<$Result.GetResult<Prisma.$BackupCodePayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
+
+    /**
+     * Find one BackupCode that matches the filter or throw an error with `error.code='P2025'` 
+     * if no matches were found.
+     * @param {BackupCodeFindUniqueOrThrowArgs} args - Arguments to find a BackupCode
+     * @example
+     * // Get one BackupCode
+     * const backupCode = await prisma.backupCode.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends BackupCodeFindUniqueOrThrowArgs>(args: SelectSubset<T, BackupCodeFindUniqueOrThrowArgs<ExtArgs>>): Prisma__BackupCodeClient<$Result.GetResult<Prisma.$BackupCodePayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
+
+    /**
+     * Find the first BackupCode that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {BackupCodeFindFirstArgs} args - Arguments to find a BackupCode
+     * @example
+     * // Get one BackupCode
+     * const backupCode = await prisma.backupCode.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends BackupCodeFindFirstArgs>(args?: SelectSubset<T, BackupCodeFindFirstArgs<ExtArgs>>): Prisma__BackupCodeClient<$Result.GetResult<Prisma.$BackupCodePayload<ExtArgs>, T, "findFirst"> | null, null, ExtArgs>
+
+    /**
+     * Find the first BackupCode that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {BackupCodeFindFirstOrThrowArgs} args - Arguments to find a BackupCode
+     * @example
+     * // Get one BackupCode
+     * const backupCode = await prisma.backupCode.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends BackupCodeFindFirstOrThrowArgs>(args?: SelectSubset<T, BackupCodeFindFirstOrThrowArgs<ExtArgs>>): Prisma__BackupCodeClient<$Result.GetResult<Prisma.$BackupCodePayload<ExtArgs>, T, "findFirstOrThrow">, never, ExtArgs>
+
+    /**
+     * Find zero or more BackupCodes that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {BackupCodeFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all BackupCodes
+     * const backupCodes = await prisma.backupCode.findMany()
+     * 
+     * // Get first 10 BackupCodes
+     * const backupCodes = await prisma.backupCode.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const backupCodeWithIdOnly = await prisma.backupCode.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends BackupCodeFindManyArgs>(args?: SelectSubset<T, BackupCodeFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$BackupCodePayload<ExtArgs>, T, "findMany">>
+
+    /**
+     * Create a BackupCode.
+     * @param {BackupCodeCreateArgs} args - Arguments to create a BackupCode.
+     * @example
+     * // Create one BackupCode
+     * const BackupCode = await prisma.backupCode.create({
+     *   data: {
+     *     // ... data to create a BackupCode
+     *   }
+     * })
+     * 
+     */
+    create<T extends BackupCodeCreateArgs>(args: SelectSubset<T, BackupCodeCreateArgs<ExtArgs>>): Prisma__BackupCodeClient<$Result.GetResult<Prisma.$BackupCodePayload<ExtArgs>, T, "create">, never, ExtArgs>
+
+    /**
+     * Create many BackupCodes.
+     * @param {BackupCodeCreateManyArgs} args - Arguments to create many BackupCodes.
+     * @example
+     * // Create many BackupCodes
+     * const backupCode = await prisma.backupCode.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends BackupCodeCreateManyArgs>(args?: SelectSubset<T, BackupCodeCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many BackupCodes and returns the data saved in the database.
+     * @param {BackupCodeCreateManyAndReturnArgs} args - Arguments to create many BackupCodes.
+     * @example
+     * // Create many BackupCodes
+     * const backupCode = await prisma.backupCode.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many BackupCodes and only return the `id`
+     * const backupCodeWithIdOnly = await prisma.backupCode.createManyAndReturn({ 
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends BackupCodeCreateManyAndReturnArgs>(args?: SelectSubset<T, BackupCodeCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$BackupCodePayload<ExtArgs>, T, "createManyAndReturn">>
+
+    /**
+     * Delete a BackupCode.
+     * @param {BackupCodeDeleteArgs} args - Arguments to delete one BackupCode.
+     * @example
+     * // Delete one BackupCode
+     * const BackupCode = await prisma.backupCode.delete({
+     *   where: {
+     *     // ... filter to delete one BackupCode
+     *   }
+     * })
+     * 
+     */
+    delete<T extends BackupCodeDeleteArgs>(args: SelectSubset<T, BackupCodeDeleteArgs<ExtArgs>>): Prisma__BackupCodeClient<$Result.GetResult<Prisma.$BackupCodePayload<ExtArgs>, T, "delete">, never, ExtArgs>
+
+    /**
+     * Update one BackupCode.
+     * @param {BackupCodeUpdateArgs} args - Arguments to update one BackupCode.
+     * @example
+     * // Update one BackupCode
+     * const backupCode = await prisma.backupCode.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends BackupCodeUpdateArgs>(args: SelectSubset<T, BackupCodeUpdateArgs<ExtArgs>>): Prisma__BackupCodeClient<$Result.GetResult<Prisma.$BackupCodePayload<ExtArgs>, T, "update">, never, ExtArgs>
+
+    /**
+     * Delete zero or more BackupCodes.
+     * @param {BackupCodeDeleteManyArgs} args - Arguments to filter BackupCodes to delete.
+     * @example
+     * // Delete a few BackupCodes
+     * const { count } = await prisma.backupCode.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends BackupCodeDeleteManyArgs>(args?: SelectSubset<T, BackupCodeDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more BackupCodes.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {BackupCodeUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many BackupCodes
+     * const backupCode = await prisma.backupCode.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends BackupCodeUpdateManyArgs>(args: SelectSubset<T, BackupCodeUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create or update one BackupCode.
+     * @param {BackupCodeUpsertArgs} args - Arguments to update or create a BackupCode.
+     * @example
+     * // Update or create a BackupCode
+     * const backupCode = await prisma.backupCode.upsert({
+     *   create: {
+     *     // ... data to create a BackupCode
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the BackupCode we want to update
+     *   }
+     * })
+     */
+    upsert<T extends BackupCodeUpsertArgs>(args: SelectSubset<T, BackupCodeUpsertArgs<ExtArgs>>): Prisma__BackupCodeClient<$Result.GetResult<Prisma.$BackupCodePayload<ExtArgs>, T, "upsert">, never, ExtArgs>
+
+
+    /**
+     * Count the number of BackupCodes.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {BackupCodeCountArgs} args - Arguments to filter BackupCodes to count.
+     * @example
+     * // Count the number of BackupCodes
+     * const count = await prisma.backupCode.count({
+     *   where: {
+     *     // ... the filter for the BackupCodes we want to count
+     *   }
+     * })
+    **/
+    count<T extends BackupCodeCountArgs>(
+      args?: Subset<T, BackupCodeCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], BackupCodeCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a BackupCode.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {BackupCodeAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends BackupCodeAggregateArgs>(args: Subset<T, BackupCodeAggregateArgs>): Prisma.PrismaPromise<GetBackupCodeAggregateType<T>>
+
+    /**
+     * Group by BackupCode.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {BackupCodeGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends BackupCodeGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: BackupCodeGroupByArgs['orderBy'] }
+        : { orderBy?: BackupCodeGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, BackupCodeGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetBackupCodeGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the BackupCode model
+   */
+  readonly fields: BackupCodeFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for BackupCode.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__BackupCodeClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    user<T extends UserDefaultArgs<ExtArgs> = {}>(args?: Subset<T, UserDefaultArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the BackupCode model
+   */ 
+  interface BackupCodeFieldRefs {
+    readonly id: FieldRef<"BackupCode", 'String'>
+    readonly userId: FieldRef<"BackupCode", 'String'>
+    readonly codeHash: FieldRef<"BackupCode", 'String'>
+    readonly used: FieldRef<"BackupCode", 'Boolean'>
+    readonly createdAt: FieldRef<"BackupCode", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * BackupCode findUnique
+   */
+  export type BackupCodeFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BackupCode
+     */
+    select?: BackupCodeSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BackupCodeInclude<ExtArgs> | null
+    /**
+     * Filter, which BackupCode to fetch.
+     */
+    where: BackupCodeWhereUniqueInput
+  }
+
+  /**
+   * BackupCode findUniqueOrThrow
+   */
+  export type BackupCodeFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BackupCode
+     */
+    select?: BackupCodeSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BackupCodeInclude<ExtArgs> | null
+    /**
+     * Filter, which BackupCode to fetch.
+     */
+    where: BackupCodeWhereUniqueInput
+  }
+
+  /**
+   * BackupCode findFirst
+   */
+  export type BackupCodeFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BackupCode
+     */
+    select?: BackupCodeSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BackupCodeInclude<ExtArgs> | null
+    /**
+     * Filter, which BackupCode to fetch.
+     */
+    where?: BackupCodeWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of BackupCodes to fetch.
+     */
+    orderBy?: BackupCodeOrderByWithRelationInput | BackupCodeOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for BackupCodes.
+     */
+    cursor?: BackupCodeWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` BackupCodes from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` BackupCodes.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of BackupCodes.
+     */
+    distinct?: BackupCodeScalarFieldEnum | BackupCodeScalarFieldEnum[]
+  }
+
+  /**
+   * BackupCode findFirstOrThrow
+   */
+  export type BackupCodeFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BackupCode
+     */
+    select?: BackupCodeSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BackupCodeInclude<ExtArgs> | null
+    /**
+     * Filter, which BackupCode to fetch.
+     */
+    where?: BackupCodeWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of BackupCodes to fetch.
+     */
+    orderBy?: BackupCodeOrderByWithRelationInput | BackupCodeOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for BackupCodes.
+     */
+    cursor?: BackupCodeWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` BackupCodes from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` BackupCodes.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of BackupCodes.
+     */
+    distinct?: BackupCodeScalarFieldEnum | BackupCodeScalarFieldEnum[]
+  }
+
+  /**
+   * BackupCode findMany
+   */
+  export type BackupCodeFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BackupCode
+     */
+    select?: BackupCodeSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BackupCodeInclude<ExtArgs> | null
+    /**
+     * Filter, which BackupCodes to fetch.
+     */
+    where?: BackupCodeWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of BackupCodes to fetch.
+     */
+    orderBy?: BackupCodeOrderByWithRelationInput | BackupCodeOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing BackupCodes.
+     */
+    cursor?: BackupCodeWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` BackupCodes from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` BackupCodes.
+     */
+    skip?: number
+    distinct?: BackupCodeScalarFieldEnum | BackupCodeScalarFieldEnum[]
+  }
+
+  /**
+   * BackupCode create
+   */
+  export type BackupCodeCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BackupCode
+     */
+    select?: BackupCodeSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BackupCodeInclude<ExtArgs> | null
+    /**
+     * The data needed to create a BackupCode.
+     */
+    data: XOR<BackupCodeCreateInput, BackupCodeUncheckedCreateInput>
+  }
+
+  /**
+   * BackupCode createMany
+   */
+  export type BackupCodeCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many BackupCodes.
+     */
+    data: BackupCodeCreateManyInput | BackupCodeCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * BackupCode createManyAndReturn
+   */
+  export type BackupCodeCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BackupCode
+     */
+    select?: BackupCodeSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * The data used to create many BackupCodes.
+     */
+    data: BackupCodeCreateManyInput | BackupCodeCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BackupCodeIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * BackupCode update
+   */
+  export type BackupCodeUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BackupCode
+     */
+    select?: BackupCodeSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BackupCodeInclude<ExtArgs> | null
+    /**
+     * The data needed to update a BackupCode.
+     */
+    data: XOR<BackupCodeUpdateInput, BackupCodeUncheckedUpdateInput>
+    /**
+     * Choose, which BackupCode to update.
+     */
+    where: BackupCodeWhereUniqueInput
+  }
+
+  /**
+   * BackupCode updateMany
+   */
+  export type BackupCodeUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update BackupCodes.
+     */
+    data: XOR<BackupCodeUpdateManyMutationInput, BackupCodeUncheckedUpdateManyInput>
+    /**
+     * Filter which BackupCodes to update
+     */
+    where?: BackupCodeWhereInput
+  }
+
+  /**
+   * BackupCode upsert
+   */
+  export type BackupCodeUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BackupCode
+     */
+    select?: BackupCodeSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BackupCodeInclude<ExtArgs> | null
+    /**
+     * The filter to search for the BackupCode to update in case it exists.
+     */
+    where: BackupCodeWhereUniqueInput
+    /**
+     * In case the BackupCode found by the `where` argument doesn't exist, create a new BackupCode with this data.
+     */
+    create: XOR<BackupCodeCreateInput, BackupCodeUncheckedCreateInput>
+    /**
+     * In case the BackupCode was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<BackupCodeUpdateInput, BackupCodeUncheckedUpdateInput>
+  }
+
+  /**
+   * BackupCode delete
+   */
+  export type BackupCodeDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BackupCode
+     */
+    select?: BackupCodeSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BackupCodeInclude<ExtArgs> | null
+    /**
+     * Filter which BackupCode to delete.
+     */
+    where: BackupCodeWhereUniqueInput
+  }
+
+  /**
+   * BackupCode deleteMany
+   */
+  export type BackupCodeDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which BackupCodes to delete
+     */
+    where?: BackupCodeWhereInput
+  }
+
+  /**
+   * BackupCode without action
+   */
+  export type BackupCodeDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BackupCode
+     */
+    select?: BackupCodeSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BackupCodeInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model AccessToken
+   */
+
+  export type AggregateAccessToken = {
+    _count: AccessTokenCountAggregateOutputType | null
+    _min: AccessTokenMinAggregateOutputType | null
+    _max: AccessTokenMaxAggregateOutputType | null
+  }
+
+  export type AccessTokenMinAggregateOutputType = {
+    id: string | null
+    userId: string | null
+    type: string | null
+    name: string | null
+    tokenHash: string | null
+    calendar: string | null
+    project: string | null
+    active: boolean | null
+    lastRefreshedAt: Date | null
+    expiresAt: Date | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type AccessTokenMaxAggregateOutputType = {
+    id: string | null
+    userId: string | null
+    type: string | null
+    name: string | null
+    tokenHash: string | null
+    calendar: string | null
+    project: string | null
+    active: boolean | null
+    lastRefreshedAt: Date | null
+    expiresAt: Date | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type AccessTokenCountAggregateOutputType = {
+    id: number
+    userId: number
+    type: number
+    name: number
+    tokenHash: number
+    calendar: number
+    project: number
+    active: number
+    lastRefreshedAt: number
+    expiresAt: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type AccessTokenMinAggregateInputType = {
+    id?: true
+    userId?: true
+    type?: true
+    name?: true
+    tokenHash?: true
+    calendar?: true
+    project?: true
+    active?: true
+    lastRefreshedAt?: true
+    expiresAt?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type AccessTokenMaxAggregateInputType = {
+    id?: true
+    userId?: true
+    type?: true
+    name?: true
+    tokenHash?: true
+    calendar?: true
+    project?: true
+    active?: true
+    lastRefreshedAt?: true
+    expiresAt?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type AccessTokenCountAggregateInputType = {
+    id?: true
+    userId?: true
+    type?: true
+    name?: true
+    tokenHash?: true
+    calendar?: true
+    project?: true
+    active?: true
+    lastRefreshedAt?: true
+    expiresAt?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type AccessTokenAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which AccessToken to aggregate.
+     */
+    where?: AccessTokenWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of AccessTokens to fetch.
+     */
+    orderBy?: AccessTokenOrderByWithRelationInput | AccessTokenOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: AccessTokenWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` AccessTokens from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` AccessTokens.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned AccessTokens
+    **/
+    _count?: true | AccessTokenCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: AccessTokenMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: AccessTokenMaxAggregateInputType
+  }
+
+  export type GetAccessTokenAggregateType<T extends AccessTokenAggregateArgs> = {
+        [P in keyof T & keyof AggregateAccessToken]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateAccessToken[P]>
+      : GetScalarType<T[P], AggregateAccessToken[P]>
+  }
+
+
+
+
+  export type AccessTokenGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: AccessTokenWhereInput
+    orderBy?: AccessTokenOrderByWithAggregationInput | AccessTokenOrderByWithAggregationInput[]
+    by: AccessTokenScalarFieldEnum[] | AccessTokenScalarFieldEnum
+    having?: AccessTokenScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: AccessTokenCountAggregateInputType | true
+    _min?: AccessTokenMinAggregateInputType
+    _max?: AccessTokenMaxAggregateInputType
+  }
+
+  export type AccessTokenGroupByOutputType = {
+    id: string
+    userId: string
+    type: string
+    name: string
+    tokenHash: string
+    calendar: string | null
+    project: string | null
+    active: boolean
+    lastRefreshedAt: Date | null
+    expiresAt: Date | null
+    createdAt: Date
+    updatedAt: Date
+    _count: AccessTokenCountAggregateOutputType | null
+    _min: AccessTokenMinAggregateOutputType | null
+    _max: AccessTokenMaxAggregateOutputType | null
+  }
+
+  type GetAccessTokenGroupByPayload<T extends AccessTokenGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<AccessTokenGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof AccessTokenGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], AccessTokenGroupByOutputType[P]>
+            : GetScalarType<T[P], AccessTokenGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type AccessTokenSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    userId?: boolean
+    type?: boolean
+    name?: boolean
+    tokenHash?: boolean
+    calendar?: boolean
+    project?: boolean
+    active?: boolean
+    lastRefreshedAt?: boolean
+    expiresAt?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["accessToken"]>
+
+  export type AccessTokenSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    userId?: boolean
+    type?: boolean
+    name?: boolean
+    tokenHash?: boolean
+    calendar?: boolean
+    project?: boolean
+    active?: boolean
+    lastRefreshedAt?: boolean
+    expiresAt?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["accessToken"]>
+
+  export type AccessTokenSelectScalar = {
+    id?: boolean
+    userId?: boolean
+    type?: boolean
+    name?: boolean
+    tokenHash?: boolean
+    calendar?: boolean
+    project?: boolean
+    active?: boolean
+    lastRefreshedAt?: boolean
+    expiresAt?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+  export type AccessTokenInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }
+  export type AccessTokenIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }
+
+  export type $AccessTokenPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "AccessToken"
+    objects: {
+      user: Prisma.$UserPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      userId: string
+      type: string
+      name: string
+      tokenHash: string
+      calendar: string | null
+      project: string | null
+      active: boolean
+      lastRefreshedAt: Date | null
+      expiresAt: Date | null
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["accessToken"]>
+    composites: {}
+  }
+
+  type AccessTokenGetPayload<S extends boolean | null | undefined | AccessTokenDefaultArgs> = $Result.GetResult<Prisma.$AccessTokenPayload, S>
+
+  type AccessTokenCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+    Omit<AccessTokenFindManyArgs, 'select' | 'include' | 'distinct'> & {
+      select?: AccessTokenCountAggregateInputType | true
+    }
+
+  export interface AccessTokenDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['AccessToken'], meta: { name: 'AccessToken' } }
+    /**
+     * Find zero or one AccessToken that matches the filter.
+     * @param {AccessTokenFindUniqueArgs} args - Arguments to find a AccessToken
+     * @example
+     * // Get one AccessToken
+     * const accessToken = await prisma.accessToken.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends AccessTokenFindUniqueArgs>(args: SelectSubset<T, AccessTokenFindUniqueArgs<ExtArgs>>): Prisma__AccessTokenClient<$Result.GetResult<Prisma.$AccessTokenPayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
+
+    /**
+     * Find one AccessToken that matches the filter or throw an error with `error.code='P2025'` 
+     * if no matches were found.
+     * @param {AccessTokenFindUniqueOrThrowArgs} args - Arguments to find a AccessToken
+     * @example
+     * // Get one AccessToken
+     * const accessToken = await prisma.accessToken.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends AccessTokenFindUniqueOrThrowArgs>(args: SelectSubset<T, AccessTokenFindUniqueOrThrowArgs<ExtArgs>>): Prisma__AccessTokenClient<$Result.GetResult<Prisma.$AccessTokenPayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
+
+    /**
+     * Find the first AccessToken that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AccessTokenFindFirstArgs} args - Arguments to find a AccessToken
+     * @example
+     * // Get one AccessToken
+     * const accessToken = await prisma.accessToken.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends AccessTokenFindFirstArgs>(args?: SelectSubset<T, AccessTokenFindFirstArgs<ExtArgs>>): Prisma__AccessTokenClient<$Result.GetResult<Prisma.$AccessTokenPayload<ExtArgs>, T, "findFirst"> | null, null, ExtArgs>
+
+    /**
+     * Find the first AccessToken that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AccessTokenFindFirstOrThrowArgs} args - Arguments to find a AccessToken
+     * @example
+     * // Get one AccessToken
+     * const accessToken = await prisma.accessToken.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends AccessTokenFindFirstOrThrowArgs>(args?: SelectSubset<T, AccessTokenFindFirstOrThrowArgs<ExtArgs>>): Prisma__AccessTokenClient<$Result.GetResult<Prisma.$AccessTokenPayload<ExtArgs>, T, "findFirstOrThrow">, never, ExtArgs>
+
+    /**
+     * Find zero or more AccessTokens that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AccessTokenFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all AccessTokens
+     * const accessTokens = await prisma.accessToken.findMany()
+     * 
+     * // Get first 10 AccessTokens
+     * const accessTokens = await prisma.accessToken.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const accessTokenWithIdOnly = await prisma.accessToken.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends AccessTokenFindManyArgs>(args?: SelectSubset<T, AccessTokenFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AccessTokenPayload<ExtArgs>, T, "findMany">>
+
+    /**
+     * Create a AccessToken.
+     * @param {AccessTokenCreateArgs} args - Arguments to create a AccessToken.
+     * @example
+     * // Create one AccessToken
+     * const AccessToken = await prisma.accessToken.create({
+     *   data: {
+     *     // ... data to create a AccessToken
+     *   }
+     * })
+     * 
+     */
+    create<T extends AccessTokenCreateArgs>(args: SelectSubset<T, AccessTokenCreateArgs<ExtArgs>>): Prisma__AccessTokenClient<$Result.GetResult<Prisma.$AccessTokenPayload<ExtArgs>, T, "create">, never, ExtArgs>
+
+    /**
+     * Create many AccessTokens.
+     * @param {AccessTokenCreateManyArgs} args - Arguments to create many AccessTokens.
+     * @example
+     * // Create many AccessTokens
+     * const accessToken = await prisma.accessToken.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends AccessTokenCreateManyArgs>(args?: SelectSubset<T, AccessTokenCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many AccessTokens and returns the data saved in the database.
+     * @param {AccessTokenCreateManyAndReturnArgs} args - Arguments to create many AccessTokens.
+     * @example
+     * // Create many AccessTokens
+     * const accessToken = await prisma.accessToken.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many AccessTokens and only return the `id`
+     * const accessTokenWithIdOnly = await prisma.accessToken.createManyAndReturn({ 
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends AccessTokenCreateManyAndReturnArgs>(args?: SelectSubset<T, AccessTokenCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AccessTokenPayload<ExtArgs>, T, "createManyAndReturn">>
+
+    /**
+     * Delete a AccessToken.
+     * @param {AccessTokenDeleteArgs} args - Arguments to delete one AccessToken.
+     * @example
+     * // Delete one AccessToken
+     * const AccessToken = await prisma.accessToken.delete({
+     *   where: {
+     *     // ... filter to delete one AccessToken
+     *   }
+     * })
+     * 
+     */
+    delete<T extends AccessTokenDeleteArgs>(args: SelectSubset<T, AccessTokenDeleteArgs<ExtArgs>>): Prisma__AccessTokenClient<$Result.GetResult<Prisma.$AccessTokenPayload<ExtArgs>, T, "delete">, never, ExtArgs>
+
+    /**
+     * Update one AccessToken.
+     * @param {AccessTokenUpdateArgs} args - Arguments to update one AccessToken.
+     * @example
+     * // Update one AccessToken
+     * const accessToken = await prisma.accessToken.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends AccessTokenUpdateArgs>(args: SelectSubset<T, AccessTokenUpdateArgs<ExtArgs>>): Prisma__AccessTokenClient<$Result.GetResult<Prisma.$AccessTokenPayload<ExtArgs>, T, "update">, never, ExtArgs>
+
+    /**
+     * Delete zero or more AccessTokens.
+     * @param {AccessTokenDeleteManyArgs} args - Arguments to filter AccessTokens to delete.
+     * @example
+     * // Delete a few AccessTokens
+     * const { count } = await prisma.accessToken.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends AccessTokenDeleteManyArgs>(args?: SelectSubset<T, AccessTokenDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more AccessTokens.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AccessTokenUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many AccessTokens
+     * const accessToken = await prisma.accessToken.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends AccessTokenUpdateManyArgs>(args: SelectSubset<T, AccessTokenUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create or update one AccessToken.
+     * @param {AccessTokenUpsertArgs} args - Arguments to update or create a AccessToken.
+     * @example
+     * // Update or create a AccessToken
+     * const accessToken = await prisma.accessToken.upsert({
+     *   create: {
+     *     // ... data to create a AccessToken
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the AccessToken we want to update
+     *   }
+     * })
+     */
+    upsert<T extends AccessTokenUpsertArgs>(args: SelectSubset<T, AccessTokenUpsertArgs<ExtArgs>>): Prisma__AccessTokenClient<$Result.GetResult<Prisma.$AccessTokenPayload<ExtArgs>, T, "upsert">, never, ExtArgs>
+
+
+    /**
+     * Count the number of AccessTokens.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AccessTokenCountArgs} args - Arguments to filter AccessTokens to count.
+     * @example
+     * // Count the number of AccessTokens
+     * const count = await prisma.accessToken.count({
+     *   where: {
+     *     // ... the filter for the AccessTokens we want to count
+     *   }
+     * })
+    **/
+    count<T extends AccessTokenCountArgs>(
+      args?: Subset<T, AccessTokenCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], AccessTokenCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a AccessToken.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AccessTokenAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends AccessTokenAggregateArgs>(args: Subset<T, AccessTokenAggregateArgs>): Prisma.PrismaPromise<GetAccessTokenAggregateType<T>>
+
+    /**
+     * Group by AccessToken.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AccessTokenGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends AccessTokenGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: AccessTokenGroupByArgs['orderBy'] }
+        : { orderBy?: AccessTokenGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, AccessTokenGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetAccessTokenGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the AccessToken model
+   */
+  readonly fields: AccessTokenFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for AccessToken.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__AccessTokenClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    user<T extends UserDefaultArgs<ExtArgs> = {}>(args?: Subset<T, UserDefaultArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the AccessToken model
+   */ 
+  interface AccessTokenFieldRefs {
+    readonly id: FieldRef<"AccessToken", 'String'>
+    readonly userId: FieldRef<"AccessToken", 'String'>
+    readonly type: FieldRef<"AccessToken", 'String'>
+    readonly name: FieldRef<"AccessToken", 'String'>
+    readonly tokenHash: FieldRef<"AccessToken", 'String'>
+    readonly calendar: FieldRef<"AccessToken", 'String'>
+    readonly project: FieldRef<"AccessToken", 'String'>
+    readonly active: FieldRef<"AccessToken", 'Boolean'>
+    readonly lastRefreshedAt: FieldRef<"AccessToken", 'DateTime'>
+    readonly expiresAt: FieldRef<"AccessToken", 'DateTime'>
+    readonly createdAt: FieldRef<"AccessToken", 'DateTime'>
+    readonly updatedAt: FieldRef<"AccessToken", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * AccessToken findUnique
+   */
+  export type AccessTokenFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AccessToken
+     */
+    select?: AccessTokenSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AccessTokenInclude<ExtArgs> | null
+    /**
+     * Filter, which AccessToken to fetch.
+     */
+    where: AccessTokenWhereUniqueInput
+  }
+
+  /**
+   * AccessToken findUniqueOrThrow
+   */
+  export type AccessTokenFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AccessToken
+     */
+    select?: AccessTokenSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AccessTokenInclude<ExtArgs> | null
+    /**
+     * Filter, which AccessToken to fetch.
+     */
+    where: AccessTokenWhereUniqueInput
+  }
+
+  /**
+   * AccessToken findFirst
+   */
+  export type AccessTokenFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AccessToken
+     */
+    select?: AccessTokenSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AccessTokenInclude<ExtArgs> | null
+    /**
+     * Filter, which AccessToken to fetch.
+     */
+    where?: AccessTokenWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of AccessTokens to fetch.
+     */
+    orderBy?: AccessTokenOrderByWithRelationInput | AccessTokenOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for AccessTokens.
+     */
+    cursor?: AccessTokenWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` AccessTokens from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` AccessTokens.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of AccessTokens.
+     */
+    distinct?: AccessTokenScalarFieldEnum | AccessTokenScalarFieldEnum[]
+  }
+
+  /**
+   * AccessToken findFirstOrThrow
+   */
+  export type AccessTokenFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AccessToken
+     */
+    select?: AccessTokenSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AccessTokenInclude<ExtArgs> | null
+    /**
+     * Filter, which AccessToken to fetch.
+     */
+    where?: AccessTokenWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of AccessTokens to fetch.
+     */
+    orderBy?: AccessTokenOrderByWithRelationInput | AccessTokenOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for AccessTokens.
+     */
+    cursor?: AccessTokenWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` AccessTokens from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` AccessTokens.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of AccessTokens.
+     */
+    distinct?: AccessTokenScalarFieldEnum | AccessTokenScalarFieldEnum[]
+  }
+
+  /**
+   * AccessToken findMany
+   */
+  export type AccessTokenFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AccessToken
+     */
+    select?: AccessTokenSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AccessTokenInclude<ExtArgs> | null
+    /**
+     * Filter, which AccessTokens to fetch.
+     */
+    where?: AccessTokenWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of AccessTokens to fetch.
+     */
+    orderBy?: AccessTokenOrderByWithRelationInput | AccessTokenOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing AccessTokens.
+     */
+    cursor?: AccessTokenWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` AccessTokens from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` AccessTokens.
+     */
+    skip?: number
+    distinct?: AccessTokenScalarFieldEnum | AccessTokenScalarFieldEnum[]
+  }
+
+  /**
+   * AccessToken create
+   */
+  export type AccessTokenCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AccessToken
+     */
+    select?: AccessTokenSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AccessTokenInclude<ExtArgs> | null
+    /**
+     * The data needed to create a AccessToken.
+     */
+    data: XOR<AccessTokenCreateInput, AccessTokenUncheckedCreateInput>
+  }
+
+  /**
+   * AccessToken createMany
+   */
+  export type AccessTokenCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many AccessTokens.
+     */
+    data: AccessTokenCreateManyInput | AccessTokenCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * AccessToken createManyAndReturn
+   */
+  export type AccessTokenCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AccessToken
+     */
+    select?: AccessTokenSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * The data used to create many AccessTokens.
+     */
+    data: AccessTokenCreateManyInput | AccessTokenCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AccessTokenIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * AccessToken update
+   */
+  export type AccessTokenUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AccessToken
+     */
+    select?: AccessTokenSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AccessTokenInclude<ExtArgs> | null
+    /**
+     * The data needed to update a AccessToken.
+     */
+    data: XOR<AccessTokenUpdateInput, AccessTokenUncheckedUpdateInput>
+    /**
+     * Choose, which AccessToken to update.
+     */
+    where: AccessTokenWhereUniqueInput
+  }
+
+  /**
+   * AccessToken updateMany
+   */
+  export type AccessTokenUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update AccessTokens.
+     */
+    data: XOR<AccessTokenUpdateManyMutationInput, AccessTokenUncheckedUpdateManyInput>
+    /**
+     * Filter which AccessTokens to update
+     */
+    where?: AccessTokenWhereInput
+  }
+
+  /**
+   * AccessToken upsert
+   */
+  export type AccessTokenUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AccessToken
+     */
+    select?: AccessTokenSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AccessTokenInclude<ExtArgs> | null
+    /**
+     * The filter to search for the AccessToken to update in case it exists.
+     */
+    where: AccessTokenWhereUniqueInput
+    /**
+     * In case the AccessToken found by the `where` argument doesn't exist, create a new AccessToken with this data.
+     */
+    create: XOR<AccessTokenCreateInput, AccessTokenUncheckedCreateInput>
+    /**
+     * In case the AccessToken was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<AccessTokenUpdateInput, AccessTokenUncheckedUpdateInput>
+  }
+
+  /**
+   * AccessToken delete
+   */
+  export type AccessTokenDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AccessToken
+     */
+    select?: AccessTokenSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AccessTokenInclude<ExtArgs> | null
+    /**
+     * Filter which AccessToken to delete.
+     */
+    where: AccessTokenWhereUniqueInput
+  }
+
+  /**
+   * AccessToken deleteMany
+   */
+  export type AccessTokenDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which AccessTokens to delete
+     */
+    where?: AccessTokenWhereInput
+  }
+
+  /**
+   * AccessToken without action
+   */
+  export type AccessTokenDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AccessToken
+     */
+    select?: AccessTokenSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AccessTokenInclude<ExtArgs> | null
+  }
+
+
+  /**
    * Enums
    */
 
@@ -3810,6 +7177,7 @@ export namespace Prisma {
     avatarUrl: 'avatarUrl',
     verificationOtp: 'verificationOtp',
     otpExpiry: 'otpExpiry',
+    twoFactorEnabled: 'twoFactorEnabled',
     createdAt: 'createdAt',
     deletedAt: 'deletedAt',
     updatedAt: 'updatedAt'
@@ -3838,6 +7206,50 @@ export namespace Prisma {
   };
 
   export type PasswordResetRequestScalarFieldEnum = (typeof PasswordResetRequestScalarFieldEnum)[keyof typeof PasswordResetRequestScalarFieldEnum]
+
+
+  export const TwoFADeviceScalarFieldEnum: {
+    id: 'id',
+    userId: 'userId',
+    type: 'type',
+    name: 'name',
+    secret: 'secret',
+    isDefault: 'isDefault',
+    confirmed: 'confirmed',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type TwoFADeviceScalarFieldEnum = (typeof TwoFADeviceScalarFieldEnum)[keyof typeof TwoFADeviceScalarFieldEnum]
+
+
+  export const BackupCodeScalarFieldEnum: {
+    id: 'id',
+    userId: 'userId',
+    codeHash: 'codeHash',
+    used: 'used',
+    createdAt: 'createdAt'
+  };
+
+  export type BackupCodeScalarFieldEnum = (typeof BackupCodeScalarFieldEnum)[keyof typeof BackupCodeScalarFieldEnum]
+
+
+  export const AccessTokenScalarFieldEnum: {
+    id: 'id',
+    userId: 'userId',
+    type: 'type',
+    name: 'name',
+    tokenHash: 'tokenHash',
+    calendar: 'calendar',
+    project: 'project',
+    active: 'active',
+    lastRefreshedAt: 'lastRefreshedAt',
+    expiresAt: 'expiresAt',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type AccessTokenScalarFieldEnum = (typeof AccessTokenScalarFieldEnum)[keyof typeof AccessTokenScalarFieldEnum]
 
 
   export const SortOrder: {
@@ -3939,9 +7351,13 @@ export namespace Prisma {
     avatarUrl?: StringNullableFilter<"User"> | string | null
     verificationOtp?: StringNullableFilter<"User"> | string | null
     otpExpiry?: DateTimeNullableFilter<"User"> | Date | string | null
+    twoFactorEnabled?: BoolFilter<"User"> | boolean
     createdAt?: DateTimeFilter<"User"> | Date | string
     deletedAt?: DateTimeNullableFilter<"User"> | Date | string | null
     updatedAt?: DateTimeFilter<"User"> | Date | string
+    twoFADevices?: TwoFADeviceListRelationFilter
+    backupCodes?: BackupCodeListRelationFilter
+    accessTokens?: AccessTokenListRelationFilter
   }
 
   export type UserOrderByWithRelationInput = {
@@ -3959,9 +7375,13 @@ export namespace Prisma {
     avatarUrl?: SortOrderInput | SortOrder
     verificationOtp?: SortOrderInput | SortOrder
     otpExpiry?: SortOrderInput | SortOrder
+    twoFactorEnabled?: SortOrder
     createdAt?: SortOrder
     deletedAt?: SortOrderInput | SortOrder
     updatedAt?: SortOrder
+    twoFADevices?: TwoFADeviceOrderByRelationAggregateInput
+    backupCodes?: BackupCodeOrderByRelationAggregateInput
+    accessTokens?: AccessTokenOrderByRelationAggregateInput
   }
 
   export type UserWhereUniqueInput = Prisma.AtLeast<{
@@ -3982,9 +7402,13 @@ export namespace Prisma {
     avatarUrl?: StringNullableFilter<"User"> | string | null
     verificationOtp?: StringNullableFilter<"User"> | string | null
     otpExpiry?: DateTimeNullableFilter<"User"> | Date | string | null
+    twoFactorEnabled?: BoolFilter<"User"> | boolean
     createdAt?: DateTimeFilter<"User"> | Date | string
     deletedAt?: DateTimeNullableFilter<"User"> | Date | string | null
     updatedAt?: DateTimeFilter<"User"> | Date | string
+    twoFADevices?: TwoFADeviceListRelationFilter
+    backupCodes?: BackupCodeListRelationFilter
+    accessTokens?: AccessTokenListRelationFilter
   }, "id" | "email">
 
   export type UserOrderByWithAggregationInput = {
@@ -4002,6 +7426,7 @@ export namespace Prisma {
     avatarUrl?: SortOrderInput | SortOrder
     verificationOtp?: SortOrderInput | SortOrder
     otpExpiry?: SortOrderInput | SortOrder
+    twoFactorEnabled?: SortOrder
     createdAt?: SortOrder
     deletedAt?: SortOrderInput | SortOrder
     updatedAt?: SortOrder
@@ -4028,6 +7453,7 @@ export namespace Prisma {
     avatarUrl?: StringNullableWithAggregatesFilter<"User"> | string | null
     verificationOtp?: StringNullableWithAggregatesFilter<"User"> | string | null
     otpExpiry?: DateTimeNullableWithAggregatesFilter<"User"> | Date | string | null
+    twoFactorEnabled?: BoolWithAggregatesFilter<"User"> | boolean
     createdAt?: DateTimeWithAggregatesFilter<"User"> | Date | string
     deletedAt?: DateTimeNullableWithAggregatesFilter<"User"> | Date | string | null
     updatedAt?: DateTimeWithAggregatesFilter<"User"> | Date | string
@@ -4137,6 +7563,226 @@ export namespace Prisma {
     createdAt?: DateTimeWithAggregatesFilter<"PasswordResetRequest"> | Date | string
   }
 
+  export type TwoFADeviceWhereInput = {
+    AND?: TwoFADeviceWhereInput | TwoFADeviceWhereInput[]
+    OR?: TwoFADeviceWhereInput[]
+    NOT?: TwoFADeviceWhereInput | TwoFADeviceWhereInput[]
+    id?: StringFilter<"TwoFADevice"> | string
+    userId?: StringFilter<"TwoFADevice"> | string
+    type?: StringFilter<"TwoFADevice"> | string
+    name?: StringFilter<"TwoFADevice"> | string
+    secret?: StringFilter<"TwoFADevice"> | string
+    isDefault?: BoolFilter<"TwoFADevice"> | boolean
+    confirmed?: BoolFilter<"TwoFADevice"> | boolean
+    createdAt?: DateTimeFilter<"TwoFADevice"> | Date | string
+    updatedAt?: DateTimeFilter<"TwoFADevice"> | Date | string
+    user?: XOR<UserRelationFilter, UserWhereInput>
+  }
+
+  export type TwoFADeviceOrderByWithRelationInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    type?: SortOrder
+    name?: SortOrder
+    secret?: SortOrder
+    isDefault?: SortOrder
+    confirmed?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    user?: UserOrderByWithRelationInput
+  }
+
+  export type TwoFADeviceWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    AND?: TwoFADeviceWhereInput | TwoFADeviceWhereInput[]
+    OR?: TwoFADeviceWhereInput[]
+    NOT?: TwoFADeviceWhereInput | TwoFADeviceWhereInput[]
+    userId?: StringFilter<"TwoFADevice"> | string
+    type?: StringFilter<"TwoFADevice"> | string
+    name?: StringFilter<"TwoFADevice"> | string
+    secret?: StringFilter<"TwoFADevice"> | string
+    isDefault?: BoolFilter<"TwoFADevice"> | boolean
+    confirmed?: BoolFilter<"TwoFADevice"> | boolean
+    createdAt?: DateTimeFilter<"TwoFADevice"> | Date | string
+    updatedAt?: DateTimeFilter<"TwoFADevice"> | Date | string
+    user?: XOR<UserRelationFilter, UserWhereInput>
+  }, "id">
+
+  export type TwoFADeviceOrderByWithAggregationInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    type?: SortOrder
+    name?: SortOrder
+    secret?: SortOrder
+    isDefault?: SortOrder
+    confirmed?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: TwoFADeviceCountOrderByAggregateInput
+    _max?: TwoFADeviceMaxOrderByAggregateInput
+    _min?: TwoFADeviceMinOrderByAggregateInput
+  }
+
+  export type TwoFADeviceScalarWhereWithAggregatesInput = {
+    AND?: TwoFADeviceScalarWhereWithAggregatesInput | TwoFADeviceScalarWhereWithAggregatesInput[]
+    OR?: TwoFADeviceScalarWhereWithAggregatesInput[]
+    NOT?: TwoFADeviceScalarWhereWithAggregatesInput | TwoFADeviceScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"TwoFADevice"> | string
+    userId?: StringWithAggregatesFilter<"TwoFADevice"> | string
+    type?: StringWithAggregatesFilter<"TwoFADevice"> | string
+    name?: StringWithAggregatesFilter<"TwoFADevice"> | string
+    secret?: StringWithAggregatesFilter<"TwoFADevice"> | string
+    isDefault?: BoolWithAggregatesFilter<"TwoFADevice"> | boolean
+    confirmed?: BoolWithAggregatesFilter<"TwoFADevice"> | boolean
+    createdAt?: DateTimeWithAggregatesFilter<"TwoFADevice"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"TwoFADevice"> | Date | string
+  }
+
+  export type BackupCodeWhereInput = {
+    AND?: BackupCodeWhereInput | BackupCodeWhereInput[]
+    OR?: BackupCodeWhereInput[]
+    NOT?: BackupCodeWhereInput | BackupCodeWhereInput[]
+    id?: StringFilter<"BackupCode"> | string
+    userId?: StringFilter<"BackupCode"> | string
+    codeHash?: StringFilter<"BackupCode"> | string
+    used?: BoolFilter<"BackupCode"> | boolean
+    createdAt?: DateTimeFilter<"BackupCode"> | Date | string
+    user?: XOR<UserRelationFilter, UserWhereInput>
+  }
+
+  export type BackupCodeOrderByWithRelationInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    codeHash?: SortOrder
+    used?: SortOrder
+    createdAt?: SortOrder
+    user?: UserOrderByWithRelationInput
+  }
+
+  export type BackupCodeWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    AND?: BackupCodeWhereInput | BackupCodeWhereInput[]
+    OR?: BackupCodeWhereInput[]
+    NOT?: BackupCodeWhereInput | BackupCodeWhereInput[]
+    userId?: StringFilter<"BackupCode"> | string
+    codeHash?: StringFilter<"BackupCode"> | string
+    used?: BoolFilter<"BackupCode"> | boolean
+    createdAt?: DateTimeFilter<"BackupCode"> | Date | string
+    user?: XOR<UserRelationFilter, UserWhereInput>
+  }, "id">
+
+  export type BackupCodeOrderByWithAggregationInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    codeHash?: SortOrder
+    used?: SortOrder
+    createdAt?: SortOrder
+    _count?: BackupCodeCountOrderByAggregateInput
+    _max?: BackupCodeMaxOrderByAggregateInput
+    _min?: BackupCodeMinOrderByAggregateInput
+  }
+
+  export type BackupCodeScalarWhereWithAggregatesInput = {
+    AND?: BackupCodeScalarWhereWithAggregatesInput | BackupCodeScalarWhereWithAggregatesInput[]
+    OR?: BackupCodeScalarWhereWithAggregatesInput[]
+    NOT?: BackupCodeScalarWhereWithAggregatesInput | BackupCodeScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"BackupCode"> | string
+    userId?: StringWithAggregatesFilter<"BackupCode"> | string
+    codeHash?: StringWithAggregatesFilter<"BackupCode"> | string
+    used?: BoolWithAggregatesFilter<"BackupCode"> | boolean
+    createdAt?: DateTimeWithAggregatesFilter<"BackupCode"> | Date | string
+  }
+
+  export type AccessTokenWhereInput = {
+    AND?: AccessTokenWhereInput | AccessTokenWhereInput[]
+    OR?: AccessTokenWhereInput[]
+    NOT?: AccessTokenWhereInput | AccessTokenWhereInput[]
+    id?: StringFilter<"AccessToken"> | string
+    userId?: StringFilter<"AccessToken"> | string
+    type?: StringFilter<"AccessToken"> | string
+    name?: StringFilter<"AccessToken"> | string
+    tokenHash?: StringFilter<"AccessToken"> | string
+    calendar?: StringNullableFilter<"AccessToken"> | string | null
+    project?: StringNullableFilter<"AccessToken"> | string | null
+    active?: BoolFilter<"AccessToken"> | boolean
+    lastRefreshedAt?: DateTimeNullableFilter<"AccessToken"> | Date | string | null
+    expiresAt?: DateTimeNullableFilter<"AccessToken"> | Date | string | null
+    createdAt?: DateTimeFilter<"AccessToken"> | Date | string
+    updatedAt?: DateTimeFilter<"AccessToken"> | Date | string
+    user?: XOR<UserRelationFilter, UserWhereInput>
+  }
+
+  export type AccessTokenOrderByWithRelationInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    type?: SortOrder
+    name?: SortOrder
+    tokenHash?: SortOrder
+    calendar?: SortOrderInput | SortOrder
+    project?: SortOrderInput | SortOrder
+    active?: SortOrder
+    lastRefreshedAt?: SortOrderInput | SortOrder
+    expiresAt?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    user?: UserOrderByWithRelationInput
+  }
+
+  export type AccessTokenWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    tokenHash?: string
+    AND?: AccessTokenWhereInput | AccessTokenWhereInput[]
+    OR?: AccessTokenWhereInput[]
+    NOT?: AccessTokenWhereInput | AccessTokenWhereInput[]
+    userId?: StringFilter<"AccessToken"> | string
+    type?: StringFilter<"AccessToken"> | string
+    name?: StringFilter<"AccessToken"> | string
+    calendar?: StringNullableFilter<"AccessToken"> | string | null
+    project?: StringNullableFilter<"AccessToken"> | string | null
+    active?: BoolFilter<"AccessToken"> | boolean
+    lastRefreshedAt?: DateTimeNullableFilter<"AccessToken"> | Date | string | null
+    expiresAt?: DateTimeNullableFilter<"AccessToken"> | Date | string | null
+    createdAt?: DateTimeFilter<"AccessToken"> | Date | string
+    updatedAt?: DateTimeFilter<"AccessToken"> | Date | string
+    user?: XOR<UserRelationFilter, UserWhereInput>
+  }, "id" | "tokenHash">
+
+  export type AccessTokenOrderByWithAggregationInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    type?: SortOrder
+    name?: SortOrder
+    tokenHash?: SortOrder
+    calendar?: SortOrderInput | SortOrder
+    project?: SortOrderInput | SortOrder
+    active?: SortOrder
+    lastRefreshedAt?: SortOrderInput | SortOrder
+    expiresAt?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: AccessTokenCountOrderByAggregateInput
+    _max?: AccessTokenMaxOrderByAggregateInput
+    _min?: AccessTokenMinOrderByAggregateInput
+  }
+
+  export type AccessTokenScalarWhereWithAggregatesInput = {
+    AND?: AccessTokenScalarWhereWithAggregatesInput | AccessTokenScalarWhereWithAggregatesInput[]
+    OR?: AccessTokenScalarWhereWithAggregatesInput[]
+    NOT?: AccessTokenScalarWhereWithAggregatesInput | AccessTokenScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"AccessToken"> | string
+    userId?: StringWithAggregatesFilter<"AccessToken"> | string
+    type?: StringWithAggregatesFilter<"AccessToken"> | string
+    name?: StringWithAggregatesFilter<"AccessToken"> | string
+    tokenHash?: StringWithAggregatesFilter<"AccessToken"> | string
+    calendar?: StringNullableWithAggregatesFilter<"AccessToken"> | string | null
+    project?: StringNullableWithAggregatesFilter<"AccessToken"> | string | null
+    active?: BoolWithAggregatesFilter<"AccessToken"> | boolean
+    lastRefreshedAt?: DateTimeNullableWithAggregatesFilter<"AccessToken"> | Date | string | null
+    expiresAt?: DateTimeNullableWithAggregatesFilter<"AccessToken"> | Date | string | null
+    createdAt?: DateTimeWithAggregatesFilter<"AccessToken"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"AccessToken"> | Date | string
+  }
+
   export type UserCreateInput = {
     id?: string
     name: string
@@ -4152,9 +7798,13 @@ export namespace Prisma {
     avatarUrl?: string | null
     verificationOtp?: string | null
     otpExpiry?: Date | string | null
+    twoFactorEnabled?: boolean
     createdAt?: Date | string
     deletedAt?: Date | string | null
     updatedAt?: Date | string
+    twoFADevices?: TwoFADeviceCreateNestedManyWithoutUserInput
+    backupCodes?: BackupCodeCreateNestedManyWithoutUserInput
+    accessTokens?: AccessTokenCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateInput = {
@@ -4172,9 +7822,13 @@ export namespace Prisma {
     avatarUrl?: string | null
     verificationOtp?: string | null
     otpExpiry?: Date | string | null
+    twoFactorEnabled?: boolean
     createdAt?: Date | string
     deletedAt?: Date | string | null
     updatedAt?: Date | string
+    twoFADevices?: TwoFADeviceUncheckedCreateNestedManyWithoutUserInput
+    backupCodes?: BackupCodeUncheckedCreateNestedManyWithoutUserInput
+    accessTokens?: AccessTokenUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserUpdateInput = {
@@ -4192,9 +7846,13 @@ export namespace Prisma {
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     verificationOtp?: NullableStringFieldUpdateOperationsInput | string | null
     otpExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    twoFADevices?: TwoFADeviceUpdateManyWithoutUserNestedInput
+    backupCodes?: BackupCodeUpdateManyWithoutUserNestedInput
+    accessTokens?: AccessTokenUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateInput = {
@@ -4212,9 +7870,13 @@ export namespace Prisma {
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     verificationOtp?: NullableStringFieldUpdateOperationsInput | string | null
     otpExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    twoFADevices?: TwoFADeviceUncheckedUpdateManyWithoutUserNestedInput
+    backupCodes?: BackupCodeUncheckedUpdateManyWithoutUserNestedInput
+    accessTokens?: AccessTokenUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type UserCreateManyInput = {
@@ -4232,6 +7894,7 @@ export namespace Prisma {
     avatarUrl?: string | null
     verificationOtp?: string | null
     otpExpiry?: Date | string | null
+    twoFactorEnabled?: boolean
     createdAt?: Date | string
     deletedAt?: Date | string | null
     updatedAt?: Date | string
@@ -4252,6 +7915,7 @@ export namespace Prisma {
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     verificationOtp?: NullableStringFieldUpdateOperationsInput | string | null
     otpExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -4272,6 +7936,7 @@ export namespace Prisma {
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     verificationOtp?: NullableStringFieldUpdateOperationsInput | string | null
     otpExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -4389,6 +8054,248 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
+  export type TwoFADeviceCreateInput = {
+    id?: string
+    type: string
+    name: string
+    secret: string
+    isDefault?: boolean
+    confirmed?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    user: UserCreateNestedOneWithoutTwoFADevicesInput
+  }
+
+  export type TwoFADeviceUncheckedCreateInput = {
+    id?: string
+    userId: string
+    type: string
+    name: string
+    secret: string
+    isDefault?: boolean
+    confirmed?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type TwoFADeviceUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    type?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    secret?: StringFieldUpdateOperationsInput | string
+    isDefault?: BoolFieldUpdateOperationsInput | boolean
+    confirmed?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    user?: UserUpdateOneRequiredWithoutTwoFADevicesNestedInput
+  }
+
+  export type TwoFADeviceUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    type?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    secret?: StringFieldUpdateOperationsInput | string
+    isDefault?: BoolFieldUpdateOperationsInput | boolean
+    confirmed?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type TwoFADeviceCreateManyInput = {
+    id?: string
+    userId: string
+    type: string
+    name: string
+    secret: string
+    isDefault?: boolean
+    confirmed?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type TwoFADeviceUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    type?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    secret?: StringFieldUpdateOperationsInput | string
+    isDefault?: BoolFieldUpdateOperationsInput | boolean
+    confirmed?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type TwoFADeviceUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    type?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    secret?: StringFieldUpdateOperationsInput | string
+    isDefault?: BoolFieldUpdateOperationsInput | boolean
+    confirmed?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type BackupCodeCreateInput = {
+    id?: string
+    codeHash: string
+    used?: boolean
+    createdAt?: Date | string
+    user: UserCreateNestedOneWithoutBackupCodesInput
+  }
+
+  export type BackupCodeUncheckedCreateInput = {
+    id?: string
+    userId: string
+    codeHash: string
+    used?: boolean
+    createdAt?: Date | string
+  }
+
+  export type BackupCodeUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    codeHash?: StringFieldUpdateOperationsInput | string
+    used?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    user?: UserUpdateOneRequiredWithoutBackupCodesNestedInput
+  }
+
+  export type BackupCodeUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    codeHash?: StringFieldUpdateOperationsInput | string
+    used?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type BackupCodeCreateManyInput = {
+    id?: string
+    userId: string
+    codeHash: string
+    used?: boolean
+    createdAt?: Date | string
+  }
+
+  export type BackupCodeUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    codeHash?: StringFieldUpdateOperationsInput | string
+    used?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type BackupCodeUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    codeHash?: StringFieldUpdateOperationsInput | string
+    used?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type AccessTokenCreateInput = {
+    id?: string
+    type: string
+    name: string
+    tokenHash: string
+    calendar?: string | null
+    project?: string | null
+    active?: boolean
+    lastRefreshedAt?: Date | string | null
+    expiresAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    user: UserCreateNestedOneWithoutAccessTokensInput
+  }
+
+  export type AccessTokenUncheckedCreateInput = {
+    id?: string
+    userId: string
+    type: string
+    name: string
+    tokenHash: string
+    calendar?: string | null
+    project?: string | null
+    active?: boolean
+    lastRefreshedAt?: Date | string | null
+    expiresAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type AccessTokenUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    type?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    tokenHash?: StringFieldUpdateOperationsInput | string
+    calendar?: NullableStringFieldUpdateOperationsInput | string | null
+    project?: NullableStringFieldUpdateOperationsInput | string | null
+    active?: BoolFieldUpdateOperationsInput | boolean
+    lastRefreshedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    user?: UserUpdateOneRequiredWithoutAccessTokensNestedInput
+  }
+
+  export type AccessTokenUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    type?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    tokenHash?: StringFieldUpdateOperationsInput | string
+    calendar?: NullableStringFieldUpdateOperationsInput | string | null
+    project?: NullableStringFieldUpdateOperationsInput | string | null
+    active?: BoolFieldUpdateOperationsInput | boolean
+    lastRefreshedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type AccessTokenCreateManyInput = {
+    id?: string
+    userId: string
+    type: string
+    name: string
+    tokenHash: string
+    calendar?: string | null
+    project?: string | null
+    active?: boolean
+    lastRefreshedAt?: Date | string | null
+    expiresAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type AccessTokenUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    type?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    tokenHash?: StringFieldUpdateOperationsInput | string
+    calendar?: NullableStringFieldUpdateOperationsInput | string | null
+    project?: NullableStringFieldUpdateOperationsInput | string | null
+    active?: BoolFieldUpdateOperationsInput | boolean
+    lastRefreshedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type AccessTokenUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    type?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    tokenHash?: StringFieldUpdateOperationsInput | string
+    calendar?: NullableStringFieldUpdateOperationsInput | string | null
+    project?: NullableStringFieldUpdateOperationsInput | string | null
+    active?: BoolFieldUpdateOperationsInput | boolean
+    lastRefreshedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
   export type StringFilter<$PrismaModel = never> = {
     equals?: string | StringFieldRefInput<$PrismaModel>
     in?: string[] | ListStringFieldRefInput<$PrismaModel>
@@ -4454,9 +8361,39 @@ export namespace Prisma {
     not?: NestedDateTimeFilter<$PrismaModel> | Date | string
   }
 
+  export type TwoFADeviceListRelationFilter = {
+    every?: TwoFADeviceWhereInput
+    some?: TwoFADeviceWhereInput
+    none?: TwoFADeviceWhereInput
+  }
+
+  export type BackupCodeListRelationFilter = {
+    every?: BackupCodeWhereInput
+    some?: BackupCodeWhereInput
+    none?: BackupCodeWhereInput
+  }
+
+  export type AccessTokenListRelationFilter = {
+    every?: AccessTokenWhereInput
+    some?: AccessTokenWhereInput
+    none?: AccessTokenWhereInput
+  }
+
   export type SortOrderInput = {
     sort: SortOrder
     nulls?: NullsOrder
+  }
+
+  export type TwoFADeviceOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type BackupCodeOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type AccessTokenOrderByRelationAggregateInput = {
+    _count?: SortOrder
   }
 
   export type UserCountOrderByAggregateInput = {
@@ -4474,6 +8411,7 @@ export namespace Prisma {
     avatarUrl?: SortOrder
     verificationOtp?: SortOrder
     otpExpiry?: SortOrder
+    twoFactorEnabled?: SortOrder
     createdAt?: SortOrder
     deletedAt?: SortOrder
     updatedAt?: SortOrder
@@ -4492,6 +8430,7 @@ export namespace Prisma {
     avatarUrl?: SortOrder
     verificationOtp?: SortOrder
     otpExpiry?: SortOrder
+    twoFactorEnabled?: SortOrder
     createdAt?: SortOrder
     deletedAt?: SortOrder
     updatedAt?: SortOrder
@@ -4510,6 +8449,7 @@ export namespace Prisma {
     avatarUrl?: SortOrder
     verificationOtp?: SortOrder
     otpExpiry?: SortOrder
+    twoFactorEnabled?: SortOrder
     createdAt?: SortOrder
     deletedAt?: SortOrder
     updatedAt?: SortOrder
@@ -4633,12 +8573,164 @@ export namespace Prisma {
     createdAt?: SortOrder
   }
 
+  export type UserRelationFilter = {
+    is?: UserWhereInput
+    isNot?: UserWhereInput
+  }
+
+  export type TwoFADeviceCountOrderByAggregateInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    type?: SortOrder
+    name?: SortOrder
+    secret?: SortOrder
+    isDefault?: SortOrder
+    confirmed?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type TwoFADeviceMaxOrderByAggregateInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    type?: SortOrder
+    name?: SortOrder
+    secret?: SortOrder
+    isDefault?: SortOrder
+    confirmed?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type TwoFADeviceMinOrderByAggregateInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    type?: SortOrder
+    name?: SortOrder
+    secret?: SortOrder
+    isDefault?: SortOrder
+    confirmed?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type BackupCodeCountOrderByAggregateInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    codeHash?: SortOrder
+    used?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type BackupCodeMaxOrderByAggregateInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    codeHash?: SortOrder
+    used?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type BackupCodeMinOrderByAggregateInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    codeHash?: SortOrder
+    used?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type AccessTokenCountOrderByAggregateInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    type?: SortOrder
+    name?: SortOrder
+    tokenHash?: SortOrder
+    calendar?: SortOrder
+    project?: SortOrder
+    active?: SortOrder
+    lastRefreshedAt?: SortOrder
+    expiresAt?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type AccessTokenMaxOrderByAggregateInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    type?: SortOrder
+    name?: SortOrder
+    tokenHash?: SortOrder
+    calendar?: SortOrder
+    project?: SortOrder
+    active?: SortOrder
+    lastRefreshedAt?: SortOrder
+    expiresAt?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type AccessTokenMinOrderByAggregateInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    type?: SortOrder
+    name?: SortOrder
+    tokenHash?: SortOrder
+    calendar?: SortOrder
+    project?: SortOrder
+    active?: SortOrder
+    lastRefreshedAt?: SortOrder
+    expiresAt?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
   export type UserCreatepermissionsInput = {
     set: string[]
   }
 
   export type UserCreateassignedSubsystemsInput = {
     set: string[]
+  }
+
+  export type TwoFADeviceCreateNestedManyWithoutUserInput = {
+    create?: XOR<TwoFADeviceCreateWithoutUserInput, TwoFADeviceUncheckedCreateWithoutUserInput> | TwoFADeviceCreateWithoutUserInput[] | TwoFADeviceUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: TwoFADeviceCreateOrConnectWithoutUserInput | TwoFADeviceCreateOrConnectWithoutUserInput[]
+    createMany?: TwoFADeviceCreateManyUserInputEnvelope
+    connect?: TwoFADeviceWhereUniqueInput | TwoFADeviceWhereUniqueInput[]
+  }
+
+  export type BackupCodeCreateNestedManyWithoutUserInput = {
+    create?: XOR<BackupCodeCreateWithoutUserInput, BackupCodeUncheckedCreateWithoutUserInput> | BackupCodeCreateWithoutUserInput[] | BackupCodeUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: BackupCodeCreateOrConnectWithoutUserInput | BackupCodeCreateOrConnectWithoutUserInput[]
+    createMany?: BackupCodeCreateManyUserInputEnvelope
+    connect?: BackupCodeWhereUniqueInput | BackupCodeWhereUniqueInput[]
+  }
+
+  export type AccessTokenCreateNestedManyWithoutUserInput = {
+    create?: XOR<AccessTokenCreateWithoutUserInput, AccessTokenUncheckedCreateWithoutUserInput> | AccessTokenCreateWithoutUserInput[] | AccessTokenUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: AccessTokenCreateOrConnectWithoutUserInput | AccessTokenCreateOrConnectWithoutUserInput[]
+    createMany?: AccessTokenCreateManyUserInputEnvelope
+    connect?: AccessTokenWhereUniqueInput | AccessTokenWhereUniqueInput[]
+  }
+
+  export type TwoFADeviceUncheckedCreateNestedManyWithoutUserInput = {
+    create?: XOR<TwoFADeviceCreateWithoutUserInput, TwoFADeviceUncheckedCreateWithoutUserInput> | TwoFADeviceCreateWithoutUserInput[] | TwoFADeviceUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: TwoFADeviceCreateOrConnectWithoutUserInput | TwoFADeviceCreateOrConnectWithoutUserInput[]
+    createMany?: TwoFADeviceCreateManyUserInputEnvelope
+    connect?: TwoFADeviceWhereUniqueInput | TwoFADeviceWhereUniqueInput[]
+  }
+
+  export type BackupCodeUncheckedCreateNestedManyWithoutUserInput = {
+    create?: XOR<BackupCodeCreateWithoutUserInput, BackupCodeUncheckedCreateWithoutUserInput> | BackupCodeCreateWithoutUserInput[] | BackupCodeUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: BackupCodeCreateOrConnectWithoutUserInput | BackupCodeCreateOrConnectWithoutUserInput[]
+    createMany?: BackupCodeCreateManyUserInputEnvelope
+    connect?: BackupCodeWhereUniqueInput | BackupCodeWhereUniqueInput[]
+  }
+
+  export type AccessTokenUncheckedCreateNestedManyWithoutUserInput = {
+    create?: XOR<AccessTokenCreateWithoutUserInput, AccessTokenUncheckedCreateWithoutUserInput> | AccessTokenCreateWithoutUserInput[] | AccessTokenUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: AccessTokenCreateOrConnectWithoutUserInput | AccessTokenCreateOrConnectWithoutUserInput[]
+    createMany?: AccessTokenCreateManyUserInputEnvelope
+    connect?: AccessTokenWhereUniqueInput | AccessTokenWhereUniqueInput[]
   }
 
   export type StringFieldUpdateOperationsInput = {
@@ -4671,6 +8763,90 @@ export namespace Prisma {
     set?: Date | string
   }
 
+  export type TwoFADeviceUpdateManyWithoutUserNestedInput = {
+    create?: XOR<TwoFADeviceCreateWithoutUserInput, TwoFADeviceUncheckedCreateWithoutUserInput> | TwoFADeviceCreateWithoutUserInput[] | TwoFADeviceUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: TwoFADeviceCreateOrConnectWithoutUserInput | TwoFADeviceCreateOrConnectWithoutUserInput[]
+    upsert?: TwoFADeviceUpsertWithWhereUniqueWithoutUserInput | TwoFADeviceUpsertWithWhereUniqueWithoutUserInput[]
+    createMany?: TwoFADeviceCreateManyUserInputEnvelope
+    set?: TwoFADeviceWhereUniqueInput | TwoFADeviceWhereUniqueInput[]
+    disconnect?: TwoFADeviceWhereUniqueInput | TwoFADeviceWhereUniqueInput[]
+    delete?: TwoFADeviceWhereUniqueInput | TwoFADeviceWhereUniqueInput[]
+    connect?: TwoFADeviceWhereUniqueInput | TwoFADeviceWhereUniqueInput[]
+    update?: TwoFADeviceUpdateWithWhereUniqueWithoutUserInput | TwoFADeviceUpdateWithWhereUniqueWithoutUserInput[]
+    updateMany?: TwoFADeviceUpdateManyWithWhereWithoutUserInput | TwoFADeviceUpdateManyWithWhereWithoutUserInput[]
+    deleteMany?: TwoFADeviceScalarWhereInput | TwoFADeviceScalarWhereInput[]
+  }
+
+  export type BackupCodeUpdateManyWithoutUserNestedInput = {
+    create?: XOR<BackupCodeCreateWithoutUserInput, BackupCodeUncheckedCreateWithoutUserInput> | BackupCodeCreateWithoutUserInput[] | BackupCodeUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: BackupCodeCreateOrConnectWithoutUserInput | BackupCodeCreateOrConnectWithoutUserInput[]
+    upsert?: BackupCodeUpsertWithWhereUniqueWithoutUserInput | BackupCodeUpsertWithWhereUniqueWithoutUserInput[]
+    createMany?: BackupCodeCreateManyUserInputEnvelope
+    set?: BackupCodeWhereUniqueInput | BackupCodeWhereUniqueInput[]
+    disconnect?: BackupCodeWhereUniqueInput | BackupCodeWhereUniqueInput[]
+    delete?: BackupCodeWhereUniqueInput | BackupCodeWhereUniqueInput[]
+    connect?: BackupCodeWhereUniqueInput | BackupCodeWhereUniqueInput[]
+    update?: BackupCodeUpdateWithWhereUniqueWithoutUserInput | BackupCodeUpdateWithWhereUniqueWithoutUserInput[]
+    updateMany?: BackupCodeUpdateManyWithWhereWithoutUserInput | BackupCodeUpdateManyWithWhereWithoutUserInput[]
+    deleteMany?: BackupCodeScalarWhereInput | BackupCodeScalarWhereInput[]
+  }
+
+  export type AccessTokenUpdateManyWithoutUserNestedInput = {
+    create?: XOR<AccessTokenCreateWithoutUserInput, AccessTokenUncheckedCreateWithoutUserInput> | AccessTokenCreateWithoutUserInput[] | AccessTokenUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: AccessTokenCreateOrConnectWithoutUserInput | AccessTokenCreateOrConnectWithoutUserInput[]
+    upsert?: AccessTokenUpsertWithWhereUniqueWithoutUserInput | AccessTokenUpsertWithWhereUniqueWithoutUserInput[]
+    createMany?: AccessTokenCreateManyUserInputEnvelope
+    set?: AccessTokenWhereUniqueInput | AccessTokenWhereUniqueInput[]
+    disconnect?: AccessTokenWhereUniqueInput | AccessTokenWhereUniqueInput[]
+    delete?: AccessTokenWhereUniqueInput | AccessTokenWhereUniqueInput[]
+    connect?: AccessTokenWhereUniqueInput | AccessTokenWhereUniqueInput[]
+    update?: AccessTokenUpdateWithWhereUniqueWithoutUserInput | AccessTokenUpdateWithWhereUniqueWithoutUserInput[]
+    updateMany?: AccessTokenUpdateManyWithWhereWithoutUserInput | AccessTokenUpdateManyWithWhereWithoutUserInput[]
+    deleteMany?: AccessTokenScalarWhereInput | AccessTokenScalarWhereInput[]
+  }
+
+  export type TwoFADeviceUncheckedUpdateManyWithoutUserNestedInput = {
+    create?: XOR<TwoFADeviceCreateWithoutUserInput, TwoFADeviceUncheckedCreateWithoutUserInput> | TwoFADeviceCreateWithoutUserInput[] | TwoFADeviceUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: TwoFADeviceCreateOrConnectWithoutUserInput | TwoFADeviceCreateOrConnectWithoutUserInput[]
+    upsert?: TwoFADeviceUpsertWithWhereUniqueWithoutUserInput | TwoFADeviceUpsertWithWhereUniqueWithoutUserInput[]
+    createMany?: TwoFADeviceCreateManyUserInputEnvelope
+    set?: TwoFADeviceWhereUniqueInput | TwoFADeviceWhereUniqueInput[]
+    disconnect?: TwoFADeviceWhereUniqueInput | TwoFADeviceWhereUniqueInput[]
+    delete?: TwoFADeviceWhereUniqueInput | TwoFADeviceWhereUniqueInput[]
+    connect?: TwoFADeviceWhereUniqueInput | TwoFADeviceWhereUniqueInput[]
+    update?: TwoFADeviceUpdateWithWhereUniqueWithoutUserInput | TwoFADeviceUpdateWithWhereUniqueWithoutUserInput[]
+    updateMany?: TwoFADeviceUpdateManyWithWhereWithoutUserInput | TwoFADeviceUpdateManyWithWhereWithoutUserInput[]
+    deleteMany?: TwoFADeviceScalarWhereInput | TwoFADeviceScalarWhereInput[]
+  }
+
+  export type BackupCodeUncheckedUpdateManyWithoutUserNestedInput = {
+    create?: XOR<BackupCodeCreateWithoutUserInput, BackupCodeUncheckedCreateWithoutUserInput> | BackupCodeCreateWithoutUserInput[] | BackupCodeUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: BackupCodeCreateOrConnectWithoutUserInput | BackupCodeCreateOrConnectWithoutUserInput[]
+    upsert?: BackupCodeUpsertWithWhereUniqueWithoutUserInput | BackupCodeUpsertWithWhereUniqueWithoutUserInput[]
+    createMany?: BackupCodeCreateManyUserInputEnvelope
+    set?: BackupCodeWhereUniqueInput | BackupCodeWhereUniqueInput[]
+    disconnect?: BackupCodeWhereUniqueInput | BackupCodeWhereUniqueInput[]
+    delete?: BackupCodeWhereUniqueInput | BackupCodeWhereUniqueInput[]
+    connect?: BackupCodeWhereUniqueInput | BackupCodeWhereUniqueInput[]
+    update?: BackupCodeUpdateWithWhereUniqueWithoutUserInput | BackupCodeUpdateWithWhereUniqueWithoutUserInput[]
+    updateMany?: BackupCodeUpdateManyWithWhereWithoutUserInput | BackupCodeUpdateManyWithWhereWithoutUserInput[]
+    deleteMany?: BackupCodeScalarWhereInput | BackupCodeScalarWhereInput[]
+  }
+
+  export type AccessTokenUncheckedUpdateManyWithoutUserNestedInput = {
+    create?: XOR<AccessTokenCreateWithoutUserInput, AccessTokenUncheckedCreateWithoutUserInput> | AccessTokenCreateWithoutUserInput[] | AccessTokenUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: AccessTokenCreateOrConnectWithoutUserInput | AccessTokenCreateOrConnectWithoutUserInput[]
+    upsert?: AccessTokenUpsertWithWhereUniqueWithoutUserInput | AccessTokenUpsertWithWhereUniqueWithoutUserInput[]
+    createMany?: AccessTokenCreateManyUserInputEnvelope
+    set?: AccessTokenWhereUniqueInput | AccessTokenWhereUniqueInput[]
+    disconnect?: AccessTokenWhereUniqueInput | AccessTokenWhereUniqueInput[]
+    delete?: AccessTokenWhereUniqueInput | AccessTokenWhereUniqueInput[]
+    connect?: AccessTokenWhereUniqueInput | AccessTokenWhereUniqueInput[]
+    update?: AccessTokenUpdateWithWhereUniqueWithoutUserInput | AccessTokenUpdateWithWhereUniqueWithoutUserInput[]
+    updateMany?: AccessTokenUpdateManyWithWhereWithoutUserInput | AccessTokenUpdateManyWithWhereWithoutUserInput[]
+    deleteMany?: AccessTokenScalarWhereInput | AccessTokenScalarWhereInput[]
+  }
+
   export type RoleCreatepermissionsInput = {
     set: string[]
   }
@@ -4678,6 +8854,48 @@ export namespace Prisma {
   export type RoleUpdatepermissionsInput = {
     set?: string[]
     push?: string | string[]
+  }
+
+  export type UserCreateNestedOneWithoutTwoFADevicesInput = {
+    create?: XOR<UserCreateWithoutTwoFADevicesInput, UserUncheckedCreateWithoutTwoFADevicesInput>
+    connectOrCreate?: UserCreateOrConnectWithoutTwoFADevicesInput
+    connect?: UserWhereUniqueInput
+  }
+
+  export type UserUpdateOneRequiredWithoutTwoFADevicesNestedInput = {
+    create?: XOR<UserCreateWithoutTwoFADevicesInput, UserUncheckedCreateWithoutTwoFADevicesInput>
+    connectOrCreate?: UserCreateOrConnectWithoutTwoFADevicesInput
+    upsert?: UserUpsertWithoutTwoFADevicesInput
+    connect?: UserWhereUniqueInput
+    update?: XOR<XOR<UserUpdateToOneWithWhereWithoutTwoFADevicesInput, UserUpdateWithoutTwoFADevicesInput>, UserUncheckedUpdateWithoutTwoFADevicesInput>
+  }
+
+  export type UserCreateNestedOneWithoutBackupCodesInput = {
+    create?: XOR<UserCreateWithoutBackupCodesInput, UserUncheckedCreateWithoutBackupCodesInput>
+    connectOrCreate?: UserCreateOrConnectWithoutBackupCodesInput
+    connect?: UserWhereUniqueInput
+  }
+
+  export type UserUpdateOneRequiredWithoutBackupCodesNestedInput = {
+    create?: XOR<UserCreateWithoutBackupCodesInput, UserUncheckedCreateWithoutBackupCodesInput>
+    connectOrCreate?: UserCreateOrConnectWithoutBackupCodesInput
+    upsert?: UserUpsertWithoutBackupCodesInput
+    connect?: UserWhereUniqueInput
+    update?: XOR<XOR<UserUpdateToOneWithWhereWithoutBackupCodesInput, UserUpdateWithoutBackupCodesInput>, UserUncheckedUpdateWithoutBackupCodesInput>
+  }
+
+  export type UserCreateNestedOneWithoutAccessTokensInput = {
+    create?: XOR<UserCreateWithoutAccessTokensInput, UserUncheckedCreateWithoutAccessTokensInput>
+    connectOrCreate?: UserCreateOrConnectWithoutAccessTokensInput
+    connect?: UserWhereUniqueInput
+  }
+
+  export type UserUpdateOneRequiredWithoutAccessTokensNestedInput = {
+    create?: XOR<UserCreateWithoutAccessTokensInput, UserUncheckedCreateWithoutAccessTokensInput>
+    connectOrCreate?: UserCreateOrConnectWithoutAccessTokensInput
+    upsert?: UserUpsertWithoutAccessTokensInput
+    connect?: UserWhereUniqueInput
+    update?: XOR<XOR<UserUpdateToOneWithWhereWithoutAccessTokensInput, UserUpdateWithoutAccessTokensInput>, UserUncheckedUpdateWithoutAccessTokensInput>
   }
 
   export type NestedStringFilter<$PrismaModel = never> = {
@@ -4827,11 +9045,653 @@ export namespace Prisma {
     _max?: NestedDateTimeFilter<$PrismaModel>
   }
 
+  export type TwoFADeviceCreateWithoutUserInput = {
+    id?: string
+    type: string
+    name: string
+    secret: string
+    isDefault?: boolean
+    confirmed?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type TwoFADeviceUncheckedCreateWithoutUserInput = {
+    id?: string
+    type: string
+    name: string
+    secret: string
+    isDefault?: boolean
+    confirmed?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type TwoFADeviceCreateOrConnectWithoutUserInput = {
+    where: TwoFADeviceWhereUniqueInput
+    create: XOR<TwoFADeviceCreateWithoutUserInput, TwoFADeviceUncheckedCreateWithoutUserInput>
+  }
+
+  export type TwoFADeviceCreateManyUserInputEnvelope = {
+    data: TwoFADeviceCreateManyUserInput | TwoFADeviceCreateManyUserInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type BackupCodeCreateWithoutUserInput = {
+    id?: string
+    codeHash: string
+    used?: boolean
+    createdAt?: Date | string
+  }
+
+  export type BackupCodeUncheckedCreateWithoutUserInput = {
+    id?: string
+    codeHash: string
+    used?: boolean
+    createdAt?: Date | string
+  }
+
+  export type BackupCodeCreateOrConnectWithoutUserInput = {
+    where: BackupCodeWhereUniqueInput
+    create: XOR<BackupCodeCreateWithoutUserInput, BackupCodeUncheckedCreateWithoutUserInput>
+  }
+
+  export type BackupCodeCreateManyUserInputEnvelope = {
+    data: BackupCodeCreateManyUserInput | BackupCodeCreateManyUserInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type AccessTokenCreateWithoutUserInput = {
+    id?: string
+    type: string
+    name: string
+    tokenHash: string
+    calendar?: string | null
+    project?: string | null
+    active?: boolean
+    lastRefreshedAt?: Date | string | null
+    expiresAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type AccessTokenUncheckedCreateWithoutUserInput = {
+    id?: string
+    type: string
+    name: string
+    tokenHash: string
+    calendar?: string | null
+    project?: string | null
+    active?: boolean
+    lastRefreshedAt?: Date | string | null
+    expiresAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type AccessTokenCreateOrConnectWithoutUserInput = {
+    where: AccessTokenWhereUniqueInput
+    create: XOR<AccessTokenCreateWithoutUserInput, AccessTokenUncheckedCreateWithoutUserInput>
+  }
+
+  export type AccessTokenCreateManyUserInputEnvelope = {
+    data: AccessTokenCreateManyUserInput | AccessTokenCreateManyUserInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type TwoFADeviceUpsertWithWhereUniqueWithoutUserInput = {
+    where: TwoFADeviceWhereUniqueInput
+    update: XOR<TwoFADeviceUpdateWithoutUserInput, TwoFADeviceUncheckedUpdateWithoutUserInput>
+    create: XOR<TwoFADeviceCreateWithoutUserInput, TwoFADeviceUncheckedCreateWithoutUserInput>
+  }
+
+  export type TwoFADeviceUpdateWithWhereUniqueWithoutUserInput = {
+    where: TwoFADeviceWhereUniqueInput
+    data: XOR<TwoFADeviceUpdateWithoutUserInput, TwoFADeviceUncheckedUpdateWithoutUserInput>
+  }
+
+  export type TwoFADeviceUpdateManyWithWhereWithoutUserInput = {
+    where: TwoFADeviceScalarWhereInput
+    data: XOR<TwoFADeviceUpdateManyMutationInput, TwoFADeviceUncheckedUpdateManyWithoutUserInput>
+  }
+
+  export type TwoFADeviceScalarWhereInput = {
+    AND?: TwoFADeviceScalarWhereInput | TwoFADeviceScalarWhereInput[]
+    OR?: TwoFADeviceScalarWhereInput[]
+    NOT?: TwoFADeviceScalarWhereInput | TwoFADeviceScalarWhereInput[]
+    id?: StringFilter<"TwoFADevice"> | string
+    userId?: StringFilter<"TwoFADevice"> | string
+    type?: StringFilter<"TwoFADevice"> | string
+    name?: StringFilter<"TwoFADevice"> | string
+    secret?: StringFilter<"TwoFADevice"> | string
+    isDefault?: BoolFilter<"TwoFADevice"> | boolean
+    confirmed?: BoolFilter<"TwoFADevice"> | boolean
+    createdAt?: DateTimeFilter<"TwoFADevice"> | Date | string
+    updatedAt?: DateTimeFilter<"TwoFADevice"> | Date | string
+  }
+
+  export type BackupCodeUpsertWithWhereUniqueWithoutUserInput = {
+    where: BackupCodeWhereUniqueInput
+    update: XOR<BackupCodeUpdateWithoutUserInput, BackupCodeUncheckedUpdateWithoutUserInput>
+    create: XOR<BackupCodeCreateWithoutUserInput, BackupCodeUncheckedCreateWithoutUserInput>
+  }
+
+  export type BackupCodeUpdateWithWhereUniqueWithoutUserInput = {
+    where: BackupCodeWhereUniqueInput
+    data: XOR<BackupCodeUpdateWithoutUserInput, BackupCodeUncheckedUpdateWithoutUserInput>
+  }
+
+  export type BackupCodeUpdateManyWithWhereWithoutUserInput = {
+    where: BackupCodeScalarWhereInput
+    data: XOR<BackupCodeUpdateManyMutationInput, BackupCodeUncheckedUpdateManyWithoutUserInput>
+  }
+
+  export type BackupCodeScalarWhereInput = {
+    AND?: BackupCodeScalarWhereInput | BackupCodeScalarWhereInput[]
+    OR?: BackupCodeScalarWhereInput[]
+    NOT?: BackupCodeScalarWhereInput | BackupCodeScalarWhereInput[]
+    id?: StringFilter<"BackupCode"> | string
+    userId?: StringFilter<"BackupCode"> | string
+    codeHash?: StringFilter<"BackupCode"> | string
+    used?: BoolFilter<"BackupCode"> | boolean
+    createdAt?: DateTimeFilter<"BackupCode"> | Date | string
+  }
+
+  export type AccessTokenUpsertWithWhereUniqueWithoutUserInput = {
+    where: AccessTokenWhereUniqueInput
+    update: XOR<AccessTokenUpdateWithoutUserInput, AccessTokenUncheckedUpdateWithoutUserInput>
+    create: XOR<AccessTokenCreateWithoutUserInput, AccessTokenUncheckedCreateWithoutUserInput>
+  }
+
+  export type AccessTokenUpdateWithWhereUniqueWithoutUserInput = {
+    where: AccessTokenWhereUniqueInput
+    data: XOR<AccessTokenUpdateWithoutUserInput, AccessTokenUncheckedUpdateWithoutUserInput>
+  }
+
+  export type AccessTokenUpdateManyWithWhereWithoutUserInput = {
+    where: AccessTokenScalarWhereInput
+    data: XOR<AccessTokenUpdateManyMutationInput, AccessTokenUncheckedUpdateManyWithoutUserInput>
+  }
+
+  export type AccessTokenScalarWhereInput = {
+    AND?: AccessTokenScalarWhereInput | AccessTokenScalarWhereInput[]
+    OR?: AccessTokenScalarWhereInput[]
+    NOT?: AccessTokenScalarWhereInput | AccessTokenScalarWhereInput[]
+    id?: StringFilter<"AccessToken"> | string
+    userId?: StringFilter<"AccessToken"> | string
+    type?: StringFilter<"AccessToken"> | string
+    name?: StringFilter<"AccessToken"> | string
+    tokenHash?: StringFilter<"AccessToken"> | string
+    calendar?: StringNullableFilter<"AccessToken"> | string | null
+    project?: StringNullableFilter<"AccessToken"> | string | null
+    active?: BoolFilter<"AccessToken"> | boolean
+    lastRefreshedAt?: DateTimeNullableFilter<"AccessToken"> | Date | string | null
+    expiresAt?: DateTimeNullableFilter<"AccessToken"> | Date | string | null
+    createdAt?: DateTimeFilter<"AccessToken"> | Date | string
+    updatedAt?: DateTimeFilter<"AccessToken"> | Date | string
+  }
+
+  export type UserCreateWithoutTwoFADevicesInput = {
+    id?: string
+    name: string
+    email: string
+    password?: string | null
+    role: string
+    status: string
+    department?: string | null
+    isVerified?: boolean
+    passwordLastChangedAt?: Date | string | null
+    permissions?: UserCreatepermissionsInput | string[]
+    assignedSubsystems?: UserCreateassignedSubsystemsInput | string[]
+    avatarUrl?: string | null
+    verificationOtp?: string | null
+    otpExpiry?: Date | string | null
+    twoFactorEnabled?: boolean
+    createdAt?: Date | string
+    deletedAt?: Date | string | null
+    updatedAt?: Date | string
+    backupCodes?: BackupCodeCreateNestedManyWithoutUserInput
+    accessTokens?: AccessTokenCreateNestedManyWithoutUserInput
+  }
+
+  export type UserUncheckedCreateWithoutTwoFADevicesInput = {
+    id?: string
+    name: string
+    email: string
+    password?: string | null
+    role: string
+    status: string
+    department?: string | null
+    isVerified?: boolean
+    passwordLastChangedAt?: Date | string | null
+    permissions?: UserCreatepermissionsInput | string[]
+    assignedSubsystems?: UserCreateassignedSubsystemsInput | string[]
+    avatarUrl?: string | null
+    verificationOtp?: string | null
+    otpExpiry?: Date | string | null
+    twoFactorEnabled?: boolean
+    createdAt?: Date | string
+    deletedAt?: Date | string | null
+    updatedAt?: Date | string
+    backupCodes?: BackupCodeUncheckedCreateNestedManyWithoutUserInput
+    accessTokens?: AccessTokenUncheckedCreateNestedManyWithoutUserInput
+  }
+
+  export type UserCreateOrConnectWithoutTwoFADevicesInput = {
+    where: UserWhereUniqueInput
+    create: XOR<UserCreateWithoutTwoFADevicesInput, UserUncheckedCreateWithoutTwoFADevicesInput>
+  }
+
+  export type UserUpsertWithoutTwoFADevicesInput = {
+    update: XOR<UserUpdateWithoutTwoFADevicesInput, UserUncheckedUpdateWithoutTwoFADevicesInput>
+    create: XOR<UserCreateWithoutTwoFADevicesInput, UserUncheckedCreateWithoutTwoFADevicesInput>
+    where?: UserWhereInput
+  }
+
+  export type UserUpdateToOneWithWhereWithoutTwoFADevicesInput = {
+    where?: UserWhereInput
+    data: XOR<UserUpdateWithoutTwoFADevicesInput, UserUncheckedUpdateWithoutTwoFADevicesInput>
+  }
+
+  export type UserUpdateWithoutTwoFADevicesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    password?: NullableStringFieldUpdateOperationsInput | string | null
+    role?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    department?: NullableStringFieldUpdateOperationsInput | string | null
+    isVerified?: BoolFieldUpdateOperationsInput | boolean
+    passwordLastChangedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    permissions?: UserUpdatepermissionsInput | string[]
+    assignedSubsystems?: UserUpdateassignedSubsystemsInput | string[]
+    avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    verificationOtp?: NullableStringFieldUpdateOperationsInput | string | null
+    otpExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    backupCodes?: BackupCodeUpdateManyWithoutUserNestedInput
+    accessTokens?: AccessTokenUpdateManyWithoutUserNestedInput
+  }
+
+  export type UserUncheckedUpdateWithoutTwoFADevicesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    password?: NullableStringFieldUpdateOperationsInput | string | null
+    role?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    department?: NullableStringFieldUpdateOperationsInput | string | null
+    isVerified?: BoolFieldUpdateOperationsInput | boolean
+    passwordLastChangedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    permissions?: UserUpdatepermissionsInput | string[]
+    assignedSubsystems?: UserUpdateassignedSubsystemsInput | string[]
+    avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    verificationOtp?: NullableStringFieldUpdateOperationsInput | string | null
+    otpExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    backupCodes?: BackupCodeUncheckedUpdateManyWithoutUserNestedInput
+    accessTokens?: AccessTokenUncheckedUpdateManyWithoutUserNestedInput
+  }
+
+  export type UserCreateWithoutBackupCodesInput = {
+    id?: string
+    name: string
+    email: string
+    password?: string | null
+    role: string
+    status: string
+    department?: string | null
+    isVerified?: boolean
+    passwordLastChangedAt?: Date | string | null
+    permissions?: UserCreatepermissionsInput | string[]
+    assignedSubsystems?: UserCreateassignedSubsystemsInput | string[]
+    avatarUrl?: string | null
+    verificationOtp?: string | null
+    otpExpiry?: Date | string | null
+    twoFactorEnabled?: boolean
+    createdAt?: Date | string
+    deletedAt?: Date | string | null
+    updatedAt?: Date | string
+    twoFADevices?: TwoFADeviceCreateNestedManyWithoutUserInput
+    accessTokens?: AccessTokenCreateNestedManyWithoutUserInput
+  }
+
+  export type UserUncheckedCreateWithoutBackupCodesInput = {
+    id?: string
+    name: string
+    email: string
+    password?: string | null
+    role: string
+    status: string
+    department?: string | null
+    isVerified?: boolean
+    passwordLastChangedAt?: Date | string | null
+    permissions?: UserCreatepermissionsInput | string[]
+    assignedSubsystems?: UserCreateassignedSubsystemsInput | string[]
+    avatarUrl?: string | null
+    verificationOtp?: string | null
+    otpExpiry?: Date | string | null
+    twoFactorEnabled?: boolean
+    createdAt?: Date | string
+    deletedAt?: Date | string | null
+    updatedAt?: Date | string
+    twoFADevices?: TwoFADeviceUncheckedCreateNestedManyWithoutUserInput
+    accessTokens?: AccessTokenUncheckedCreateNestedManyWithoutUserInput
+  }
+
+  export type UserCreateOrConnectWithoutBackupCodesInput = {
+    where: UserWhereUniqueInput
+    create: XOR<UserCreateWithoutBackupCodesInput, UserUncheckedCreateWithoutBackupCodesInput>
+  }
+
+  export type UserUpsertWithoutBackupCodesInput = {
+    update: XOR<UserUpdateWithoutBackupCodesInput, UserUncheckedUpdateWithoutBackupCodesInput>
+    create: XOR<UserCreateWithoutBackupCodesInput, UserUncheckedCreateWithoutBackupCodesInput>
+    where?: UserWhereInput
+  }
+
+  export type UserUpdateToOneWithWhereWithoutBackupCodesInput = {
+    where?: UserWhereInput
+    data: XOR<UserUpdateWithoutBackupCodesInput, UserUncheckedUpdateWithoutBackupCodesInput>
+  }
+
+  export type UserUpdateWithoutBackupCodesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    password?: NullableStringFieldUpdateOperationsInput | string | null
+    role?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    department?: NullableStringFieldUpdateOperationsInput | string | null
+    isVerified?: BoolFieldUpdateOperationsInput | boolean
+    passwordLastChangedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    permissions?: UserUpdatepermissionsInput | string[]
+    assignedSubsystems?: UserUpdateassignedSubsystemsInput | string[]
+    avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    verificationOtp?: NullableStringFieldUpdateOperationsInput | string | null
+    otpExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    twoFADevices?: TwoFADeviceUpdateManyWithoutUserNestedInput
+    accessTokens?: AccessTokenUpdateManyWithoutUserNestedInput
+  }
+
+  export type UserUncheckedUpdateWithoutBackupCodesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    password?: NullableStringFieldUpdateOperationsInput | string | null
+    role?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    department?: NullableStringFieldUpdateOperationsInput | string | null
+    isVerified?: BoolFieldUpdateOperationsInput | boolean
+    passwordLastChangedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    permissions?: UserUpdatepermissionsInput | string[]
+    assignedSubsystems?: UserUpdateassignedSubsystemsInput | string[]
+    avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    verificationOtp?: NullableStringFieldUpdateOperationsInput | string | null
+    otpExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    twoFADevices?: TwoFADeviceUncheckedUpdateManyWithoutUserNestedInput
+    accessTokens?: AccessTokenUncheckedUpdateManyWithoutUserNestedInput
+  }
+
+  export type UserCreateWithoutAccessTokensInput = {
+    id?: string
+    name: string
+    email: string
+    password?: string | null
+    role: string
+    status: string
+    department?: string | null
+    isVerified?: boolean
+    passwordLastChangedAt?: Date | string | null
+    permissions?: UserCreatepermissionsInput | string[]
+    assignedSubsystems?: UserCreateassignedSubsystemsInput | string[]
+    avatarUrl?: string | null
+    verificationOtp?: string | null
+    otpExpiry?: Date | string | null
+    twoFactorEnabled?: boolean
+    createdAt?: Date | string
+    deletedAt?: Date | string | null
+    updatedAt?: Date | string
+    twoFADevices?: TwoFADeviceCreateNestedManyWithoutUserInput
+    backupCodes?: BackupCodeCreateNestedManyWithoutUserInput
+  }
+
+  export type UserUncheckedCreateWithoutAccessTokensInput = {
+    id?: string
+    name: string
+    email: string
+    password?: string | null
+    role: string
+    status: string
+    department?: string | null
+    isVerified?: boolean
+    passwordLastChangedAt?: Date | string | null
+    permissions?: UserCreatepermissionsInput | string[]
+    assignedSubsystems?: UserCreateassignedSubsystemsInput | string[]
+    avatarUrl?: string | null
+    verificationOtp?: string | null
+    otpExpiry?: Date | string | null
+    twoFactorEnabled?: boolean
+    createdAt?: Date | string
+    deletedAt?: Date | string | null
+    updatedAt?: Date | string
+    twoFADevices?: TwoFADeviceUncheckedCreateNestedManyWithoutUserInput
+    backupCodes?: BackupCodeUncheckedCreateNestedManyWithoutUserInput
+  }
+
+  export type UserCreateOrConnectWithoutAccessTokensInput = {
+    where: UserWhereUniqueInput
+    create: XOR<UserCreateWithoutAccessTokensInput, UserUncheckedCreateWithoutAccessTokensInput>
+  }
+
+  export type UserUpsertWithoutAccessTokensInput = {
+    update: XOR<UserUpdateWithoutAccessTokensInput, UserUncheckedUpdateWithoutAccessTokensInput>
+    create: XOR<UserCreateWithoutAccessTokensInput, UserUncheckedCreateWithoutAccessTokensInput>
+    where?: UserWhereInput
+  }
+
+  export type UserUpdateToOneWithWhereWithoutAccessTokensInput = {
+    where?: UserWhereInput
+    data: XOR<UserUpdateWithoutAccessTokensInput, UserUncheckedUpdateWithoutAccessTokensInput>
+  }
+
+  export type UserUpdateWithoutAccessTokensInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    password?: NullableStringFieldUpdateOperationsInput | string | null
+    role?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    department?: NullableStringFieldUpdateOperationsInput | string | null
+    isVerified?: BoolFieldUpdateOperationsInput | boolean
+    passwordLastChangedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    permissions?: UserUpdatepermissionsInput | string[]
+    assignedSubsystems?: UserUpdateassignedSubsystemsInput | string[]
+    avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    verificationOtp?: NullableStringFieldUpdateOperationsInput | string | null
+    otpExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    twoFADevices?: TwoFADeviceUpdateManyWithoutUserNestedInput
+    backupCodes?: BackupCodeUpdateManyWithoutUserNestedInput
+  }
+
+  export type UserUncheckedUpdateWithoutAccessTokensInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    password?: NullableStringFieldUpdateOperationsInput | string | null
+    role?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    department?: NullableStringFieldUpdateOperationsInput | string | null
+    isVerified?: BoolFieldUpdateOperationsInput | boolean
+    passwordLastChangedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    permissions?: UserUpdatepermissionsInput | string[]
+    assignedSubsystems?: UserUpdateassignedSubsystemsInput | string[]
+    avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    verificationOtp?: NullableStringFieldUpdateOperationsInput | string | null
+    otpExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    twoFADevices?: TwoFADeviceUncheckedUpdateManyWithoutUserNestedInput
+    backupCodes?: BackupCodeUncheckedUpdateManyWithoutUserNestedInput
+  }
+
+  export type TwoFADeviceCreateManyUserInput = {
+    id?: string
+    type: string
+    name: string
+    secret: string
+    isDefault?: boolean
+    confirmed?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type BackupCodeCreateManyUserInput = {
+    id?: string
+    codeHash: string
+    used?: boolean
+    createdAt?: Date | string
+  }
+
+  export type AccessTokenCreateManyUserInput = {
+    id?: string
+    type: string
+    name: string
+    tokenHash: string
+    calendar?: string | null
+    project?: string | null
+    active?: boolean
+    lastRefreshedAt?: Date | string | null
+    expiresAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type TwoFADeviceUpdateWithoutUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    type?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    secret?: StringFieldUpdateOperationsInput | string
+    isDefault?: BoolFieldUpdateOperationsInput | boolean
+    confirmed?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type TwoFADeviceUncheckedUpdateWithoutUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    type?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    secret?: StringFieldUpdateOperationsInput | string
+    isDefault?: BoolFieldUpdateOperationsInput | boolean
+    confirmed?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type TwoFADeviceUncheckedUpdateManyWithoutUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    type?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    secret?: StringFieldUpdateOperationsInput | string
+    isDefault?: BoolFieldUpdateOperationsInput | boolean
+    confirmed?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type BackupCodeUpdateWithoutUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    codeHash?: StringFieldUpdateOperationsInput | string
+    used?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type BackupCodeUncheckedUpdateWithoutUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    codeHash?: StringFieldUpdateOperationsInput | string
+    used?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type BackupCodeUncheckedUpdateManyWithoutUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    codeHash?: StringFieldUpdateOperationsInput | string
+    used?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type AccessTokenUpdateWithoutUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    type?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    tokenHash?: StringFieldUpdateOperationsInput | string
+    calendar?: NullableStringFieldUpdateOperationsInput | string | null
+    project?: NullableStringFieldUpdateOperationsInput | string | null
+    active?: BoolFieldUpdateOperationsInput | boolean
+    lastRefreshedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type AccessTokenUncheckedUpdateWithoutUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    type?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    tokenHash?: StringFieldUpdateOperationsInput | string
+    calendar?: NullableStringFieldUpdateOperationsInput | string | null
+    project?: NullableStringFieldUpdateOperationsInput | string | null
+    active?: BoolFieldUpdateOperationsInput | boolean
+    lastRefreshedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type AccessTokenUncheckedUpdateManyWithoutUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    type?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    tokenHash?: StringFieldUpdateOperationsInput | string
+    calendar?: NullableStringFieldUpdateOperationsInput | string | null
+    project?: NullableStringFieldUpdateOperationsInput | string | null
+    active?: BoolFieldUpdateOperationsInput | boolean
+    lastRefreshedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
 
 
   /**
    * Aliases for legacy arg types
    */
+    /**
+     * @deprecated Use UserCountOutputTypeDefaultArgs instead
+     */
+    export type UserCountOutputTypeArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = UserCountOutputTypeDefaultArgs<ExtArgs>
     /**
      * @deprecated Use UserDefaultArgs instead
      */
@@ -4844,6 +9704,18 @@ export namespace Prisma {
      * @deprecated Use PasswordResetRequestDefaultArgs instead
      */
     export type PasswordResetRequestArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = PasswordResetRequestDefaultArgs<ExtArgs>
+    /**
+     * @deprecated Use TwoFADeviceDefaultArgs instead
+     */
+    export type TwoFADeviceArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = TwoFADeviceDefaultArgs<ExtArgs>
+    /**
+     * @deprecated Use BackupCodeDefaultArgs instead
+     */
+    export type BackupCodeArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = BackupCodeDefaultArgs<ExtArgs>
+    /**
+     * @deprecated Use AccessTokenDefaultArgs instead
+     */
+    export type AccessTokenArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = AccessTokenDefaultArgs<ExtArgs>
 
   /**
    * Batch Payload for updateMany & deleteMany & createMany

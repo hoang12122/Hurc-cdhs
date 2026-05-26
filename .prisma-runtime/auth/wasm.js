@@ -137,6 +137,7 @@ exports.Prisma.UserScalarFieldEnum = {
   avatarUrl: 'avatarUrl',
   verificationOtp: 'verificationOtp',
   otpExpiry: 'otpExpiry',
+  twoFactorEnabled: 'twoFactorEnabled',
   createdAt: 'createdAt',
   deletedAt: 'deletedAt',
   updatedAt: 'updatedAt'
@@ -158,6 +159,41 @@ exports.Prisma.PasswordResetRequestScalarFieldEnum = {
   createdAt: 'createdAt'
 };
 
+exports.Prisma.TwoFADeviceScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  type: 'type',
+  name: 'name',
+  secret: 'secret',
+  isDefault: 'isDefault',
+  confirmed: 'confirmed',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.BackupCodeScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  codeHash: 'codeHash',
+  used: 'used',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.AccessTokenScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  type: 'type',
+  name: 'name',
+  tokenHash: 'tokenHash',
+  calendar: 'calendar',
+  project: 'project',
+  active: 'active',
+  lastRefreshedAt: 'lastRefreshedAt',
+  expiresAt: 'expiresAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -177,7 +213,10 @@ exports.Prisma.NullsOrder = {
 exports.Prisma.ModelName = {
   User: 'User',
   Role: 'Role',
-  PasswordResetRequest: 'PasswordResetRequest'
+  PasswordResetRequest: 'PasswordResetRequest',
+  TwoFADevice: 'TwoFADevice',
+  BackupCode: 'BackupCode',
+  AccessToken: 'AccessToken'
 };
 
 /**
