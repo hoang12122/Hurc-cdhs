@@ -5,7 +5,7 @@ import * as React from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import {
@@ -19,7 +19,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { Eye, EyeOff, Loader2, KeySquare } from "lucide-react";
+import { Eye, EyeOff, Loader2, KeySquare, AlertTriangle } from "lucide-react";
 import { useLanguage } from "@/contexts/language-context";
 import { Checkbox } from "@/components/ui/checkbox";
 import { login, login2FA } from '@/lib/actions/auth.actions';
@@ -87,6 +87,17 @@ export function LoginForm() {
   const [userId2FA, setUserId2FA] = React.useState("");
   const [otpCode, setOtpCode] = React.useState("");
   const [isVerifying2FA, setIsVerifying2FA] = React.useState(false);
+
+  // Concurrent Session State
+  const searchParams = useSearchParams();
+  const reason = searchParams.get("reason");
+  const [concurrentAlert, setConcurrentAlert] = React.useState(false);
+
+  React.useEffect(() => {
+    if (reason === "concurrent_session") {
+      setConcurrentAlert(true);
+    }
+  }, [reason]);
   
   const loginSchema = createLoginSchema(t);
 
@@ -262,6 +273,15 @@ export function LoginForm() {
       <CardContent>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            {concurrentAlert && (
+              <div className="p-3.5 bg-destructive/10 border border-destructive/20 text-destructive rounded-xl flex items-start gap-2.5 text-xs leading-relaxed animate-in fade-in slide-in-from-top-1 duration-200">
+                <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5" />
+                <div>
+                  <strong>Cảnh báo an ninh:</strong> Tài khoản của bạn đã được đăng nhập từ một thiết bị hoặc vị trí khác. Phiên hiện tại của bạn đã bị đăng xuất để đảm bảo an toàn.
+                </div>
+              </div>
+            )}
+            
             <FormField
               control={form.control}
               name="email"

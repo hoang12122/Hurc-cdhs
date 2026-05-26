@@ -28,6 +28,7 @@ model User {
   twoFADevices          TwoFADevice[]
   backupCodes           BackupCode[]
   accessTokens          AccessToken[]
+  activeSessionId       String?
 
   createdAt DateTime  @default(now())
   deletedAt DateTime?

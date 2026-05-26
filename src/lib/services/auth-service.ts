@@ -62,10 +62,19 @@ export async function getSessionUser(): Promise<User | null> {
             return null;
         }
 
-        const userId = verifySession(sessionCookie.value);
-        if (!userId) {
+        const verifiedData = verifySession(sessionCookie.value);
+        if (!verifiedData) {
             console.warn("[AUTH-SERVICE] Session validation failed for cookie value.");
             return null;
+        }
+
+        // Backward compatibility: old cookies are just userId, new ones are userId:activeSessionId
+        let userId = verifiedData;
+        let activeSessionId: string | null = null;
+        if (verifiedData.includes(':')) {
+            const parts = verifiedData.split(':');
+            userId = parts[0];
+            activeSessionId = parts[1];
         }
 
         const dbUser = await getInternalUserById(userId);
@@ -76,6 +85,12 @@ export async function getSessionUser(): Promise<User | null> {
 
         if (dbUser.status !== 'active') {
             console.warn(`[AUTH-SERVICE] User ${dbUser.email} (ID: ${userId}) has inactive status: ${dbUser.status}`);
+            return null;
+        }
+
+        // Single Session Enforcement: Check if session ID has been superseded
+        if (activeSessionId && dbUser.activeSessionId && dbUser.activeSessionId !== activeSessionId) {
+            console.warn(`[AUTH-SERVICE] Concurrent session superseded for user ${dbUser.email}. DB: ${dbUser.activeSessionId}, Cookie: ${activeSessionId}`);
             return null;
         }
 
@@ -95,6 +110,7 @@ export async function getSessionUser(): Promise<User | null> {
             mustChangePassword: dbUser.mustChangePassword ?? false,
             passwordLastChangedAt: typeof dbUser.passwordLastChangedAt === 'string' ? dbUser.passwordLastChangedAt : (dbUser.passwordLastChangedAt as any)?.toISOString?.() || new Date().toISOString(),
             permissions: dbUser.permissions || permissions,
+            activeSessionId: dbUser.activeSessionId,
         };
     } catch (e: any) {
         console.error("[AUTH-SERVICE] getSessionUser error:", e.stack || e.message || e);

@@ -37,7 +37,7 @@ async function logSecurityEvent(userId: string, event: string, details?: string)
 }
 
 import { getUser2FADevices, verifyTOTP, verifyAndUseBackupCode } from '../services/twofa-service';
-import { getInternalUserById } from '../services/user-service';
+import { getInternalUserById, updateInternalUser } from '../services/user-service';
 
 /**
  * LOGIN: Consolidated and Service-Oriented (PostgreSQL + Fallback)
@@ -69,8 +69,12 @@ export async function login(email: string, password?: string, rememberMe: boolea
         return { requires2FA: true, userId: user.id };
     }
 
-    // Create secure session cookie (signed)
-    const signedValue = sign(user.id);
+    // Single Session: Generate new session ID and save it
+    const activeSessionId = require('crypto').randomUUID();
+    await updateInternalUser(user.id, { activeSessionId });
+
+    // Create secure session cookie (signed with session ID)
+    const signedValue = sign(`${user.id}:${activeSessionId}`);
     
     // Cookie duration: 4 hours (session) or 30 days (remember me)
     const maxAge = rememberMe ? 30 * 24 * 60 * 60 : 4 * 60 * 60;
@@ -119,8 +123,12 @@ export async function login2FA(userId: string, code: string, rememberMe: boolean
         return { error: "Mã xác thực 2FA không chính xác hoặc đã hết hạn." };
     }
 
-    // Success - Create secure session cookie (signed)
-    const signedValue = sign(user.id);
+    // Single Session: Generate new session ID and save it
+    const activeSessionId = require('crypto').randomUUID();
+    await updateInternalUser(userId, { activeSessionId });
+
+    // Success - Create secure session cookie (signed with session ID)
+    const signedValue = sign(`${userId}:${activeSessionId}`);
     const maxAge = rememberMe ? 30 * 24 * 60 * 60 : 4 * 60 * 60;
     
     const reqHeaders = headers();

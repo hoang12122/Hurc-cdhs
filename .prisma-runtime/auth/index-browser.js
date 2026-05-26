@@ -138,6 +138,7 @@ exports.Prisma.UserScalarFieldEnum = {
   verificationOtp: 'verificationOtp',
   otpExpiry: 'otpExpiry',
   twoFactorEnabled: 'twoFactorEnabled',
+  activeSessionId: 'activeSessionId',
   createdAt: 'createdAt',
   deletedAt: 'deletedAt',
   updatedAt: 'updatedAt'

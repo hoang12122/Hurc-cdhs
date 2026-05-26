@@ -75,7 +75,7 @@ export interface User {
   lastLoginAt?: string;
   lastLoginIp?: string;
   passwordHistory?: string[];
-  sessionVersion?: number;
+  activeSessionId?: string | null;
   twoFactorEnabled?: boolean;
 }
 

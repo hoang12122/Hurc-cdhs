@@ -1345,6 +1345,7 @@ export namespace Prisma {
     verificationOtp: string | null
     otpExpiry: Date | null
     twoFactorEnabled: boolean | null
+    activeSessionId: string | null
     createdAt: Date | null
     deletedAt: Date | null
     updatedAt: Date | null
@@ -1364,6 +1365,7 @@ export namespace Prisma {
     verificationOtp: string | null
     otpExpiry: Date | null
     twoFactorEnabled: boolean | null
+    activeSessionId: string | null
     createdAt: Date | null
     deletedAt: Date | null
     updatedAt: Date | null
@@ -1385,6 +1387,7 @@ export namespace Prisma {
     verificationOtp: number
     otpExpiry: number
     twoFactorEnabled: number
+    activeSessionId: number
     createdAt: number
     deletedAt: number
     updatedAt: number
@@ -1406,6 +1409,7 @@ export namespace Prisma {
     verificationOtp?: true
     otpExpiry?: true
     twoFactorEnabled?: true
+    activeSessionId?: true
     createdAt?: true
     deletedAt?: true
     updatedAt?: true
@@ -1425,6 +1429,7 @@ export namespace Prisma {
     verificationOtp?: true
     otpExpiry?: true
     twoFactorEnabled?: true
+    activeSessionId?: true
     createdAt?: true
     deletedAt?: true
     updatedAt?: true
@@ -1446,6 +1451,7 @@ export namespace Prisma {
     verificationOtp?: true
     otpExpiry?: true
     twoFactorEnabled?: true
+    activeSessionId?: true
     createdAt?: true
     deletedAt?: true
     updatedAt?: true
@@ -1540,6 +1546,7 @@ export namespace Prisma {
     verificationOtp: string | null
     otpExpiry: Date | null
     twoFactorEnabled: boolean
+    activeSessionId: string | null
     createdAt: Date
     deletedAt: Date | null
     updatedAt: Date
@@ -1578,6 +1585,7 @@ export namespace Prisma {
     verificationOtp?: boolean
     otpExpiry?: boolean
     twoFactorEnabled?: boolean
+    activeSessionId?: boolean
     createdAt?: boolean
     deletedAt?: boolean
     updatedAt?: boolean
@@ -1603,6 +1611,7 @@ export namespace Prisma {
     verificationOtp?: boolean
     otpExpiry?: boolean
     twoFactorEnabled?: boolean
+    activeSessionId?: boolean
     createdAt?: boolean
     deletedAt?: boolean
     updatedAt?: boolean
@@ -1624,6 +1633,7 @@ export namespace Prisma {
     verificationOtp?: boolean
     otpExpiry?: boolean
     twoFactorEnabled?: boolean
+    activeSessionId?: boolean
     createdAt?: boolean
     deletedAt?: boolean
     updatedAt?: boolean
@@ -1660,6 +1670,7 @@ export namespace Prisma {
       verificationOtp: string | null
       otpExpiry: Date | null
       twoFactorEnabled: boolean
+      activeSessionId: string | null
       createdAt: Date
       deletedAt: Date | null
       updatedAt: Date
@@ -2074,6 +2085,7 @@ export namespace Prisma {
     readonly verificationOtp: FieldRef<"User", 'String'>
     readonly otpExpiry: FieldRef<"User", 'DateTime'>
     readonly twoFactorEnabled: FieldRef<"User", 'Boolean'>
+    readonly activeSessionId: FieldRef<"User", 'String'>
     readonly createdAt: FieldRef<"User", 'DateTime'>
     readonly deletedAt: FieldRef<"User", 'DateTime'>
     readonly updatedAt: FieldRef<"User", 'DateTime'>
@@ -7178,6 +7190,7 @@ export namespace Prisma {
     verificationOtp: 'verificationOtp',
     otpExpiry: 'otpExpiry',
     twoFactorEnabled: 'twoFactorEnabled',
+    activeSessionId: 'activeSessionId',
     createdAt: 'createdAt',
     deletedAt: 'deletedAt',
     updatedAt: 'updatedAt'
@@ -7352,6 +7365,7 @@ export namespace Prisma {
     verificationOtp?: StringNullableFilter<"User"> | string | null
     otpExpiry?: DateTimeNullableFilter<"User"> | Date | string | null
     twoFactorEnabled?: BoolFilter<"User"> | boolean
+    activeSessionId?: StringNullableFilter<"User"> | string | null
     createdAt?: DateTimeFilter<"User"> | Date | string
     deletedAt?: DateTimeNullableFilter<"User"> | Date | string | null
     updatedAt?: DateTimeFilter<"User"> | Date | string
@@ -7376,6 +7390,7 @@ export namespace Prisma {
     verificationOtp?: SortOrderInput | SortOrder
     otpExpiry?: SortOrderInput | SortOrder
     twoFactorEnabled?: SortOrder
+    activeSessionId?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     deletedAt?: SortOrderInput | SortOrder
     updatedAt?: SortOrder
@@ -7403,6 +7418,7 @@ export namespace Prisma {
     verificationOtp?: StringNullableFilter<"User"> | string | null
     otpExpiry?: DateTimeNullableFilter<"User"> | Date | string | null
     twoFactorEnabled?: BoolFilter<"User"> | boolean
+    activeSessionId?: StringNullableFilter<"User"> | string | null
     createdAt?: DateTimeFilter<"User"> | Date | string
     deletedAt?: DateTimeNullableFilter<"User"> | Date | string | null
     updatedAt?: DateTimeFilter<"User"> | Date | string
@@ -7427,6 +7443,7 @@ export namespace Prisma {
     verificationOtp?: SortOrderInput | SortOrder
     otpExpiry?: SortOrderInput | SortOrder
     twoFactorEnabled?: SortOrder
+    activeSessionId?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     deletedAt?: SortOrderInput | SortOrder
     updatedAt?: SortOrder
@@ -7454,6 +7471,7 @@ export namespace Prisma {
     verificationOtp?: StringNullableWithAggregatesFilter<"User"> | string | null
     otpExpiry?: DateTimeNullableWithAggregatesFilter<"User"> | Date | string | null
     twoFactorEnabled?: BoolWithAggregatesFilter<"User"> | boolean
+    activeSessionId?: StringNullableWithAggregatesFilter<"User"> | string | null
     createdAt?: DateTimeWithAggregatesFilter<"User"> | Date | string
     deletedAt?: DateTimeNullableWithAggregatesFilter<"User"> | Date | string | null
     updatedAt?: DateTimeWithAggregatesFilter<"User"> | Date | string
@@ -7799,6 +7817,7 @@ export namespace Prisma {
     verificationOtp?: string | null
     otpExpiry?: Date | string | null
     twoFactorEnabled?: boolean
+    activeSessionId?: string | null
     createdAt?: Date | string
     deletedAt?: Date | string | null
     updatedAt?: Date | string
@@ -7823,6 +7842,7 @@ export namespace Prisma {
     verificationOtp?: string | null
     otpExpiry?: Date | string | null
     twoFactorEnabled?: boolean
+    activeSessionId?: string | null
     createdAt?: Date | string
     deletedAt?: Date | string | null
     updatedAt?: Date | string
@@ -7847,6 +7867,7 @@ export namespace Prisma {
     verificationOtp?: NullableStringFieldUpdateOperationsInput | string | null
     otpExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
+    activeSessionId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -7871,6 +7892,7 @@ export namespace Prisma {
     verificationOtp?: NullableStringFieldUpdateOperationsInput | string | null
     otpExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
+    activeSessionId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -7895,6 +7917,7 @@ export namespace Prisma {
     verificationOtp?: string | null
     otpExpiry?: Date | string | null
     twoFactorEnabled?: boolean
+    activeSessionId?: string | null
     createdAt?: Date | string
     deletedAt?: Date | string | null
     updatedAt?: Date | string
@@ -7916,6 +7939,7 @@ export namespace Prisma {
     verificationOtp?: NullableStringFieldUpdateOperationsInput | string | null
     otpExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
+    activeSessionId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -7937,6 +7961,7 @@ export namespace Prisma {
     verificationOtp?: NullableStringFieldUpdateOperationsInput | string | null
     otpExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
+    activeSessionId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -8412,6 +8437,7 @@ export namespace Prisma {
     verificationOtp?: SortOrder
     otpExpiry?: SortOrder
     twoFactorEnabled?: SortOrder
+    activeSessionId?: SortOrder
     createdAt?: SortOrder
     deletedAt?: SortOrder
     updatedAt?: SortOrder
@@ -8431,6 +8457,7 @@ export namespace Prisma {
     verificationOtp?: SortOrder
     otpExpiry?: SortOrder
     twoFactorEnabled?: SortOrder
+    activeSessionId?: SortOrder
     createdAt?: SortOrder
     deletedAt?: SortOrder
     updatedAt?: SortOrder
@@ -8450,6 +8477,7 @@ export namespace Prisma {
     verificationOtp?: SortOrder
     otpExpiry?: SortOrder
     twoFactorEnabled?: SortOrder
+    activeSessionId?: SortOrder
     createdAt?: SortOrder
     deletedAt?: SortOrder
     updatedAt?: SortOrder
@@ -9247,6 +9275,7 @@ export namespace Prisma {
     verificationOtp?: string | null
     otpExpiry?: Date | string | null
     twoFactorEnabled?: boolean
+    activeSessionId?: string | null
     createdAt?: Date | string
     deletedAt?: Date | string | null
     updatedAt?: Date | string
@@ -9270,6 +9299,7 @@ export namespace Prisma {
     verificationOtp?: string | null
     otpExpiry?: Date | string | null
     twoFactorEnabled?: boolean
+    activeSessionId?: string | null
     createdAt?: Date | string
     deletedAt?: Date | string | null
     updatedAt?: Date | string
@@ -9309,6 +9339,7 @@ export namespace Prisma {
     verificationOtp?: NullableStringFieldUpdateOperationsInput | string | null
     otpExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
+    activeSessionId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -9332,6 +9363,7 @@ export namespace Prisma {
     verificationOtp?: NullableStringFieldUpdateOperationsInput | string | null
     otpExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
+    activeSessionId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -9355,6 +9387,7 @@ export namespace Prisma {
     verificationOtp?: string | null
     otpExpiry?: Date | string | null
     twoFactorEnabled?: boolean
+    activeSessionId?: string | null
     createdAt?: Date | string
     deletedAt?: Date | string | null
     updatedAt?: Date | string
@@ -9378,6 +9411,7 @@ export namespace Prisma {
     verificationOtp?: string | null
     otpExpiry?: Date | string | null
     twoFactorEnabled?: boolean
+    activeSessionId?: string | null
     createdAt?: Date | string
     deletedAt?: Date | string | null
     updatedAt?: Date | string
@@ -9417,6 +9451,7 @@ export namespace Prisma {
     verificationOtp?: NullableStringFieldUpdateOperationsInput | string | null
     otpExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
+    activeSessionId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -9440,6 +9475,7 @@ export namespace Prisma {
     verificationOtp?: NullableStringFieldUpdateOperationsInput | string | null
     otpExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
+    activeSessionId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -9463,6 +9499,7 @@ export namespace Prisma {
     verificationOtp?: string | null
     otpExpiry?: Date | string | null
     twoFactorEnabled?: boolean
+    activeSessionId?: string | null
     createdAt?: Date | string
     deletedAt?: Date | string | null
     updatedAt?: Date | string
@@ -9486,6 +9523,7 @@ export namespace Prisma {
     verificationOtp?: string | null
     otpExpiry?: Date | string | null
     twoFactorEnabled?: boolean
+    activeSessionId?: string | null
     createdAt?: Date | string
     deletedAt?: Date | string | null
     updatedAt?: Date | string
@@ -9525,6 +9563,7 @@ export namespace Prisma {
     verificationOtp?: NullableStringFieldUpdateOperationsInput | string | null
     otpExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
+    activeSessionId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -9548,6 +9587,7 @@ export namespace Prisma {
     verificationOtp?: NullableStringFieldUpdateOperationsInput | string | null
     otpExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
+    activeSessionId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string

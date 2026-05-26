@@ -39,7 +39,9 @@ export default function LoginClient() {
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center p-4">
-      <LoginForm />
+      <React.Suspense fallback={<LoginFormSkeleton />}>
+        <LoginForm />
+      </React.Suspense>
     </div>
   );
 }
