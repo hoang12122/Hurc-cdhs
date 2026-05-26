@@ -162,7 +162,8 @@ export async function updateInternalUser(id: string, data: any) {
         const allowedFields = [
             'name', 'email', 'password', 'role', 'status', 'department', 
             'isVerified', 'passwordLastChangedAt', 'permissions', 
-            'assignedSubsystems', 'avatarUrl', 'verificationOtp', 'otpExpiry', 'deletedAt'
+            'assignedSubsystems', 'avatarUrl', 'verificationOtp', 'otpExpiry', 'deletedAt',
+            'activeSessionId'
         ];
         
         for (const key of allowedFields) {

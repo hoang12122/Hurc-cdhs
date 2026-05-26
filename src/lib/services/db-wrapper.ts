@@ -36,28 +36,52 @@ export class PrismaProvider implements IDataProvider {
   }
 
   async findMany<T>(model: string, filter: any = {}, includeDeleted: boolean = false): Promise<T[]> {
-    const modelClient = this.getModelClient(model);
-    const where = includeDeleted ? filter : { ...filter, deletedAt: null };
-    const results = await modelClient.findMany({ where });
-    return results.map((item: any) => this.processItem(item, 'decrypt'));
+    try {
+      const modelClient = this.getModelClient(model);
+      const where = includeDeleted ? filter : { ...filter, deletedAt: null };
+      const results = await modelClient.findMany({ where });
+      return results.map((item: any) => this.processItem(item, 'decrypt'));
+    } catch (error) {
+      console.warn(`[dbProvider] Prisma findMany failed for model ${model}, falling back to JSON provider:`, error);
+      const fallback = new JsonProvider();
+      return await fallback.findMany<T>(model, filter, includeDeleted);
+    }
   }
   
   async findUnique<T>(model: string, id: string | number): Promise<T | null> {
-    const modelClient = this.getModelClient(model);
-    const result = await modelClient.findUnique({ where: { id } });
-    return result ? this.processItem(result, 'decrypt') : null;
+    try {
+      const modelClient = this.getModelClient(model);
+      const result = await modelClient.findUnique({ where: { id } });
+      return result ? this.processItem(result, 'decrypt') : null;
+    } catch (error) {
+      console.warn(`[dbProvider] Prisma findUnique failed for model ${model} (id: ${id}), falling back to JSON provider:`, error);
+      const fallback = new JsonProvider();
+      return await fallback.findUnique<T>(model, id);
+    }
   }
 
   async create<T>(model: string, data: any): Promise<T> {
-    const modelClient = this.getModelClient(model);
-    const processedData = this.processItem({ ...data }, 'encrypt');
-    return await modelClient.create({ data: processedData });
+    try {
+      const modelClient = this.getModelClient(model);
+      const processedData = this.processItem({ ...data }, 'encrypt');
+      return await modelClient.create({ data: processedData });
+    } catch (error) {
+      console.warn(`[dbProvider] Prisma create failed for model ${model}, falling back to JSON provider:`, error);
+      const fallback = new JsonProvider();
+      return await fallback.create<T>(model, data);
+    }
   }
 
   async update<T>(model: string, id: string | number, data: any): Promise<T> {
-    const modelClient = this.getModelClient(model);
-    const processedData = this.processItem({ ...data }, 'encrypt');
-    return await modelClient.update({ where: { id }, data: processedData });
+    try {
+      const modelClient = this.getModelClient(model);
+      const processedData = this.processItem({ ...data }, 'encrypt');
+      return await modelClient.update({ where: { id }, data: processedData });
+    } catch (error) {
+      console.warn(`[dbProvider] Prisma update failed for model ${model} (id: ${id}), falling back to JSON provider:`, error);
+      const fallback = new JsonProvider();
+      return await fallback.update<T>(model, id, data);
+    }
   }
 
   private processItem(item: any, action: 'encrypt' | 'decrypt'): any {
@@ -77,25 +101,43 @@ export class PrismaProvider implements IDataProvider {
   }
 
   async delete(model: string, id: string | number): Promise<void> {
-    const modelClient = this.getModelClient(model);
-    await modelClient.update({ 
-      where: { id }, 
-      data: { deletedAt: new Date() } 
-    });
+    try {
+      const modelClient = this.getModelClient(model);
+      await modelClient.update({ 
+        where: { id }, 
+        data: { deletedAt: new Date() } 
+      });
+    } catch (error) {
+      console.warn(`[dbProvider] Prisma delete failed for model ${model} (id: ${id}), falling back to JSON provider:`, error);
+      const fallback = new JsonProvider();
+      await fallback.delete(model, id);
+    }
   }
 
   async restore(model: string, id: string | number): Promise<void> {
-    const modelClient = this.getModelClient(model);
-    await modelClient.update({ 
-      where: { id }, 
-      data: { deletedAt: null } 
-    });
+    try {
+      const modelClient = this.getModelClient(model);
+      await modelClient.update({ 
+        where: { id }, 
+        data: { deletedAt: null } 
+      });
+    } catch (error) {
+      console.warn(`[dbProvider] Prisma restore failed for model ${model} (id: ${id}), falling back to JSON provider:`, error);
+      const fallback = new JsonProvider();
+      await fallback.restore(model, id);
+    }
   }
 
   async count(model: string, filter: any = {}, includeDeleted: boolean = false): Promise<number> {
-    const modelClient = this.getModelClient(model);
-    const where = includeDeleted ? filter : { ...filter, deletedAt: null };
-    return await modelClient.count({ where });
+    try {
+      const modelClient = this.getModelClient(model);
+      const where = includeDeleted ? filter : { ...filter, deletedAt: null };
+      return await modelClient.count({ where });
+    } catch (error) {
+      console.warn(`[dbProvider] Prisma count failed for model ${model}, falling back to JSON provider:`, error);
+      const fallback = new JsonProvider();
+      return await fallback.count(model, filter, includeDeleted);
+    }
   }
 }
 
