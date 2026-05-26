@@ -630,10 +630,10 @@ export default function ProfilePage() {
           ) : (
             <div className="space-y-6">
               {/* 2FA Status Banner */}
-              <Card className={`glass-card shadow-lg border border-l-4 ${twofaStatus?.twoFactorEnabled ? 'border-l-green-500' : 'border-l-slate-400'}`}>
+              <Card className={`glass-card shadow-lg border border-l-4 ${twofaStatus?.twoFactorEnabled ? 'border-l-emerald-500 bg-emerald-500/[0.02]' : 'border-l-amber-500 bg-amber-500/[0.02]'}`}>
                 <CardContent className="pt-6">
                   <div className="flex items-start gap-4">
-                    <div className={`p-3 rounded-2xl ${twofaStatus?.twoFactorEnabled ? 'bg-green-500/10 text-green-600' : 'bg-slate-500/10 text-slate-500'}`}>
+                    <div className={`p-3 rounded-2xl ${twofaStatus?.twoFactorEnabled ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' : 'bg-amber-500/10 text-amber-600 dark:text-amber-400'}`}>
                       {twofaStatus?.twoFactorEnabled ? <ShieldCheck className="h-8 w-8" /> : <Shield className="h-8 w-8" />}
                     </div>
                     <div className="space-y-1.5 flex-1">
@@ -641,11 +641,11 @@ export default function ProfilePage() {
                         <h3 className="font-bold text-lg text-foreground">
                           {twofaStatus?.twoFactorEnabled ? "Xác thực 2 yếu tố đang HOẠT ĐỘNG" : "Xác thực 2 yếu tố KHÔNG HOẠT ĐỘNG"}
                         </h3>
-                        <Badge variant={twofaStatus?.twoFactorEnabled ? "default" : "secondary"}>
+                        <Badge variant={twofaStatus?.twoFactorEnabled ? "default" : "secondary"} className={twofaStatus?.twoFactorEnabled ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/20" : "bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/20"}>
                           {twofaStatus?.twoFactorEnabled ? "Active" : "Disabled"}
                         </Badge>
                       </div>
-                      <p className="text-sm text-muted-foreground max-w-3xl leading-relaxed">
+                      <p className="text-sm text-slate-700 dark:text-slate-300 max-w-3xl leading-relaxed">
                         Để kích hoạt xác thực 2 yếu tố, sử dụng các nút bên dưới để đăng ký thiết bị 2FA mới. Nếu bạn đã có thiết bị, bạn cần đặt thiết bị đó làm mặc định để xác thực khi đăng nhập.
                       </p>
                       
@@ -777,7 +777,7 @@ export default function ProfilePage() {
                           ))
                         ) : (
                           <TableRow>
-                            <TableCell colSpan={5} className="text-center py-8 text-sm text-muted-foreground italic bg-muted/10">
+                            <TableCell colSpan={5} className="text-center py-8 text-sm text-slate-500 dark:text-slate-400 italic bg-muted/10">
                               Không có thiết bị 2FA nào được đăng ký cho tài khoản của bạn.
                             </TableCell>
                           </TableRow>
@@ -800,7 +800,7 @@ export default function ProfilePage() {
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <p className="text-sm text-muted-foreground leading-relaxed">
+                  <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed">
                     Sử dụng nút dưới đây để tạo bộ mã dự phòng mới.
                     <span className="block font-semibold text-destructive mt-2">
                       ⚠️ Cảnh báo: Nếu bạn đã tạo mã dự phòng trước đó, chúng sẽ bị vô hiệu và không còn tác dụng.
@@ -831,10 +831,10 @@ export default function ProfilePage() {
 
                         <div className="grid grid-cols-2 gap-x-6 gap-y-2 font-mono text-sm font-bold text-foreground text-center">
                           {backupCodesList.map((code, index) => (
-                            <div key={index} className="py-1 bg-muted/40 rounded-lg border border-slate-100">{code}</div>
+                            <div key={index} className="py-1 bg-muted/40 rounded-lg border border-border dark:border-slate-800">{code}</div>
                           ))}
                         </div>
-                        <p className="text-[10px] text-muted-foreground leading-relaxed italic text-center">
+                        <p className="text-[10px] text-slate-500 dark:text-slate-400 leading-relaxed italic text-center">
                           * Mỗi mã chỉ có thể sử dụng một lần để đăng nhập khẩn cấp. Lưu trữ an toàn!
                         </p>
                       </div>
@@ -1089,7 +1089,7 @@ export default function ProfilePage() {
                           ))
                         ) : (
                           <TableRow>
-                            <TableCell colSpan={activeTokenSubTab === 'icalendar' ? 6 : 4} className="text-center py-8 text-sm text-muted-foreground italic bg-muted/10">
+                            <TableCell colSpan={activeTokenSubTab === 'icalendar' ? 6 : 4} className="text-center py-8 text-sm text-slate-500 dark:text-slate-400 italic bg-muted/10">
                               {activeTokenSubTab === 'api' && "Chưa có mã thông báo API. Bạn có thể tạo một cái bằng cách sử dụng nút bên dưới."}
                               {activeTokenSubTab === 'icalendar' && "Để thêm mã thông báo iCalendar, hãy đăng ký lịch mới hoặc lịch hiện có từ trong mô-đun Lịch của dự án."}
                               {activeTokenSubTab === 'meeting_ical' && "Chưa có mã thông báo cuộc họp iCalendar. Bạn có thể tạo một cái bằng cách sử dụng nút bên dưới."}

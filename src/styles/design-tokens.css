@@ -38,7 +38,7 @@
 }
 
 /* Dark Mode Tokens (Ready for implementation) */
-[data-theme='dark'] {
+.dark, [data-theme='dark'] {
   --bg-main: #0f172a;
   --text-main: #f1f5f9;
   --glass-bg: rgba(15, 23, 42, 0.7);
