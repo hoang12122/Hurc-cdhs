@@ -20,6 +20,18 @@ export interface IDataProvider {
 /**
  * Prisma implementation of Data Provider
  */
+const SOFT_DELETE_MODELS = new Set([
+  'task',
+  'todo',
+  'maintenancestandard',
+  'inspectiondetail',
+  'inspection',
+  'improvement',
+  'subsystem',
+  'patrollocation',
+  'user'
+]);
+
 export class PrismaProvider implements IDataProvider {
   protected client: any;
 
@@ -38,7 +50,8 @@ export class PrismaProvider implements IDataProvider {
   async findMany<T>(model: string, filter: any = {}, includeDeleted: boolean = false): Promise<T[]> {
     try {
       const modelClient = this.getModelClient(model);
-      const where = includeDeleted ? filter : { ...filter, deletedAt: null };
+      const hasSoftDelete = SOFT_DELETE_MODELS.has(model.toLowerCase());
+      const where = (includeDeleted || !hasSoftDelete) ? filter : { ...filter, deletedAt: null };
       const results = await modelClient.findMany({ where });
       return results.map((item: any) => this.processItem(item, 'decrypt'));
     } catch (error) {
@@ -103,10 +116,17 @@ export class PrismaProvider implements IDataProvider {
   async delete(model: string, id: string | number): Promise<void> {
     try {
       const modelClient = this.getModelClient(model);
-      await modelClient.update({ 
-        where: { id }, 
-        data: { deletedAt: new Date() } 
-      });
+      const hasSoftDelete = SOFT_DELETE_MODELS.has(model.toLowerCase());
+      if (hasSoftDelete) {
+        await modelClient.update({ 
+          where: { id }, 
+          data: { deletedAt: new Date() } 
+        });
+      } else {
+        await modelClient.delete({ 
+          where: { id } 
+        });
+      }
     } catch (error) {
       console.warn(`[dbProvider] Prisma delete failed for model ${model} (id: ${id}), falling back to JSON provider:`, error);
       const fallback = new JsonProvider();
@@ -117,10 +137,13 @@ export class PrismaProvider implements IDataProvider {
   async restore(model: string, id: string | number): Promise<void> {
     try {
       const modelClient = this.getModelClient(model);
-      await modelClient.update({ 
-        where: { id }, 
-        data: { deletedAt: null } 
-      });
+      const hasSoftDelete = SOFT_DELETE_MODELS.has(model.toLowerCase());
+      if (hasSoftDelete) {
+        await modelClient.update({ 
+          where: { id }, 
+          data: { deletedAt: null } 
+        });
+      }
     } catch (error) {
       console.warn(`[dbProvider] Prisma restore failed for model ${model} (id: ${id}), falling back to JSON provider:`, error);
       const fallback = new JsonProvider();
@@ -131,7 +154,8 @@ export class PrismaProvider implements IDataProvider {
   async count(model: string, filter: any = {}, includeDeleted: boolean = false): Promise<number> {
     try {
       const modelClient = this.getModelClient(model);
-      const where = includeDeleted ? filter : { ...filter, deletedAt: null };
+      const hasSoftDelete = SOFT_DELETE_MODELS.has(model.toLowerCase());
+      const where = (includeDeleted || !hasSoftDelete) ? filter : { ...filter, deletedAt: null };
       return await modelClient.count({ where });
     } catch (error) {
       console.warn(`[dbProvider] Prisma count failed for model ${model}, falling back to JSON provider:`, error);
