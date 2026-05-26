@@ -21,15 +21,21 @@ export interface IDataProvider {
  * Prisma implementation of Data Provider
  */
 const SOFT_DELETE_MODELS = new Set([
+  // authDb
+  'user',
+  
+  // metroDb
+  'asset',
+  
+  // opsDb
   'task',
   'todo',
   'maintenancestandard',
   'inspectiondetail',
   'inspection',
-  'improvement',
-  'subsystem',
-  'patrollocation',
-  'user'
+  'dnfdocument',
+  'hazardrecord',
+  'systemlog'
 ]);
 
 export class PrismaProvider implements IDataProvider {
