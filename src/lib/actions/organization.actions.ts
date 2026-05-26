@@ -3,12 +3,15 @@
 
 import { revalidatePath } from 'next/cache';
 import { OrganizationService, type OrganizationalUnit } from '../services/organization-service';
+import { requireAuth, requirePermission } from '@/lib/auth-enforcer';
+import { OUScopeService } from '../services/ou-scope-service';
 
 /**
  * Action to retrieve the complete Active Directory tree structure
  */
 export async function getOrganizationTree() {
   try {
+    await requireAuth();
     return await OrganizationService.getTreeStructure();
   } catch (error: any) {
     console.error('[ORGANIZATION-ACTION] getOrganizationTree failed:', error);
@@ -21,6 +24,7 @@ export async function getOrganizationTree() {
  */
 export async function getOUList() {
   try {
+    await requireAuth();
     const allOus = await OrganizationService.getOrganizationalUnits();
     
     // Sort recursively to build indented list
@@ -68,6 +72,19 @@ export async function upsertOrganizationalUnit(
   data: { id?: string; name: string; description?: string; domainId: string; parentId?: string }
 ) {
   try {
+    await requirePermission('organization:manage');
+
+    // Cycle detection & Infinite Loop prevention
+    if (data.id && data.parentId) {
+      if (data.parentId === data.id) {
+        return { success: false, error: 'Đơn vị tổ chức cha không thể là chính nó.' };
+      }
+      const descendants = await OUScopeService.getOUDescendants(data.id);
+      if (descendants.includes(data.parentId)) {
+        return { success: false, error: 'Đơn vị tổ chức cha không thể là đơn vị con trực thuộc (tránh vòng lặp vô hạn).' };
+      }
+    }
+    
     if (data.id) {
       const { id, ...updateData } = data;
       await OrganizationService.updateOrganizationalUnit(id, updateData);
@@ -94,6 +111,7 @@ export async function upsertOrganizationalUnit(
  */
 export async function deleteOrganizationalUnit(id: string) {
   try {
+    await requirePermission('organization:manage');
     await OrganizationService.deleteOrganizationalUnit(id);
     
     revalidatePath('/admin/organization');
@@ -110,6 +128,7 @@ export async function deleteOrganizationalUnit(id: string) {
  */
 export async function seedOrganization() {
   try {
+    await requirePermission('organization:manage');
     const forests = await OrganizationService.getForests();
     if (forests.length > 0) {
       revalidatePath('/admin/organization');
@@ -135,6 +154,7 @@ export async function seedOrganization() {
  */
 export async function upsertForest(data: { id?: string; name: string; description?: string }) {
   try {
+    await requirePermission('organization:manage');
     if (data.id) {
       const { id, ...updateData } = data;
       await OrganizationService.updateForest(id, updateData);
@@ -154,6 +174,7 @@ export async function upsertForest(data: { id?: string; name: string; descriptio
 
 export async function deleteForest(id: string) {
   try {
+    await requirePermission('organization:manage');
     await OrganizationService.deleteForest(id);
     revalidatePath('/admin/organization');
     return { success: true };
@@ -168,6 +189,7 @@ export async function deleteForest(id: string) {
  */
 export async function upsertTree(data: { id?: string; name: string; description?: string; forestId: string }) {
   try {
+    await requirePermission('organization:manage');
     if (data.id) {
       const { id, ...updateData } = data;
       await OrganizationService.updateTree(id, updateData);
@@ -188,6 +210,7 @@ export async function upsertTree(data: { id?: string; name: string; description?
 
 export async function deleteTree(id: string) {
   try {
+    await requirePermission('organization:manage');
     await OrganizationService.deleteTree(id);
     revalidatePath('/admin/organization');
     return { success: true };
@@ -202,6 +225,7 @@ export async function deleteTree(id: string) {
  */
 export async function upsertDomain(data: { id?: string; name: string; description?: string; treeId: string }) {
   try {
+    await requirePermission('organization:manage');
     if (data.id) {
       const { id, ...updateData } = data;
       await OrganizationService.updateChildDomain(id, updateData);
@@ -222,6 +246,7 @@ export async function upsertDomain(data: { id?: string; name: string; descriptio
 
 export async function deleteDomain(id: string) {
   try {
+    await requirePermission('organization:manage');
     await OrganizationService.deleteChildDomain(id);
     revalidatePath('/admin/organization');
     return { success: true };
@@ -230,4 +255,3 @@ export async function deleteDomain(id: string) {
     return { success: false, error: error.message || 'Lỗi không xác định.' };
   }
 }
-
