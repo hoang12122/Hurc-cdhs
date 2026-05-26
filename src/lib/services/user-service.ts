@@ -109,6 +109,7 @@ export async function createInternalUser(user: Partial<User>) {
         role: user.role,
         status: "active",
         department: user.department,
+        ouId: user.ouId || null,
         isVerified: user.isVerified !== false,
         verificationOtp: otp,
         otpExpiry: expiry.toISOString(),
@@ -128,6 +129,7 @@ export async function createInternalUser(user: Partial<User>) {
                 role: record.role,
                 status: record.status,
                 department: record.department,
+                ouId: record.ouId,
                 isVerified: record.isVerified,
                 verificationOtp: record.verificationOtp,
                 otpExpiry: new Date(record.otpExpiry),
@@ -160,7 +162,7 @@ export async function updateInternalUser(id: string, data: any) {
     if (!IS_DATABASE_OFFLINE) {
         const pgPayload: any = {};
         const allowedFields = [
-            'name', 'email', 'password', 'role', 'status', 'department', 
+            'name', 'email', 'password', 'role', 'status', 'department', 'ouId',
             'isVerified', 'passwordLastChangedAt', 'permissions', 
             'assignedSubsystems', 'avatarUrl', 'verificationOtp', 'otpExpiry', 'deletedAt',
             'activeSessionId'

@@ -139,6 +139,7 @@ exports.Prisma.UserScalarFieldEnum = {
   otpExpiry: 'otpExpiry',
   twoFactorEnabled: 'twoFactorEnabled',
   activeSessionId: 'activeSessionId',
+  ouId: 'ouId',
   createdAt: 'createdAt',
   deletedAt: 'deletedAt',
   updatedAt: 'updatedAt'
@@ -195,6 +196,42 @@ exports.Prisma.AccessTokenScalarFieldEnum = {
   updatedAt: 'updatedAt'
 };
 
+exports.Prisma.ForestScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  description: 'description',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.TreeScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  description: 'description',
+  forestId: 'forestId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.ChildDomainScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  description: 'description',
+  treeId: 'treeId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.OrganizationalUnitScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  description: 'description',
+  domainId: 'domainId',
+  parentId: 'parentId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -217,7 +254,11 @@ exports.Prisma.ModelName = {
   PasswordResetRequest: 'PasswordResetRequest',
   TwoFADevice: 'TwoFADevice',
   BackupCode: 'BackupCode',
-  AccessToken: 'AccessToken'
+  AccessToken: 'AccessToken',
+  Forest: 'Forest',
+  Tree: 'Tree',
+  ChildDomain: 'ChildDomain',
+  OrganizationalUnit: 'OrganizationalUnit'
 };
 
 /**

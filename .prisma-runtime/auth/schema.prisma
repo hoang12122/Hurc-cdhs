@@ -10,25 +10,27 @@ datasource db {
 }
 
 model User {
-  id                    String        @id @default(uuid())
+  id                    String              @id @default(uuid())
   name                  String
-  email                 String        @unique
+  email                 String              @unique
   password              String?
   role                  String // References Role.id
   status                String // 'active' | 'inactive'
   department            String?
-  isVerified            Boolean       @default(false)
-  passwordLastChangedAt DateTime?     @default(now())
-  permissions           String[]      @default([])
-  assignedSubsystems    String[]      @default([])
+  isVerified            Boolean             @default(false)
+  passwordLastChangedAt DateTime?           @default(now())
+  permissions           String[]            @default([])
+  assignedSubsystems    String[]            @default([])
   avatarUrl             String?
   verificationOtp       String?
   otpExpiry             DateTime?
-  twoFactorEnabled      Boolean       @default(false)
+  twoFactorEnabled      Boolean             @default(false)
   twoFADevices          TwoFADevice[]
   backupCodes           BackupCode[]
   accessTokens          AccessToken[]
   activeSessionId       String?
+  ouId                  String?
+  ou                    OrganizationalUnit? @relation(fields: [ouId], references: [id], onDelete: SetNull)
 
   createdAt DateTime  @default(now())
   deletedAt DateTime?
@@ -37,6 +39,7 @@ model User {
   @@index([role])
   @@index([status])
   @@index([role, status])
+  @@index([ouId])
   @@map("users")
 }
 
@@ -107,4 +110,61 @@ model AccessToken {
 
   @@index([userId])
   @@map("access_tokens")
+}
+
+model Forest {
+  id          String   @id @default(uuid())
+  name        String   @unique
+  description String?
+  trees       Tree[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("forests")
+}
+
+model Tree {
+  id          String        @id @default(uuid())
+  name        String        @unique
+  description String?
+  forestId    String
+  forest      Forest        @relation(fields: [forestId], references: [id], onDelete: Cascade)
+  domains     ChildDomain[]
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  @@index([forestId])
+  @@map("trees")
+}
+
+model ChildDomain {
+  id          String               @id @default(uuid())
+  name        String               @unique
+  description String?
+  treeId      String
+  tree        Tree                 @relation(fields: [treeId], references: [id], onDelete: Cascade)
+  ous         OrganizationalUnit[]
+  createdAt   DateTime             @default(now())
+  updatedAt   DateTime             @updatedAt
+
+  @@index([treeId])
+  @@map("child_domains")
+}
+
+model OrganizationalUnit {
+  id          String               @id @default(uuid())
+  name        String
+  description String?
+  domainId    String
+  domain      ChildDomain          @relation(fields: [domainId], references: [id], onDelete: Cascade)
+  parentId    String?
+  parent      OrganizationalUnit?  @relation("OUHierarchy", fields: [parentId], references: [id], onDelete: Cascade)
+  children    OrganizationalUnit[] @relation("OUHierarchy")
+  users       User[]
+  createdAt   DateTime             @default(now())
+  updatedAt   DateTime             @updatedAt
+
+  @@index([domainId])
+  @@index([parentId])
+  @@map("organizational_units")
 }

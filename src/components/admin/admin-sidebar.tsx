@@ -5,7 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { 
   Users, ShieldCheck, Database, FileText, Settings, 
-  Activity, ShieldAlert, LayoutDashboard, ChevronLeft, ChevronRight, Undo2
+  Activity, ShieldAlert, LayoutDashboard, ChevronLeft, ChevronRight, Undo2, Network
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -21,6 +21,11 @@ const adminNavItems = [
     icon: Users,
     label: { vi: "Người dùng", en: "Users" },
     path: "/admin/users",
+  },
+  {
+    icon: Network,
+    label: { vi: "Cơ cấu AD", en: "AD Hierarchy" },
+    path: "/admin/organization",
   },
   {
     icon: ShieldCheck,

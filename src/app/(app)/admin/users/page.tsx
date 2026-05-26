@@ -39,6 +39,7 @@ import { addUser, updateUser, deleteUser, getUsers, adminResetUserPassword, getP
 import { getRoles } from "@/lib/actions/role.actions";
 import { getResponsibleUnits, getSubsystems } from "@/lib/actions/category.actions";
 import { undoLastChange } from "@/lib/actions/system.actions";
+import { getOUList } from "@/lib/actions/organization.actions";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuCheckboxItem } from "@/components/ui/dropdown-menu";
 
@@ -57,6 +58,7 @@ const createUserSchema = z.object({
   role: z.string().min(1, "Vai trò không được để trống."),
   status: z.enum(["active", "inactive"], { required_error: "Vui lòng chọn trạng thái." }),
   department: z.string().optional(),
+  ouId: z.string().optional(),
   assignedSubsystems: z.array(z.string()).optional(),
 });
 
@@ -67,6 +69,7 @@ const editUserSchema = z.object({
   role: z.string().min(1, "Vai trò không được để trống."),
   status: z.enum(["active", "inactive"], { required_error: "Vui lòng chọn trạng thái." }),
   department: z.string().optional(),
+  ouId: z.string().optional(),
   assignedSubsystems: z.array(z.string()).optional(),
 });
 
@@ -210,6 +213,7 @@ export default function UserManagementPage() {
   const [rolesData, setRolesData] = React.useState<Role[]>([]);
   const [responsibleUnits, setResponsibleUnits] = React.useState<ResponsibleUnit[]>([]);
   const [subsystems, setSubsystems] = React.useState<Subsystem[]>([]);
+  const [ouList, setOuList] = React.useState<any[]>([]);
   const [isUserDialogOpen, setIsUserDialogOpen] = React.useState(false);
   const [editingUser, setEditingUser] = React.useState<User | null>(null);
   const [searchTerm, setSearchTerm] = React.useState("");
@@ -229,28 +233,35 @@ export default function UserManagementPage() {
 
   const form = useForm<UserFormValues>({
     resolver: zodResolver(formSchema),
-    defaultValues: { id: "", name: "", email: "", role: "", status: "active", department: "", assignedSubsystems: [] },
+    defaultValues: { id: "", name: "", email: "", role: "", status: "active", department: "", ouId: "", assignedSubsystems: [] },
   });
   
   const fetchData = React.useCallback(async () => {
-    const [users, roles, units, fetchedSubsystems] = await Promise.all([getUsers(), getRoles(), getResponsibleUnits(), getSubsystems()]);
+    const [users, roles, units, fetchedSubsystems, ous] = await Promise.all([
+      getUsers(), 
+      getRoles(), 
+      getResponsibleUnits(), 
+      getSubsystems(),
+      getOUList()
+    ]);
     setUsersData(users);
     setRolesData(roles);
     setResponsibleUnits(units);
     setSubsystems(fetchedSubsystems);
+    setOuList(ous);
   }, []);
 
   const handleOpenAddUserDialog = React.useCallback(() => {
     setEditingUser(null);
     setShowPassword(false);
-    form.reset({ id: "", name: "", email: "", role: "", status: "active", department: "", assignedSubsystems: [] } as any);
+    form.reset({ id: "", name: "", email: "", role: "", status: "active", department: "", ouId: "", assignedSubsystems: [] } as any);
     setIsUserDialogOpen(true);
   }, [form]);
 
   const handleOpenEditUserDialog = React.useCallback((user: User) => {
     setEditingUser(user);
     setShowPassword(false);
-    form.reset({...user, assignedSubsystems: user.assignedSubsystems || []});
+    form.reset({...user, ouId: user.ouId || "", assignedSubsystems: user.assignedSubsystems || []} as any);
     setIsUserDialogOpen(true);
   }, [form]);
 
@@ -528,20 +539,30 @@ export default function UserManagementPage() {
                 />
                 <FormField
                   control={form.control}
-                  name="department"
+                  name="ouId"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel htmlFor="user_department">{t.departmentHeader}</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value}>
+                      <FormLabel htmlFor="user_ouId">{locale === 'vi' ? "Đơn vị tổ chức (OU)" : "Organizational Unit (OU)"}</FormLabel>
+                      <Select 
+                        onValueChange={(val) => {
+                          field.onChange(val);
+                          // Auto-fill department with the OU name for backward compatibility
+                          const matchingOu = ouList.find(o => o.id === val);
+                          if (matchingOu) {
+                            form.setValue('department', matchingOu.name);
+                          }
+                        }} 
+                        value={field.value}
+                      >
                         <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder={t.departmentPlaceholder} />
+                          <SelectTrigger id="user_ouId">
+                            <SelectValue placeholder={locale === 'vi' ? "Chọn đơn vị tổ chức" : "Select OU"} />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          {responsibleUnits.map(unit => (
-                            <SelectItem key={unit.id} value={unit.name}>
-                              {unit.name}
+                          {ouList.map(ou => (
+                            <SelectItem key={ou.id} value={ou.id}>
+                              {'\u00A0\u00A0'.repeat(ou.level * 2) + (ou.level > 0 ? '↳ ' : '') + ou.name}
                             </SelectItem>
                           ))}
                         </SelectContent>

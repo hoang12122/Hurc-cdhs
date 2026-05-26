@@ -77,6 +77,7 @@ export interface User {
   passwordHistory?: string[];
   activeSessionId?: string | null;
   twoFactorEnabled?: boolean;
+  ouId?: string | null;
 }
 
 

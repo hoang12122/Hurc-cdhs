@@ -43,6 +43,26 @@ export type BackupCode = $Result.DefaultSelection<Prisma.$BackupCodePayload>
  * 
  */
 export type AccessToken = $Result.DefaultSelection<Prisma.$AccessTokenPayload>
+/**
+ * Model Forest
+ * 
+ */
+export type Forest = $Result.DefaultSelection<Prisma.$ForestPayload>
+/**
+ * Model Tree
+ * 
+ */
+export type Tree = $Result.DefaultSelection<Prisma.$TreePayload>
+/**
+ * Model ChildDomain
+ * 
+ */
+export type ChildDomain = $Result.DefaultSelection<Prisma.$ChildDomainPayload>
+/**
+ * Model OrganizationalUnit
+ * 
+ */
+export type OrganizationalUnit = $Result.DefaultSelection<Prisma.$OrganizationalUnitPayload>
 
 /**
  * ##  Prisma Client ʲˢ
@@ -226,6 +246,46 @@ export class PrismaClient<
     * ```
     */
   get accessToken(): Prisma.AccessTokenDelegate<ExtArgs>;
+
+  /**
+   * `prisma.forest`: Exposes CRUD operations for the **Forest** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more Forests
+    * const forests = await prisma.forest.findMany()
+    * ```
+    */
+  get forest(): Prisma.ForestDelegate<ExtArgs>;
+
+  /**
+   * `prisma.tree`: Exposes CRUD operations for the **Tree** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more Trees
+    * const trees = await prisma.tree.findMany()
+    * ```
+    */
+  get tree(): Prisma.TreeDelegate<ExtArgs>;
+
+  /**
+   * `prisma.childDomain`: Exposes CRUD operations for the **ChildDomain** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more ChildDomains
+    * const childDomains = await prisma.childDomain.findMany()
+    * ```
+    */
+  get childDomain(): Prisma.ChildDomainDelegate<ExtArgs>;
+
+  /**
+   * `prisma.organizationalUnit`: Exposes CRUD operations for the **OrganizationalUnit** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more OrganizationalUnits
+    * const organizationalUnits = await prisma.organizationalUnit.findMany()
+    * ```
+    */
+  get organizationalUnit(): Prisma.OrganizationalUnitDelegate<ExtArgs>;
 }
 
 export namespace Prisma {
@@ -672,7 +732,11 @@ export namespace Prisma {
     PasswordResetRequest: 'PasswordResetRequest',
     TwoFADevice: 'TwoFADevice',
     BackupCode: 'BackupCode',
-    AccessToken: 'AccessToken'
+    AccessToken: 'AccessToken',
+    Forest: 'Forest',
+    Tree: 'Tree',
+    ChildDomain: 'ChildDomain',
+    OrganizationalUnit: 'OrganizationalUnit'
   };
 
   export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -688,7 +752,7 @@ export namespace Prisma {
 
   export type TypeMap<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, ClientOptions = {}> = {
     meta: {
-      modelProps: "user" | "role" | "passwordResetRequest" | "twoFADevice" | "backupCode" | "accessToken"
+      modelProps: "user" | "role" | "passwordResetRequest" | "twoFADevice" | "backupCode" | "accessToken" | "forest" | "tree" | "childDomain" | "organizationalUnit"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -1112,6 +1176,286 @@ export namespace Prisma {
           }
         }
       }
+      Forest: {
+        payload: Prisma.$ForestPayload<ExtArgs>
+        fields: Prisma.ForestFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.ForestFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ForestPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.ForestFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ForestPayload>
+          }
+          findFirst: {
+            args: Prisma.ForestFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ForestPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.ForestFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ForestPayload>
+          }
+          findMany: {
+            args: Prisma.ForestFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ForestPayload>[]
+          }
+          create: {
+            args: Prisma.ForestCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ForestPayload>
+          }
+          createMany: {
+            args: Prisma.ForestCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.ForestCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ForestPayload>[]
+          }
+          delete: {
+            args: Prisma.ForestDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ForestPayload>
+          }
+          update: {
+            args: Prisma.ForestUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ForestPayload>
+          }
+          deleteMany: {
+            args: Prisma.ForestDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.ForestUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          upsert: {
+            args: Prisma.ForestUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ForestPayload>
+          }
+          aggregate: {
+            args: Prisma.ForestAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateForest>
+          }
+          groupBy: {
+            args: Prisma.ForestGroupByArgs<ExtArgs>
+            result: $Utils.Optional<ForestGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.ForestCountArgs<ExtArgs>
+            result: $Utils.Optional<ForestCountAggregateOutputType> | number
+          }
+        }
+      }
+      Tree: {
+        payload: Prisma.$TreePayload<ExtArgs>
+        fields: Prisma.TreeFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.TreeFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$TreePayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.TreeFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$TreePayload>
+          }
+          findFirst: {
+            args: Prisma.TreeFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$TreePayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.TreeFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$TreePayload>
+          }
+          findMany: {
+            args: Prisma.TreeFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$TreePayload>[]
+          }
+          create: {
+            args: Prisma.TreeCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$TreePayload>
+          }
+          createMany: {
+            args: Prisma.TreeCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.TreeCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$TreePayload>[]
+          }
+          delete: {
+            args: Prisma.TreeDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$TreePayload>
+          }
+          update: {
+            args: Prisma.TreeUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$TreePayload>
+          }
+          deleteMany: {
+            args: Prisma.TreeDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.TreeUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          upsert: {
+            args: Prisma.TreeUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$TreePayload>
+          }
+          aggregate: {
+            args: Prisma.TreeAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateTree>
+          }
+          groupBy: {
+            args: Prisma.TreeGroupByArgs<ExtArgs>
+            result: $Utils.Optional<TreeGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.TreeCountArgs<ExtArgs>
+            result: $Utils.Optional<TreeCountAggregateOutputType> | number
+          }
+        }
+      }
+      ChildDomain: {
+        payload: Prisma.$ChildDomainPayload<ExtArgs>
+        fields: Prisma.ChildDomainFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.ChildDomainFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ChildDomainPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.ChildDomainFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ChildDomainPayload>
+          }
+          findFirst: {
+            args: Prisma.ChildDomainFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ChildDomainPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.ChildDomainFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ChildDomainPayload>
+          }
+          findMany: {
+            args: Prisma.ChildDomainFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ChildDomainPayload>[]
+          }
+          create: {
+            args: Prisma.ChildDomainCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ChildDomainPayload>
+          }
+          createMany: {
+            args: Prisma.ChildDomainCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.ChildDomainCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ChildDomainPayload>[]
+          }
+          delete: {
+            args: Prisma.ChildDomainDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ChildDomainPayload>
+          }
+          update: {
+            args: Prisma.ChildDomainUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ChildDomainPayload>
+          }
+          deleteMany: {
+            args: Prisma.ChildDomainDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.ChildDomainUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          upsert: {
+            args: Prisma.ChildDomainUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ChildDomainPayload>
+          }
+          aggregate: {
+            args: Prisma.ChildDomainAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateChildDomain>
+          }
+          groupBy: {
+            args: Prisma.ChildDomainGroupByArgs<ExtArgs>
+            result: $Utils.Optional<ChildDomainGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.ChildDomainCountArgs<ExtArgs>
+            result: $Utils.Optional<ChildDomainCountAggregateOutputType> | number
+          }
+        }
+      }
+      OrganizationalUnit: {
+        payload: Prisma.$OrganizationalUnitPayload<ExtArgs>
+        fields: Prisma.OrganizationalUnitFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.OrganizationalUnitFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$OrganizationalUnitPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.OrganizationalUnitFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$OrganizationalUnitPayload>
+          }
+          findFirst: {
+            args: Prisma.OrganizationalUnitFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$OrganizationalUnitPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.OrganizationalUnitFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$OrganizationalUnitPayload>
+          }
+          findMany: {
+            args: Prisma.OrganizationalUnitFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$OrganizationalUnitPayload>[]
+          }
+          create: {
+            args: Prisma.OrganizationalUnitCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$OrganizationalUnitPayload>
+          }
+          createMany: {
+            args: Prisma.OrganizationalUnitCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.OrganizationalUnitCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$OrganizationalUnitPayload>[]
+          }
+          delete: {
+            args: Prisma.OrganizationalUnitDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$OrganizationalUnitPayload>
+          }
+          update: {
+            args: Prisma.OrganizationalUnitUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$OrganizationalUnitPayload>
+          }
+          deleteMany: {
+            args: Prisma.OrganizationalUnitDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.OrganizationalUnitUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          upsert: {
+            args: Prisma.OrganizationalUnitUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$OrganizationalUnitPayload>
+          }
+          aggregate: {
+            args: Prisma.OrganizationalUnitAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateOrganizationalUnit>
+          }
+          groupBy: {
+            args: Prisma.OrganizationalUnitGroupByArgs<ExtArgs>
+            result: $Utils.Optional<OrganizationalUnitGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.OrganizationalUnitCountArgs<ExtArgs>
+            result: $Utils.Optional<OrganizationalUnitCountAggregateOutputType> | number
+          }
+        }
+      }
     }
   } & {
     other: {
@@ -1318,6 +1662,139 @@ export namespace Prisma {
 
 
   /**
+   * Count Type ForestCountOutputType
+   */
+
+  export type ForestCountOutputType = {
+    trees: number
+  }
+
+  export type ForestCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    trees?: boolean | ForestCountOutputTypeCountTreesArgs
+  }
+
+  // Custom InputTypes
+  /**
+   * ForestCountOutputType without action
+   */
+  export type ForestCountOutputTypeDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ForestCountOutputType
+     */
+    select?: ForestCountOutputTypeSelect<ExtArgs> | null
+  }
+
+  /**
+   * ForestCountOutputType without action
+   */
+  export type ForestCountOutputTypeCountTreesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: TreeWhereInput
+  }
+
+
+  /**
+   * Count Type TreeCountOutputType
+   */
+
+  export type TreeCountOutputType = {
+    domains: number
+  }
+
+  export type TreeCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    domains?: boolean | TreeCountOutputTypeCountDomainsArgs
+  }
+
+  // Custom InputTypes
+  /**
+   * TreeCountOutputType without action
+   */
+  export type TreeCountOutputTypeDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the TreeCountOutputType
+     */
+    select?: TreeCountOutputTypeSelect<ExtArgs> | null
+  }
+
+  /**
+   * TreeCountOutputType without action
+   */
+  export type TreeCountOutputTypeCountDomainsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: ChildDomainWhereInput
+  }
+
+
+  /**
+   * Count Type ChildDomainCountOutputType
+   */
+
+  export type ChildDomainCountOutputType = {
+    ous: number
+  }
+
+  export type ChildDomainCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    ous?: boolean | ChildDomainCountOutputTypeCountOusArgs
+  }
+
+  // Custom InputTypes
+  /**
+   * ChildDomainCountOutputType without action
+   */
+  export type ChildDomainCountOutputTypeDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ChildDomainCountOutputType
+     */
+    select?: ChildDomainCountOutputTypeSelect<ExtArgs> | null
+  }
+
+  /**
+   * ChildDomainCountOutputType without action
+   */
+  export type ChildDomainCountOutputTypeCountOusArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: OrganizationalUnitWhereInput
+  }
+
+
+  /**
+   * Count Type OrganizationalUnitCountOutputType
+   */
+
+  export type OrganizationalUnitCountOutputType = {
+    children: number
+    users: number
+  }
+
+  export type OrganizationalUnitCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    children?: boolean | OrganizationalUnitCountOutputTypeCountChildrenArgs
+    users?: boolean | OrganizationalUnitCountOutputTypeCountUsersArgs
+  }
+
+  // Custom InputTypes
+  /**
+   * OrganizationalUnitCountOutputType without action
+   */
+  export type OrganizationalUnitCountOutputTypeDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the OrganizationalUnitCountOutputType
+     */
+    select?: OrganizationalUnitCountOutputTypeSelect<ExtArgs> | null
+  }
+
+  /**
+   * OrganizationalUnitCountOutputType without action
+   */
+  export type OrganizationalUnitCountOutputTypeCountChildrenArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: OrganizationalUnitWhereInput
+  }
+
+  /**
+   * OrganizationalUnitCountOutputType without action
+   */
+  export type OrganizationalUnitCountOutputTypeCountUsersArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: UserWhereInput
+  }
+
+
+  /**
    * Models
    */
 
@@ -1346,6 +1823,7 @@ export namespace Prisma {
     otpExpiry: Date | null
     twoFactorEnabled: boolean | null
     activeSessionId: string | null
+    ouId: string | null
     createdAt: Date | null
     deletedAt: Date | null
     updatedAt: Date | null
@@ -1366,6 +1844,7 @@ export namespace Prisma {
     otpExpiry: Date | null
     twoFactorEnabled: boolean | null
     activeSessionId: string | null
+    ouId: string | null
     createdAt: Date | null
     deletedAt: Date | null
     updatedAt: Date | null
@@ -1388,6 +1867,7 @@ export namespace Prisma {
     otpExpiry: number
     twoFactorEnabled: number
     activeSessionId: number
+    ouId: number
     createdAt: number
     deletedAt: number
     updatedAt: number
@@ -1410,6 +1890,7 @@ export namespace Prisma {
     otpExpiry?: true
     twoFactorEnabled?: true
     activeSessionId?: true
+    ouId?: true
     createdAt?: true
     deletedAt?: true
     updatedAt?: true
@@ -1430,6 +1911,7 @@ export namespace Prisma {
     otpExpiry?: true
     twoFactorEnabled?: true
     activeSessionId?: true
+    ouId?: true
     createdAt?: true
     deletedAt?: true
     updatedAt?: true
@@ -1452,6 +1934,7 @@ export namespace Prisma {
     otpExpiry?: true
     twoFactorEnabled?: true
     activeSessionId?: true
+    ouId?: true
     createdAt?: true
     deletedAt?: true
     updatedAt?: true
@@ -1547,6 +2030,7 @@ export namespace Prisma {
     otpExpiry: Date | null
     twoFactorEnabled: boolean
     activeSessionId: string | null
+    ouId: string | null
     createdAt: Date
     deletedAt: Date | null
     updatedAt: Date
@@ -1586,12 +2070,14 @@ export namespace Prisma {
     otpExpiry?: boolean
     twoFactorEnabled?: boolean
     activeSessionId?: boolean
+    ouId?: boolean
     createdAt?: boolean
     deletedAt?: boolean
     updatedAt?: boolean
     twoFADevices?: boolean | User$twoFADevicesArgs<ExtArgs>
     backupCodes?: boolean | User$backupCodesArgs<ExtArgs>
     accessTokens?: boolean | User$accessTokensArgs<ExtArgs>
+    ou?: boolean | User$ouArgs<ExtArgs>
     _count?: boolean | UserCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["user"]>
 
@@ -1612,9 +2098,11 @@ export namespace Prisma {
     otpExpiry?: boolean
     twoFactorEnabled?: boolean
     activeSessionId?: boolean
+    ouId?: boolean
     createdAt?: boolean
     deletedAt?: boolean
     updatedAt?: boolean
+    ou?: boolean | User$ouArgs<ExtArgs>
   }, ExtArgs["result"]["user"]>
 
   export type UserSelectScalar = {
@@ -1634,6 +2122,7 @@ export namespace Prisma {
     otpExpiry?: boolean
     twoFactorEnabled?: boolean
     activeSessionId?: boolean
+    ouId?: boolean
     createdAt?: boolean
     deletedAt?: boolean
     updatedAt?: boolean
@@ -1643,9 +2132,12 @@ export namespace Prisma {
     twoFADevices?: boolean | User$twoFADevicesArgs<ExtArgs>
     backupCodes?: boolean | User$backupCodesArgs<ExtArgs>
     accessTokens?: boolean | User$accessTokensArgs<ExtArgs>
+    ou?: boolean | User$ouArgs<ExtArgs>
     _count?: boolean | UserCountOutputTypeDefaultArgs<ExtArgs>
   }
-  export type UserIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {}
+  export type UserIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    ou?: boolean | User$ouArgs<ExtArgs>
+  }
 
   export type $UserPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     name: "User"
@@ -1653,6 +2145,7 @@ export namespace Prisma {
       twoFADevices: Prisma.$TwoFADevicePayload<ExtArgs>[]
       backupCodes: Prisma.$BackupCodePayload<ExtArgs>[]
       accessTokens: Prisma.$AccessTokenPayload<ExtArgs>[]
+      ou: Prisma.$OrganizationalUnitPayload<ExtArgs> | null
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -1671,6 +2164,7 @@ export namespace Prisma {
       otpExpiry: Date | null
       twoFactorEnabled: boolean
       activeSessionId: string | null
+      ouId: string | null
       createdAt: Date
       deletedAt: Date | null
       updatedAt: Date
@@ -2041,6 +2535,7 @@ export namespace Prisma {
     twoFADevices<T extends User$twoFADevicesArgs<ExtArgs> = {}>(args?: Subset<T, User$twoFADevicesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$TwoFADevicePayload<ExtArgs>, T, "findMany"> | Null>
     backupCodes<T extends User$backupCodesArgs<ExtArgs> = {}>(args?: Subset<T, User$backupCodesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$BackupCodePayload<ExtArgs>, T, "findMany"> | Null>
     accessTokens<T extends User$accessTokensArgs<ExtArgs> = {}>(args?: Subset<T, User$accessTokensArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AccessTokenPayload<ExtArgs>, T, "findMany"> | Null>
+    ou<T extends User$ouArgs<ExtArgs> = {}>(args?: Subset<T, User$ouArgs<ExtArgs>>): Prisma__OrganizationalUnitClient<$Result.GetResult<Prisma.$OrganizationalUnitPayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -2086,6 +2581,7 @@ export namespace Prisma {
     readonly otpExpiry: FieldRef<"User", 'DateTime'>
     readonly twoFactorEnabled: FieldRef<"User", 'Boolean'>
     readonly activeSessionId: FieldRef<"User", 'String'>
+    readonly ouId: FieldRef<"User", 'String'>
     readonly createdAt: FieldRef<"User", 'DateTime'>
     readonly deletedAt: FieldRef<"User", 'DateTime'>
     readonly updatedAt: FieldRef<"User", 'DateTime'>
@@ -2310,6 +2806,10 @@ export namespace Prisma {
      */
     data: UserCreateManyInput | UserCreateManyInput[]
     skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserIncludeCreateManyAndReturn<ExtArgs> | null
   }
 
   /**
@@ -2460,6 +2960,21 @@ export namespace Prisma {
     take?: number
     skip?: number
     distinct?: AccessTokenScalarFieldEnum | AccessTokenScalarFieldEnum[]
+  }
+
+  /**
+   * User.ou
+   */
+  export type User$ouArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the OrganizationalUnit
+     */
+    select?: OrganizationalUnitSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: OrganizationalUnitInclude<ExtArgs> | null
+    where?: OrganizationalUnitWhereInput
   }
 
   /**
@@ -7161,6 +7676,3924 @@ export namespace Prisma {
 
 
   /**
+   * Model Forest
+   */
+
+  export type AggregateForest = {
+    _count: ForestCountAggregateOutputType | null
+    _min: ForestMinAggregateOutputType | null
+    _max: ForestMaxAggregateOutputType | null
+  }
+
+  export type ForestMinAggregateOutputType = {
+    id: string | null
+    name: string | null
+    description: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type ForestMaxAggregateOutputType = {
+    id: string | null
+    name: string | null
+    description: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type ForestCountAggregateOutputType = {
+    id: number
+    name: number
+    description: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type ForestMinAggregateInputType = {
+    id?: true
+    name?: true
+    description?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type ForestMaxAggregateInputType = {
+    id?: true
+    name?: true
+    description?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type ForestCountAggregateInputType = {
+    id?: true
+    name?: true
+    description?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type ForestAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which Forest to aggregate.
+     */
+    where?: ForestWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Forests to fetch.
+     */
+    orderBy?: ForestOrderByWithRelationInput | ForestOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: ForestWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Forests from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Forests.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned Forests
+    **/
+    _count?: true | ForestCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: ForestMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: ForestMaxAggregateInputType
+  }
+
+  export type GetForestAggregateType<T extends ForestAggregateArgs> = {
+        [P in keyof T & keyof AggregateForest]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateForest[P]>
+      : GetScalarType<T[P], AggregateForest[P]>
+  }
+
+
+
+
+  export type ForestGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: ForestWhereInput
+    orderBy?: ForestOrderByWithAggregationInput | ForestOrderByWithAggregationInput[]
+    by: ForestScalarFieldEnum[] | ForestScalarFieldEnum
+    having?: ForestScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: ForestCountAggregateInputType | true
+    _min?: ForestMinAggregateInputType
+    _max?: ForestMaxAggregateInputType
+  }
+
+  export type ForestGroupByOutputType = {
+    id: string
+    name: string
+    description: string | null
+    createdAt: Date
+    updatedAt: Date
+    _count: ForestCountAggregateOutputType | null
+    _min: ForestMinAggregateOutputType | null
+    _max: ForestMaxAggregateOutputType | null
+  }
+
+  type GetForestGroupByPayload<T extends ForestGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<ForestGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof ForestGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], ForestGroupByOutputType[P]>
+            : GetScalarType<T[P], ForestGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type ForestSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    name?: boolean
+    description?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    trees?: boolean | Forest$treesArgs<ExtArgs>
+    _count?: boolean | ForestCountOutputTypeDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["forest"]>
+
+  export type ForestSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    name?: boolean
+    description?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }, ExtArgs["result"]["forest"]>
+
+  export type ForestSelectScalar = {
+    id?: boolean
+    name?: boolean
+    description?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+  export type ForestInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    trees?: boolean | Forest$treesArgs<ExtArgs>
+    _count?: boolean | ForestCountOutputTypeDefaultArgs<ExtArgs>
+  }
+  export type ForestIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {}
+
+  export type $ForestPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "Forest"
+    objects: {
+      trees: Prisma.$TreePayload<ExtArgs>[]
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      name: string
+      description: string | null
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["forest"]>
+    composites: {}
+  }
+
+  type ForestGetPayload<S extends boolean | null | undefined | ForestDefaultArgs> = $Result.GetResult<Prisma.$ForestPayload, S>
+
+  type ForestCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+    Omit<ForestFindManyArgs, 'select' | 'include' | 'distinct'> & {
+      select?: ForestCountAggregateInputType | true
+    }
+
+  export interface ForestDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['Forest'], meta: { name: 'Forest' } }
+    /**
+     * Find zero or one Forest that matches the filter.
+     * @param {ForestFindUniqueArgs} args - Arguments to find a Forest
+     * @example
+     * // Get one Forest
+     * const forest = await prisma.forest.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends ForestFindUniqueArgs>(args: SelectSubset<T, ForestFindUniqueArgs<ExtArgs>>): Prisma__ForestClient<$Result.GetResult<Prisma.$ForestPayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
+
+    /**
+     * Find one Forest that matches the filter or throw an error with `error.code='P2025'` 
+     * if no matches were found.
+     * @param {ForestFindUniqueOrThrowArgs} args - Arguments to find a Forest
+     * @example
+     * // Get one Forest
+     * const forest = await prisma.forest.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends ForestFindUniqueOrThrowArgs>(args: SelectSubset<T, ForestFindUniqueOrThrowArgs<ExtArgs>>): Prisma__ForestClient<$Result.GetResult<Prisma.$ForestPayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
+
+    /**
+     * Find the first Forest that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ForestFindFirstArgs} args - Arguments to find a Forest
+     * @example
+     * // Get one Forest
+     * const forest = await prisma.forest.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends ForestFindFirstArgs>(args?: SelectSubset<T, ForestFindFirstArgs<ExtArgs>>): Prisma__ForestClient<$Result.GetResult<Prisma.$ForestPayload<ExtArgs>, T, "findFirst"> | null, null, ExtArgs>
+
+    /**
+     * Find the first Forest that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ForestFindFirstOrThrowArgs} args - Arguments to find a Forest
+     * @example
+     * // Get one Forest
+     * const forest = await prisma.forest.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends ForestFindFirstOrThrowArgs>(args?: SelectSubset<T, ForestFindFirstOrThrowArgs<ExtArgs>>): Prisma__ForestClient<$Result.GetResult<Prisma.$ForestPayload<ExtArgs>, T, "findFirstOrThrow">, never, ExtArgs>
+
+    /**
+     * Find zero or more Forests that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ForestFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all Forests
+     * const forests = await prisma.forest.findMany()
+     * 
+     * // Get first 10 Forests
+     * const forests = await prisma.forest.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const forestWithIdOnly = await prisma.forest.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends ForestFindManyArgs>(args?: SelectSubset<T, ForestFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ForestPayload<ExtArgs>, T, "findMany">>
+
+    /**
+     * Create a Forest.
+     * @param {ForestCreateArgs} args - Arguments to create a Forest.
+     * @example
+     * // Create one Forest
+     * const Forest = await prisma.forest.create({
+     *   data: {
+     *     // ... data to create a Forest
+     *   }
+     * })
+     * 
+     */
+    create<T extends ForestCreateArgs>(args: SelectSubset<T, ForestCreateArgs<ExtArgs>>): Prisma__ForestClient<$Result.GetResult<Prisma.$ForestPayload<ExtArgs>, T, "create">, never, ExtArgs>
+
+    /**
+     * Create many Forests.
+     * @param {ForestCreateManyArgs} args - Arguments to create many Forests.
+     * @example
+     * // Create many Forests
+     * const forest = await prisma.forest.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends ForestCreateManyArgs>(args?: SelectSubset<T, ForestCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many Forests and returns the data saved in the database.
+     * @param {ForestCreateManyAndReturnArgs} args - Arguments to create many Forests.
+     * @example
+     * // Create many Forests
+     * const forest = await prisma.forest.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many Forests and only return the `id`
+     * const forestWithIdOnly = await prisma.forest.createManyAndReturn({ 
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends ForestCreateManyAndReturnArgs>(args?: SelectSubset<T, ForestCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ForestPayload<ExtArgs>, T, "createManyAndReturn">>
+
+    /**
+     * Delete a Forest.
+     * @param {ForestDeleteArgs} args - Arguments to delete one Forest.
+     * @example
+     * // Delete one Forest
+     * const Forest = await prisma.forest.delete({
+     *   where: {
+     *     // ... filter to delete one Forest
+     *   }
+     * })
+     * 
+     */
+    delete<T extends ForestDeleteArgs>(args: SelectSubset<T, ForestDeleteArgs<ExtArgs>>): Prisma__ForestClient<$Result.GetResult<Prisma.$ForestPayload<ExtArgs>, T, "delete">, never, ExtArgs>
+
+    /**
+     * Update one Forest.
+     * @param {ForestUpdateArgs} args - Arguments to update one Forest.
+     * @example
+     * // Update one Forest
+     * const forest = await prisma.forest.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends ForestUpdateArgs>(args: SelectSubset<T, ForestUpdateArgs<ExtArgs>>): Prisma__ForestClient<$Result.GetResult<Prisma.$ForestPayload<ExtArgs>, T, "update">, never, ExtArgs>
+
+    /**
+     * Delete zero or more Forests.
+     * @param {ForestDeleteManyArgs} args - Arguments to filter Forests to delete.
+     * @example
+     * // Delete a few Forests
+     * const { count } = await prisma.forest.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends ForestDeleteManyArgs>(args?: SelectSubset<T, ForestDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more Forests.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ForestUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many Forests
+     * const forest = await prisma.forest.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends ForestUpdateManyArgs>(args: SelectSubset<T, ForestUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create or update one Forest.
+     * @param {ForestUpsertArgs} args - Arguments to update or create a Forest.
+     * @example
+     * // Update or create a Forest
+     * const forest = await prisma.forest.upsert({
+     *   create: {
+     *     // ... data to create a Forest
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the Forest we want to update
+     *   }
+     * })
+     */
+    upsert<T extends ForestUpsertArgs>(args: SelectSubset<T, ForestUpsertArgs<ExtArgs>>): Prisma__ForestClient<$Result.GetResult<Prisma.$ForestPayload<ExtArgs>, T, "upsert">, never, ExtArgs>
+
+
+    /**
+     * Count the number of Forests.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ForestCountArgs} args - Arguments to filter Forests to count.
+     * @example
+     * // Count the number of Forests
+     * const count = await prisma.forest.count({
+     *   where: {
+     *     // ... the filter for the Forests we want to count
+     *   }
+     * })
+    **/
+    count<T extends ForestCountArgs>(
+      args?: Subset<T, ForestCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], ForestCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a Forest.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ForestAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends ForestAggregateArgs>(args: Subset<T, ForestAggregateArgs>): Prisma.PrismaPromise<GetForestAggregateType<T>>
+
+    /**
+     * Group by Forest.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ForestGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends ForestGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: ForestGroupByArgs['orderBy'] }
+        : { orderBy?: ForestGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, ForestGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetForestGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the Forest model
+   */
+  readonly fields: ForestFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for Forest.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__ForestClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    trees<T extends Forest$treesArgs<ExtArgs> = {}>(args?: Subset<T, Forest$treesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$TreePayload<ExtArgs>, T, "findMany"> | Null>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the Forest model
+   */ 
+  interface ForestFieldRefs {
+    readonly id: FieldRef<"Forest", 'String'>
+    readonly name: FieldRef<"Forest", 'String'>
+    readonly description: FieldRef<"Forest", 'String'>
+    readonly createdAt: FieldRef<"Forest", 'DateTime'>
+    readonly updatedAt: FieldRef<"Forest", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * Forest findUnique
+   */
+  export type ForestFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Forest
+     */
+    select?: ForestSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ForestInclude<ExtArgs> | null
+    /**
+     * Filter, which Forest to fetch.
+     */
+    where: ForestWhereUniqueInput
+  }
+
+  /**
+   * Forest findUniqueOrThrow
+   */
+  export type ForestFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Forest
+     */
+    select?: ForestSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ForestInclude<ExtArgs> | null
+    /**
+     * Filter, which Forest to fetch.
+     */
+    where: ForestWhereUniqueInput
+  }
+
+  /**
+   * Forest findFirst
+   */
+  export type ForestFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Forest
+     */
+    select?: ForestSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ForestInclude<ExtArgs> | null
+    /**
+     * Filter, which Forest to fetch.
+     */
+    where?: ForestWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Forests to fetch.
+     */
+    orderBy?: ForestOrderByWithRelationInput | ForestOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for Forests.
+     */
+    cursor?: ForestWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Forests from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Forests.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of Forests.
+     */
+    distinct?: ForestScalarFieldEnum | ForestScalarFieldEnum[]
+  }
+
+  /**
+   * Forest findFirstOrThrow
+   */
+  export type ForestFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Forest
+     */
+    select?: ForestSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ForestInclude<ExtArgs> | null
+    /**
+     * Filter, which Forest to fetch.
+     */
+    where?: ForestWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Forests to fetch.
+     */
+    orderBy?: ForestOrderByWithRelationInput | ForestOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for Forests.
+     */
+    cursor?: ForestWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Forests from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Forests.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of Forests.
+     */
+    distinct?: ForestScalarFieldEnum | ForestScalarFieldEnum[]
+  }
+
+  /**
+   * Forest findMany
+   */
+  export type ForestFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Forest
+     */
+    select?: ForestSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ForestInclude<ExtArgs> | null
+    /**
+     * Filter, which Forests to fetch.
+     */
+    where?: ForestWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Forests to fetch.
+     */
+    orderBy?: ForestOrderByWithRelationInput | ForestOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing Forests.
+     */
+    cursor?: ForestWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Forests from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Forests.
+     */
+    skip?: number
+    distinct?: ForestScalarFieldEnum | ForestScalarFieldEnum[]
+  }
+
+  /**
+   * Forest create
+   */
+  export type ForestCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Forest
+     */
+    select?: ForestSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ForestInclude<ExtArgs> | null
+    /**
+     * The data needed to create a Forest.
+     */
+    data: XOR<ForestCreateInput, ForestUncheckedCreateInput>
+  }
+
+  /**
+   * Forest createMany
+   */
+  export type ForestCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many Forests.
+     */
+    data: ForestCreateManyInput | ForestCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * Forest createManyAndReturn
+   */
+  export type ForestCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Forest
+     */
+    select?: ForestSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * The data used to create many Forests.
+     */
+    data: ForestCreateManyInput | ForestCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * Forest update
+   */
+  export type ForestUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Forest
+     */
+    select?: ForestSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ForestInclude<ExtArgs> | null
+    /**
+     * The data needed to update a Forest.
+     */
+    data: XOR<ForestUpdateInput, ForestUncheckedUpdateInput>
+    /**
+     * Choose, which Forest to update.
+     */
+    where: ForestWhereUniqueInput
+  }
+
+  /**
+   * Forest updateMany
+   */
+  export type ForestUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update Forests.
+     */
+    data: XOR<ForestUpdateManyMutationInput, ForestUncheckedUpdateManyInput>
+    /**
+     * Filter which Forests to update
+     */
+    where?: ForestWhereInput
+  }
+
+  /**
+   * Forest upsert
+   */
+  export type ForestUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Forest
+     */
+    select?: ForestSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ForestInclude<ExtArgs> | null
+    /**
+     * The filter to search for the Forest to update in case it exists.
+     */
+    where: ForestWhereUniqueInput
+    /**
+     * In case the Forest found by the `where` argument doesn't exist, create a new Forest with this data.
+     */
+    create: XOR<ForestCreateInput, ForestUncheckedCreateInput>
+    /**
+     * In case the Forest was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<ForestUpdateInput, ForestUncheckedUpdateInput>
+  }
+
+  /**
+   * Forest delete
+   */
+  export type ForestDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Forest
+     */
+    select?: ForestSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ForestInclude<ExtArgs> | null
+    /**
+     * Filter which Forest to delete.
+     */
+    where: ForestWhereUniqueInput
+  }
+
+  /**
+   * Forest deleteMany
+   */
+  export type ForestDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which Forests to delete
+     */
+    where?: ForestWhereInput
+  }
+
+  /**
+   * Forest.trees
+   */
+  export type Forest$treesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Tree
+     */
+    select?: TreeSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TreeInclude<ExtArgs> | null
+    where?: TreeWhereInput
+    orderBy?: TreeOrderByWithRelationInput | TreeOrderByWithRelationInput[]
+    cursor?: TreeWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: TreeScalarFieldEnum | TreeScalarFieldEnum[]
+  }
+
+  /**
+   * Forest without action
+   */
+  export type ForestDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Forest
+     */
+    select?: ForestSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ForestInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model Tree
+   */
+
+  export type AggregateTree = {
+    _count: TreeCountAggregateOutputType | null
+    _min: TreeMinAggregateOutputType | null
+    _max: TreeMaxAggregateOutputType | null
+  }
+
+  export type TreeMinAggregateOutputType = {
+    id: string | null
+    name: string | null
+    description: string | null
+    forestId: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type TreeMaxAggregateOutputType = {
+    id: string | null
+    name: string | null
+    description: string | null
+    forestId: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type TreeCountAggregateOutputType = {
+    id: number
+    name: number
+    description: number
+    forestId: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type TreeMinAggregateInputType = {
+    id?: true
+    name?: true
+    description?: true
+    forestId?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type TreeMaxAggregateInputType = {
+    id?: true
+    name?: true
+    description?: true
+    forestId?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type TreeCountAggregateInputType = {
+    id?: true
+    name?: true
+    description?: true
+    forestId?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type TreeAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which Tree to aggregate.
+     */
+    where?: TreeWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Trees to fetch.
+     */
+    orderBy?: TreeOrderByWithRelationInput | TreeOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: TreeWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Trees from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Trees.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned Trees
+    **/
+    _count?: true | TreeCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: TreeMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: TreeMaxAggregateInputType
+  }
+
+  export type GetTreeAggregateType<T extends TreeAggregateArgs> = {
+        [P in keyof T & keyof AggregateTree]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateTree[P]>
+      : GetScalarType<T[P], AggregateTree[P]>
+  }
+
+
+
+
+  export type TreeGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: TreeWhereInput
+    orderBy?: TreeOrderByWithAggregationInput | TreeOrderByWithAggregationInput[]
+    by: TreeScalarFieldEnum[] | TreeScalarFieldEnum
+    having?: TreeScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: TreeCountAggregateInputType | true
+    _min?: TreeMinAggregateInputType
+    _max?: TreeMaxAggregateInputType
+  }
+
+  export type TreeGroupByOutputType = {
+    id: string
+    name: string
+    description: string | null
+    forestId: string
+    createdAt: Date
+    updatedAt: Date
+    _count: TreeCountAggregateOutputType | null
+    _min: TreeMinAggregateOutputType | null
+    _max: TreeMaxAggregateOutputType | null
+  }
+
+  type GetTreeGroupByPayload<T extends TreeGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<TreeGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof TreeGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], TreeGroupByOutputType[P]>
+            : GetScalarType<T[P], TreeGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type TreeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    name?: boolean
+    description?: boolean
+    forestId?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    forest?: boolean | ForestDefaultArgs<ExtArgs>
+    domains?: boolean | Tree$domainsArgs<ExtArgs>
+    _count?: boolean | TreeCountOutputTypeDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["tree"]>
+
+  export type TreeSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    name?: boolean
+    description?: boolean
+    forestId?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    forest?: boolean | ForestDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["tree"]>
+
+  export type TreeSelectScalar = {
+    id?: boolean
+    name?: boolean
+    description?: boolean
+    forestId?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+  export type TreeInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    forest?: boolean | ForestDefaultArgs<ExtArgs>
+    domains?: boolean | Tree$domainsArgs<ExtArgs>
+    _count?: boolean | TreeCountOutputTypeDefaultArgs<ExtArgs>
+  }
+  export type TreeIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    forest?: boolean | ForestDefaultArgs<ExtArgs>
+  }
+
+  export type $TreePayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "Tree"
+    objects: {
+      forest: Prisma.$ForestPayload<ExtArgs>
+      domains: Prisma.$ChildDomainPayload<ExtArgs>[]
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      name: string
+      description: string | null
+      forestId: string
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["tree"]>
+    composites: {}
+  }
+
+  type TreeGetPayload<S extends boolean | null | undefined | TreeDefaultArgs> = $Result.GetResult<Prisma.$TreePayload, S>
+
+  type TreeCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+    Omit<TreeFindManyArgs, 'select' | 'include' | 'distinct'> & {
+      select?: TreeCountAggregateInputType | true
+    }
+
+  export interface TreeDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['Tree'], meta: { name: 'Tree' } }
+    /**
+     * Find zero or one Tree that matches the filter.
+     * @param {TreeFindUniqueArgs} args - Arguments to find a Tree
+     * @example
+     * // Get one Tree
+     * const tree = await prisma.tree.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends TreeFindUniqueArgs>(args: SelectSubset<T, TreeFindUniqueArgs<ExtArgs>>): Prisma__TreeClient<$Result.GetResult<Prisma.$TreePayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
+
+    /**
+     * Find one Tree that matches the filter or throw an error with `error.code='P2025'` 
+     * if no matches were found.
+     * @param {TreeFindUniqueOrThrowArgs} args - Arguments to find a Tree
+     * @example
+     * // Get one Tree
+     * const tree = await prisma.tree.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends TreeFindUniqueOrThrowArgs>(args: SelectSubset<T, TreeFindUniqueOrThrowArgs<ExtArgs>>): Prisma__TreeClient<$Result.GetResult<Prisma.$TreePayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
+
+    /**
+     * Find the first Tree that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {TreeFindFirstArgs} args - Arguments to find a Tree
+     * @example
+     * // Get one Tree
+     * const tree = await prisma.tree.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends TreeFindFirstArgs>(args?: SelectSubset<T, TreeFindFirstArgs<ExtArgs>>): Prisma__TreeClient<$Result.GetResult<Prisma.$TreePayload<ExtArgs>, T, "findFirst"> | null, null, ExtArgs>
+
+    /**
+     * Find the first Tree that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {TreeFindFirstOrThrowArgs} args - Arguments to find a Tree
+     * @example
+     * // Get one Tree
+     * const tree = await prisma.tree.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends TreeFindFirstOrThrowArgs>(args?: SelectSubset<T, TreeFindFirstOrThrowArgs<ExtArgs>>): Prisma__TreeClient<$Result.GetResult<Prisma.$TreePayload<ExtArgs>, T, "findFirstOrThrow">, never, ExtArgs>
+
+    /**
+     * Find zero or more Trees that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {TreeFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all Trees
+     * const trees = await prisma.tree.findMany()
+     * 
+     * // Get first 10 Trees
+     * const trees = await prisma.tree.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const treeWithIdOnly = await prisma.tree.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends TreeFindManyArgs>(args?: SelectSubset<T, TreeFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$TreePayload<ExtArgs>, T, "findMany">>
+
+    /**
+     * Create a Tree.
+     * @param {TreeCreateArgs} args - Arguments to create a Tree.
+     * @example
+     * // Create one Tree
+     * const Tree = await prisma.tree.create({
+     *   data: {
+     *     // ... data to create a Tree
+     *   }
+     * })
+     * 
+     */
+    create<T extends TreeCreateArgs>(args: SelectSubset<T, TreeCreateArgs<ExtArgs>>): Prisma__TreeClient<$Result.GetResult<Prisma.$TreePayload<ExtArgs>, T, "create">, never, ExtArgs>
+
+    /**
+     * Create many Trees.
+     * @param {TreeCreateManyArgs} args - Arguments to create many Trees.
+     * @example
+     * // Create many Trees
+     * const tree = await prisma.tree.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends TreeCreateManyArgs>(args?: SelectSubset<T, TreeCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many Trees and returns the data saved in the database.
+     * @param {TreeCreateManyAndReturnArgs} args - Arguments to create many Trees.
+     * @example
+     * // Create many Trees
+     * const tree = await prisma.tree.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many Trees and only return the `id`
+     * const treeWithIdOnly = await prisma.tree.createManyAndReturn({ 
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends TreeCreateManyAndReturnArgs>(args?: SelectSubset<T, TreeCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$TreePayload<ExtArgs>, T, "createManyAndReturn">>
+
+    /**
+     * Delete a Tree.
+     * @param {TreeDeleteArgs} args - Arguments to delete one Tree.
+     * @example
+     * // Delete one Tree
+     * const Tree = await prisma.tree.delete({
+     *   where: {
+     *     // ... filter to delete one Tree
+     *   }
+     * })
+     * 
+     */
+    delete<T extends TreeDeleteArgs>(args: SelectSubset<T, TreeDeleteArgs<ExtArgs>>): Prisma__TreeClient<$Result.GetResult<Prisma.$TreePayload<ExtArgs>, T, "delete">, never, ExtArgs>
+
+    /**
+     * Update one Tree.
+     * @param {TreeUpdateArgs} args - Arguments to update one Tree.
+     * @example
+     * // Update one Tree
+     * const tree = await prisma.tree.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends TreeUpdateArgs>(args: SelectSubset<T, TreeUpdateArgs<ExtArgs>>): Prisma__TreeClient<$Result.GetResult<Prisma.$TreePayload<ExtArgs>, T, "update">, never, ExtArgs>
+
+    /**
+     * Delete zero or more Trees.
+     * @param {TreeDeleteManyArgs} args - Arguments to filter Trees to delete.
+     * @example
+     * // Delete a few Trees
+     * const { count } = await prisma.tree.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends TreeDeleteManyArgs>(args?: SelectSubset<T, TreeDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more Trees.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {TreeUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many Trees
+     * const tree = await prisma.tree.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends TreeUpdateManyArgs>(args: SelectSubset<T, TreeUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create or update one Tree.
+     * @param {TreeUpsertArgs} args - Arguments to update or create a Tree.
+     * @example
+     * // Update or create a Tree
+     * const tree = await prisma.tree.upsert({
+     *   create: {
+     *     // ... data to create a Tree
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the Tree we want to update
+     *   }
+     * })
+     */
+    upsert<T extends TreeUpsertArgs>(args: SelectSubset<T, TreeUpsertArgs<ExtArgs>>): Prisma__TreeClient<$Result.GetResult<Prisma.$TreePayload<ExtArgs>, T, "upsert">, never, ExtArgs>
+
+
+    /**
+     * Count the number of Trees.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {TreeCountArgs} args - Arguments to filter Trees to count.
+     * @example
+     * // Count the number of Trees
+     * const count = await prisma.tree.count({
+     *   where: {
+     *     // ... the filter for the Trees we want to count
+     *   }
+     * })
+    **/
+    count<T extends TreeCountArgs>(
+      args?: Subset<T, TreeCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], TreeCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a Tree.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {TreeAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends TreeAggregateArgs>(args: Subset<T, TreeAggregateArgs>): Prisma.PrismaPromise<GetTreeAggregateType<T>>
+
+    /**
+     * Group by Tree.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {TreeGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends TreeGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: TreeGroupByArgs['orderBy'] }
+        : { orderBy?: TreeGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, TreeGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetTreeGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the Tree model
+   */
+  readonly fields: TreeFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for Tree.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__TreeClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    forest<T extends ForestDefaultArgs<ExtArgs> = {}>(args?: Subset<T, ForestDefaultArgs<ExtArgs>>): Prisma__ForestClient<$Result.GetResult<Prisma.$ForestPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
+    domains<T extends Tree$domainsArgs<ExtArgs> = {}>(args?: Subset<T, Tree$domainsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ChildDomainPayload<ExtArgs>, T, "findMany"> | Null>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the Tree model
+   */ 
+  interface TreeFieldRefs {
+    readonly id: FieldRef<"Tree", 'String'>
+    readonly name: FieldRef<"Tree", 'String'>
+    readonly description: FieldRef<"Tree", 'String'>
+    readonly forestId: FieldRef<"Tree", 'String'>
+    readonly createdAt: FieldRef<"Tree", 'DateTime'>
+    readonly updatedAt: FieldRef<"Tree", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * Tree findUnique
+   */
+  export type TreeFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Tree
+     */
+    select?: TreeSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TreeInclude<ExtArgs> | null
+    /**
+     * Filter, which Tree to fetch.
+     */
+    where: TreeWhereUniqueInput
+  }
+
+  /**
+   * Tree findUniqueOrThrow
+   */
+  export type TreeFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Tree
+     */
+    select?: TreeSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TreeInclude<ExtArgs> | null
+    /**
+     * Filter, which Tree to fetch.
+     */
+    where: TreeWhereUniqueInput
+  }
+
+  /**
+   * Tree findFirst
+   */
+  export type TreeFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Tree
+     */
+    select?: TreeSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TreeInclude<ExtArgs> | null
+    /**
+     * Filter, which Tree to fetch.
+     */
+    where?: TreeWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Trees to fetch.
+     */
+    orderBy?: TreeOrderByWithRelationInput | TreeOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for Trees.
+     */
+    cursor?: TreeWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Trees from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Trees.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of Trees.
+     */
+    distinct?: TreeScalarFieldEnum | TreeScalarFieldEnum[]
+  }
+
+  /**
+   * Tree findFirstOrThrow
+   */
+  export type TreeFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Tree
+     */
+    select?: TreeSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TreeInclude<ExtArgs> | null
+    /**
+     * Filter, which Tree to fetch.
+     */
+    where?: TreeWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Trees to fetch.
+     */
+    orderBy?: TreeOrderByWithRelationInput | TreeOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for Trees.
+     */
+    cursor?: TreeWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Trees from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Trees.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of Trees.
+     */
+    distinct?: TreeScalarFieldEnum | TreeScalarFieldEnum[]
+  }
+
+  /**
+   * Tree findMany
+   */
+  export type TreeFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Tree
+     */
+    select?: TreeSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TreeInclude<ExtArgs> | null
+    /**
+     * Filter, which Trees to fetch.
+     */
+    where?: TreeWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Trees to fetch.
+     */
+    orderBy?: TreeOrderByWithRelationInput | TreeOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing Trees.
+     */
+    cursor?: TreeWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Trees from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Trees.
+     */
+    skip?: number
+    distinct?: TreeScalarFieldEnum | TreeScalarFieldEnum[]
+  }
+
+  /**
+   * Tree create
+   */
+  export type TreeCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Tree
+     */
+    select?: TreeSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TreeInclude<ExtArgs> | null
+    /**
+     * The data needed to create a Tree.
+     */
+    data: XOR<TreeCreateInput, TreeUncheckedCreateInput>
+  }
+
+  /**
+   * Tree createMany
+   */
+  export type TreeCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many Trees.
+     */
+    data: TreeCreateManyInput | TreeCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * Tree createManyAndReturn
+   */
+  export type TreeCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Tree
+     */
+    select?: TreeSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * The data used to create many Trees.
+     */
+    data: TreeCreateManyInput | TreeCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TreeIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * Tree update
+   */
+  export type TreeUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Tree
+     */
+    select?: TreeSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TreeInclude<ExtArgs> | null
+    /**
+     * The data needed to update a Tree.
+     */
+    data: XOR<TreeUpdateInput, TreeUncheckedUpdateInput>
+    /**
+     * Choose, which Tree to update.
+     */
+    where: TreeWhereUniqueInput
+  }
+
+  /**
+   * Tree updateMany
+   */
+  export type TreeUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update Trees.
+     */
+    data: XOR<TreeUpdateManyMutationInput, TreeUncheckedUpdateManyInput>
+    /**
+     * Filter which Trees to update
+     */
+    where?: TreeWhereInput
+  }
+
+  /**
+   * Tree upsert
+   */
+  export type TreeUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Tree
+     */
+    select?: TreeSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TreeInclude<ExtArgs> | null
+    /**
+     * The filter to search for the Tree to update in case it exists.
+     */
+    where: TreeWhereUniqueInput
+    /**
+     * In case the Tree found by the `where` argument doesn't exist, create a new Tree with this data.
+     */
+    create: XOR<TreeCreateInput, TreeUncheckedCreateInput>
+    /**
+     * In case the Tree was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<TreeUpdateInput, TreeUncheckedUpdateInput>
+  }
+
+  /**
+   * Tree delete
+   */
+  export type TreeDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Tree
+     */
+    select?: TreeSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TreeInclude<ExtArgs> | null
+    /**
+     * Filter which Tree to delete.
+     */
+    where: TreeWhereUniqueInput
+  }
+
+  /**
+   * Tree deleteMany
+   */
+  export type TreeDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which Trees to delete
+     */
+    where?: TreeWhereInput
+  }
+
+  /**
+   * Tree.domains
+   */
+  export type Tree$domainsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ChildDomain
+     */
+    select?: ChildDomainSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ChildDomainInclude<ExtArgs> | null
+    where?: ChildDomainWhereInput
+    orderBy?: ChildDomainOrderByWithRelationInput | ChildDomainOrderByWithRelationInput[]
+    cursor?: ChildDomainWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: ChildDomainScalarFieldEnum | ChildDomainScalarFieldEnum[]
+  }
+
+  /**
+   * Tree without action
+   */
+  export type TreeDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Tree
+     */
+    select?: TreeSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TreeInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model ChildDomain
+   */
+
+  export type AggregateChildDomain = {
+    _count: ChildDomainCountAggregateOutputType | null
+    _min: ChildDomainMinAggregateOutputType | null
+    _max: ChildDomainMaxAggregateOutputType | null
+  }
+
+  export type ChildDomainMinAggregateOutputType = {
+    id: string | null
+    name: string | null
+    description: string | null
+    treeId: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type ChildDomainMaxAggregateOutputType = {
+    id: string | null
+    name: string | null
+    description: string | null
+    treeId: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type ChildDomainCountAggregateOutputType = {
+    id: number
+    name: number
+    description: number
+    treeId: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type ChildDomainMinAggregateInputType = {
+    id?: true
+    name?: true
+    description?: true
+    treeId?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type ChildDomainMaxAggregateInputType = {
+    id?: true
+    name?: true
+    description?: true
+    treeId?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type ChildDomainCountAggregateInputType = {
+    id?: true
+    name?: true
+    description?: true
+    treeId?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type ChildDomainAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which ChildDomain to aggregate.
+     */
+    where?: ChildDomainWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ChildDomains to fetch.
+     */
+    orderBy?: ChildDomainOrderByWithRelationInput | ChildDomainOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: ChildDomainWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ChildDomains from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ChildDomains.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned ChildDomains
+    **/
+    _count?: true | ChildDomainCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: ChildDomainMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: ChildDomainMaxAggregateInputType
+  }
+
+  export type GetChildDomainAggregateType<T extends ChildDomainAggregateArgs> = {
+        [P in keyof T & keyof AggregateChildDomain]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateChildDomain[P]>
+      : GetScalarType<T[P], AggregateChildDomain[P]>
+  }
+
+
+
+
+  export type ChildDomainGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: ChildDomainWhereInput
+    orderBy?: ChildDomainOrderByWithAggregationInput | ChildDomainOrderByWithAggregationInput[]
+    by: ChildDomainScalarFieldEnum[] | ChildDomainScalarFieldEnum
+    having?: ChildDomainScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: ChildDomainCountAggregateInputType | true
+    _min?: ChildDomainMinAggregateInputType
+    _max?: ChildDomainMaxAggregateInputType
+  }
+
+  export type ChildDomainGroupByOutputType = {
+    id: string
+    name: string
+    description: string | null
+    treeId: string
+    createdAt: Date
+    updatedAt: Date
+    _count: ChildDomainCountAggregateOutputType | null
+    _min: ChildDomainMinAggregateOutputType | null
+    _max: ChildDomainMaxAggregateOutputType | null
+  }
+
+  type GetChildDomainGroupByPayload<T extends ChildDomainGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<ChildDomainGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof ChildDomainGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], ChildDomainGroupByOutputType[P]>
+            : GetScalarType<T[P], ChildDomainGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type ChildDomainSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    name?: boolean
+    description?: boolean
+    treeId?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    tree?: boolean | TreeDefaultArgs<ExtArgs>
+    ous?: boolean | ChildDomain$ousArgs<ExtArgs>
+    _count?: boolean | ChildDomainCountOutputTypeDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["childDomain"]>
+
+  export type ChildDomainSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    name?: boolean
+    description?: boolean
+    treeId?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    tree?: boolean | TreeDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["childDomain"]>
+
+  export type ChildDomainSelectScalar = {
+    id?: boolean
+    name?: boolean
+    description?: boolean
+    treeId?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+  export type ChildDomainInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    tree?: boolean | TreeDefaultArgs<ExtArgs>
+    ous?: boolean | ChildDomain$ousArgs<ExtArgs>
+    _count?: boolean | ChildDomainCountOutputTypeDefaultArgs<ExtArgs>
+  }
+  export type ChildDomainIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    tree?: boolean | TreeDefaultArgs<ExtArgs>
+  }
+
+  export type $ChildDomainPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "ChildDomain"
+    objects: {
+      tree: Prisma.$TreePayload<ExtArgs>
+      ous: Prisma.$OrganizationalUnitPayload<ExtArgs>[]
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      name: string
+      description: string | null
+      treeId: string
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["childDomain"]>
+    composites: {}
+  }
+
+  type ChildDomainGetPayload<S extends boolean | null | undefined | ChildDomainDefaultArgs> = $Result.GetResult<Prisma.$ChildDomainPayload, S>
+
+  type ChildDomainCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+    Omit<ChildDomainFindManyArgs, 'select' | 'include' | 'distinct'> & {
+      select?: ChildDomainCountAggregateInputType | true
+    }
+
+  export interface ChildDomainDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['ChildDomain'], meta: { name: 'ChildDomain' } }
+    /**
+     * Find zero or one ChildDomain that matches the filter.
+     * @param {ChildDomainFindUniqueArgs} args - Arguments to find a ChildDomain
+     * @example
+     * // Get one ChildDomain
+     * const childDomain = await prisma.childDomain.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends ChildDomainFindUniqueArgs>(args: SelectSubset<T, ChildDomainFindUniqueArgs<ExtArgs>>): Prisma__ChildDomainClient<$Result.GetResult<Prisma.$ChildDomainPayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
+
+    /**
+     * Find one ChildDomain that matches the filter or throw an error with `error.code='P2025'` 
+     * if no matches were found.
+     * @param {ChildDomainFindUniqueOrThrowArgs} args - Arguments to find a ChildDomain
+     * @example
+     * // Get one ChildDomain
+     * const childDomain = await prisma.childDomain.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends ChildDomainFindUniqueOrThrowArgs>(args: SelectSubset<T, ChildDomainFindUniqueOrThrowArgs<ExtArgs>>): Prisma__ChildDomainClient<$Result.GetResult<Prisma.$ChildDomainPayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
+
+    /**
+     * Find the first ChildDomain that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ChildDomainFindFirstArgs} args - Arguments to find a ChildDomain
+     * @example
+     * // Get one ChildDomain
+     * const childDomain = await prisma.childDomain.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends ChildDomainFindFirstArgs>(args?: SelectSubset<T, ChildDomainFindFirstArgs<ExtArgs>>): Prisma__ChildDomainClient<$Result.GetResult<Prisma.$ChildDomainPayload<ExtArgs>, T, "findFirst"> | null, null, ExtArgs>
+
+    /**
+     * Find the first ChildDomain that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ChildDomainFindFirstOrThrowArgs} args - Arguments to find a ChildDomain
+     * @example
+     * // Get one ChildDomain
+     * const childDomain = await prisma.childDomain.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends ChildDomainFindFirstOrThrowArgs>(args?: SelectSubset<T, ChildDomainFindFirstOrThrowArgs<ExtArgs>>): Prisma__ChildDomainClient<$Result.GetResult<Prisma.$ChildDomainPayload<ExtArgs>, T, "findFirstOrThrow">, never, ExtArgs>
+
+    /**
+     * Find zero or more ChildDomains that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ChildDomainFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all ChildDomains
+     * const childDomains = await prisma.childDomain.findMany()
+     * 
+     * // Get first 10 ChildDomains
+     * const childDomains = await prisma.childDomain.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const childDomainWithIdOnly = await prisma.childDomain.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends ChildDomainFindManyArgs>(args?: SelectSubset<T, ChildDomainFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ChildDomainPayload<ExtArgs>, T, "findMany">>
+
+    /**
+     * Create a ChildDomain.
+     * @param {ChildDomainCreateArgs} args - Arguments to create a ChildDomain.
+     * @example
+     * // Create one ChildDomain
+     * const ChildDomain = await prisma.childDomain.create({
+     *   data: {
+     *     // ... data to create a ChildDomain
+     *   }
+     * })
+     * 
+     */
+    create<T extends ChildDomainCreateArgs>(args: SelectSubset<T, ChildDomainCreateArgs<ExtArgs>>): Prisma__ChildDomainClient<$Result.GetResult<Prisma.$ChildDomainPayload<ExtArgs>, T, "create">, never, ExtArgs>
+
+    /**
+     * Create many ChildDomains.
+     * @param {ChildDomainCreateManyArgs} args - Arguments to create many ChildDomains.
+     * @example
+     * // Create many ChildDomains
+     * const childDomain = await prisma.childDomain.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends ChildDomainCreateManyArgs>(args?: SelectSubset<T, ChildDomainCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many ChildDomains and returns the data saved in the database.
+     * @param {ChildDomainCreateManyAndReturnArgs} args - Arguments to create many ChildDomains.
+     * @example
+     * // Create many ChildDomains
+     * const childDomain = await prisma.childDomain.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many ChildDomains and only return the `id`
+     * const childDomainWithIdOnly = await prisma.childDomain.createManyAndReturn({ 
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends ChildDomainCreateManyAndReturnArgs>(args?: SelectSubset<T, ChildDomainCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ChildDomainPayload<ExtArgs>, T, "createManyAndReturn">>
+
+    /**
+     * Delete a ChildDomain.
+     * @param {ChildDomainDeleteArgs} args - Arguments to delete one ChildDomain.
+     * @example
+     * // Delete one ChildDomain
+     * const ChildDomain = await prisma.childDomain.delete({
+     *   where: {
+     *     // ... filter to delete one ChildDomain
+     *   }
+     * })
+     * 
+     */
+    delete<T extends ChildDomainDeleteArgs>(args: SelectSubset<T, ChildDomainDeleteArgs<ExtArgs>>): Prisma__ChildDomainClient<$Result.GetResult<Prisma.$ChildDomainPayload<ExtArgs>, T, "delete">, never, ExtArgs>
+
+    /**
+     * Update one ChildDomain.
+     * @param {ChildDomainUpdateArgs} args - Arguments to update one ChildDomain.
+     * @example
+     * // Update one ChildDomain
+     * const childDomain = await prisma.childDomain.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends ChildDomainUpdateArgs>(args: SelectSubset<T, ChildDomainUpdateArgs<ExtArgs>>): Prisma__ChildDomainClient<$Result.GetResult<Prisma.$ChildDomainPayload<ExtArgs>, T, "update">, never, ExtArgs>
+
+    /**
+     * Delete zero or more ChildDomains.
+     * @param {ChildDomainDeleteManyArgs} args - Arguments to filter ChildDomains to delete.
+     * @example
+     * // Delete a few ChildDomains
+     * const { count } = await prisma.childDomain.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends ChildDomainDeleteManyArgs>(args?: SelectSubset<T, ChildDomainDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more ChildDomains.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ChildDomainUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many ChildDomains
+     * const childDomain = await prisma.childDomain.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends ChildDomainUpdateManyArgs>(args: SelectSubset<T, ChildDomainUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create or update one ChildDomain.
+     * @param {ChildDomainUpsertArgs} args - Arguments to update or create a ChildDomain.
+     * @example
+     * // Update or create a ChildDomain
+     * const childDomain = await prisma.childDomain.upsert({
+     *   create: {
+     *     // ... data to create a ChildDomain
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the ChildDomain we want to update
+     *   }
+     * })
+     */
+    upsert<T extends ChildDomainUpsertArgs>(args: SelectSubset<T, ChildDomainUpsertArgs<ExtArgs>>): Prisma__ChildDomainClient<$Result.GetResult<Prisma.$ChildDomainPayload<ExtArgs>, T, "upsert">, never, ExtArgs>
+
+
+    /**
+     * Count the number of ChildDomains.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ChildDomainCountArgs} args - Arguments to filter ChildDomains to count.
+     * @example
+     * // Count the number of ChildDomains
+     * const count = await prisma.childDomain.count({
+     *   where: {
+     *     // ... the filter for the ChildDomains we want to count
+     *   }
+     * })
+    **/
+    count<T extends ChildDomainCountArgs>(
+      args?: Subset<T, ChildDomainCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], ChildDomainCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a ChildDomain.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ChildDomainAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends ChildDomainAggregateArgs>(args: Subset<T, ChildDomainAggregateArgs>): Prisma.PrismaPromise<GetChildDomainAggregateType<T>>
+
+    /**
+     * Group by ChildDomain.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ChildDomainGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends ChildDomainGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: ChildDomainGroupByArgs['orderBy'] }
+        : { orderBy?: ChildDomainGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, ChildDomainGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetChildDomainGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the ChildDomain model
+   */
+  readonly fields: ChildDomainFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for ChildDomain.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__ChildDomainClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    tree<T extends TreeDefaultArgs<ExtArgs> = {}>(args?: Subset<T, TreeDefaultArgs<ExtArgs>>): Prisma__TreeClient<$Result.GetResult<Prisma.$TreePayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
+    ous<T extends ChildDomain$ousArgs<ExtArgs> = {}>(args?: Subset<T, ChildDomain$ousArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$OrganizationalUnitPayload<ExtArgs>, T, "findMany"> | Null>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the ChildDomain model
+   */ 
+  interface ChildDomainFieldRefs {
+    readonly id: FieldRef<"ChildDomain", 'String'>
+    readonly name: FieldRef<"ChildDomain", 'String'>
+    readonly description: FieldRef<"ChildDomain", 'String'>
+    readonly treeId: FieldRef<"ChildDomain", 'String'>
+    readonly createdAt: FieldRef<"ChildDomain", 'DateTime'>
+    readonly updatedAt: FieldRef<"ChildDomain", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * ChildDomain findUnique
+   */
+  export type ChildDomainFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ChildDomain
+     */
+    select?: ChildDomainSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ChildDomainInclude<ExtArgs> | null
+    /**
+     * Filter, which ChildDomain to fetch.
+     */
+    where: ChildDomainWhereUniqueInput
+  }
+
+  /**
+   * ChildDomain findUniqueOrThrow
+   */
+  export type ChildDomainFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ChildDomain
+     */
+    select?: ChildDomainSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ChildDomainInclude<ExtArgs> | null
+    /**
+     * Filter, which ChildDomain to fetch.
+     */
+    where: ChildDomainWhereUniqueInput
+  }
+
+  /**
+   * ChildDomain findFirst
+   */
+  export type ChildDomainFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ChildDomain
+     */
+    select?: ChildDomainSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ChildDomainInclude<ExtArgs> | null
+    /**
+     * Filter, which ChildDomain to fetch.
+     */
+    where?: ChildDomainWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ChildDomains to fetch.
+     */
+    orderBy?: ChildDomainOrderByWithRelationInput | ChildDomainOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for ChildDomains.
+     */
+    cursor?: ChildDomainWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ChildDomains from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ChildDomains.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of ChildDomains.
+     */
+    distinct?: ChildDomainScalarFieldEnum | ChildDomainScalarFieldEnum[]
+  }
+
+  /**
+   * ChildDomain findFirstOrThrow
+   */
+  export type ChildDomainFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ChildDomain
+     */
+    select?: ChildDomainSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ChildDomainInclude<ExtArgs> | null
+    /**
+     * Filter, which ChildDomain to fetch.
+     */
+    where?: ChildDomainWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ChildDomains to fetch.
+     */
+    orderBy?: ChildDomainOrderByWithRelationInput | ChildDomainOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for ChildDomains.
+     */
+    cursor?: ChildDomainWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ChildDomains from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ChildDomains.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of ChildDomains.
+     */
+    distinct?: ChildDomainScalarFieldEnum | ChildDomainScalarFieldEnum[]
+  }
+
+  /**
+   * ChildDomain findMany
+   */
+  export type ChildDomainFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ChildDomain
+     */
+    select?: ChildDomainSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ChildDomainInclude<ExtArgs> | null
+    /**
+     * Filter, which ChildDomains to fetch.
+     */
+    where?: ChildDomainWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ChildDomains to fetch.
+     */
+    orderBy?: ChildDomainOrderByWithRelationInput | ChildDomainOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing ChildDomains.
+     */
+    cursor?: ChildDomainWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ChildDomains from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ChildDomains.
+     */
+    skip?: number
+    distinct?: ChildDomainScalarFieldEnum | ChildDomainScalarFieldEnum[]
+  }
+
+  /**
+   * ChildDomain create
+   */
+  export type ChildDomainCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ChildDomain
+     */
+    select?: ChildDomainSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ChildDomainInclude<ExtArgs> | null
+    /**
+     * The data needed to create a ChildDomain.
+     */
+    data: XOR<ChildDomainCreateInput, ChildDomainUncheckedCreateInput>
+  }
+
+  /**
+   * ChildDomain createMany
+   */
+  export type ChildDomainCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many ChildDomains.
+     */
+    data: ChildDomainCreateManyInput | ChildDomainCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * ChildDomain createManyAndReturn
+   */
+  export type ChildDomainCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ChildDomain
+     */
+    select?: ChildDomainSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * The data used to create many ChildDomains.
+     */
+    data: ChildDomainCreateManyInput | ChildDomainCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ChildDomainIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * ChildDomain update
+   */
+  export type ChildDomainUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ChildDomain
+     */
+    select?: ChildDomainSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ChildDomainInclude<ExtArgs> | null
+    /**
+     * The data needed to update a ChildDomain.
+     */
+    data: XOR<ChildDomainUpdateInput, ChildDomainUncheckedUpdateInput>
+    /**
+     * Choose, which ChildDomain to update.
+     */
+    where: ChildDomainWhereUniqueInput
+  }
+
+  /**
+   * ChildDomain updateMany
+   */
+  export type ChildDomainUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update ChildDomains.
+     */
+    data: XOR<ChildDomainUpdateManyMutationInput, ChildDomainUncheckedUpdateManyInput>
+    /**
+     * Filter which ChildDomains to update
+     */
+    where?: ChildDomainWhereInput
+  }
+
+  /**
+   * ChildDomain upsert
+   */
+  export type ChildDomainUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ChildDomain
+     */
+    select?: ChildDomainSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ChildDomainInclude<ExtArgs> | null
+    /**
+     * The filter to search for the ChildDomain to update in case it exists.
+     */
+    where: ChildDomainWhereUniqueInput
+    /**
+     * In case the ChildDomain found by the `where` argument doesn't exist, create a new ChildDomain with this data.
+     */
+    create: XOR<ChildDomainCreateInput, ChildDomainUncheckedCreateInput>
+    /**
+     * In case the ChildDomain was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<ChildDomainUpdateInput, ChildDomainUncheckedUpdateInput>
+  }
+
+  /**
+   * ChildDomain delete
+   */
+  export type ChildDomainDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ChildDomain
+     */
+    select?: ChildDomainSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ChildDomainInclude<ExtArgs> | null
+    /**
+     * Filter which ChildDomain to delete.
+     */
+    where: ChildDomainWhereUniqueInput
+  }
+
+  /**
+   * ChildDomain deleteMany
+   */
+  export type ChildDomainDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which ChildDomains to delete
+     */
+    where?: ChildDomainWhereInput
+  }
+
+  /**
+   * ChildDomain.ous
+   */
+  export type ChildDomain$ousArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the OrganizationalUnit
+     */
+    select?: OrganizationalUnitSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: OrganizationalUnitInclude<ExtArgs> | null
+    where?: OrganizationalUnitWhereInput
+    orderBy?: OrganizationalUnitOrderByWithRelationInput | OrganizationalUnitOrderByWithRelationInput[]
+    cursor?: OrganizationalUnitWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: OrganizationalUnitScalarFieldEnum | OrganizationalUnitScalarFieldEnum[]
+  }
+
+  /**
+   * ChildDomain without action
+   */
+  export type ChildDomainDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ChildDomain
+     */
+    select?: ChildDomainSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ChildDomainInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model OrganizationalUnit
+   */
+
+  export type AggregateOrganizationalUnit = {
+    _count: OrganizationalUnitCountAggregateOutputType | null
+    _min: OrganizationalUnitMinAggregateOutputType | null
+    _max: OrganizationalUnitMaxAggregateOutputType | null
+  }
+
+  export type OrganizationalUnitMinAggregateOutputType = {
+    id: string | null
+    name: string | null
+    description: string | null
+    domainId: string | null
+    parentId: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type OrganizationalUnitMaxAggregateOutputType = {
+    id: string | null
+    name: string | null
+    description: string | null
+    domainId: string | null
+    parentId: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type OrganizationalUnitCountAggregateOutputType = {
+    id: number
+    name: number
+    description: number
+    domainId: number
+    parentId: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type OrganizationalUnitMinAggregateInputType = {
+    id?: true
+    name?: true
+    description?: true
+    domainId?: true
+    parentId?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type OrganizationalUnitMaxAggregateInputType = {
+    id?: true
+    name?: true
+    description?: true
+    domainId?: true
+    parentId?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type OrganizationalUnitCountAggregateInputType = {
+    id?: true
+    name?: true
+    description?: true
+    domainId?: true
+    parentId?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type OrganizationalUnitAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which OrganizationalUnit to aggregate.
+     */
+    where?: OrganizationalUnitWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of OrganizationalUnits to fetch.
+     */
+    orderBy?: OrganizationalUnitOrderByWithRelationInput | OrganizationalUnitOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: OrganizationalUnitWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` OrganizationalUnits from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` OrganizationalUnits.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned OrganizationalUnits
+    **/
+    _count?: true | OrganizationalUnitCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: OrganizationalUnitMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: OrganizationalUnitMaxAggregateInputType
+  }
+
+  export type GetOrganizationalUnitAggregateType<T extends OrganizationalUnitAggregateArgs> = {
+        [P in keyof T & keyof AggregateOrganizationalUnit]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateOrganizationalUnit[P]>
+      : GetScalarType<T[P], AggregateOrganizationalUnit[P]>
+  }
+
+
+
+
+  export type OrganizationalUnitGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: OrganizationalUnitWhereInput
+    orderBy?: OrganizationalUnitOrderByWithAggregationInput | OrganizationalUnitOrderByWithAggregationInput[]
+    by: OrganizationalUnitScalarFieldEnum[] | OrganizationalUnitScalarFieldEnum
+    having?: OrganizationalUnitScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: OrganizationalUnitCountAggregateInputType | true
+    _min?: OrganizationalUnitMinAggregateInputType
+    _max?: OrganizationalUnitMaxAggregateInputType
+  }
+
+  export type OrganizationalUnitGroupByOutputType = {
+    id: string
+    name: string
+    description: string | null
+    domainId: string
+    parentId: string | null
+    createdAt: Date
+    updatedAt: Date
+    _count: OrganizationalUnitCountAggregateOutputType | null
+    _min: OrganizationalUnitMinAggregateOutputType | null
+    _max: OrganizationalUnitMaxAggregateOutputType | null
+  }
+
+  type GetOrganizationalUnitGroupByPayload<T extends OrganizationalUnitGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<OrganizationalUnitGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof OrganizationalUnitGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], OrganizationalUnitGroupByOutputType[P]>
+            : GetScalarType<T[P], OrganizationalUnitGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type OrganizationalUnitSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    name?: boolean
+    description?: boolean
+    domainId?: boolean
+    parentId?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    domain?: boolean | ChildDomainDefaultArgs<ExtArgs>
+    parent?: boolean | OrganizationalUnit$parentArgs<ExtArgs>
+    children?: boolean | OrganizationalUnit$childrenArgs<ExtArgs>
+    users?: boolean | OrganizationalUnit$usersArgs<ExtArgs>
+    _count?: boolean | OrganizationalUnitCountOutputTypeDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["organizationalUnit"]>
+
+  export type OrganizationalUnitSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    name?: boolean
+    description?: boolean
+    domainId?: boolean
+    parentId?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    domain?: boolean | ChildDomainDefaultArgs<ExtArgs>
+    parent?: boolean | OrganizationalUnit$parentArgs<ExtArgs>
+  }, ExtArgs["result"]["organizationalUnit"]>
+
+  export type OrganizationalUnitSelectScalar = {
+    id?: boolean
+    name?: boolean
+    description?: boolean
+    domainId?: boolean
+    parentId?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+  export type OrganizationalUnitInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    domain?: boolean | ChildDomainDefaultArgs<ExtArgs>
+    parent?: boolean | OrganizationalUnit$parentArgs<ExtArgs>
+    children?: boolean | OrganizationalUnit$childrenArgs<ExtArgs>
+    users?: boolean | OrganizationalUnit$usersArgs<ExtArgs>
+    _count?: boolean | OrganizationalUnitCountOutputTypeDefaultArgs<ExtArgs>
+  }
+  export type OrganizationalUnitIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    domain?: boolean | ChildDomainDefaultArgs<ExtArgs>
+    parent?: boolean | OrganizationalUnit$parentArgs<ExtArgs>
+  }
+
+  export type $OrganizationalUnitPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "OrganizationalUnit"
+    objects: {
+      domain: Prisma.$ChildDomainPayload<ExtArgs>
+      parent: Prisma.$OrganizationalUnitPayload<ExtArgs> | null
+      children: Prisma.$OrganizationalUnitPayload<ExtArgs>[]
+      users: Prisma.$UserPayload<ExtArgs>[]
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      name: string
+      description: string | null
+      domainId: string
+      parentId: string | null
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["organizationalUnit"]>
+    composites: {}
+  }
+
+  type OrganizationalUnitGetPayload<S extends boolean | null | undefined | OrganizationalUnitDefaultArgs> = $Result.GetResult<Prisma.$OrganizationalUnitPayload, S>
+
+  type OrganizationalUnitCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+    Omit<OrganizationalUnitFindManyArgs, 'select' | 'include' | 'distinct'> & {
+      select?: OrganizationalUnitCountAggregateInputType | true
+    }
+
+  export interface OrganizationalUnitDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['OrganizationalUnit'], meta: { name: 'OrganizationalUnit' } }
+    /**
+     * Find zero or one OrganizationalUnit that matches the filter.
+     * @param {OrganizationalUnitFindUniqueArgs} args - Arguments to find a OrganizationalUnit
+     * @example
+     * // Get one OrganizationalUnit
+     * const organizationalUnit = await prisma.organizationalUnit.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends OrganizationalUnitFindUniqueArgs>(args: SelectSubset<T, OrganizationalUnitFindUniqueArgs<ExtArgs>>): Prisma__OrganizationalUnitClient<$Result.GetResult<Prisma.$OrganizationalUnitPayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
+
+    /**
+     * Find one OrganizationalUnit that matches the filter or throw an error with `error.code='P2025'` 
+     * if no matches were found.
+     * @param {OrganizationalUnitFindUniqueOrThrowArgs} args - Arguments to find a OrganizationalUnit
+     * @example
+     * // Get one OrganizationalUnit
+     * const organizationalUnit = await prisma.organizationalUnit.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends OrganizationalUnitFindUniqueOrThrowArgs>(args: SelectSubset<T, OrganizationalUnitFindUniqueOrThrowArgs<ExtArgs>>): Prisma__OrganizationalUnitClient<$Result.GetResult<Prisma.$OrganizationalUnitPayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
+
+    /**
+     * Find the first OrganizationalUnit that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {OrganizationalUnitFindFirstArgs} args - Arguments to find a OrganizationalUnit
+     * @example
+     * // Get one OrganizationalUnit
+     * const organizationalUnit = await prisma.organizationalUnit.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends OrganizationalUnitFindFirstArgs>(args?: SelectSubset<T, OrganizationalUnitFindFirstArgs<ExtArgs>>): Prisma__OrganizationalUnitClient<$Result.GetResult<Prisma.$OrganizationalUnitPayload<ExtArgs>, T, "findFirst"> | null, null, ExtArgs>
+
+    /**
+     * Find the first OrganizationalUnit that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {OrganizationalUnitFindFirstOrThrowArgs} args - Arguments to find a OrganizationalUnit
+     * @example
+     * // Get one OrganizationalUnit
+     * const organizationalUnit = await prisma.organizationalUnit.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends OrganizationalUnitFindFirstOrThrowArgs>(args?: SelectSubset<T, OrganizationalUnitFindFirstOrThrowArgs<ExtArgs>>): Prisma__OrganizationalUnitClient<$Result.GetResult<Prisma.$OrganizationalUnitPayload<ExtArgs>, T, "findFirstOrThrow">, never, ExtArgs>
+
+    /**
+     * Find zero or more OrganizationalUnits that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {OrganizationalUnitFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all OrganizationalUnits
+     * const organizationalUnits = await prisma.organizationalUnit.findMany()
+     * 
+     * // Get first 10 OrganizationalUnits
+     * const organizationalUnits = await prisma.organizationalUnit.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const organizationalUnitWithIdOnly = await prisma.organizationalUnit.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends OrganizationalUnitFindManyArgs>(args?: SelectSubset<T, OrganizationalUnitFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$OrganizationalUnitPayload<ExtArgs>, T, "findMany">>
+
+    /**
+     * Create a OrganizationalUnit.
+     * @param {OrganizationalUnitCreateArgs} args - Arguments to create a OrganizationalUnit.
+     * @example
+     * // Create one OrganizationalUnit
+     * const OrganizationalUnit = await prisma.organizationalUnit.create({
+     *   data: {
+     *     // ... data to create a OrganizationalUnit
+     *   }
+     * })
+     * 
+     */
+    create<T extends OrganizationalUnitCreateArgs>(args: SelectSubset<T, OrganizationalUnitCreateArgs<ExtArgs>>): Prisma__OrganizationalUnitClient<$Result.GetResult<Prisma.$OrganizationalUnitPayload<ExtArgs>, T, "create">, never, ExtArgs>
+
+    /**
+     * Create many OrganizationalUnits.
+     * @param {OrganizationalUnitCreateManyArgs} args - Arguments to create many OrganizationalUnits.
+     * @example
+     * // Create many OrganizationalUnits
+     * const organizationalUnit = await prisma.organizationalUnit.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends OrganizationalUnitCreateManyArgs>(args?: SelectSubset<T, OrganizationalUnitCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many OrganizationalUnits and returns the data saved in the database.
+     * @param {OrganizationalUnitCreateManyAndReturnArgs} args - Arguments to create many OrganizationalUnits.
+     * @example
+     * // Create many OrganizationalUnits
+     * const organizationalUnit = await prisma.organizationalUnit.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many OrganizationalUnits and only return the `id`
+     * const organizationalUnitWithIdOnly = await prisma.organizationalUnit.createManyAndReturn({ 
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends OrganizationalUnitCreateManyAndReturnArgs>(args?: SelectSubset<T, OrganizationalUnitCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$OrganizationalUnitPayload<ExtArgs>, T, "createManyAndReturn">>
+
+    /**
+     * Delete a OrganizationalUnit.
+     * @param {OrganizationalUnitDeleteArgs} args - Arguments to delete one OrganizationalUnit.
+     * @example
+     * // Delete one OrganizationalUnit
+     * const OrganizationalUnit = await prisma.organizationalUnit.delete({
+     *   where: {
+     *     // ... filter to delete one OrganizationalUnit
+     *   }
+     * })
+     * 
+     */
+    delete<T extends OrganizationalUnitDeleteArgs>(args: SelectSubset<T, OrganizationalUnitDeleteArgs<ExtArgs>>): Prisma__OrganizationalUnitClient<$Result.GetResult<Prisma.$OrganizationalUnitPayload<ExtArgs>, T, "delete">, never, ExtArgs>
+
+    /**
+     * Update one OrganizationalUnit.
+     * @param {OrganizationalUnitUpdateArgs} args - Arguments to update one OrganizationalUnit.
+     * @example
+     * // Update one OrganizationalUnit
+     * const organizationalUnit = await prisma.organizationalUnit.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends OrganizationalUnitUpdateArgs>(args: SelectSubset<T, OrganizationalUnitUpdateArgs<ExtArgs>>): Prisma__OrganizationalUnitClient<$Result.GetResult<Prisma.$OrganizationalUnitPayload<ExtArgs>, T, "update">, never, ExtArgs>
+
+    /**
+     * Delete zero or more OrganizationalUnits.
+     * @param {OrganizationalUnitDeleteManyArgs} args - Arguments to filter OrganizationalUnits to delete.
+     * @example
+     * // Delete a few OrganizationalUnits
+     * const { count } = await prisma.organizationalUnit.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends OrganizationalUnitDeleteManyArgs>(args?: SelectSubset<T, OrganizationalUnitDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more OrganizationalUnits.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {OrganizationalUnitUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many OrganizationalUnits
+     * const organizationalUnit = await prisma.organizationalUnit.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends OrganizationalUnitUpdateManyArgs>(args: SelectSubset<T, OrganizationalUnitUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create or update one OrganizationalUnit.
+     * @param {OrganizationalUnitUpsertArgs} args - Arguments to update or create a OrganizationalUnit.
+     * @example
+     * // Update or create a OrganizationalUnit
+     * const organizationalUnit = await prisma.organizationalUnit.upsert({
+     *   create: {
+     *     // ... data to create a OrganizationalUnit
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the OrganizationalUnit we want to update
+     *   }
+     * })
+     */
+    upsert<T extends OrganizationalUnitUpsertArgs>(args: SelectSubset<T, OrganizationalUnitUpsertArgs<ExtArgs>>): Prisma__OrganizationalUnitClient<$Result.GetResult<Prisma.$OrganizationalUnitPayload<ExtArgs>, T, "upsert">, never, ExtArgs>
+
+
+    /**
+     * Count the number of OrganizationalUnits.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {OrganizationalUnitCountArgs} args - Arguments to filter OrganizationalUnits to count.
+     * @example
+     * // Count the number of OrganizationalUnits
+     * const count = await prisma.organizationalUnit.count({
+     *   where: {
+     *     // ... the filter for the OrganizationalUnits we want to count
+     *   }
+     * })
+    **/
+    count<T extends OrganizationalUnitCountArgs>(
+      args?: Subset<T, OrganizationalUnitCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], OrganizationalUnitCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a OrganizationalUnit.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {OrganizationalUnitAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends OrganizationalUnitAggregateArgs>(args: Subset<T, OrganizationalUnitAggregateArgs>): Prisma.PrismaPromise<GetOrganizationalUnitAggregateType<T>>
+
+    /**
+     * Group by OrganizationalUnit.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {OrganizationalUnitGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends OrganizationalUnitGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: OrganizationalUnitGroupByArgs['orderBy'] }
+        : { orderBy?: OrganizationalUnitGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, OrganizationalUnitGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetOrganizationalUnitGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the OrganizationalUnit model
+   */
+  readonly fields: OrganizationalUnitFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for OrganizationalUnit.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__OrganizationalUnitClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    domain<T extends ChildDomainDefaultArgs<ExtArgs> = {}>(args?: Subset<T, ChildDomainDefaultArgs<ExtArgs>>): Prisma__ChildDomainClient<$Result.GetResult<Prisma.$ChildDomainPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
+    parent<T extends OrganizationalUnit$parentArgs<ExtArgs> = {}>(args?: Subset<T, OrganizationalUnit$parentArgs<ExtArgs>>): Prisma__OrganizationalUnitClient<$Result.GetResult<Prisma.$OrganizationalUnitPayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
+    children<T extends OrganizationalUnit$childrenArgs<ExtArgs> = {}>(args?: Subset<T, OrganizationalUnit$childrenArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$OrganizationalUnitPayload<ExtArgs>, T, "findMany"> | Null>
+    users<T extends OrganizationalUnit$usersArgs<ExtArgs> = {}>(args?: Subset<T, OrganizationalUnit$usersArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findMany"> | Null>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the OrganizationalUnit model
+   */ 
+  interface OrganizationalUnitFieldRefs {
+    readonly id: FieldRef<"OrganizationalUnit", 'String'>
+    readonly name: FieldRef<"OrganizationalUnit", 'String'>
+    readonly description: FieldRef<"OrganizationalUnit", 'String'>
+    readonly domainId: FieldRef<"OrganizationalUnit", 'String'>
+    readonly parentId: FieldRef<"OrganizationalUnit", 'String'>
+    readonly createdAt: FieldRef<"OrganizationalUnit", 'DateTime'>
+    readonly updatedAt: FieldRef<"OrganizationalUnit", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * OrganizationalUnit findUnique
+   */
+  export type OrganizationalUnitFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the OrganizationalUnit
+     */
+    select?: OrganizationalUnitSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: OrganizationalUnitInclude<ExtArgs> | null
+    /**
+     * Filter, which OrganizationalUnit to fetch.
+     */
+    where: OrganizationalUnitWhereUniqueInput
+  }
+
+  /**
+   * OrganizationalUnit findUniqueOrThrow
+   */
+  export type OrganizationalUnitFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the OrganizationalUnit
+     */
+    select?: OrganizationalUnitSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: OrganizationalUnitInclude<ExtArgs> | null
+    /**
+     * Filter, which OrganizationalUnit to fetch.
+     */
+    where: OrganizationalUnitWhereUniqueInput
+  }
+
+  /**
+   * OrganizationalUnit findFirst
+   */
+  export type OrganizationalUnitFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the OrganizationalUnit
+     */
+    select?: OrganizationalUnitSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: OrganizationalUnitInclude<ExtArgs> | null
+    /**
+     * Filter, which OrganizationalUnit to fetch.
+     */
+    where?: OrganizationalUnitWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of OrganizationalUnits to fetch.
+     */
+    orderBy?: OrganizationalUnitOrderByWithRelationInput | OrganizationalUnitOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for OrganizationalUnits.
+     */
+    cursor?: OrganizationalUnitWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` OrganizationalUnits from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` OrganizationalUnits.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of OrganizationalUnits.
+     */
+    distinct?: OrganizationalUnitScalarFieldEnum | OrganizationalUnitScalarFieldEnum[]
+  }
+
+  /**
+   * OrganizationalUnit findFirstOrThrow
+   */
+  export type OrganizationalUnitFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the OrganizationalUnit
+     */
+    select?: OrganizationalUnitSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: OrganizationalUnitInclude<ExtArgs> | null
+    /**
+     * Filter, which OrganizationalUnit to fetch.
+     */
+    where?: OrganizationalUnitWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of OrganizationalUnits to fetch.
+     */
+    orderBy?: OrganizationalUnitOrderByWithRelationInput | OrganizationalUnitOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for OrganizationalUnits.
+     */
+    cursor?: OrganizationalUnitWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` OrganizationalUnits from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` OrganizationalUnits.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of OrganizationalUnits.
+     */
+    distinct?: OrganizationalUnitScalarFieldEnum | OrganizationalUnitScalarFieldEnum[]
+  }
+
+  /**
+   * OrganizationalUnit findMany
+   */
+  export type OrganizationalUnitFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the OrganizationalUnit
+     */
+    select?: OrganizationalUnitSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: OrganizationalUnitInclude<ExtArgs> | null
+    /**
+     * Filter, which OrganizationalUnits to fetch.
+     */
+    where?: OrganizationalUnitWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of OrganizationalUnits to fetch.
+     */
+    orderBy?: OrganizationalUnitOrderByWithRelationInput | OrganizationalUnitOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing OrganizationalUnits.
+     */
+    cursor?: OrganizationalUnitWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` OrganizationalUnits from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` OrganizationalUnits.
+     */
+    skip?: number
+    distinct?: OrganizationalUnitScalarFieldEnum | OrganizationalUnitScalarFieldEnum[]
+  }
+
+  /**
+   * OrganizationalUnit create
+   */
+  export type OrganizationalUnitCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the OrganizationalUnit
+     */
+    select?: OrganizationalUnitSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: OrganizationalUnitInclude<ExtArgs> | null
+    /**
+     * The data needed to create a OrganizationalUnit.
+     */
+    data: XOR<OrganizationalUnitCreateInput, OrganizationalUnitUncheckedCreateInput>
+  }
+
+  /**
+   * OrganizationalUnit createMany
+   */
+  export type OrganizationalUnitCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many OrganizationalUnits.
+     */
+    data: OrganizationalUnitCreateManyInput | OrganizationalUnitCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * OrganizationalUnit createManyAndReturn
+   */
+  export type OrganizationalUnitCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the OrganizationalUnit
+     */
+    select?: OrganizationalUnitSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * The data used to create many OrganizationalUnits.
+     */
+    data: OrganizationalUnitCreateManyInput | OrganizationalUnitCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: OrganizationalUnitIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * OrganizationalUnit update
+   */
+  export type OrganizationalUnitUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the OrganizationalUnit
+     */
+    select?: OrganizationalUnitSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: OrganizationalUnitInclude<ExtArgs> | null
+    /**
+     * The data needed to update a OrganizationalUnit.
+     */
+    data: XOR<OrganizationalUnitUpdateInput, OrganizationalUnitUncheckedUpdateInput>
+    /**
+     * Choose, which OrganizationalUnit to update.
+     */
+    where: OrganizationalUnitWhereUniqueInput
+  }
+
+  /**
+   * OrganizationalUnit updateMany
+   */
+  export type OrganizationalUnitUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update OrganizationalUnits.
+     */
+    data: XOR<OrganizationalUnitUpdateManyMutationInput, OrganizationalUnitUncheckedUpdateManyInput>
+    /**
+     * Filter which OrganizationalUnits to update
+     */
+    where?: OrganizationalUnitWhereInput
+  }
+
+  /**
+   * OrganizationalUnit upsert
+   */
+  export type OrganizationalUnitUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the OrganizationalUnit
+     */
+    select?: OrganizationalUnitSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: OrganizationalUnitInclude<ExtArgs> | null
+    /**
+     * The filter to search for the OrganizationalUnit to update in case it exists.
+     */
+    where: OrganizationalUnitWhereUniqueInput
+    /**
+     * In case the OrganizationalUnit found by the `where` argument doesn't exist, create a new OrganizationalUnit with this data.
+     */
+    create: XOR<OrganizationalUnitCreateInput, OrganizationalUnitUncheckedCreateInput>
+    /**
+     * In case the OrganizationalUnit was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<OrganizationalUnitUpdateInput, OrganizationalUnitUncheckedUpdateInput>
+  }
+
+  /**
+   * OrganizationalUnit delete
+   */
+  export type OrganizationalUnitDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the OrganizationalUnit
+     */
+    select?: OrganizationalUnitSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: OrganizationalUnitInclude<ExtArgs> | null
+    /**
+     * Filter which OrganizationalUnit to delete.
+     */
+    where: OrganizationalUnitWhereUniqueInput
+  }
+
+  /**
+   * OrganizationalUnit deleteMany
+   */
+  export type OrganizationalUnitDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which OrganizationalUnits to delete
+     */
+    where?: OrganizationalUnitWhereInput
+  }
+
+  /**
+   * OrganizationalUnit.parent
+   */
+  export type OrganizationalUnit$parentArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the OrganizationalUnit
+     */
+    select?: OrganizationalUnitSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: OrganizationalUnitInclude<ExtArgs> | null
+    where?: OrganizationalUnitWhereInput
+  }
+
+  /**
+   * OrganizationalUnit.children
+   */
+  export type OrganizationalUnit$childrenArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the OrganizationalUnit
+     */
+    select?: OrganizationalUnitSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: OrganizationalUnitInclude<ExtArgs> | null
+    where?: OrganizationalUnitWhereInput
+    orderBy?: OrganizationalUnitOrderByWithRelationInput | OrganizationalUnitOrderByWithRelationInput[]
+    cursor?: OrganizationalUnitWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: OrganizationalUnitScalarFieldEnum | OrganizationalUnitScalarFieldEnum[]
+  }
+
+  /**
+   * OrganizationalUnit.users
+   */
+  export type OrganizationalUnit$usersArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the User
+     */
+    select?: UserSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserInclude<ExtArgs> | null
+    where?: UserWhereInput
+    orderBy?: UserOrderByWithRelationInput | UserOrderByWithRelationInput[]
+    cursor?: UserWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: UserScalarFieldEnum | UserScalarFieldEnum[]
+  }
+
+  /**
+   * OrganizationalUnit without action
+   */
+  export type OrganizationalUnitDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the OrganizationalUnit
+     */
+    select?: OrganizationalUnitSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: OrganizationalUnitInclude<ExtArgs> | null
+  }
+
+
+  /**
    * Enums
    */
 
@@ -7191,6 +11624,7 @@ export namespace Prisma {
     otpExpiry: 'otpExpiry',
     twoFactorEnabled: 'twoFactorEnabled',
     activeSessionId: 'activeSessionId',
+    ouId: 'ouId',
     createdAt: 'createdAt',
     deletedAt: 'deletedAt',
     updatedAt: 'updatedAt'
@@ -7263,6 +11697,54 @@ export namespace Prisma {
   };
 
   export type AccessTokenScalarFieldEnum = (typeof AccessTokenScalarFieldEnum)[keyof typeof AccessTokenScalarFieldEnum]
+
+
+  export const ForestScalarFieldEnum: {
+    id: 'id',
+    name: 'name',
+    description: 'description',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type ForestScalarFieldEnum = (typeof ForestScalarFieldEnum)[keyof typeof ForestScalarFieldEnum]
+
+
+  export const TreeScalarFieldEnum: {
+    id: 'id',
+    name: 'name',
+    description: 'description',
+    forestId: 'forestId',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type TreeScalarFieldEnum = (typeof TreeScalarFieldEnum)[keyof typeof TreeScalarFieldEnum]
+
+
+  export const ChildDomainScalarFieldEnum: {
+    id: 'id',
+    name: 'name',
+    description: 'description',
+    treeId: 'treeId',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type ChildDomainScalarFieldEnum = (typeof ChildDomainScalarFieldEnum)[keyof typeof ChildDomainScalarFieldEnum]
+
+
+  export const OrganizationalUnitScalarFieldEnum: {
+    id: 'id',
+    name: 'name',
+    description: 'description',
+    domainId: 'domainId',
+    parentId: 'parentId',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type OrganizationalUnitScalarFieldEnum = (typeof OrganizationalUnitScalarFieldEnum)[keyof typeof OrganizationalUnitScalarFieldEnum]
 
 
   export const SortOrder: {
@@ -7366,12 +11848,14 @@ export namespace Prisma {
     otpExpiry?: DateTimeNullableFilter<"User"> | Date | string | null
     twoFactorEnabled?: BoolFilter<"User"> | boolean
     activeSessionId?: StringNullableFilter<"User"> | string | null
+    ouId?: StringNullableFilter<"User"> | string | null
     createdAt?: DateTimeFilter<"User"> | Date | string
     deletedAt?: DateTimeNullableFilter<"User"> | Date | string | null
     updatedAt?: DateTimeFilter<"User"> | Date | string
     twoFADevices?: TwoFADeviceListRelationFilter
     backupCodes?: BackupCodeListRelationFilter
     accessTokens?: AccessTokenListRelationFilter
+    ou?: XOR<OrganizationalUnitNullableRelationFilter, OrganizationalUnitWhereInput> | null
   }
 
   export type UserOrderByWithRelationInput = {
@@ -7391,12 +11875,14 @@ export namespace Prisma {
     otpExpiry?: SortOrderInput | SortOrder
     twoFactorEnabled?: SortOrder
     activeSessionId?: SortOrderInput | SortOrder
+    ouId?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     deletedAt?: SortOrderInput | SortOrder
     updatedAt?: SortOrder
     twoFADevices?: TwoFADeviceOrderByRelationAggregateInput
     backupCodes?: BackupCodeOrderByRelationAggregateInput
     accessTokens?: AccessTokenOrderByRelationAggregateInput
+    ou?: OrganizationalUnitOrderByWithRelationInput
   }
 
   export type UserWhereUniqueInput = Prisma.AtLeast<{
@@ -7419,12 +11905,14 @@ export namespace Prisma {
     otpExpiry?: DateTimeNullableFilter<"User"> | Date | string | null
     twoFactorEnabled?: BoolFilter<"User"> | boolean
     activeSessionId?: StringNullableFilter<"User"> | string | null
+    ouId?: StringNullableFilter<"User"> | string | null
     createdAt?: DateTimeFilter<"User"> | Date | string
     deletedAt?: DateTimeNullableFilter<"User"> | Date | string | null
     updatedAt?: DateTimeFilter<"User"> | Date | string
     twoFADevices?: TwoFADeviceListRelationFilter
     backupCodes?: BackupCodeListRelationFilter
     accessTokens?: AccessTokenListRelationFilter
+    ou?: XOR<OrganizationalUnitNullableRelationFilter, OrganizationalUnitWhereInput> | null
   }, "id" | "email">
 
   export type UserOrderByWithAggregationInput = {
@@ -7444,6 +11932,7 @@ export namespace Prisma {
     otpExpiry?: SortOrderInput | SortOrder
     twoFactorEnabled?: SortOrder
     activeSessionId?: SortOrderInput | SortOrder
+    ouId?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     deletedAt?: SortOrderInput | SortOrder
     updatedAt?: SortOrder
@@ -7472,6 +11961,7 @@ export namespace Prisma {
     otpExpiry?: DateTimeNullableWithAggregatesFilter<"User"> | Date | string | null
     twoFactorEnabled?: BoolWithAggregatesFilter<"User"> | boolean
     activeSessionId?: StringNullableWithAggregatesFilter<"User"> | string | null
+    ouId?: StringNullableWithAggregatesFilter<"User"> | string | null
     createdAt?: DateTimeWithAggregatesFilter<"User"> | Date | string
     deletedAt?: DateTimeNullableWithAggregatesFilter<"User"> | Date | string | null
     updatedAt?: DateTimeWithAggregatesFilter<"User"> | Date | string
@@ -7801,6 +12291,261 @@ export namespace Prisma {
     updatedAt?: DateTimeWithAggregatesFilter<"AccessToken"> | Date | string
   }
 
+  export type ForestWhereInput = {
+    AND?: ForestWhereInput | ForestWhereInput[]
+    OR?: ForestWhereInput[]
+    NOT?: ForestWhereInput | ForestWhereInput[]
+    id?: StringFilter<"Forest"> | string
+    name?: StringFilter<"Forest"> | string
+    description?: StringNullableFilter<"Forest"> | string | null
+    createdAt?: DateTimeFilter<"Forest"> | Date | string
+    updatedAt?: DateTimeFilter<"Forest"> | Date | string
+    trees?: TreeListRelationFilter
+  }
+
+  export type ForestOrderByWithRelationInput = {
+    id?: SortOrder
+    name?: SortOrder
+    description?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    trees?: TreeOrderByRelationAggregateInput
+  }
+
+  export type ForestWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    name?: string
+    AND?: ForestWhereInput | ForestWhereInput[]
+    OR?: ForestWhereInput[]
+    NOT?: ForestWhereInput | ForestWhereInput[]
+    description?: StringNullableFilter<"Forest"> | string | null
+    createdAt?: DateTimeFilter<"Forest"> | Date | string
+    updatedAt?: DateTimeFilter<"Forest"> | Date | string
+    trees?: TreeListRelationFilter
+  }, "id" | "name">
+
+  export type ForestOrderByWithAggregationInput = {
+    id?: SortOrder
+    name?: SortOrder
+    description?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: ForestCountOrderByAggregateInput
+    _max?: ForestMaxOrderByAggregateInput
+    _min?: ForestMinOrderByAggregateInput
+  }
+
+  export type ForestScalarWhereWithAggregatesInput = {
+    AND?: ForestScalarWhereWithAggregatesInput | ForestScalarWhereWithAggregatesInput[]
+    OR?: ForestScalarWhereWithAggregatesInput[]
+    NOT?: ForestScalarWhereWithAggregatesInput | ForestScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"Forest"> | string
+    name?: StringWithAggregatesFilter<"Forest"> | string
+    description?: StringNullableWithAggregatesFilter<"Forest"> | string | null
+    createdAt?: DateTimeWithAggregatesFilter<"Forest"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"Forest"> | Date | string
+  }
+
+  export type TreeWhereInput = {
+    AND?: TreeWhereInput | TreeWhereInput[]
+    OR?: TreeWhereInput[]
+    NOT?: TreeWhereInput | TreeWhereInput[]
+    id?: StringFilter<"Tree"> | string
+    name?: StringFilter<"Tree"> | string
+    description?: StringNullableFilter<"Tree"> | string | null
+    forestId?: StringFilter<"Tree"> | string
+    createdAt?: DateTimeFilter<"Tree"> | Date | string
+    updatedAt?: DateTimeFilter<"Tree"> | Date | string
+    forest?: XOR<ForestRelationFilter, ForestWhereInput>
+    domains?: ChildDomainListRelationFilter
+  }
+
+  export type TreeOrderByWithRelationInput = {
+    id?: SortOrder
+    name?: SortOrder
+    description?: SortOrderInput | SortOrder
+    forestId?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    forest?: ForestOrderByWithRelationInput
+    domains?: ChildDomainOrderByRelationAggregateInput
+  }
+
+  export type TreeWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    name?: string
+    AND?: TreeWhereInput | TreeWhereInput[]
+    OR?: TreeWhereInput[]
+    NOT?: TreeWhereInput | TreeWhereInput[]
+    description?: StringNullableFilter<"Tree"> | string | null
+    forestId?: StringFilter<"Tree"> | string
+    createdAt?: DateTimeFilter<"Tree"> | Date | string
+    updatedAt?: DateTimeFilter<"Tree"> | Date | string
+    forest?: XOR<ForestRelationFilter, ForestWhereInput>
+    domains?: ChildDomainListRelationFilter
+  }, "id" | "name">
+
+  export type TreeOrderByWithAggregationInput = {
+    id?: SortOrder
+    name?: SortOrder
+    description?: SortOrderInput | SortOrder
+    forestId?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: TreeCountOrderByAggregateInput
+    _max?: TreeMaxOrderByAggregateInput
+    _min?: TreeMinOrderByAggregateInput
+  }
+
+  export type TreeScalarWhereWithAggregatesInput = {
+    AND?: TreeScalarWhereWithAggregatesInput | TreeScalarWhereWithAggregatesInput[]
+    OR?: TreeScalarWhereWithAggregatesInput[]
+    NOT?: TreeScalarWhereWithAggregatesInput | TreeScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"Tree"> | string
+    name?: StringWithAggregatesFilter<"Tree"> | string
+    description?: StringNullableWithAggregatesFilter<"Tree"> | string | null
+    forestId?: StringWithAggregatesFilter<"Tree"> | string
+    createdAt?: DateTimeWithAggregatesFilter<"Tree"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"Tree"> | Date | string
+  }
+
+  export type ChildDomainWhereInput = {
+    AND?: ChildDomainWhereInput | ChildDomainWhereInput[]
+    OR?: ChildDomainWhereInput[]
+    NOT?: ChildDomainWhereInput | ChildDomainWhereInput[]
+    id?: StringFilter<"ChildDomain"> | string
+    name?: StringFilter<"ChildDomain"> | string
+    description?: StringNullableFilter<"ChildDomain"> | string | null
+    treeId?: StringFilter<"ChildDomain"> | string
+    createdAt?: DateTimeFilter<"ChildDomain"> | Date | string
+    updatedAt?: DateTimeFilter<"ChildDomain"> | Date | string
+    tree?: XOR<TreeRelationFilter, TreeWhereInput>
+    ous?: OrganizationalUnitListRelationFilter
+  }
+
+  export type ChildDomainOrderByWithRelationInput = {
+    id?: SortOrder
+    name?: SortOrder
+    description?: SortOrderInput | SortOrder
+    treeId?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    tree?: TreeOrderByWithRelationInput
+    ous?: OrganizationalUnitOrderByRelationAggregateInput
+  }
+
+  export type ChildDomainWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    name?: string
+    AND?: ChildDomainWhereInput | ChildDomainWhereInput[]
+    OR?: ChildDomainWhereInput[]
+    NOT?: ChildDomainWhereInput | ChildDomainWhereInput[]
+    description?: StringNullableFilter<"ChildDomain"> | string | null
+    treeId?: StringFilter<"ChildDomain"> | string
+    createdAt?: DateTimeFilter<"ChildDomain"> | Date | string
+    updatedAt?: DateTimeFilter<"ChildDomain"> | Date | string
+    tree?: XOR<TreeRelationFilter, TreeWhereInput>
+    ous?: OrganizationalUnitListRelationFilter
+  }, "id" | "name">
+
+  export type ChildDomainOrderByWithAggregationInput = {
+    id?: SortOrder
+    name?: SortOrder
+    description?: SortOrderInput | SortOrder
+    treeId?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: ChildDomainCountOrderByAggregateInput
+    _max?: ChildDomainMaxOrderByAggregateInput
+    _min?: ChildDomainMinOrderByAggregateInput
+  }
+
+  export type ChildDomainScalarWhereWithAggregatesInput = {
+    AND?: ChildDomainScalarWhereWithAggregatesInput | ChildDomainScalarWhereWithAggregatesInput[]
+    OR?: ChildDomainScalarWhereWithAggregatesInput[]
+    NOT?: ChildDomainScalarWhereWithAggregatesInput | ChildDomainScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"ChildDomain"> | string
+    name?: StringWithAggregatesFilter<"ChildDomain"> | string
+    description?: StringNullableWithAggregatesFilter<"ChildDomain"> | string | null
+    treeId?: StringWithAggregatesFilter<"ChildDomain"> | string
+    createdAt?: DateTimeWithAggregatesFilter<"ChildDomain"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"ChildDomain"> | Date | string
+  }
+
+  export type OrganizationalUnitWhereInput = {
+    AND?: OrganizationalUnitWhereInput | OrganizationalUnitWhereInput[]
+    OR?: OrganizationalUnitWhereInput[]
+    NOT?: OrganizationalUnitWhereInput | OrganizationalUnitWhereInput[]
+    id?: StringFilter<"OrganizationalUnit"> | string
+    name?: StringFilter<"OrganizationalUnit"> | string
+    description?: StringNullableFilter<"OrganizationalUnit"> | string | null
+    domainId?: StringFilter<"OrganizationalUnit"> | string
+    parentId?: StringNullableFilter<"OrganizationalUnit"> | string | null
+    createdAt?: DateTimeFilter<"OrganizationalUnit"> | Date | string
+    updatedAt?: DateTimeFilter<"OrganizationalUnit"> | Date | string
+    domain?: XOR<ChildDomainRelationFilter, ChildDomainWhereInput>
+    parent?: XOR<OrganizationalUnitNullableRelationFilter, OrganizationalUnitWhereInput> | null
+    children?: OrganizationalUnitListRelationFilter
+    users?: UserListRelationFilter
+  }
+
+  export type OrganizationalUnitOrderByWithRelationInput = {
+    id?: SortOrder
+    name?: SortOrder
+    description?: SortOrderInput | SortOrder
+    domainId?: SortOrder
+    parentId?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    domain?: ChildDomainOrderByWithRelationInput
+    parent?: OrganizationalUnitOrderByWithRelationInput
+    children?: OrganizationalUnitOrderByRelationAggregateInput
+    users?: UserOrderByRelationAggregateInput
+  }
+
+  export type OrganizationalUnitWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    AND?: OrganizationalUnitWhereInput | OrganizationalUnitWhereInput[]
+    OR?: OrganizationalUnitWhereInput[]
+    NOT?: OrganizationalUnitWhereInput | OrganizationalUnitWhereInput[]
+    name?: StringFilter<"OrganizationalUnit"> | string
+    description?: StringNullableFilter<"OrganizationalUnit"> | string | null
+    domainId?: StringFilter<"OrganizationalUnit"> | string
+    parentId?: StringNullableFilter<"OrganizationalUnit"> | string | null
+    createdAt?: DateTimeFilter<"OrganizationalUnit"> | Date | string
+    updatedAt?: DateTimeFilter<"OrganizationalUnit"> | Date | string
+    domain?: XOR<ChildDomainRelationFilter, ChildDomainWhereInput>
+    parent?: XOR<OrganizationalUnitNullableRelationFilter, OrganizationalUnitWhereInput> | null
+    children?: OrganizationalUnitListRelationFilter
+    users?: UserListRelationFilter
+  }, "id">
+
+  export type OrganizationalUnitOrderByWithAggregationInput = {
+    id?: SortOrder
+    name?: SortOrder
+    description?: SortOrderInput | SortOrder
+    domainId?: SortOrder
+    parentId?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: OrganizationalUnitCountOrderByAggregateInput
+    _max?: OrganizationalUnitMaxOrderByAggregateInput
+    _min?: OrganizationalUnitMinOrderByAggregateInput
+  }
+
+  export type OrganizationalUnitScalarWhereWithAggregatesInput = {
+    AND?: OrganizationalUnitScalarWhereWithAggregatesInput | OrganizationalUnitScalarWhereWithAggregatesInput[]
+    OR?: OrganizationalUnitScalarWhereWithAggregatesInput[]
+    NOT?: OrganizationalUnitScalarWhereWithAggregatesInput | OrganizationalUnitScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"OrganizationalUnit"> | string
+    name?: StringWithAggregatesFilter<"OrganizationalUnit"> | string
+    description?: StringNullableWithAggregatesFilter<"OrganizationalUnit"> | string | null
+    domainId?: StringWithAggregatesFilter<"OrganizationalUnit"> | string
+    parentId?: StringNullableWithAggregatesFilter<"OrganizationalUnit"> | string | null
+    createdAt?: DateTimeWithAggregatesFilter<"OrganizationalUnit"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"OrganizationalUnit"> | Date | string
+  }
+
   export type UserCreateInput = {
     id?: string
     name: string
@@ -7824,6 +12569,7 @@ export namespace Prisma {
     twoFADevices?: TwoFADeviceCreateNestedManyWithoutUserInput
     backupCodes?: BackupCodeCreateNestedManyWithoutUserInput
     accessTokens?: AccessTokenCreateNestedManyWithoutUserInput
+    ou?: OrganizationalUnitCreateNestedOneWithoutUsersInput
   }
 
   export type UserUncheckedCreateInput = {
@@ -7843,6 +12589,7 @@ export namespace Prisma {
     otpExpiry?: Date | string | null
     twoFactorEnabled?: boolean
     activeSessionId?: string | null
+    ouId?: string | null
     createdAt?: Date | string
     deletedAt?: Date | string | null
     updatedAt?: Date | string
@@ -7874,6 +12621,7 @@ export namespace Prisma {
     twoFADevices?: TwoFADeviceUpdateManyWithoutUserNestedInput
     backupCodes?: BackupCodeUpdateManyWithoutUserNestedInput
     accessTokens?: AccessTokenUpdateManyWithoutUserNestedInput
+    ou?: OrganizationalUnitUpdateOneWithoutUsersNestedInput
   }
 
   export type UserUncheckedUpdateInput = {
@@ -7893,6 +12641,7 @@ export namespace Prisma {
     otpExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
     activeSessionId?: NullableStringFieldUpdateOperationsInput | string | null
+    ouId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -7918,6 +12667,7 @@ export namespace Prisma {
     otpExpiry?: Date | string | null
     twoFactorEnabled?: boolean
     activeSessionId?: string | null
+    ouId?: string | null
     createdAt?: Date | string
     deletedAt?: Date | string | null
     updatedAt?: Date | string
@@ -7962,6 +12712,7 @@ export namespace Prisma {
     otpExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
     activeSessionId?: NullableStringFieldUpdateOperationsInput | string | null
+    ouId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -8321,6 +13072,274 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
+  export type ForestCreateInput = {
+    id?: string
+    name: string
+    description?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    trees?: TreeCreateNestedManyWithoutForestInput
+  }
+
+  export type ForestUncheckedCreateInput = {
+    id?: string
+    name: string
+    description?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    trees?: TreeUncheckedCreateNestedManyWithoutForestInput
+  }
+
+  export type ForestUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    trees?: TreeUpdateManyWithoutForestNestedInput
+  }
+
+  export type ForestUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    trees?: TreeUncheckedUpdateManyWithoutForestNestedInput
+  }
+
+  export type ForestCreateManyInput = {
+    id?: string
+    name: string
+    description?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type ForestUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ForestUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type TreeCreateInput = {
+    id?: string
+    name: string
+    description?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    forest: ForestCreateNestedOneWithoutTreesInput
+    domains?: ChildDomainCreateNestedManyWithoutTreeInput
+  }
+
+  export type TreeUncheckedCreateInput = {
+    id?: string
+    name: string
+    description?: string | null
+    forestId: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    domains?: ChildDomainUncheckedCreateNestedManyWithoutTreeInput
+  }
+
+  export type TreeUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    forest?: ForestUpdateOneRequiredWithoutTreesNestedInput
+    domains?: ChildDomainUpdateManyWithoutTreeNestedInput
+  }
+
+  export type TreeUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    forestId?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    domains?: ChildDomainUncheckedUpdateManyWithoutTreeNestedInput
+  }
+
+  export type TreeCreateManyInput = {
+    id?: string
+    name: string
+    description?: string | null
+    forestId: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type TreeUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type TreeUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    forestId?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ChildDomainCreateInput = {
+    id?: string
+    name: string
+    description?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    tree: TreeCreateNestedOneWithoutDomainsInput
+    ous?: OrganizationalUnitCreateNestedManyWithoutDomainInput
+  }
+
+  export type ChildDomainUncheckedCreateInput = {
+    id?: string
+    name: string
+    description?: string | null
+    treeId: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    ous?: OrganizationalUnitUncheckedCreateNestedManyWithoutDomainInput
+  }
+
+  export type ChildDomainUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    tree?: TreeUpdateOneRequiredWithoutDomainsNestedInput
+    ous?: OrganizationalUnitUpdateManyWithoutDomainNestedInput
+  }
+
+  export type ChildDomainUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    treeId?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    ous?: OrganizationalUnitUncheckedUpdateManyWithoutDomainNestedInput
+  }
+
+  export type ChildDomainCreateManyInput = {
+    id?: string
+    name: string
+    description?: string | null
+    treeId: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type ChildDomainUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ChildDomainUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    treeId?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type OrganizationalUnitCreateInput = {
+    id?: string
+    name: string
+    description?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    domain: ChildDomainCreateNestedOneWithoutOusInput
+    parent?: OrganizationalUnitCreateNestedOneWithoutChildrenInput
+    children?: OrganizationalUnitCreateNestedManyWithoutParentInput
+    users?: UserCreateNestedManyWithoutOuInput
+  }
+
+  export type OrganizationalUnitUncheckedCreateInput = {
+    id?: string
+    name: string
+    description?: string | null
+    domainId: string
+    parentId?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    children?: OrganizationalUnitUncheckedCreateNestedManyWithoutParentInput
+    users?: UserUncheckedCreateNestedManyWithoutOuInput
+  }
+
+  export type OrganizationalUnitUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    domain?: ChildDomainUpdateOneRequiredWithoutOusNestedInput
+    parent?: OrganizationalUnitUpdateOneWithoutChildrenNestedInput
+    children?: OrganizationalUnitUpdateManyWithoutParentNestedInput
+    users?: UserUpdateManyWithoutOuNestedInput
+  }
+
+  export type OrganizationalUnitUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    domainId?: StringFieldUpdateOperationsInput | string
+    parentId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    children?: OrganizationalUnitUncheckedUpdateManyWithoutParentNestedInput
+    users?: UserUncheckedUpdateManyWithoutOuNestedInput
+  }
+
+  export type OrganizationalUnitCreateManyInput = {
+    id?: string
+    name: string
+    description?: string | null
+    domainId: string
+    parentId?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type OrganizationalUnitUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type OrganizationalUnitUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    domainId?: StringFieldUpdateOperationsInput | string
+    parentId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
   export type StringFilter<$PrismaModel = never> = {
     equals?: string | StringFieldRefInput<$PrismaModel>
     in?: string[] | ListStringFieldRefInput<$PrismaModel>
@@ -8404,6 +13423,11 @@ export namespace Prisma {
     none?: AccessTokenWhereInput
   }
 
+  export type OrganizationalUnitNullableRelationFilter = {
+    is?: OrganizationalUnitWhereInput | null
+    isNot?: OrganizationalUnitWhereInput | null
+  }
+
   export type SortOrderInput = {
     sort: SortOrder
     nulls?: NullsOrder
@@ -8438,6 +13462,7 @@ export namespace Prisma {
     otpExpiry?: SortOrder
     twoFactorEnabled?: SortOrder
     activeSessionId?: SortOrder
+    ouId?: SortOrder
     createdAt?: SortOrder
     deletedAt?: SortOrder
     updatedAt?: SortOrder
@@ -8458,6 +13483,7 @@ export namespace Prisma {
     otpExpiry?: SortOrder
     twoFactorEnabled?: SortOrder
     activeSessionId?: SortOrder
+    ouId?: SortOrder
     createdAt?: SortOrder
     deletedAt?: SortOrder
     updatedAt?: SortOrder
@@ -8478,6 +13504,7 @@ export namespace Prisma {
     otpExpiry?: SortOrder
     twoFactorEnabled?: SortOrder
     activeSessionId?: SortOrder
+    ouId?: SortOrder
     createdAt?: SortOrder
     deletedAt?: SortOrder
     updatedAt?: SortOrder
@@ -8711,6 +13738,169 @@ export namespace Prisma {
     updatedAt?: SortOrder
   }
 
+  export type TreeListRelationFilter = {
+    every?: TreeWhereInput
+    some?: TreeWhereInput
+    none?: TreeWhereInput
+  }
+
+  export type TreeOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type ForestCountOrderByAggregateInput = {
+    id?: SortOrder
+    name?: SortOrder
+    description?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type ForestMaxOrderByAggregateInput = {
+    id?: SortOrder
+    name?: SortOrder
+    description?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type ForestMinOrderByAggregateInput = {
+    id?: SortOrder
+    name?: SortOrder
+    description?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type ForestRelationFilter = {
+    is?: ForestWhereInput
+    isNot?: ForestWhereInput
+  }
+
+  export type ChildDomainListRelationFilter = {
+    every?: ChildDomainWhereInput
+    some?: ChildDomainWhereInput
+    none?: ChildDomainWhereInput
+  }
+
+  export type ChildDomainOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type TreeCountOrderByAggregateInput = {
+    id?: SortOrder
+    name?: SortOrder
+    description?: SortOrder
+    forestId?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type TreeMaxOrderByAggregateInput = {
+    id?: SortOrder
+    name?: SortOrder
+    description?: SortOrder
+    forestId?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type TreeMinOrderByAggregateInput = {
+    id?: SortOrder
+    name?: SortOrder
+    description?: SortOrder
+    forestId?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type TreeRelationFilter = {
+    is?: TreeWhereInput
+    isNot?: TreeWhereInput
+  }
+
+  export type OrganizationalUnitListRelationFilter = {
+    every?: OrganizationalUnitWhereInput
+    some?: OrganizationalUnitWhereInput
+    none?: OrganizationalUnitWhereInput
+  }
+
+  export type OrganizationalUnitOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type ChildDomainCountOrderByAggregateInput = {
+    id?: SortOrder
+    name?: SortOrder
+    description?: SortOrder
+    treeId?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type ChildDomainMaxOrderByAggregateInput = {
+    id?: SortOrder
+    name?: SortOrder
+    description?: SortOrder
+    treeId?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type ChildDomainMinOrderByAggregateInput = {
+    id?: SortOrder
+    name?: SortOrder
+    description?: SortOrder
+    treeId?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type ChildDomainRelationFilter = {
+    is?: ChildDomainWhereInput
+    isNot?: ChildDomainWhereInput
+  }
+
+  export type UserListRelationFilter = {
+    every?: UserWhereInput
+    some?: UserWhereInput
+    none?: UserWhereInput
+  }
+
+  export type UserOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type OrganizationalUnitCountOrderByAggregateInput = {
+    id?: SortOrder
+    name?: SortOrder
+    description?: SortOrder
+    domainId?: SortOrder
+    parentId?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type OrganizationalUnitMaxOrderByAggregateInput = {
+    id?: SortOrder
+    name?: SortOrder
+    description?: SortOrder
+    domainId?: SortOrder
+    parentId?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type OrganizationalUnitMinOrderByAggregateInput = {
+    id?: SortOrder
+    name?: SortOrder
+    description?: SortOrder
+    domainId?: SortOrder
+    parentId?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
   export type UserCreatepermissionsInput = {
     set: string[]
   }
@@ -8738,6 +13928,12 @@ export namespace Prisma {
     connectOrCreate?: AccessTokenCreateOrConnectWithoutUserInput | AccessTokenCreateOrConnectWithoutUserInput[]
     createMany?: AccessTokenCreateManyUserInputEnvelope
     connect?: AccessTokenWhereUniqueInput | AccessTokenWhereUniqueInput[]
+  }
+
+  export type OrganizationalUnitCreateNestedOneWithoutUsersInput = {
+    create?: XOR<OrganizationalUnitCreateWithoutUsersInput, OrganizationalUnitUncheckedCreateWithoutUsersInput>
+    connectOrCreate?: OrganizationalUnitCreateOrConnectWithoutUsersInput
+    connect?: OrganizationalUnitWhereUniqueInput
   }
 
   export type TwoFADeviceUncheckedCreateNestedManyWithoutUserInput = {
@@ -8833,6 +14029,16 @@ export namespace Prisma {
     deleteMany?: AccessTokenScalarWhereInput | AccessTokenScalarWhereInput[]
   }
 
+  export type OrganizationalUnitUpdateOneWithoutUsersNestedInput = {
+    create?: XOR<OrganizationalUnitCreateWithoutUsersInput, OrganizationalUnitUncheckedCreateWithoutUsersInput>
+    connectOrCreate?: OrganizationalUnitCreateOrConnectWithoutUsersInput
+    upsert?: OrganizationalUnitUpsertWithoutUsersInput
+    disconnect?: OrganizationalUnitWhereInput | boolean
+    delete?: OrganizationalUnitWhereInput | boolean
+    connect?: OrganizationalUnitWhereUniqueInput
+    update?: XOR<XOR<OrganizationalUnitUpdateToOneWithWhereWithoutUsersInput, OrganizationalUnitUpdateWithoutUsersInput>, OrganizationalUnitUncheckedUpdateWithoutUsersInput>
+  }
+
   export type TwoFADeviceUncheckedUpdateManyWithoutUserNestedInput = {
     create?: XOR<TwoFADeviceCreateWithoutUserInput, TwoFADeviceUncheckedCreateWithoutUserInput> | TwoFADeviceCreateWithoutUserInput[] | TwoFADeviceUncheckedCreateWithoutUserInput[]
     connectOrCreate?: TwoFADeviceCreateOrConnectWithoutUserInput | TwoFADeviceCreateOrConnectWithoutUserInput[]
@@ -8924,6 +14130,274 @@ export namespace Prisma {
     upsert?: UserUpsertWithoutAccessTokensInput
     connect?: UserWhereUniqueInput
     update?: XOR<XOR<UserUpdateToOneWithWhereWithoutAccessTokensInput, UserUpdateWithoutAccessTokensInput>, UserUncheckedUpdateWithoutAccessTokensInput>
+  }
+
+  export type TreeCreateNestedManyWithoutForestInput = {
+    create?: XOR<TreeCreateWithoutForestInput, TreeUncheckedCreateWithoutForestInput> | TreeCreateWithoutForestInput[] | TreeUncheckedCreateWithoutForestInput[]
+    connectOrCreate?: TreeCreateOrConnectWithoutForestInput | TreeCreateOrConnectWithoutForestInput[]
+    createMany?: TreeCreateManyForestInputEnvelope
+    connect?: TreeWhereUniqueInput | TreeWhereUniqueInput[]
+  }
+
+  export type TreeUncheckedCreateNestedManyWithoutForestInput = {
+    create?: XOR<TreeCreateWithoutForestInput, TreeUncheckedCreateWithoutForestInput> | TreeCreateWithoutForestInput[] | TreeUncheckedCreateWithoutForestInput[]
+    connectOrCreate?: TreeCreateOrConnectWithoutForestInput | TreeCreateOrConnectWithoutForestInput[]
+    createMany?: TreeCreateManyForestInputEnvelope
+    connect?: TreeWhereUniqueInput | TreeWhereUniqueInput[]
+  }
+
+  export type TreeUpdateManyWithoutForestNestedInput = {
+    create?: XOR<TreeCreateWithoutForestInput, TreeUncheckedCreateWithoutForestInput> | TreeCreateWithoutForestInput[] | TreeUncheckedCreateWithoutForestInput[]
+    connectOrCreate?: TreeCreateOrConnectWithoutForestInput | TreeCreateOrConnectWithoutForestInput[]
+    upsert?: TreeUpsertWithWhereUniqueWithoutForestInput | TreeUpsertWithWhereUniqueWithoutForestInput[]
+    createMany?: TreeCreateManyForestInputEnvelope
+    set?: TreeWhereUniqueInput | TreeWhereUniqueInput[]
+    disconnect?: TreeWhereUniqueInput | TreeWhereUniqueInput[]
+    delete?: TreeWhereUniqueInput | TreeWhereUniqueInput[]
+    connect?: TreeWhereUniqueInput | TreeWhereUniqueInput[]
+    update?: TreeUpdateWithWhereUniqueWithoutForestInput | TreeUpdateWithWhereUniqueWithoutForestInput[]
+    updateMany?: TreeUpdateManyWithWhereWithoutForestInput | TreeUpdateManyWithWhereWithoutForestInput[]
+    deleteMany?: TreeScalarWhereInput | TreeScalarWhereInput[]
+  }
+
+  export type TreeUncheckedUpdateManyWithoutForestNestedInput = {
+    create?: XOR<TreeCreateWithoutForestInput, TreeUncheckedCreateWithoutForestInput> | TreeCreateWithoutForestInput[] | TreeUncheckedCreateWithoutForestInput[]
+    connectOrCreate?: TreeCreateOrConnectWithoutForestInput | TreeCreateOrConnectWithoutForestInput[]
+    upsert?: TreeUpsertWithWhereUniqueWithoutForestInput | TreeUpsertWithWhereUniqueWithoutForestInput[]
+    createMany?: TreeCreateManyForestInputEnvelope
+    set?: TreeWhereUniqueInput | TreeWhereUniqueInput[]
+    disconnect?: TreeWhereUniqueInput | TreeWhereUniqueInput[]
+    delete?: TreeWhereUniqueInput | TreeWhereUniqueInput[]
+    connect?: TreeWhereUniqueInput | TreeWhereUniqueInput[]
+    update?: TreeUpdateWithWhereUniqueWithoutForestInput | TreeUpdateWithWhereUniqueWithoutForestInput[]
+    updateMany?: TreeUpdateManyWithWhereWithoutForestInput | TreeUpdateManyWithWhereWithoutForestInput[]
+    deleteMany?: TreeScalarWhereInput | TreeScalarWhereInput[]
+  }
+
+  export type ForestCreateNestedOneWithoutTreesInput = {
+    create?: XOR<ForestCreateWithoutTreesInput, ForestUncheckedCreateWithoutTreesInput>
+    connectOrCreate?: ForestCreateOrConnectWithoutTreesInput
+    connect?: ForestWhereUniqueInput
+  }
+
+  export type ChildDomainCreateNestedManyWithoutTreeInput = {
+    create?: XOR<ChildDomainCreateWithoutTreeInput, ChildDomainUncheckedCreateWithoutTreeInput> | ChildDomainCreateWithoutTreeInput[] | ChildDomainUncheckedCreateWithoutTreeInput[]
+    connectOrCreate?: ChildDomainCreateOrConnectWithoutTreeInput | ChildDomainCreateOrConnectWithoutTreeInput[]
+    createMany?: ChildDomainCreateManyTreeInputEnvelope
+    connect?: ChildDomainWhereUniqueInput | ChildDomainWhereUniqueInput[]
+  }
+
+  export type ChildDomainUncheckedCreateNestedManyWithoutTreeInput = {
+    create?: XOR<ChildDomainCreateWithoutTreeInput, ChildDomainUncheckedCreateWithoutTreeInput> | ChildDomainCreateWithoutTreeInput[] | ChildDomainUncheckedCreateWithoutTreeInput[]
+    connectOrCreate?: ChildDomainCreateOrConnectWithoutTreeInput | ChildDomainCreateOrConnectWithoutTreeInput[]
+    createMany?: ChildDomainCreateManyTreeInputEnvelope
+    connect?: ChildDomainWhereUniqueInput | ChildDomainWhereUniqueInput[]
+  }
+
+  export type ForestUpdateOneRequiredWithoutTreesNestedInput = {
+    create?: XOR<ForestCreateWithoutTreesInput, ForestUncheckedCreateWithoutTreesInput>
+    connectOrCreate?: ForestCreateOrConnectWithoutTreesInput
+    upsert?: ForestUpsertWithoutTreesInput
+    connect?: ForestWhereUniqueInput
+    update?: XOR<XOR<ForestUpdateToOneWithWhereWithoutTreesInput, ForestUpdateWithoutTreesInput>, ForestUncheckedUpdateWithoutTreesInput>
+  }
+
+  export type ChildDomainUpdateManyWithoutTreeNestedInput = {
+    create?: XOR<ChildDomainCreateWithoutTreeInput, ChildDomainUncheckedCreateWithoutTreeInput> | ChildDomainCreateWithoutTreeInput[] | ChildDomainUncheckedCreateWithoutTreeInput[]
+    connectOrCreate?: ChildDomainCreateOrConnectWithoutTreeInput | ChildDomainCreateOrConnectWithoutTreeInput[]
+    upsert?: ChildDomainUpsertWithWhereUniqueWithoutTreeInput | ChildDomainUpsertWithWhereUniqueWithoutTreeInput[]
+    createMany?: ChildDomainCreateManyTreeInputEnvelope
+    set?: ChildDomainWhereUniqueInput | ChildDomainWhereUniqueInput[]
+    disconnect?: ChildDomainWhereUniqueInput | ChildDomainWhereUniqueInput[]
+    delete?: ChildDomainWhereUniqueInput | ChildDomainWhereUniqueInput[]
+    connect?: ChildDomainWhereUniqueInput | ChildDomainWhereUniqueInput[]
+    update?: ChildDomainUpdateWithWhereUniqueWithoutTreeInput | ChildDomainUpdateWithWhereUniqueWithoutTreeInput[]
+    updateMany?: ChildDomainUpdateManyWithWhereWithoutTreeInput | ChildDomainUpdateManyWithWhereWithoutTreeInput[]
+    deleteMany?: ChildDomainScalarWhereInput | ChildDomainScalarWhereInput[]
+  }
+
+  export type ChildDomainUncheckedUpdateManyWithoutTreeNestedInput = {
+    create?: XOR<ChildDomainCreateWithoutTreeInput, ChildDomainUncheckedCreateWithoutTreeInput> | ChildDomainCreateWithoutTreeInput[] | ChildDomainUncheckedCreateWithoutTreeInput[]
+    connectOrCreate?: ChildDomainCreateOrConnectWithoutTreeInput | ChildDomainCreateOrConnectWithoutTreeInput[]
+    upsert?: ChildDomainUpsertWithWhereUniqueWithoutTreeInput | ChildDomainUpsertWithWhereUniqueWithoutTreeInput[]
+    createMany?: ChildDomainCreateManyTreeInputEnvelope
+    set?: ChildDomainWhereUniqueInput | ChildDomainWhereUniqueInput[]
+    disconnect?: ChildDomainWhereUniqueInput | ChildDomainWhereUniqueInput[]
+    delete?: ChildDomainWhereUniqueInput | ChildDomainWhereUniqueInput[]
+    connect?: ChildDomainWhereUniqueInput | ChildDomainWhereUniqueInput[]
+    update?: ChildDomainUpdateWithWhereUniqueWithoutTreeInput | ChildDomainUpdateWithWhereUniqueWithoutTreeInput[]
+    updateMany?: ChildDomainUpdateManyWithWhereWithoutTreeInput | ChildDomainUpdateManyWithWhereWithoutTreeInput[]
+    deleteMany?: ChildDomainScalarWhereInput | ChildDomainScalarWhereInput[]
+  }
+
+  export type TreeCreateNestedOneWithoutDomainsInput = {
+    create?: XOR<TreeCreateWithoutDomainsInput, TreeUncheckedCreateWithoutDomainsInput>
+    connectOrCreate?: TreeCreateOrConnectWithoutDomainsInput
+    connect?: TreeWhereUniqueInput
+  }
+
+  export type OrganizationalUnitCreateNestedManyWithoutDomainInput = {
+    create?: XOR<OrganizationalUnitCreateWithoutDomainInput, OrganizationalUnitUncheckedCreateWithoutDomainInput> | OrganizationalUnitCreateWithoutDomainInput[] | OrganizationalUnitUncheckedCreateWithoutDomainInput[]
+    connectOrCreate?: OrganizationalUnitCreateOrConnectWithoutDomainInput | OrganizationalUnitCreateOrConnectWithoutDomainInput[]
+    createMany?: OrganizationalUnitCreateManyDomainInputEnvelope
+    connect?: OrganizationalUnitWhereUniqueInput | OrganizationalUnitWhereUniqueInput[]
+  }
+
+  export type OrganizationalUnitUncheckedCreateNestedManyWithoutDomainInput = {
+    create?: XOR<OrganizationalUnitCreateWithoutDomainInput, OrganizationalUnitUncheckedCreateWithoutDomainInput> | OrganizationalUnitCreateWithoutDomainInput[] | OrganizationalUnitUncheckedCreateWithoutDomainInput[]
+    connectOrCreate?: OrganizationalUnitCreateOrConnectWithoutDomainInput | OrganizationalUnitCreateOrConnectWithoutDomainInput[]
+    createMany?: OrganizationalUnitCreateManyDomainInputEnvelope
+    connect?: OrganizationalUnitWhereUniqueInput | OrganizationalUnitWhereUniqueInput[]
+  }
+
+  export type TreeUpdateOneRequiredWithoutDomainsNestedInput = {
+    create?: XOR<TreeCreateWithoutDomainsInput, TreeUncheckedCreateWithoutDomainsInput>
+    connectOrCreate?: TreeCreateOrConnectWithoutDomainsInput
+    upsert?: TreeUpsertWithoutDomainsInput
+    connect?: TreeWhereUniqueInput
+    update?: XOR<XOR<TreeUpdateToOneWithWhereWithoutDomainsInput, TreeUpdateWithoutDomainsInput>, TreeUncheckedUpdateWithoutDomainsInput>
+  }
+
+  export type OrganizationalUnitUpdateManyWithoutDomainNestedInput = {
+    create?: XOR<OrganizationalUnitCreateWithoutDomainInput, OrganizationalUnitUncheckedCreateWithoutDomainInput> | OrganizationalUnitCreateWithoutDomainInput[] | OrganizationalUnitUncheckedCreateWithoutDomainInput[]
+    connectOrCreate?: OrganizationalUnitCreateOrConnectWithoutDomainInput | OrganizationalUnitCreateOrConnectWithoutDomainInput[]
+    upsert?: OrganizationalUnitUpsertWithWhereUniqueWithoutDomainInput | OrganizationalUnitUpsertWithWhereUniqueWithoutDomainInput[]
+    createMany?: OrganizationalUnitCreateManyDomainInputEnvelope
+    set?: OrganizationalUnitWhereUniqueInput | OrganizationalUnitWhereUniqueInput[]
+    disconnect?: OrganizationalUnitWhereUniqueInput | OrganizationalUnitWhereUniqueInput[]
+    delete?: OrganizationalUnitWhereUniqueInput | OrganizationalUnitWhereUniqueInput[]
+    connect?: OrganizationalUnitWhereUniqueInput | OrganizationalUnitWhereUniqueInput[]
+    update?: OrganizationalUnitUpdateWithWhereUniqueWithoutDomainInput | OrganizationalUnitUpdateWithWhereUniqueWithoutDomainInput[]
+    updateMany?: OrganizationalUnitUpdateManyWithWhereWithoutDomainInput | OrganizationalUnitUpdateManyWithWhereWithoutDomainInput[]
+    deleteMany?: OrganizationalUnitScalarWhereInput | OrganizationalUnitScalarWhereInput[]
+  }
+
+  export type OrganizationalUnitUncheckedUpdateManyWithoutDomainNestedInput = {
+    create?: XOR<OrganizationalUnitCreateWithoutDomainInput, OrganizationalUnitUncheckedCreateWithoutDomainInput> | OrganizationalUnitCreateWithoutDomainInput[] | OrganizationalUnitUncheckedCreateWithoutDomainInput[]
+    connectOrCreate?: OrganizationalUnitCreateOrConnectWithoutDomainInput | OrganizationalUnitCreateOrConnectWithoutDomainInput[]
+    upsert?: OrganizationalUnitUpsertWithWhereUniqueWithoutDomainInput | OrganizationalUnitUpsertWithWhereUniqueWithoutDomainInput[]
+    createMany?: OrganizationalUnitCreateManyDomainInputEnvelope
+    set?: OrganizationalUnitWhereUniqueInput | OrganizationalUnitWhereUniqueInput[]
+    disconnect?: OrganizationalUnitWhereUniqueInput | OrganizationalUnitWhereUniqueInput[]
+    delete?: OrganizationalUnitWhereUniqueInput | OrganizationalUnitWhereUniqueInput[]
+    connect?: OrganizationalUnitWhereUniqueInput | OrganizationalUnitWhereUniqueInput[]
+    update?: OrganizationalUnitUpdateWithWhereUniqueWithoutDomainInput | OrganizationalUnitUpdateWithWhereUniqueWithoutDomainInput[]
+    updateMany?: OrganizationalUnitUpdateManyWithWhereWithoutDomainInput | OrganizationalUnitUpdateManyWithWhereWithoutDomainInput[]
+    deleteMany?: OrganizationalUnitScalarWhereInput | OrganizationalUnitScalarWhereInput[]
+  }
+
+  export type ChildDomainCreateNestedOneWithoutOusInput = {
+    create?: XOR<ChildDomainCreateWithoutOusInput, ChildDomainUncheckedCreateWithoutOusInput>
+    connectOrCreate?: ChildDomainCreateOrConnectWithoutOusInput
+    connect?: ChildDomainWhereUniqueInput
+  }
+
+  export type OrganizationalUnitCreateNestedOneWithoutChildrenInput = {
+    create?: XOR<OrganizationalUnitCreateWithoutChildrenInput, OrganizationalUnitUncheckedCreateWithoutChildrenInput>
+    connectOrCreate?: OrganizationalUnitCreateOrConnectWithoutChildrenInput
+    connect?: OrganizationalUnitWhereUniqueInput
+  }
+
+  export type OrganizationalUnitCreateNestedManyWithoutParentInput = {
+    create?: XOR<OrganizationalUnitCreateWithoutParentInput, OrganizationalUnitUncheckedCreateWithoutParentInput> | OrganizationalUnitCreateWithoutParentInput[] | OrganizationalUnitUncheckedCreateWithoutParentInput[]
+    connectOrCreate?: OrganizationalUnitCreateOrConnectWithoutParentInput | OrganizationalUnitCreateOrConnectWithoutParentInput[]
+    createMany?: OrganizationalUnitCreateManyParentInputEnvelope
+    connect?: OrganizationalUnitWhereUniqueInput | OrganizationalUnitWhereUniqueInput[]
+  }
+
+  export type UserCreateNestedManyWithoutOuInput = {
+    create?: XOR<UserCreateWithoutOuInput, UserUncheckedCreateWithoutOuInput> | UserCreateWithoutOuInput[] | UserUncheckedCreateWithoutOuInput[]
+    connectOrCreate?: UserCreateOrConnectWithoutOuInput | UserCreateOrConnectWithoutOuInput[]
+    createMany?: UserCreateManyOuInputEnvelope
+    connect?: UserWhereUniqueInput | UserWhereUniqueInput[]
+  }
+
+  export type OrganizationalUnitUncheckedCreateNestedManyWithoutParentInput = {
+    create?: XOR<OrganizationalUnitCreateWithoutParentInput, OrganizationalUnitUncheckedCreateWithoutParentInput> | OrganizationalUnitCreateWithoutParentInput[] | OrganizationalUnitUncheckedCreateWithoutParentInput[]
+    connectOrCreate?: OrganizationalUnitCreateOrConnectWithoutParentInput | OrganizationalUnitCreateOrConnectWithoutParentInput[]
+    createMany?: OrganizationalUnitCreateManyParentInputEnvelope
+    connect?: OrganizationalUnitWhereUniqueInput | OrganizationalUnitWhereUniqueInput[]
+  }
+
+  export type UserUncheckedCreateNestedManyWithoutOuInput = {
+    create?: XOR<UserCreateWithoutOuInput, UserUncheckedCreateWithoutOuInput> | UserCreateWithoutOuInput[] | UserUncheckedCreateWithoutOuInput[]
+    connectOrCreate?: UserCreateOrConnectWithoutOuInput | UserCreateOrConnectWithoutOuInput[]
+    createMany?: UserCreateManyOuInputEnvelope
+    connect?: UserWhereUniqueInput | UserWhereUniqueInput[]
+  }
+
+  export type ChildDomainUpdateOneRequiredWithoutOusNestedInput = {
+    create?: XOR<ChildDomainCreateWithoutOusInput, ChildDomainUncheckedCreateWithoutOusInput>
+    connectOrCreate?: ChildDomainCreateOrConnectWithoutOusInput
+    upsert?: ChildDomainUpsertWithoutOusInput
+    connect?: ChildDomainWhereUniqueInput
+    update?: XOR<XOR<ChildDomainUpdateToOneWithWhereWithoutOusInput, ChildDomainUpdateWithoutOusInput>, ChildDomainUncheckedUpdateWithoutOusInput>
+  }
+
+  export type OrganizationalUnitUpdateOneWithoutChildrenNestedInput = {
+    create?: XOR<OrganizationalUnitCreateWithoutChildrenInput, OrganizationalUnitUncheckedCreateWithoutChildrenInput>
+    connectOrCreate?: OrganizationalUnitCreateOrConnectWithoutChildrenInput
+    upsert?: OrganizationalUnitUpsertWithoutChildrenInput
+    disconnect?: OrganizationalUnitWhereInput | boolean
+    delete?: OrganizationalUnitWhereInput | boolean
+    connect?: OrganizationalUnitWhereUniqueInput
+    update?: XOR<XOR<OrganizationalUnitUpdateToOneWithWhereWithoutChildrenInput, OrganizationalUnitUpdateWithoutChildrenInput>, OrganizationalUnitUncheckedUpdateWithoutChildrenInput>
+  }
+
+  export type OrganizationalUnitUpdateManyWithoutParentNestedInput = {
+    create?: XOR<OrganizationalUnitCreateWithoutParentInput, OrganizationalUnitUncheckedCreateWithoutParentInput> | OrganizationalUnitCreateWithoutParentInput[] | OrganizationalUnitUncheckedCreateWithoutParentInput[]
+    connectOrCreate?: OrganizationalUnitCreateOrConnectWithoutParentInput | OrganizationalUnitCreateOrConnectWithoutParentInput[]
+    upsert?: OrganizationalUnitUpsertWithWhereUniqueWithoutParentInput | OrganizationalUnitUpsertWithWhereUniqueWithoutParentInput[]
+    createMany?: OrganizationalUnitCreateManyParentInputEnvelope
+    set?: OrganizationalUnitWhereUniqueInput | OrganizationalUnitWhereUniqueInput[]
+    disconnect?: OrganizationalUnitWhereUniqueInput | OrganizationalUnitWhereUniqueInput[]
+    delete?: OrganizationalUnitWhereUniqueInput | OrganizationalUnitWhereUniqueInput[]
+    connect?: OrganizationalUnitWhereUniqueInput | OrganizationalUnitWhereUniqueInput[]
+    update?: OrganizationalUnitUpdateWithWhereUniqueWithoutParentInput | OrganizationalUnitUpdateWithWhereUniqueWithoutParentInput[]
+    updateMany?: OrganizationalUnitUpdateManyWithWhereWithoutParentInput | OrganizationalUnitUpdateManyWithWhereWithoutParentInput[]
+    deleteMany?: OrganizationalUnitScalarWhereInput | OrganizationalUnitScalarWhereInput[]
+  }
+
+  export type UserUpdateManyWithoutOuNestedInput = {
+    create?: XOR<UserCreateWithoutOuInput, UserUncheckedCreateWithoutOuInput> | UserCreateWithoutOuInput[] | UserUncheckedCreateWithoutOuInput[]
+    connectOrCreate?: UserCreateOrConnectWithoutOuInput | UserCreateOrConnectWithoutOuInput[]
+    upsert?: UserUpsertWithWhereUniqueWithoutOuInput | UserUpsertWithWhereUniqueWithoutOuInput[]
+    createMany?: UserCreateManyOuInputEnvelope
+    set?: UserWhereUniqueInput | UserWhereUniqueInput[]
+    disconnect?: UserWhereUniqueInput | UserWhereUniqueInput[]
+    delete?: UserWhereUniqueInput | UserWhereUniqueInput[]
+    connect?: UserWhereUniqueInput | UserWhereUniqueInput[]
+    update?: UserUpdateWithWhereUniqueWithoutOuInput | UserUpdateWithWhereUniqueWithoutOuInput[]
+    updateMany?: UserUpdateManyWithWhereWithoutOuInput | UserUpdateManyWithWhereWithoutOuInput[]
+    deleteMany?: UserScalarWhereInput | UserScalarWhereInput[]
+  }
+
+  export type OrganizationalUnitUncheckedUpdateManyWithoutParentNestedInput = {
+    create?: XOR<OrganizationalUnitCreateWithoutParentInput, OrganizationalUnitUncheckedCreateWithoutParentInput> | OrganizationalUnitCreateWithoutParentInput[] | OrganizationalUnitUncheckedCreateWithoutParentInput[]
+    connectOrCreate?: OrganizationalUnitCreateOrConnectWithoutParentInput | OrganizationalUnitCreateOrConnectWithoutParentInput[]
+    upsert?: OrganizationalUnitUpsertWithWhereUniqueWithoutParentInput | OrganizationalUnitUpsertWithWhereUniqueWithoutParentInput[]
+    createMany?: OrganizationalUnitCreateManyParentInputEnvelope
+    set?: OrganizationalUnitWhereUniqueInput | OrganizationalUnitWhereUniqueInput[]
+    disconnect?: OrganizationalUnitWhereUniqueInput | OrganizationalUnitWhereUniqueInput[]
+    delete?: OrganizationalUnitWhereUniqueInput | OrganizationalUnitWhereUniqueInput[]
+    connect?: OrganizationalUnitWhereUniqueInput | OrganizationalUnitWhereUniqueInput[]
+    update?: OrganizationalUnitUpdateWithWhereUniqueWithoutParentInput | OrganizationalUnitUpdateWithWhereUniqueWithoutParentInput[]
+    updateMany?: OrganizationalUnitUpdateManyWithWhereWithoutParentInput | OrganizationalUnitUpdateManyWithWhereWithoutParentInput[]
+    deleteMany?: OrganizationalUnitScalarWhereInput | OrganizationalUnitScalarWhereInput[]
+  }
+
+  export type UserUncheckedUpdateManyWithoutOuNestedInput = {
+    create?: XOR<UserCreateWithoutOuInput, UserUncheckedCreateWithoutOuInput> | UserCreateWithoutOuInput[] | UserUncheckedCreateWithoutOuInput[]
+    connectOrCreate?: UserCreateOrConnectWithoutOuInput | UserCreateOrConnectWithoutOuInput[]
+    upsert?: UserUpsertWithWhereUniqueWithoutOuInput | UserUpsertWithWhereUniqueWithoutOuInput[]
+    createMany?: UserCreateManyOuInputEnvelope
+    set?: UserWhereUniqueInput | UserWhereUniqueInput[]
+    disconnect?: UserWhereUniqueInput | UserWhereUniqueInput[]
+    delete?: UserWhereUniqueInput | UserWhereUniqueInput[]
+    connect?: UserWhereUniqueInput | UserWhereUniqueInput[]
+    update?: UserUpdateWithWhereUniqueWithoutOuInput | UserUpdateWithWhereUniqueWithoutOuInput[]
+    updateMany?: UserUpdateManyWithWhereWithoutOuInput | UserUpdateManyWithWhereWithoutOuInput[]
+    deleteMany?: UserScalarWhereInput | UserScalarWhereInput[]
   }
 
   export type NestedStringFilter<$PrismaModel = never> = {
@@ -9167,6 +14641,33 @@ export namespace Prisma {
     skipDuplicates?: boolean
   }
 
+  export type OrganizationalUnitCreateWithoutUsersInput = {
+    id?: string
+    name: string
+    description?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    domain: ChildDomainCreateNestedOneWithoutOusInput
+    parent?: OrganizationalUnitCreateNestedOneWithoutChildrenInput
+    children?: OrganizationalUnitCreateNestedManyWithoutParentInput
+  }
+
+  export type OrganizationalUnitUncheckedCreateWithoutUsersInput = {
+    id?: string
+    name: string
+    description?: string | null
+    domainId: string
+    parentId?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    children?: OrganizationalUnitUncheckedCreateNestedManyWithoutParentInput
+  }
+
+  export type OrganizationalUnitCreateOrConnectWithoutUsersInput = {
+    where: OrganizationalUnitWhereUniqueInput
+    create: XOR<OrganizationalUnitCreateWithoutUsersInput, OrganizationalUnitUncheckedCreateWithoutUsersInput>
+  }
+
   export type TwoFADeviceUpsertWithWhereUniqueWithoutUserInput = {
     where: TwoFADeviceWhereUniqueInput
     update: XOR<TwoFADeviceUpdateWithoutUserInput, TwoFADeviceUncheckedUpdateWithoutUserInput>
@@ -9259,6 +14760,39 @@ export namespace Prisma {
     updatedAt?: DateTimeFilter<"AccessToken"> | Date | string
   }
 
+  export type OrganizationalUnitUpsertWithoutUsersInput = {
+    update: XOR<OrganizationalUnitUpdateWithoutUsersInput, OrganizationalUnitUncheckedUpdateWithoutUsersInput>
+    create: XOR<OrganizationalUnitCreateWithoutUsersInput, OrganizationalUnitUncheckedCreateWithoutUsersInput>
+    where?: OrganizationalUnitWhereInput
+  }
+
+  export type OrganizationalUnitUpdateToOneWithWhereWithoutUsersInput = {
+    where?: OrganizationalUnitWhereInput
+    data: XOR<OrganizationalUnitUpdateWithoutUsersInput, OrganizationalUnitUncheckedUpdateWithoutUsersInput>
+  }
+
+  export type OrganizationalUnitUpdateWithoutUsersInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    domain?: ChildDomainUpdateOneRequiredWithoutOusNestedInput
+    parent?: OrganizationalUnitUpdateOneWithoutChildrenNestedInput
+    children?: OrganizationalUnitUpdateManyWithoutParentNestedInput
+  }
+
+  export type OrganizationalUnitUncheckedUpdateWithoutUsersInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    domainId?: StringFieldUpdateOperationsInput | string
+    parentId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    children?: OrganizationalUnitUncheckedUpdateManyWithoutParentNestedInput
+  }
+
   export type UserCreateWithoutTwoFADevicesInput = {
     id?: string
     name: string
@@ -9281,6 +14815,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     backupCodes?: BackupCodeCreateNestedManyWithoutUserInput
     accessTokens?: AccessTokenCreateNestedManyWithoutUserInput
+    ou?: OrganizationalUnitCreateNestedOneWithoutUsersInput
   }
 
   export type UserUncheckedCreateWithoutTwoFADevicesInput = {
@@ -9300,6 +14835,7 @@ export namespace Prisma {
     otpExpiry?: Date | string | null
     twoFactorEnabled?: boolean
     activeSessionId?: string | null
+    ouId?: string | null
     createdAt?: Date | string
     deletedAt?: Date | string | null
     updatedAt?: Date | string
@@ -9345,6 +14881,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     backupCodes?: BackupCodeUpdateManyWithoutUserNestedInput
     accessTokens?: AccessTokenUpdateManyWithoutUserNestedInput
+    ou?: OrganizationalUnitUpdateOneWithoutUsersNestedInput
   }
 
   export type UserUncheckedUpdateWithoutTwoFADevicesInput = {
@@ -9364,6 +14901,7 @@ export namespace Prisma {
     otpExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
     activeSessionId?: NullableStringFieldUpdateOperationsInput | string | null
+    ouId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -9393,6 +14931,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     twoFADevices?: TwoFADeviceCreateNestedManyWithoutUserInput
     accessTokens?: AccessTokenCreateNestedManyWithoutUserInput
+    ou?: OrganizationalUnitCreateNestedOneWithoutUsersInput
   }
 
   export type UserUncheckedCreateWithoutBackupCodesInput = {
@@ -9412,6 +14951,7 @@ export namespace Prisma {
     otpExpiry?: Date | string | null
     twoFactorEnabled?: boolean
     activeSessionId?: string | null
+    ouId?: string | null
     createdAt?: Date | string
     deletedAt?: Date | string | null
     updatedAt?: Date | string
@@ -9457,6 +14997,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     twoFADevices?: TwoFADeviceUpdateManyWithoutUserNestedInput
     accessTokens?: AccessTokenUpdateManyWithoutUserNestedInput
+    ou?: OrganizationalUnitUpdateOneWithoutUsersNestedInput
   }
 
   export type UserUncheckedUpdateWithoutBackupCodesInput = {
@@ -9476,6 +15017,7 @@ export namespace Prisma {
     otpExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
     activeSessionId?: NullableStringFieldUpdateOperationsInput | string | null
+    ouId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -9505,6 +15047,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     twoFADevices?: TwoFADeviceCreateNestedManyWithoutUserInput
     backupCodes?: BackupCodeCreateNestedManyWithoutUserInput
+    ou?: OrganizationalUnitCreateNestedOneWithoutUsersInput
   }
 
   export type UserUncheckedCreateWithoutAccessTokensInput = {
@@ -9524,6 +15067,7 @@ export namespace Prisma {
     otpExpiry?: Date | string | null
     twoFactorEnabled?: boolean
     activeSessionId?: string | null
+    ouId?: string | null
     createdAt?: Date | string
     deletedAt?: Date | string | null
     updatedAt?: Date | string
@@ -9569,6 +15113,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     twoFADevices?: TwoFADeviceUpdateManyWithoutUserNestedInput
     backupCodes?: BackupCodeUpdateManyWithoutUserNestedInput
+    ou?: OrganizationalUnitUpdateOneWithoutUsersNestedInput
   }
 
   export type UserUncheckedUpdateWithoutAccessTokensInput = {
@@ -9588,11 +15133,547 @@ export namespace Prisma {
     otpExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
     activeSessionId?: NullableStringFieldUpdateOperationsInput | string | null
+    ouId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     twoFADevices?: TwoFADeviceUncheckedUpdateManyWithoutUserNestedInput
     backupCodes?: BackupCodeUncheckedUpdateManyWithoutUserNestedInput
+  }
+
+  export type TreeCreateWithoutForestInput = {
+    id?: string
+    name: string
+    description?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    domains?: ChildDomainCreateNestedManyWithoutTreeInput
+  }
+
+  export type TreeUncheckedCreateWithoutForestInput = {
+    id?: string
+    name: string
+    description?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    domains?: ChildDomainUncheckedCreateNestedManyWithoutTreeInput
+  }
+
+  export type TreeCreateOrConnectWithoutForestInput = {
+    where: TreeWhereUniqueInput
+    create: XOR<TreeCreateWithoutForestInput, TreeUncheckedCreateWithoutForestInput>
+  }
+
+  export type TreeCreateManyForestInputEnvelope = {
+    data: TreeCreateManyForestInput | TreeCreateManyForestInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type TreeUpsertWithWhereUniqueWithoutForestInput = {
+    where: TreeWhereUniqueInput
+    update: XOR<TreeUpdateWithoutForestInput, TreeUncheckedUpdateWithoutForestInput>
+    create: XOR<TreeCreateWithoutForestInput, TreeUncheckedCreateWithoutForestInput>
+  }
+
+  export type TreeUpdateWithWhereUniqueWithoutForestInput = {
+    where: TreeWhereUniqueInput
+    data: XOR<TreeUpdateWithoutForestInput, TreeUncheckedUpdateWithoutForestInput>
+  }
+
+  export type TreeUpdateManyWithWhereWithoutForestInput = {
+    where: TreeScalarWhereInput
+    data: XOR<TreeUpdateManyMutationInput, TreeUncheckedUpdateManyWithoutForestInput>
+  }
+
+  export type TreeScalarWhereInput = {
+    AND?: TreeScalarWhereInput | TreeScalarWhereInput[]
+    OR?: TreeScalarWhereInput[]
+    NOT?: TreeScalarWhereInput | TreeScalarWhereInput[]
+    id?: StringFilter<"Tree"> | string
+    name?: StringFilter<"Tree"> | string
+    description?: StringNullableFilter<"Tree"> | string | null
+    forestId?: StringFilter<"Tree"> | string
+    createdAt?: DateTimeFilter<"Tree"> | Date | string
+    updatedAt?: DateTimeFilter<"Tree"> | Date | string
+  }
+
+  export type ForestCreateWithoutTreesInput = {
+    id?: string
+    name: string
+    description?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type ForestUncheckedCreateWithoutTreesInput = {
+    id?: string
+    name: string
+    description?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type ForestCreateOrConnectWithoutTreesInput = {
+    where: ForestWhereUniqueInput
+    create: XOR<ForestCreateWithoutTreesInput, ForestUncheckedCreateWithoutTreesInput>
+  }
+
+  export type ChildDomainCreateWithoutTreeInput = {
+    id?: string
+    name: string
+    description?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    ous?: OrganizationalUnitCreateNestedManyWithoutDomainInput
+  }
+
+  export type ChildDomainUncheckedCreateWithoutTreeInput = {
+    id?: string
+    name: string
+    description?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    ous?: OrganizationalUnitUncheckedCreateNestedManyWithoutDomainInput
+  }
+
+  export type ChildDomainCreateOrConnectWithoutTreeInput = {
+    where: ChildDomainWhereUniqueInput
+    create: XOR<ChildDomainCreateWithoutTreeInput, ChildDomainUncheckedCreateWithoutTreeInput>
+  }
+
+  export type ChildDomainCreateManyTreeInputEnvelope = {
+    data: ChildDomainCreateManyTreeInput | ChildDomainCreateManyTreeInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type ForestUpsertWithoutTreesInput = {
+    update: XOR<ForestUpdateWithoutTreesInput, ForestUncheckedUpdateWithoutTreesInput>
+    create: XOR<ForestCreateWithoutTreesInput, ForestUncheckedCreateWithoutTreesInput>
+    where?: ForestWhereInput
+  }
+
+  export type ForestUpdateToOneWithWhereWithoutTreesInput = {
+    where?: ForestWhereInput
+    data: XOR<ForestUpdateWithoutTreesInput, ForestUncheckedUpdateWithoutTreesInput>
+  }
+
+  export type ForestUpdateWithoutTreesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ForestUncheckedUpdateWithoutTreesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ChildDomainUpsertWithWhereUniqueWithoutTreeInput = {
+    where: ChildDomainWhereUniqueInput
+    update: XOR<ChildDomainUpdateWithoutTreeInput, ChildDomainUncheckedUpdateWithoutTreeInput>
+    create: XOR<ChildDomainCreateWithoutTreeInput, ChildDomainUncheckedCreateWithoutTreeInput>
+  }
+
+  export type ChildDomainUpdateWithWhereUniqueWithoutTreeInput = {
+    where: ChildDomainWhereUniqueInput
+    data: XOR<ChildDomainUpdateWithoutTreeInput, ChildDomainUncheckedUpdateWithoutTreeInput>
+  }
+
+  export type ChildDomainUpdateManyWithWhereWithoutTreeInput = {
+    where: ChildDomainScalarWhereInput
+    data: XOR<ChildDomainUpdateManyMutationInput, ChildDomainUncheckedUpdateManyWithoutTreeInput>
+  }
+
+  export type ChildDomainScalarWhereInput = {
+    AND?: ChildDomainScalarWhereInput | ChildDomainScalarWhereInput[]
+    OR?: ChildDomainScalarWhereInput[]
+    NOT?: ChildDomainScalarWhereInput | ChildDomainScalarWhereInput[]
+    id?: StringFilter<"ChildDomain"> | string
+    name?: StringFilter<"ChildDomain"> | string
+    description?: StringNullableFilter<"ChildDomain"> | string | null
+    treeId?: StringFilter<"ChildDomain"> | string
+    createdAt?: DateTimeFilter<"ChildDomain"> | Date | string
+    updatedAt?: DateTimeFilter<"ChildDomain"> | Date | string
+  }
+
+  export type TreeCreateWithoutDomainsInput = {
+    id?: string
+    name: string
+    description?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    forest: ForestCreateNestedOneWithoutTreesInput
+  }
+
+  export type TreeUncheckedCreateWithoutDomainsInput = {
+    id?: string
+    name: string
+    description?: string | null
+    forestId: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type TreeCreateOrConnectWithoutDomainsInput = {
+    where: TreeWhereUniqueInput
+    create: XOR<TreeCreateWithoutDomainsInput, TreeUncheckedCreateWithoutDomainsInput>
+  }
+
+  export type OrganizationalUnitCreateWithoutDomainInput = {
+    id?: string
+    name: string
+    description?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    parent?: OrganizationalUnitCreateNestedOneWithoutChildrenInput
+    children?: OrganizationalUnitCreateNestedManyWithoutParentInput
+    users?: UserCreateNestedManyWithoutOuInput
+  }
+
+  export type OrganizationalUnitUncheckedCreateWithoutDomainInput = {
+    id?: string
+    name: string
+    description?: string | null
+    parentId?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    children?: OrganizationalUnitUncheckedCreateNestedManyWithoutParentInput
+    users?: UserUncheckedCreateNestedManyWithoutOuInput
+  }
+
+  export type OrganizationalUnitCreateOrConnectWithoutDomainInput = {
+    where: OrganizationalUnitWhereUniqueInput
+    create: XOR<OrganizationalUnitCreateWithoutDomainInput, OrganizationalUnitUncheckedCreateWithoutDomainInput>
+  }
+
+  export type OrganizationalUnitCreateManyDomainInputEnvelope = {
+    data: OrganizationalUnitCreateManyDomainInput | OrganizationalUnitCreateManyDomainInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type TreeUpsertWithoutDomainsInput = {
+    update: XOR<TreeUpdateWithoutDomainsInput, TreeUncheckedUpdateWithoutDomainsInput>
+    create: XOR<TreeCreateWithoutDomainsInput, TreeUncheckedCreateWithoutDomainsInput>
+    where?: TreeWhereInput
+  }
+
+  export type TreeUpdateToOneWithWhereWithoutDomainsInput = {
+    where?: TreeWhereInput
+    data: XOR<TreeUpdateWithoutDomainsInput, TreeUncheckedUpdateWithoutDomainsInput>
+  }
+
+  export type TreeUpdateWithoutDomainsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    forest?: ForestUpdateOneRequiredWithoutTreesNestedInput
+  }
+
+  export type TreeUncheckedUpdateWithoutDomainsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    forestId?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type OrganizationalUnitUpsertWithWhereUniqueWithoutDomainInput = {
+    where: OrganizationalUnitWhereUniqueInput
+    update: XOR<OrganizationalUnitUpdateWithoutDomainInput, OrganizationalUnitUncheckedUpdateWithoutDomainInput>
+    create: XOR<OrganizationalUnitCreateWithoutDomainInput, OrganizationalUnitUncheckedCreateWithoutDomainInput>
+  }
+
+  export type OrganizationalUnitUpdateWithWhereUniqueWithoutDomainInput = {
+    where: OrganizationalUnitWhereUniqueInput
+    data: XOR<OrganizationalUnitUpdateWithoutDomainInput, OrganizationalUnitUncheckedUpdateWithoutDomainInput>
+  }
+
+  export type OrganizationalUnitUpdateManyWithWhereWithoutDomainInput = {
+    where: OrganizationalUnitScalarWhereInput
+    data: XOR<OrganizationalUnitUpdateManyMutationInput, OrganizationalUnitUncheckedUpdateManyWithoutDomainInput>
+  }
+
+  export type OrganizationalUnitScalarWhereInput = {
+    AND?: OrganizationalUnitScalarWhereInput | OrganizationalUnitScalarWhereInput[]
+    OR?: OrganizationalUnitScalarWhereInput[]
+    NOT?: OrganizationalUnitScalarWhereInput | OrganizationalUnitScalarWhereInput[]
+    id?: StringFilter<"OrganizationalUnit"> | string
+    name?: StringFilter<"OrganizationalUnit"> | string
+    description?: StringNullableFilter<"OrganizationalUnit"> | string | null
+    domainId?: StringFilter<"OrganizationalUnit"> | string
+    parentId?: StringNullableFilter<"OrganizationalUnit"> | string | null
+    createdAt?: DateTimeFilter<"OrganizationalUnit"> | Date | string
+    updatedAt?: DateTimeFilter<"OrganizationalUnit"> | Date | string
+  }
+
+  export type ChildDomainCreateWithoutOusInput = {
+    id?: string
+    name: string
+    description?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    tree: TreeCreateNestedOneWithoutDomainsInput
+  }
+
+  export type ChildDomainUncheckedCreateWithoutOusInput = {
+    id?: string
+    name: string
+    description?: string | null
+    treeId: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type ChildDomainCreateOrConnectWithoutOusInput = {
+    where: ChildDomainWhereUniqueInput
+    create: XOR<ChildDomainCreateWithoutOusInput, ChildDomainUncheckedCreateWithoutOusInput>
+  }
+
+  export type OrganizationalUnitCreateWithoutChildrenInput = {
+    id?: string
+    name: string
+    description?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    domain: ChildDomainCreateNestedOneWithoutOusInput
+    parent?: OrganizationalUnitCreateNestedOneWithoutChildrenInput
+    users?: UserCreateNestedManyWithoutOuInput
+  }
+
+  export type OrganizationalUnitUncheckedCreateWithoutChildrenInput = {
+    id?: string
+    name: string
+    description?: string | null
+    domainId: string
+    parentId?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    users?: UserUncheckedCreateNestedManyWithoutOuInput
+  }
+
+  export type OrganizationalUnitCreateOrConnectWithoutChildrenInput = {
+    where: OrganizationalUnitWhereUniqueInput
+    create: XOR<OrganizationalUnitCreateWithoutChildrenInput, OrganizationalUnitUncheckedCreateWithoutChildrenInput>
+  }
+
+  export type OrganizationalUnitCreateWithoutParentInput = {
+    id?: string
+    name: string
+    description?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    domain: ChildDomainCreateNestedOneWithoutOusInput
+    children?: OrganizationalUnitCreateNestedManyWithoutParentInput
+    users?: UserCreateNestedManyWithoutOuInput
+  }
+
+  export type OrganizationalUnitUncheckedCreateWithoutParentInput = {
+    id?: string
+    name: string
+    description?: string | null
+    domainId: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    children?: OrganizationalUnitUncheckedCreateNestedManyWithoutParentInput
+    users?: UserUncheckedCreateNestedManyWithoutOuInput
+  }
+
+  export type OrganizationalUnitCreateOrConnectWithoutParentInput = {
+    where: OrganizationalUnitWhereUniqueInput
+    create: XOR<OrganizationalUnitCreateWithoutParentInput, OrganizationalUnitUncheckedCreateWithoutParentInput>
+  }
+
+  export type OrganizationalUnitCreateManyParentInputEnvelope = {
+    data: OrganizationalUnitCreateManyParentInput | OrganizationalUnitCreateManyParentInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type UserCreateWithoutOuInput = {
+    id?: string
+    name: string
+    email: string
+    password?: string | null
+    role: string
+    status: string
+    department?: string | null
+    isVerified?: boolean
+    passwordLastChangedAt?: Date | string | null
+    permissions?: UserCreatepermissionsInput | string[]
+    assignedSubsystems?: UserCreateassignedSubsystemsInput | string[]
+    avatarUrl?: string | null
+    verificationOtp?: string | null
+    otpExpiry?: Date | string | null
+    twoFactorEnabled?: boolean
+    activeSessionId?: string | null
+    createdAt?: Date | string
+    deletedAt?: Date | string | null
+    updatedAt?: Date | string
+    twoFADevices?: TwoFADeviceCreateNestedManyWithoutUserInput
+    backupCodes?: BackupCodeCreateNestedManyWithoutUserInput
+    accessTokens?: AccessTokenCreateNestedManyWithoutUserInput
+  }
+
+  export type UserUncheckedCreateWithoutOuInput = {
+    id?: string
+    name: string
+    email: string
+    password?: string | null
+    role: string
+    status: string
+    department?: string | null
+    isVerified?: boolean
+    passwordLastChangedAt?: Date | string | null
+    permissions?: UserCreatepermissionsInput | string[]
+    assignedSubsystems?: UserCreateassignedSubsystemsInput | string[]
+    avatarUrl?: string | null
+    verificationOtp?: string | null
+    otpExpiry?: Date | string | null
+    twoFactorEnabled?: boolean
+    activeSessionId?: string | null
+    createdAt?: Date | string
+    deletedAt?: Date | string | null
+    updatedAt?: Date | string
+    twoFADevices?: TwoFADeviceUncheckedCreateNestedManyWithoutUserInput
+    backupCodes?: BackupCodeUncheckedCreateNestedManyWithoutUserInput
+    accessTokens?: AccessTokenUncheckedCreateNestedManyWithoutUserInput
+  }
+
+  export type UserCreateOrConnectWithoutOuInput = {
+    where: UserWhereUniqueInput
+    create: XOR<UserCreateWithoutOuInput, UserUncheckedCreateWithoutOuInput>
+  }
+
+  export type UserCreateManyOuInputEnvelope = {
+    data: UserCreateManyOuInput | UserCreateManyOuInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type ChildDomainUpsertWithoutOusInput = {
+    update: XOR<ChildDomainUpdateWithoutOusInput, ChildDomainUncheckedUpdateWithoutOusInput>
+    create: XOR<ChildDomainCreateWithoutOusInput, ChildDomainUncheckedCreateWithoutOusInput>
+    where?: ChildDomainWhereInput
+  }
+
+  export type ChildDomainUpdateToOneWithWhereWithoutOusInput = {
+    where?: ChildDomainWhereInput
+    data: XOR<ChildDomainUpdateWithoutOusInput, ChildDomainUncheckedUpdateWithoutOusInput>
+  }
+
+  export type ChildDomainUpdateWithoutOusInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    tree?: TreeUpdateOneRequiredWithoutDomainsNestedInput
+  }
+
+  export type ChildDomainUncheckedUpdateWithoutOusInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    treeId?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type OrganizationalUnitUpsertWithoutChildrenInput = {
+    update: XOR<OrganizationalUnitUpdateWithoutChildrenInput, OrganizationalUnitUncheckedUpdateWithoutChildrenInput>
+    create: XOR<OrganizationalUnitCreateWithoutChildrenInput, OrganizationalUnitUncheckedCreateWithoutChildrenInput>
+    where?: OrganizationalUnitWhereInput
+  }
+
+  export type OrganizationalUnitUpdateToOneWithWhereWithoutChildrenInput = {
+    where?: OrganizationalUnitWhereInput
+    data: XOR<OrganizationalUnitUpdateWithoutChildrenInput, OrganizationalUnitUncheckedUpdateWithoutChildrenInput>
+  }
+
+  export type OrganizationalUnitUpdateWithoutChildrenInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    domain?: ChildDomainUpdateOneRequiredWithoutOusNestedInput
+    parent?: OrganizationalUnitUpdateOneWithoutChildrenNestedInput
+    users?: UserUpdateManyWithoutOuNestedInput
+  }
+
+  export type OrganizationalUnitUncheckedUpdateWithoutChildrenInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    domainId?: StringFieldUpdateOperationsInput | string
+    parentId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    users?: UserUncheckedUpdateManyWithoutOuNestedInput
+  }
+
+  export type OrganizationalUnitUpsertWithWhereUniqueWithoutParentInput = {
+    where: OrganizationalUnitWhereUniqueInput
+    update: XOR<OrganizationalUnitUpdateWithoutParentInput, OrganizationalUnitUncheckedUpdateWithoutParentInput>
+    create: XOR<OrganizationalUnitCreateWithoutParentInput, OrganizationalUnitUncheckedCreateWithoutParentInput>
+  }
+
+  export type OrganizationalUnitUpdateWithWhereUniqueWithoutParentInput = {
+    where: OrganizationalUnitWhereUniqueInput
+    data: XOR<OrganizationalUnitUpdateWithoutParentInput, OrganizationalUnitUncheckedUpdateWithoutParentInput>
+  }
+
+  export type OrganizationalUnitUpdateManyWithWhereWithoutParentInput = {
+    where: OrganizationalUnitScalarWhereInput
+    data: XOR<OrganizationalUnitUpdateManyMutationInput, OrganizationalUnitUncheckedUpdateManyWithoutParentInput>
+  }
+
+  export type UserUpsertWithWhereUniqueWithoutOuInput = {
+    where: UserWhereUniqueInput
+    update: XOR<UserUpdateWithoutOuInput, UserUncheckedUpdateWithoutOuInput>
+    create: XOR<UserCreateWithoutOuInput, UserUncheckedCreateWithoutOuInput>
+  }
+
+  export type UserUpdateWithWhereUniqueWithoutOuInput = {
+    where: UserWhereUniqueInput
+    data: XOR<UserUpdateWithoutOuInput, UserUncheckedUpdateWithoutOuInput>
+  }
+
+  export type UserUpdateManyWithWhereWithoutOuInput = {
+    where: UserScalarWhereInput
+    data: XOR<UserUpdateManyMutationInput, UserUncheckedUpdateManyWithoutOuInput>
+  }
+
+  export type UserScalarWhereInput = {
+    AND?: UserScalarWhereInput | UserScalarWhereInput[]
+    OR?: UserScalarWhereInput[]
+    NOT?: UserScalarWhereInput | UserScalarWhereInput[]
+    id?: StringFilter<"User"> | string
+    name?: StringFilter<"User"> | string
+    email?: StringFilter<"User"> | string
+    password?: StringNullableFilter<"User"> | string | null
+    role?: StringFilter<"User"> | string
+    status?: StringFilter<"User"> | string
+    department?: StringNullableFilter<"User"> | string | null
+    isVerified?: BoolFilter<"User"> | boolean
+    passwordLastChangedAt?: DateTimeNullableFilter<"User"> | Date | string | null
+    permissions?: StringNullableListFilter<"User">
+    assignedSubsystems?: StringNullableListFilter<"User">
+    avatarUrl?: StringNullableFilter<"User"> | string | null
+    verificationOtp?: StringNullableFilter<"User"> | string | null
+    otpExpiry?: DateTimeNullableFilter<"User"> | Date | string | null
+    twoFactorEnabled?: BoolFilter<"User"> | boolean
+    activeSessionId?: StringNullableFilter<"User"> | string | null
+    ouId?: StringNullableFilter<"User"> | string | null
+    createdAt?: DateTimeFilter<"User"> | Date | string
+    deletedAt?: DateTimeNullableFilter<"User"> | Date | string | null
+    updatedAt?: DateTimeFilter<"User"> | Date | string
   }
 
   export type TwoFADeviceCreateManyUserInput = {
@@ -9723,6 +15804,248 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
+  export type TreeCreateManyForestInput = {
+    id?: string
+    name: string
+    description?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type TreeUpdateWithoutForestInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    domains?: ChildDomainUpdateManyWithoutTreeNestedInput
+  }
+
+  export type TreeUncheckedUpdateWithoutForestInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    domains?: ChildDomainUncheckedUpdateManyWithoutTreeNestedInput
+  }
+
+  export type TreeUncheckedUpdateManyWithoutForestInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ChildDomainCreateManyTreeInput = {
+    id?: string
+    name: string
+    description?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type ChildDomainUpdateWithoutTreeInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    ous?: OrganizationalUnitUpdateManyWithoutDomainNestedInput
+  }
+
+  export type ChildDomainUncheckedUpdateWithoutTreeInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    ous?: OrganizationalUnitUncheckedUpdateManyWithoutDomainNestedInput
+  }
+
+  export type ChildDomainUncheckedUpdateManyWithoutTreeInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type OrganizationalUnitCreateManyDomainInput = {
+    id?: string
+    name: string
+    description?: string | null
+    parentId?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type OrganizationalUnitUpdateWithoutDomainInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    parent?: OrganizationalUnitUpdateOneWithoutChildrenNestedInput
+    children?: OrganizationalUnitUpdateManyWithoutParentNestedInput
+    users?: UserUpdateManyWithoutOuNestedInput
+  }
+
+  export type OrganizationalUnitUncheckedUpdateWithoutDomainInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    parentId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    children?: OrganizationalUnitUncheckedUpdateManyWithoutParentNestedInput
+    users?: UserUncheckedUpdateManyWithoutOuNestedInput
+  }
+
+  export type OrganizationalUnitUncheckedUpdateManyWithoutDomainInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    parentId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type OrganizationalUnitCreateManyParentInput = {
+    id?: string
+    name: string
+    description?: string | null
+    domainId: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type UserCreateManyOuInput = {
+    id?: string
+    name: string
+    email: string
+    password?: string | null
+    role: string
+    status: string
+    department?: string | null
+    isVerified?: boolean
+    passwordLastChangedAt?: Date | string | null
+    permissions?: UserCreatepermissionsInput | string[]
+    assignedSubsystems?: UserCreateassignedSubsystemsInput | string[]
+    avatarUrl?: string | null
+    verificationOtp?: string | null
+    otpExpiry?: Date | string | null
+    twoFactorEnabled?: boolean
+    activeSessionId?: string | null
+    createdAt?: Date | string
+    deletedAt?: Date | string | null
+    updatedAt?: Date | string
+  }
+
+  export type OrganizationalUnitUpdateWithoutParentInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    domain?: ChildDomainUpdateOneRequiredWithoutOusNestedInput
+    children?: OrganizationalUnitUpdateManyWithoutParentNestedInput
+    users?: UserUpdateManyWithoutOuNestedInput
+  }
+
+  export type OrganizationalUnitUncheckedUpdateWithoutParentInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    domainId?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    children?: OrganizationalUnitUncheckedUpdateManyWithoutParentNestedInput
+    users?: UserUncheckedUpdateManyWithoutOuNestedInput
+  }
+
+  export type OrganizationalUnitUncheckedUpdateManyWithoutParentInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    domainId?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type UserUpdateWithoutOuInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    password?: NullableStringFieldUpdateOperationsInput | string | null
+    role?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    department?: NullableStringFieldUpdateOperationsInput | string | null
+    isVerified?: BoolFieldUpdateOperationsInput | boolean
+    passwordLastChangedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    permissions?: UserUpdatepermissionsInput | string[]
+    assignedSubsystems?: UserUpdateassignedSubsystemsInput | string[]
+    avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    verificationOtp?: NullableStringFieldUpdateOperationsInput | string | null
+    otpExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
+    activeSessionId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    twoFADevices?: TwoFADeviceUpdateManyWithoutUserNestedInput
+    backupCodes?: BackupCodeUpdateManyWithoutUserNestedInput
+    accessTokens?: AccessTokenUpdateManyWithoutUserNestedInput
+  }
+
+  export type UserUncheckedUpdateWithoutOuInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    password?: NullableStringFieldUpdateOperationsInput | string | null
+    role?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    department?: NullableStringFieldUpdateOperationsInput | string | null
+    isVerified?: BoolFieldUpdateOperationsInput | boolean
+    passwordLastChangedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    permissions?: UserUpdatepermissionsInput | string[]
+    assignedSubsystems?: UserUpdateassignedSubsystemsInput | string[]
+    avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    verificationOtp?: NullableStringFieldUpdateOperationsInput | string | null
+    otpExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
+    activeSessionId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    twoFADevices?: TwoFADeviceUncheckedUpdateManyWithoutUserNestedInput
+    backupCodes?: BackupCodeUncheckedUpdateManyWithoutUserNestedInput
+    accessTokens?: AccessTokenUncheckedUpdateManyWithoutUserNestedInput
+  }
+
+  export type UserUncheckedUpdateManyWithoutOuInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    password?: NullableStringFieldUpdateOperationsInput | string | null
+    role?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    department?: NullableStringFieldUpdateOperationsInput | string | null
+    isVerified?: BoolFieldUpdateOperationsInput | boolean
+    passwordLastChangedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    permissions?: UserUpdatepermissionsInput | string[]
+    assignedSubsystems?: UserUpdateassignedSubsystemsInput | string[]
+    avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    verificationOtp?: NullableStringFieldUpdateOperationsInput | string | null
+    otpExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    twoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
+    activeSessionId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
 
 
   /**
@@ -9732,6 +16055,22 @@ export namespace Prisma {
      * @deprecated Use UserCountOutputTypeDefaultArgs instead
      */
     export type UserCountOutputTypeArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = UserCountOutputTypeDefaultArgs<ExtArgs>
+    /**
+     * @deprecated Use ForestCountOutputTypeDefaultArgs instead
+     */
+    export type ForestCountOutputTypeArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = ForestCountOutputTypeDefaultArgs<ExtArgs>
+    /**
+     * @deprecated Use TreeCountOutputTypeDefaultArgs instead
+     */
+    export type TreeCountOutputTypeArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = TreeCountOutputTypeDefaultArgs<ExtArgs>
+    /**
+     * @deprecated Use ChildDomainCountOutputTypeDefaultArgs instead
+     */
+    export type ChildDomainCountOutputTypeArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = ChildDomainCountOutputTypeDefaultArgs<ExtArgs>
+    /**
+     * @deprecated Use OrganizationalUnitCountOutputTypeDefaultArgs instead
+     */
+    export type OrganizationalUnitCountOutputTypeArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = OrganizationalUnitCountOutputTypeDefaultArgs<ExtArgs>
     /**
      * @deprecated Use UserDefaultArgs instead
      */
@@ -9756,6 +16095,22 @@ export namespace Prisma {
      * @deprecated Use AccessTokenDefaultArgs instead
      */
     export type AccessTokenArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = AccessTokenDefaultArgs<ExtArgs>
+    /**
+     * @deprecated Use ForestDefaultArgs instead
+     */
+    export type ForestArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = ForestDefaultArgs<ExtArgs>
+    /**
+     * @deprecated Use TreeDefaultArgs instead
+     */
+    export type TreeArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = TreeDefaultArgs<ExtArgs>
+    /**
+     * @deprecated Use ChildDomainDefaultArgs instead
+     */
+    export type ChildDomainArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = ChildDomainDefaultArgs<ExtArgs>
+    /**
+     * @deprecated Use OrganizationalUnitDefaultArgs instead
+     */
+    export type OrganizationalUnitArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = OrganizationalUnitDefaultArgs<ExtArgs>
 
   /**
    * Batch Payload for updateMany & deleteMany & createMany
