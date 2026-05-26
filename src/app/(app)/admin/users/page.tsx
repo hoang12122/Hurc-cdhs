@@ -227,6 +227,7 @@ export default function UserManagementPage() {
   const [approveRequestId, setApproveRequestId] = React.useState<string | null>(null);
   const [approvePassword, setApprovePassword] = React.useState("");
   const [showApprovePassword, setShowApprovePassword] = React.useState(false);
+  const [selectedOuId, setSelectedOuId] = React.useState<string>("all");
   
   const formSchema = editingUser ? editUserSchema : createUserSchema;
   type UserFormValues = z.infer<typeof formSchema>;
@@ -360,13 +361,31 @@ export default function UserManagementPage() {
     }
   }, [t, toast, fetchResetRequests]);
 
-  const filteredUsers = React.useMemo(() => 
-    usersData.filter(user => 
+  const filteredUsers = React.useMemo(() => {
+    let result = usersData;
+    
+    if (selectedOuId && selectedOuId !== "all") {
+      // Find all descendant OU IDs recursively
+      const allowedOuIds = [selectedOuId];
+      const traverse = (currentId: string) => {
+        const children = ouList.filter(ou => ou.parentId === currentId);
+        for (const child of children) {
+          allowedOuIds.push(child.id);
+          traverse(child.id);
+        }
+      };
+      traverse(selectedOuId);
+      
+      result = result.filter(user => user.ouId && allowedOuIds.includes(user.ouId));
+    }
+    
+    return result.filter(user => 
       user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
       user.role.toLowerCase().includes(searchTerm.toLowerCase()) ||
       (user.department && user.department.toLowerCase().includes(searchTerm.toLowerCase()))
-    ), [usersData, searchTerm]);
+    );
+  }, [usersData, searchTerm, selectedOuId, ouList]);
 
   React.useEffect(() => {
     fetchData();
@@ -713,16 +732,32 @@ export default function UserManagementPage() {
 
       <Card className="shadow-lg">
         <CardHeader>
-          <div className="flex flex-col md:flex-row items-center gap-4">
+          <div className="flex flex-col md:flex-row items-center gap-4 w-full">
             <div className="relative flex-1 md:grow-0">
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input
                 type="search"
                 placeholder={t.searchPlaceholder}
-                className="w-full rounded-lg bg-background pl-8 md:w-[200px] lg:w-[320px]"
+                className="w-full rounded-lg bg-background pl-8 md:w-[200px] lg:w-[280px]"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
+            </div>
+            
+            <div className="w-full md:w-[220px]">
+              <Select value={selectedOuId} onValueChange={setSelectedOuId}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder={locale === 'vi' ? "Tất cả đơn vị (OU)" : "All units (OU)"} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">{locale === 'vi' ? "Tất cả đơn vị (OU)" : "All units (OU)"}</SelectItem>
+                  {ouList.map(ou => (
+                    <SelectItem key={ou.id} value={ou.id}>
+                      {'\u00A0\u00A0'.repeat(ou.level * 2) + (ou.level > 0 ? '↳ ' : '') + ou.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <div className="ml-auto flex items-center gap-2">
               <Button variant="outline" onClick={handleOpenResetRequests}>
@@ -747,6 +782,7 @@ export default function UserManagementPage() {
                 <TableHead>{t.nameHeader}</TableHead>
                 <TableHead>{t.emailHeader}</TableHead>
                 <TableHead>{t.roleHeader}</TableHead>
+                <TableHead>{locale === 'vi' ? "Đơn vị tổ chức (OU)" : "Organizational Unit (OU)"}</TableHead>
                 <TableHead>{t.assignedSubsystemsHeader}</TableHead>
                 <TableHead>{t.statusHeader}</TableHead>
                 <TableHead className="text-right">{t.actionsHeader}</TableHead>
@@ -759,6 +795,22 @@ export default function UserManagementPage() {
                   <TableCell>{user.name}</TableCell>
                   <TableCell>{user.email}</TableCell>
                   <TableCell>{user.role}</TableCell>
+                  <TableCell>
+                    {(() => {
+                      const matchingOu = ouList.find(o => o.id === user.ouId);
+                      if (!matchingOu) return <span className="text-muted-foreground text-xs">N/A</span>;
+                      return (
+                        <div className="flex flex-col" title={matchingOu.pathName}>
+                          <span className="font-medium text-sm text-primary">{matchingOu.name}</span>
+                          {matchingOu.level > 0 && (
+                            <span className="text-muted-foreground text-[10px] truncate max-w-[160px]">
+                              {matchingOu.pathName}
+                            </span>
+                          )}
+                        </div>
+                      );
+                    })()}
+                  </TableCell>
                   <TableCell>
                     <div className="flex flex-wrap gap-1">
                       {user.assignedSubsystems && user.assignedSubsystems.length > 0
@@ -811,7 +863,7 @@ export default function UserManagementPage() {
               ))}
                {filteredUsers.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={7} className="h-24 text-center">
+                  <TableCell colSpan={8} className="h-24 text-center">
                     {t.noUsers}
                   </TableCell>
                 </TableRow>
