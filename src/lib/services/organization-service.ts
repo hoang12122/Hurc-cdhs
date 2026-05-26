@@ -114,13 +114,94 @@ export class OrganizationService {
     await dbProvider.delete('ChildDomain', id);
   }
 
-  // OrganizationalUnit Actions
   static async getOrganizationalUnits(domainId?: string): Promise<OrganizationalUnit[]> {
     const ous = await dbProvider.findMany<OrganizationalUnit>('OrganizationalUnit');
-    if (domainId) {
-      return ous.filter(o => o.domainId === domainId);
+    
+    // Fetch categories and map them to virtual OUs dynamically
+    try {
+      const [locations, responsibleUnits, subsystems] = await Promise.all([
+        dbProvider.findMany<any>('PatrolLocation'),
+        dbProvider.findMany<any>('ResponsibleUnit'),
+        dbProvider.findMany<any>('Subsystem')
+      ]);
+
+      const defaultDomain = domainId || (ous[0]?.domainId) || 'domain-default';
+
+      // 1. Virtual categories parent OUs
+      const categoryParents: OrganizationalUnit[] = [
+        {
+          id: 'ou-category-locations',
+          name: 'Danh mục Vị trí (Locations)',
+          description: 'Các đơn vị phân cấp theo địa lý và vị trí tuần tra',
+          domainId: defaultDomain,
+          parentId: ous[0]?.parentId || undefined
+        },
+        {
+          id: 'ou-category-responsible-units',
+          name: 'Danh mục Đơn vị chịu trách nhiệm (Responsible Units)',
+          description: 'Các đội/phòng chịu trách nhiệm nghiệp vụ',
+          domainId: defaultDomain,
+          parentId: ous[0]?.parentId || undefined
+        },
+        {
+          id: 'ou-category-subsystems',
+          name: 'Danh mục Hệ thống (Subsystems)',
+          description: 'Các hệ thống kỹ thuật metro chuyên ngành',
+          domainId: defaultDomain,
+          parentId: ous[0]?.parentId || undefined
+        }
+      ];
+
+      // 2. Map locations to OUs
+      const locationOus: OrganizationalUnit[] = locations.map(loc => ({
+        id: `ou-loc-${loc.id}`,
+        name: `Vị trí: ${loc.label}`,
+        description: `Vị trí tuần tra liên kết từ danh mục`,
+        domainId: defaultDomain,
+        parentId: 'ou-category-locations'
+      }));
+
+      // 3. Map responsible units to OUs
+      const unitOus: OrganizationalUnit[] = responsibleUnits.map(unit => ({
+        id: `ou-unit-${unit.id}`,
+        name: `Đơn vị: ${unit.name}`,
+        description: `Đơn vị chịu trách nhiệm liên kết từ danh mục`,
+        domainId: defaultDomain,
+        parentId: 'ou-category-responsible-units'
+      }));
+
+      // 4. Map subsystems to OUs
+      const subsystemOus: OrganizationalUnit[] = subsystems.map(sub => {
+        const labelVi = sub.label?.vi || sub.label_vi || sub.id;
+        return {
+          id: `ou-sub-${sub.id}`,
+          name: `Hệ thống: ${labelVi}`,
+          description: `Hệ thống kỹ thuật liên kết từ danh mục`,
+          domainId: defaultDomain,
+          parentId: 'ou-category-subsystems'
+        };
+      });
+
+      // Merge virtual OUs into standard OUs list
+      const mergedOus = [
+        ...ous,
+        ...categoryParents,
+        ...locationOus,
+        ...unitOus,
+        ...subsystemOus
+      ];
+
+      if (domainId) {
+        return mergedOus.filter(o => o.domainId === domainId);
+      }
+      return mergedOus;
+    } catch (e) {
+      console.warn('[ORGANIZATION-SERVICE] Failed to fetch category items for dynamic OUs, returning standard OUs only:', e);
+      if (domainId) {
+        return ous.filter(o => o.domainId === domainId);
+      }
+      return ous;
     }
-    return ous;
   }
 
   static async createOrganizationalUnit(data: Omit<OrganizationalUnit, 'id'>): Promise<OrganizationalUnit> {

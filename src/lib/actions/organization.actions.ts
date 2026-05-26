@@ -75,13 +75,18 @@ export async function upsertOrganizationalUnit(
     await requirePermission('organization:manage');
 
     // Cycle detection & Infinite Loop prevention
-    if (data.id && data.parentId) {
-      if (data.parentId === data.id) {
-        return { success: false, error: 'Đơn vị tổ chức cha không thể là chính nó.' };
+    if (data.id) {
+      if (data.id.startsWith('ou-category-') || data.id.startsWith('ou-loc-') || data.id.startsWith('ou-unit-') || data.id.startsWith('ou-sub-')) {
+        return { success: false, error: 'Không thể sửa đổi Đơn vị tổ chức ảo liên kết từ danh mục.' };
       }
-      const descendants = await OUScopeService.getOUDescendants(data.id);
-      if (descendants.includes(data.parentId)) {
-        return { success: false, error: 'Đơn vị tổ chức cha không thể là đơn vị con trực thuộc (tránh vòng lặp vô hạn).' };
+      if (data.parentId) {
+        if (data.parentId === data.id) {
+          return { success: false, error: 'Đơn vị tổ chức cha không thể là chính nó.' };
+        }
+        const descendants = await OUScopeService.getOUDescendants(data.id);
+        if (descendants.includes(data.parentId)) {
+          return { success: false, error: 'Đơn vị tổ chức cha không thể là đơn vị con trực thuộc (tránh vòng lặp vô hạn).' };
+        }
       }
     }
     
@@ -112,6 +117,9 @@ export async function upsertOrganizationalUnit(
 export async function deleteOrganizationalUnit(id: string) {
   try {
     await requirePermission('organization:manage');
+    if (id.startsWith('ou-category-') || id.startsWith('ou-loc-') || id.startsWith('ou-unit-') || id.startsWith('ou-sub-')) {
+      return { success: false, error: 'Không thể xóa Đơn vị tổ chức ảo liên kết từ danh mục.' };
+    }
     await OrganizationService.deleteOrganizationalUnit(id);
     
     revalidatePath('/admin/organization');
