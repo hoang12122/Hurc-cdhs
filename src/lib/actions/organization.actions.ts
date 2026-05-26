@@ -129,3 +129,105 @@ export async function seedOrganization() {
     return { success: false, error: error.message || 'Lỗi không xác định.' };
   }
 }
+
+/**
+ * Forest CRUD Actions
+ */
+export async function upsertForest(data: { id?: string; name: string; description?: string }) {
+  try {
+    if (data.id) {
+      const { id, ...updateData } = data;
+      await OrganizationService.updateForest(id, updateData);
+    } else {
+      await OrganizationService.createForest({
+        name: data.name,
+        description: data.description
+      });
+    }
+    revalidatePath('/admin/organization');
+    return { success: true };
+  } catch (error: any) {
+    console.error('[ORGANIZATION-ACTION] upsertForest failed:', error);
+    return { success: false, error: error.message || 'Lỗi không xác định.' };
+  }
+}
+
+export async function deleteForest(id: string) {
+  try {
+    await OrganizationService.deleteForest(id);
+    revalidatePath('/admin/organization');
+    return { success: true };
+  } catch (error: any) {
+    console.error('[ORGANIZATION-ACTION] deleteForest failed:', error);
+    return { success: false, error: error.message || 'Lỗi không xác định.' };
+  }
+}
+
+/**
+ * Tree CRUD Actions
+ */
+export async function upsertTree(data: { id?: string; name: string; description?: string; forestId: string }) {
+  try {
+    if (data.id) {
+      const { id, ...updateData } = data;
+      await OrganizationService.updateTree(id, updateData);
+    } else {
+      await OrganizationService.createTree({
+        name: data.name,
+        description: data.description,
+        forestId: data.forestId
+      });
+    }
+    revalidatePath('/admin/organization');
+    return { success: true };
+  } catch (error: any) {
+    console.error('[ORGANIZATION-ACTION] upsertTree failed:', error);
+    return { success: false, error: error.message || 'Lỗi không xác định.' };
+  }
+}
+
+export async function deleteTree(id: string) {
+  try {
+    await OrganizationService.deleteTree(id);
+    revalidatePath('/admin/organization');
+    return { success: true };
+  } catch (error: any) {
+    console.error('[ORGANIZATION-ACTION] deleteTree failed:', error);
+    return { success: false, error: error.message || 'Lỗi không xác định.' };
+  }
+}
+
+/**
+ * Child Domain CRUD Actions
+ */
+export async function upsertDomain(data: { id?: string; name: string; description?: string; treeId: string }) {
+  try {
+    if (data.id) {
+      const { id, ...updateData } = data;
+      await OrganizationService.updateChildDomain(id, updateData);
+    } else {
+      await OrganizationService.createChildDomain({
+        name: data.name,
+        description: data.description,
+        treeId: data.treeId
+      });
+    }
+    revalidatePath('/admin/organization');
+    return { success: true };
+  } catch (error: any) {
+    console.error('[ORGANIZATION-ACTION] upsertDomain failed:', error);
+    return { success: false, error: error.message || 'Lỗi không xác định.' };
+  }
+}
+
+export async function deleteDomain(id: string) {
+  try {
+    await OrganizationService.deleteChildDomain(id);
+    revalidatePath('/admin/organization');
+    return { success: true };
+  } catch (error: any) {
+    console.error('[ORGANIZATION-ACTION] deleteDomain failed:', error);
+    return { success: false, error: error.message || 'Lỗi không xác định.' };
+  }
+}
+
