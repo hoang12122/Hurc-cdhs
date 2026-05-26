@@ -111,6 +111,7 @@ export async function getSessionUser(): Promise<User | null> {
             passwordLastChangedAt: typeof dbUser.passwordLastChangedAt === 'string' ? dbUser.passwordLastChangedAt : (dbUser.passwordLastChangedAt as any)?.toISOString?.() || new Date().toISOString(),
             permissions: dbUser.permissions || permissions,
             activeSessionId: dbUser.activeSessionId,
+            ouId: dbUser.ouId || null,
         };
     } catch (e: any) {
         console.error("[AUTH-SERVICE] getSessionUser error:", e.stack || e.message || e);

@@ -14,9 +14,10 @@ Tài liệu này được thiết kế theo cách tiếp cận **"cấp độ ph
 2. **THUẬT TOÁN VÀ CÔNG THỨC TOÁN HỌC CỐT LÕI (Calculation Engines)**
 3. **CƠ CHẾ HOẠT ĐỘNG CỦA TRỢ LÝ AI LOCAL & YOLO VISION (AI Execution Flow)**
 4. **BẢN ĐỒ CÁC GIAO THỨC VÀ LUỒNG ĐI CỦA GÓI TIN (Network & Write Flows)**
-5. **CƠ CHẾ PHÒNG VỆ FILE KHÓA VÀ SAO LƯU XOAY VÒNG (Lock Recovery & Backups)**
-6. **HƯỚNG DẪN CÀI ĐẶT & THAM CHIẾU CẤU HÌNH CHI TIẾT (Deployment Reference)**
-7. **ẨN DỤ ĐỜI THƯỜNG DÀNH CHO NGƯỜI MỚI (Analogy Quick Start)**
+5. **LƯU TRỮ LAI, PHÒNG VỆ KHÓA TỆP VÀ SAO LƯU PHỤC HỒI (Hybrid Storage, Lock Recovery & Disaster Recovery)**
+6. **THIẾT LẬP PHÂN QUYỀN VÀ QUẢN LÝ ĐỘI NHÓM THEO PHÂN CẤP AD (AD Hierarchy-Based Scoped RBAC)**
+7. **HƯỚNG DẪN CÀI ĐẶT & THAM CHIẾU CẤU HÌNH CHI TIẾT (Deployment Reference)**
+8. **ẨN DỤ ĐỜI THƯỜNG DÀNH CHO NGƯỜI MỚI (Analogy Quick Start)**
 
 ---
 
@@ -86,8 +87,40 @@ Dù chạy ở chế độ nào, cấu trúc logic của dữ liệu luôn đồ
   - `severity` (Enum): Mức độ nguy hiểm: `I` (Cực kỳ nguy cấp), `II` (Cảnh báo), `III` (Ít nguy hiểm).
   - `status` (Enum): Trạng thái xử lý: `Mới`, `Đang xử lý`, `Đã xử lý`, `Phản hồi`, `Đóng`.
   - `mitigationSteps` (String): Các biện pháp kỹ thuật được đề xuất để triệt tiêu mối nguy.
+### 1.6. Mô hình Phân cấp Tổ chức và Thư mục AD (Active Directory Hierarchy Models)
+
+Để phục vụ phân quyền và quản lý đội nhóm ở quy mô đặc biệt lớn trên toàn bộ Tuyến Metro số 1, hệ thống đã cài đặt mô hình cấu trúc phân cấp chuẩn doanh nghiệp mô phỏng cấu trúc của **Active Directory (AD)**. Các thực thể này được định nghĩa tại schema cơ sở dữ liệu xác thực [schema.prisma](file:///d:/Hurc1CRM-main/Hurc-cdhs/prisma/auth/schema.prisma):
+
+```mermaid
+graph TD
+    Forest[Forest: Rừng Hệ thống] -->|Gồm nhiều| Tree[Tree: Cây Thư mục]
+    Tree -->|Gồm nhiều| ChildDomain[Domain: Tên miền Con]
+    ChildDomain -->|Chứa nhiều| OU[OU: Đơn vị Tổ chức]
+    OU -->|Đệ quy cha-con parentId| OU
+    OU -->|Chứa| User[User: Kỹ sư / Nhân viên]
+```
+
+- **Forest (Rừng hệ thống - `Forest`):** Biên giới bảo mật cao nhất của toàn bộ hệ thống CDHS.
+  - `id` (String / UUID): Khóa chính.
+  - `name` (String): Tên duy nhất của rừng hệ thống (ví dụ: `hurc.local`).
+  - `description` (String): Mô tả phạm vi an ninh.
+- **Tree (Cây thư mục / Domain Root - `Tree`):** Tập hợp các tên miền chia sẻ chung một không gian tên gốc.
+  - `id` (String / UUID): Khóa chính.
+  - `name` (String): Tên duy nhất (ví dụ: `metro1.hurc.local`).
+  - `forestId` (String): ID của rừng cha sở hữu.
+- **ChildDomain (Tên miền con - `ChildDomain`):** Phân chia logic các khu vực lớn hoặc ban ngành độc lập về chính sách.
+  - `id` (String / UUID): Khóa chính.
+  - `name` (String): Tên duy nhất (ví dụ: `ops.metro1.hurc.local`).
+  - `treeId` (String): ID của cây thư mục cha sở hữu.
+- **OrganizationalUnit (Đơn vị tổ chức - `OrganizationalUnit` / OU):** Thực thể linh hoạt nhất, biểu diễn các phòng ban, phân xưởng hoặc tổ đội kỹ thuật hiện trường. 
+  - `id` (String / UUID): Khóa chính.
+  - `name` (String): Tên của đơn vị (ví dụ: `Phong IT`, `Đội Bảo trì Đường ray`, `Tổ Cấp điện Ga`).
+  - `domainId` (String): ID của tên miền con trực thuộc.
+  - `parentId` (String / Null): Liên kết đệ quy (**Self-referencing recursive parentId**). Cho phép xây dựng các OU lồng nhau không giới hạn cấp độ (ví dụ: `Xí nghiệp Bảo trì` > `Phân xưởng Hạ tầng` > `Đội Bảo trì Cầu đường` > `Tổ tuần tra ray`).
+- **User (Người dùng - `User`):** Được liên kết trực tiếp vào một OU cụ thể thông qua trường khóa ngoại `ouId` (thiết lập quan hệ 1-N: Một OU chứa nhiều Users).
 
 ---
+
 
 ## 2. THUẬT TOÁN VÀ CÔNG THỨC TOÁN HỌC CỐT LÕI
 
@@ -260,25 +293,41 @@ sequenceDiagram
 
 ---
 
-## 5. CƠ CHẾ PHÒNG VỆ FILE KHÓA VÀ SAO LƯU XOAY VÒNG
+## 5. LƯU TRỮ LAI, PHÒNG VỆ KHÓA TỆP VÀ SAO LƯU PHỤC HỒI (Hybrid Storage, Lock Recovery & Disaster Recovery)
 
-Trong môi trường vận hành thực tế trên hệ điều hành Windows ở chế độ **Offline**, các tiến trình ghi tệp tin liên tục vào [db.json](db.json) có thể dẫn tới tranh chấp tài nguyên (File Locking) khiến hệ thống bị sập. Dưới đây là cơ chế tự phòng vệ cấp độ nguyên tử được tích hợp sẵn.
+##### 5.1. Kiến trúc Lưu trữ kép Lai (Hybrid Online/Offline Storage)
+Để tối đa hóa tính sẵn sàng phục vụ trong môi trường vận hành an ninh cao của tuyến Metro, hệ thống được trang bị kiến trúc lưu trữ lai cực kỳ linh hoạt:
+* **Chế độ Trực tuyến (Online Mode - `IS_DATABASE_OFFLINE=false`):** 
+  Dữ liệu được phân bổ vào **4 cơ sở dữ liệu PostgreSQL độc lập** thông qua Prisma ORM:
+  1. `authDb` (Cổng 5432 - `AUTH_DATABASE_URL`): Lưu trữ dữ liệu xác thực người dùng (`User`, `Role`, `BackupCode`, `AccessToken`, `TwoFADevice`).
+  2. `opsDb` (Cổng 5432 - `DATABASE_URL`): Lưu trữ dữ liệu vận hành kỹ thuật (`Task`, `InspectionDetail`, `ChecklistItem`, `Finding`, `DnfDocument`, `CorrectiveAction`, `HazardRecord`).
+  3. `aiDb` (Cổng 27017 / MongoDB - `MONGODB_URI`): Lưu trữ mạng lưới tri thức RAG (`TrustGraphNode`, `TrustGraphEdge`) và nhật ký kiểm duyệt an toàn AI.
+  4. `metroDb` (Cổng 5432): Lưu trữ hạ tầng thiết bị vật lý, đo đạc telemetry và vị trí tuần tra (`PatrolLocation`, `Subsystem`).
+* **Chế độ Ngoại tuyến (Offline Mode - `IS_DATABASE_OFFLINE=true`):**
+  Tất cả dữ liệu được gom về lưu tại tệp tin phẳng **`db.json`** đặt ở thư mục gốc phần mềm.
+* **Bộ điều phối Kháng lỗi tự động (`dbProvider` - `db-wrapper.ts`):**
+  Hệ thống sử dụng lớp bọc `dbProvider` để thực thi mọi thao tác CRUD. Khi hệ thống chạy ở chế độ Online, nếu kết nối PostgreSQL bị gián đoạn đột ngột (lỗi `PrismaClientInitializationError`), hệ thống sẽ kích hoạt **Transparent Fallback**, tự động chuyển sang đọc/ghi file `db.json` tức thì mà không gây gián đoạn cho kỹ sư.
 
-### 5.1. Cơ chế khôi phục khóa file (Lock Recovery Engine)
+##### 5.2. Cơ chế khôi phục khóa file (Lock Recovery Engine)
+* **Vấn đề trên Windows:** Khi tiến trình Next.js đang ghi đè tệp tin `db.json` mà tệp này bị khóa độc quyền bởi hệ điều hành (ví dụ: người dùng đang mở tệp bằng Notepad), Windows sẽ quăng ra lỗi `EPERM` hoặc `EBUSY`.
+* **Giải pháp Exponential Backoff:**
+  Lớp `lock-recovery.ts` triển khai thuật toán lùi bước chờ đợi tăng dần để thử ghi lại:
+  - Thử lần 1: Đợi 50ms.
+  - Thử lần 2: Đợi 100ms.
+  - Thử lần 3: Đợi 200ms.
+  - Sau 3 lần thất bại, hệ thống tự động gửi tín hiệu giải phóng khóa tệp cấp OS và ép ghi đè cưỡng bức để đảm bảo dữ liệu không bị thất thoát.
 
-- **Vấn đề thực tế trên Windows:** Khi Next.js đang ghi ghi dữ liệu vào tệp `db.json`, nếu kỹ sư dùng Notepad mở tệp này lên để xem, hệ điều hành Windows sẽ lập tức kích hoạt cơ chế khóa độc quyền (Exclusive File Lock). Lúc này, Next.js ghi đè dữ liệu mới vào sẽ bị chặn và quăng ra lỗi hệ thống nghiêm trọng: `EPERM: permission denied, open 'db.json'` hoặc `EBUSY: resource busy`.
-- **Giải pháp giải cứu thông minh (Graceful Retry with Exponential Backoff):**
-  Trong tệp quản lý dữ liệu [lock-recovery.ts](src/lib/db/lock-recovery.ts), hệ thống không báo sập ứng dụng ngay khi gặp lỗi khóa file `db.json`. Thay vào đó, nó triển khai thuật toán lùi bước chờ đợi tăng dần (Exponential Backoff):
-  - *Lần lỗi thứ 1:* Hệ thống tự động đứng yên chờ đợi **50 mili-giây**, sau đó thử ghi lại lần 2.
-  - *Lần lỗi thứ 2:* Nếu vẫn bị khóa, hệ thống nhân đôi thời gian chờ đợi lên **100 mili-giây**, sau đó thử ghi lại lần 3.
-  - *Lần lỗi thứ 3:* Nếu vẫn bị khóa, tiếp tục đợi **200 mili-giây**, sau đó thử ghi lại lần cuối cùng.
-  - *Tự động giải phóng tiến trình khóa:* Nếu sau 3 lần vẫn lỗi, hệ thống tự động gọi lệnh kiểm tra của hệ điều hành để ngắt kết nối khóa file tạm thời và thực hiện ghi đè cưỡng bức an toàn mà không làm mất mát bất kỳ bản ghi nào của kỹ sư.
-
----
-
-### 5.2. Động cơ Sao lưu Xoay vòng Tự động (Rotating Backups Engine)
-
-Để tránh lãng phí dung lượng ổ cứng của máy chủ Metro nhưng vẫn đảm bảo an toàn tuyệt mật cho dữ liệu, hệ thống triển khai thuật toán sao lưu xoay vòng tự động tối ưu như sau:
+##### 5.3. Chiến lược Sao lưu Xoay vòng & An toàn Dữ liệu (Rotating Backups)
+Hệ thống sao lưu tự động được quản lý chặt chẽ qua 3 script nằm trong thư mục `/scripts`:
+1. `scripts/backup-system.sh`: Script sao lưu tự động "Brutal Backup" định kỳ:
+   - Tạo thư mục backup theo nhãn thời gian `/backups/YYYY-MM-DD_HH-MM-SS`.
+   - Sao chép tệp `db.json` và mã băm SHA256 tương ứng.
+   - Thực hiện `pg_dumpall` xuất toàn bộ cơ sở dữ liệu PostgreSQL ra tệp tin `full_dump.sql`.
+   - Đóng gói toàn bộ thư mục `/logs` thành tệp tin nén `logs_bundle.tar.gz`.
+   - Tạo tệp tin chữ ký số `manifest.sha256` để kiểm tra tính toàn vẹn của gói backup.
+2. `scripts/backup-postgres.sh`: Sao lưu riêng cơ sở dữ liệu SQL PostgreSQL.
+3. `scripts/backup-data.sh`: Sao lưu riêng thư mục tệp tin ngoại tuyến.
+* **Thuật toán Xoay vòng (Rotation Limit):** Mỗi khi thực hiện ghi dữ liệu, hệ thống tự động kiểm tra số lượng file sao lưu trong `/backups`. Nếu vượt quá **5 bản ghi**, hệ thống sẽ tự động quét thời gian khởi tạo và xóa bản ghi cũ nhất (sử dụng lệnh `unlink`) để giải phóng không gian ổ cứng cho máy chủ.
 
 ```mermaid
 graph TD
@@ -294,7 +343,96 @@ graph TD
     CreateNew --> Finish[Kết thúc quy trình sao lưu an toàn]
 ```
 
-Cơ chế này đảm bảo máy chủ của bạn luôn có đúng **5 bản sao lưu gần nhất** của cơ sở dữ liệu để phục hồi bất kỳ lúc nào trong vòng 24 giờ mà không sợ bị đầy dung lượng ổ đĩa.
+##### 5.4. Quy trình Đồng bộ hóa Dữ liệu (Offline-to-Online Migration)
+Khi máy chủ PostgreSQL trực tuyến được khôi phục sau sự cố mất kết nối, quản trị viên hệ thống có thể chạy lệnh:
+```bash
+npm run migrate
+```
+Lệnh này sẽ thực thi script [migrate-json-to-pg.ts](file:///d:/Hurc1CRM-main/Hurc-cdhs/scripts/migrate-json-to-pg.ts):
+1. Đọc và phân tích cú pháp tệp `db.json`.
+2. Duyệt qua tất cả thực thể tác vụ (`todos`/`tasks`), sự cố (`dnfs`), và danh sách kiểm tra (`inspections`) được tạo trong thời gian chạy offline.
+3. Sử dụng Prisma Client để thực hiện các câu lệnh ghi đè và ghi mới an toàn vào các phân vùng PostgreSQL tương ứng.
+4. Đảm bảo tính nhất quán dữ liệu và đồng bộ hóa trạng thái trên toàn bộ hệ thống Metro.
+
+##### 5.5. Khôi phục Quyền truy cập Tài khoản Khẩn cấp (2FA Backup Codes)
+Để phòng ngừa trường hợp kỹ sư bị hỏng hoặc mất thiết bị xác thực 2 yếu tố (2FA):
+* Hệ thống sinh ngẫu nhiên **8 mã dự phòng khẩn cấp** định dạng `XXXX-XXXX` bằng bộ sinh số bảo mật cao (`crypto.randomBytes`).
+* Trước khi lưu trữ xuống bảng `backup_codes` trong `authDb`, các mã này được băm một chiều qua thuật toán **SHA-256** cực kỳ an toàn.
+* Khi đăng nhập khẩn cấp, hệ thống so sánh mã băm của ký tự người dùng nhập vào với dữ liệu đã băm trong DB. Nếu trùng khớp, phiên đăng nhập được chấp thuận và mã dự phòng đó lập tức bị **vô hiệu hóa vĩnh viễn** (`used = true`).
+
+---
+
+## 6. THIẾT LẬP PHÂN QUYỀN VÀ QUẢN LÝ ĐỘI NHÓM THEO PHÂN CẤP AD (AD Hierarchy-Based Scoped RBAC)
+
+Hệ thống HURC No.1 CDHS áp dụng một cơ chế bảo mật kép độc đáo: **Kiểm soát Truy cập dựa trên Vai trò (RBAC)** kết hợp với **Giới hạn Phạm vi theo Phân cấp Tổ chức AD (AD-Scoped Access Control)**.
+
+##### 6.1. Nguyên lý Hoạt động của Phân cấp Tổ chức AD
+Cơ cấu nhân sự được tổ chức theo hình cây tương thích Active Directory:
+```text
+Forest (Rừng hệ thống: hurc.local)
+ └── Tree (Cây thư mục / Domain Root: metro1.hurc.local)
+      └── Domain (Tên miền: ops.metro1.hurc.local)
+           └── OU (Đơn vị tổ chức: ví dụ "Phòng Kỹ thuật An toàn", "Tổ Kỹ thuật IT")
+                ├── User (Kỹ sư trực thuộc OU)
+                └── Sub-OU (Đơn vị tổ chức con lồng đệ quy)
+```
+Mỗi người dùng (`User`) khi khởi tạo sẽ được gán vào một Đơn vị Tổ chức cụ thể (`ouId`). Nếu người dùng chưa được gán OU (trường `ouId = null`), phạm vi truy cập dữ liệu của họ bị thu hẹp ở mức tối thiểu (chỉ xem được dữ liệu cá nhân tự tạo).
+
+##### 6.2. Phân tách Quyền hạn Toàn cầu và Quyền hạn theo Phạm vi (Global vs. Scoped Permissions)
+Hệ thống phân tách rõ ràng 2 nhóm quyền:
+1. **Quyền hạn Toàn cầu (Global Permissions):** Thường dành cho `SUPER_ADMIN` hoặc các vai trò quản lý cấp cao tại Root Domain (ví dụ: `users:manage`, `inspections:view_all`, `corrective_actions:view_all`). Những người sở hữu quyền này có thể xem và chỉnh sửa dữ liệu trên toàn hệ thống mà không bị giới hạn bởi OU.
+2. **Quyền hạn theo Phạm vi (Scoped Permissions):** Thường dành cho các trưởng bộ phận hoặc chuyên viên tại các OU con (ví dụ: `users:view_scoped`, `users:manage_scoped`, `organization:view`). Quyền truy cập của họ bị giới hạn nghiêm ngặt trong OU họ trực thuộc và các OU con bên dưới.
+
+##### 6.3. Cơ chế Lọc Dữ liệu theo Phạm vi OU (OU-Scoped Data Filtering)
+Quy tắc bảo mật theo phạm vi OU được áp dụng nghiêm ngặt trên cả **Quản lý Người dùng (User Management)** và **Dữ liệu Vận hành (Operational Data - Inspections, DNFs, Hazards)**:
+* **Đối với Quản lý Người dùng (User.actions - `getUsers`):**
+  - Người dùng có quyền `users:manage` hoặc vai trò `SUPER_ADMIN` được quyền xem toàn bộ người dùng trong hệ thống.
+  - Người dùng có quyền `users:view_scoped` (như **Chuyên viên L3**) chỉ được quyền xem danh sách người dùng thuộc **cùng một OU** hoặc thuộc các **OU con** nằm dưới OU của mình.
+  - Người dùng thông thường không có 2 quyền trên chỉ có thể xem hồ sơ cá nhân của chính mình.
+* **Đối với Dữ liệu Vận hành (Inspections, DNFs, Hazards):**
+  - Hệ thống tự động xác định OU của kỹ sư tạo bản ghi (`createdById` hoặc `inspector`).
+  - Khi một kỹ sư thực hiện truy vấn danh sách sự cố DNF, kiểm tra Inspection hoặc hồ sơ mối nguy Hazard, hệ thống sẽ gọi hàm kiểm tra phạm vi. Người dùng chỉ nhìn thấy các bản ghi được tạo bởi các thành viên thuộc cùng OU hoặc các OU con trực thuộc.
+  - Ví dụ: Một **Chuyên viên L3** thuộc OU **"IT"** sẽ nhìn thấy tất cả các phiếu kiểm tra, sự cố do các thành viên thuộc OU **"IT"** lập ra, nhưng hoàn toàn không thể thấy dữ liệu của OU **"Đội Bảo trì Đường ray"** trừ khi họ được gán quyền toàn cầu.
+
+##### 6.4. Động cơ Phân tích Phạm vi Tổ chức (`OUScopeService` - `ou-scope-service.ts`)
+Lớp tĩnh `OUScopeService` cung cấp các thuật toán đệ quy tối ưu để phân tích mối quan hệ phân cấp:
+1. `getOUAncestors(ouId: string): Promise<string[]>`: Đi bộ ngược dòng cây thông qua `parentId` để thu thập mọi OU cha, ông cho tới gốc Domain.
+2. `getOUDescendants(ouId: string): Promise<string[]>`: Đệ quy đi xuống để thu thập toàn bộ danh sách các OU con và cháu trực thuộc.
+3. `isOUInScope(userOuId, targetOuId): Promise<boolean>`: Trả về `true` nếu OU mục tiêu trùng với OU của người dùng hoặc là con/cháu của OU đó.
+4. `getUsersInScope(userOuId): Promise<string[]>`: Trả về danh sách ID người dùng nằm trong phân cấp OU được gán.
+5. `getOUScopePath(ouId: string): Promise<string>`: Giải quyết đường dẫn đầy đủ dạng chuỗi (ví dụ: `hurc.local > metro1.hurc.local > ops.metro1.hurc.local > Xí nghiệp Bảo trì > Phân xưởng IT`).
+
+##### 6.5. Bộ kiểm soát Quyền theo Phạm vi (`requireScopedPermission` - `auth-enforcer.ts`)
+Để bảo vệ các Server Action và các trang Web khỏi việc truy cập trái phép, hệ thống triển khai hàm kiểm soát an ninh `requireScopedPermission`:
+```typescript
+export async function requireScopedPermission(permission: string, targetOuId?: string | null) {
+    const user = await requirePermission(permission);
+    
+    // SUPER_ADMIN có toàn quyền, bỏ qua kiểm tra scope
+    if (user.role === 'SUPER_ADMIN') {
+        return user;
+    }
+    
+    // Nếu tài nguyên không quy định OU mục tiêu, chỉ cần kiểm tra quyền hạn cơ bản
+    if (!targetOuId) {
+        return user;
+    }
+    
+    const userOuId = user.ouId;
+    if (!userOuId) {
+        throw new UnauthorizedError('Bạn chưa được gán vào đơn vị tổ chức nào.');
+    }
+    
+    // Nạp động OUScopeService để tránh lỗi vòng lặp phụ thuộc (circular dependency)
+    const { OUScopeService } = await import('./services/ou-scope-service');
+    const inScope = await OUScopeService.isOUInScope(userOuId, targetOuId);
+    if (!inScope) {
+        throw new UnauthorizedError('Bạn không có quyền truy cập tài nguyên ngoài phạm vi đơn vị tổ chức của bạn.');
+    }
+    
+    return user;
+}
+```
 
 ---
 

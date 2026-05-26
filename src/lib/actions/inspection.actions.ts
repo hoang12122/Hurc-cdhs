@@ -15,20 +15,45 @@ import {
 } from '../services/ops-service';
 
 export async function getInspectionsPaginated(params: any) {
-    await requireAuth();
+    const currentUser = await requireAuth();
     const skip = (params.page - 1) * params.pageSize;
     let whereClause: any = { isArchived: false };
     // Build where clause from params...
     const { total, records } = await getInternalInspectionsPaginated(skip, params.pageSize, whereClause);
+    
+    // Apply OU scope filtering for non-admin users
+    let filtered = records as unknown as InspectionDetail[];
+    if (currentUser.role !== 'SUPER_ADMIN' && !currentUser.permissions?.includes('inspections:view_all')) {
+        const userOuId = (currentUser as any).ouId;
+        if (userOuId) {
+            const { OUScopeService } = await import('../services/ou-scope-service');
+            const scopedUserIds = await OUScopeService.getUsersInScope(userOuId);
+            scopedUserIds.push(currentUser.id); // Always include self
+            filtered = filtered.filter((r: any) => scopedUserIds.includes(r.inspector || r.createdById));
+        }
+    }
+    
     return {
-        data: records as unknown as InspectionDetail[],
-        metadata: { total, pages: Math.ceil(total / params.pageSize), currentPage: params.page }
+        data: filtered,
+        metadata: { total: filtered.length, pages: Math.ceil(filtered.length / params.pageSize), currentPage: params.page }
     };
 }
 
 export async function getInspections(): Promise<InspectionDetail[]> {
-    await requireAuth();
-    return await getInternalInspections() as any;
+    const currentUser = await requireAuth();
+    const all = await getInternalInspections() as any;
+    
+    // Apply OU scope filtering for non-admin users
+    if (currentUser.role !== 'SUPER_ADMIN' && !currentUser.permissions?.includes('inspections:view_all')) {
+        const userOuId = (currentUser as any).ouId;
+        if (userOuId) {
+            const { OUScopeService } = await import('../services/ou-scope-service');
+            const scopedUserIds = await OUScopeService.getUsersInScope(userOuId);
+            scopedUserIds.push(currentUser.id);
+            return all.filter((r: any) => scopedUserIds.includes(r.inspector || r.createdById));
+        }
+    }
+    return all;
 }
 
 export async function getInspectionById(id: string): Promise<InspectionDetail | null> {

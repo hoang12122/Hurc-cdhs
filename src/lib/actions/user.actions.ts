@@ -27,8 +27,36 @@ const omitPassword = (user: any): User => {
 };
 
 export async function getUsers(): Promise<User[]> {
-    await requireAuth();
-    return await getInternalUsers();
+    const currentUser = await requireAuth();
+    const allUsers = await getInternalUsers();
+    
+    // SUPER_ADMIN or global users:manage → see all
+    if (currentUser.role === 'SUPER_ADMIN' || currentUser.permissions?.includes('users:manage')) {
+      return allUsers;
+    }
+
+    const userOuId = (currentUser as any).ouId;
+    
+    // Users with scoped permissions → see users in their OU hierarchy
+    if (
+      currentUser.permissions?.includes('users:view_scoped') ||
+      currentUser.permissions?.includes('users:manage_scoped')
+    ) {
+      if (!userOuId) {
+        return allUsers.filter((u: any) => u.id === currentUser.id);
+      }
+      const { OUScopeService } = await import('../services/ou-scope-service');
+      const scopeOuIds = await OUScopeService.getOUWithDescendantIds(userOuId);
+      return allUsers.filter((u: any) => u.ouId && scopeOuIds.includes(u.ouId));
+    }
+
+    // Default: users in same OU can see each other (for Chuyên viên L3 etc.)
+    if (userOuId) {
+      return allUsers.filter((u: any) => u.ouId === userOuId);
+    }
+
+    // No OU, no special permissions → only see self
+    return allUsers.filter((u: any) => u.id === currentUser.id);
 }
 
 export async function addUser(user: Partial<User>): Promise<User> {

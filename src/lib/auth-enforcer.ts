@@ -57,3 +57,37 @@ export async function requireAuth() {
     }
     return user;
 }
+
+/**
+ * Scoped permission check: validates both permission AND OU hierarchy scope.
+ * SUPER_ADMIN bypasses all scope checks.
+ * If targetOuId is null/undefined, only the permission is checked (global scope).
+ */
+export async function requireScopedPermission(permission: string, targetOuId?: string | null) {
+    const user = await requirePermission(permission);
+    
+    // SUPER_ADMIN bypasses scope check
+    if (user.role === 'SUPER_ADMIN') {
+        return user;
+    }
+    
+    // If no target OU specified, no scope restriction needed
+    if (!targetOuId) {
+        return user;
+    }
+    
+    // If user has no OU assigned, they cannot access scoped resources
+    const userOuId = (user as any).ouId;
+    if (!userOuId) {
+        throw new UnauthorizedError('Bạn chưa được gán vào đơn vị tổ chức nào. Liên hệ Quản trị viên.');
+    }
+    
+    // Dynamic import to avoid circular dependency
+    const { OUScopeService } = await import('./services/ou-scope-service');
+    const inScope = await OUScopeService.isOUInScope(userOuId, targetOuId);
+    if (!inScope) {
+        throw new UnauthorizedError('Bạn không có quyền truy cập tài nguyên ngoài phạm vi đơn vị tổ chức của bạn.');
+    }
+    
+    return user;
+}

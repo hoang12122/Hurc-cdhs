@@ -29,7 +29,7 @@ export interface HazardPaginationParams {
 }
 
 export async function getHazardRecordsPaginated(params: HazardPaginationParams) {
-    await requireAuth();
+    const currentUser = await requireAuth();
     const skip = (params.page - 1) * params.pageSize;
     
     // Construct where clause for service layer
@@ -53,15 +53,40 @@ export async function getHazardRecordsPaginated(params: HazardPaginationParams) 
     }
     
     const { total, records } = await getInternalHazardsPaginated(skip, params.pageSize, whereClause);
+    
+    // Apply OU scope filtering for non-admin users
+    let filtered = records as unknown as HazardRecord[];
+    if (currentUser.role !== 'SUPER_ADMIN' && !currentUser.permissions?.includes('hazard:view_all')) {
+        const userOuId = (currentUser as any).ouId;
+        if (userOuId) {
+            const { OUScopeService } = await import('../services/ou-scope-service');
+            const scopedUserIds = await OUScopeService.getUsersInScope(userOuId);
+            scopedUserIds.push(currentUser.id);
+            filtered = filtered.filter((r: any) => scopedUserIds.includes(r.createdById));
+        }
+    }
+    
     return {
-        data: records as unknown as HazardRecord[],
-        metadata: { total, pages: Math.ceil(total / params.pageSize), currentPage: params.page }
+        data: filtered,
+        metadata: { total: filtered.length, pages: Math.ceil(filtered.length / params.pageSize), currentPage: params.page }
     };
 }
 
 export async function getHazardRecords(): Promise<HazardRecord[]> {
-  await requireAuth();
-  return await getInternalHazards();
+  const currentUser = await requireAuth();
+  const all = await getInternalHazards();
+  
+  // Apply OU scope filtering
+  if (currentUser.role !== 'SUPER_ADMIN' && !currentUser.permissions?.includes('hazard:view_all')) {
+      const userOuId = (currentUser as any).ouId;
+      if (userOuId) {
+          const { OUScopeService } = await import('../services/ou-scope-service');
+          const scopedUserIds = await OUScopeService.getUsersInScope(userOuId);
+          scopedUserIds.push(currentUser.id);
+          return all.filter((r: any) => scopedUserIds.includes(r.createdById));
+      }
+  }
+  return all;
 }
 
 export async function addHazardRecord(data: Omit<HazardRecord, 'id' | 'createdAt' | 'updatedAt' | 'riskLevelId' | 'createdById'>): Promise<HazardRecord> {

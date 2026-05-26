@@ -321,4 +321,10 @@ export const SYSTEM_PERMISSIONS: SystemPermission[] = [
   // AI Features
   { id: 'ai:use', label: { vi: 'Sử dụng Trợ lý AI', en: 'Use AI Assistant' }, group: { vi: 'Tính năng AI', en: 'AI Features' } },
   { id: 'ai:vision', label: { vi: 'Phân tích Hình ảnh AI', en: 'AI Image Analysis' }, group: { vi: 'Tính năng AI', en: 'AI Features' } },
+  // Organization Management
+  { id: 'organization:view', label: { vi: 'Xem Cơ cấu Tổ chức', en: 'View Organization' }, group: { vi: 'Quản lý Tổ chức', en: 'Organization Management' } },
+  { id: 'organization:manage', label: { vi: 'Quản lý Cơ cấu Tổ chức', en: 'Manage Organization' }, group: { vi: 'Quản lý Tổ chức', en: 'Organization Management' } },
+  // Scoped User Management (OU-based)
+  { id: 'users:view_scoped', label: { vi: 'Xem User trong OU', en: 'View Users in OU Scope' }, group: { vi: 'Quản trị Hệ thống', en: 'System Administration' } },
+  { id: 'users:manage_scoped', label: { vi: 'Quản lý User trong OU', en: 'Manage Users in OU Scope' }, group: { vi: 'Quản trị Hệ thống', en: 'System Administration' } },
 ];

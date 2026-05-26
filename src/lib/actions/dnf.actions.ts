@@ -22,8 +22,20 @@ import { requirePermission, requireAuth } from '@/lib/auth-enforcer';
  * FETCH ALL DNFS
  */
 export async function getDnfs(): Promise<DnfDocument[]> {
-    await requireAuth();
-    return await getDnfsInternal();
+    const currentUser = await requireAuth();
+    const all = await getDnfsInternal();
+    
+    // Apply OU scope filtering
+    if (currentUser.role !== 'SUPER_ADMIN' && !currentUser.permissions?.includes('dnf:view_all')) {
+        const userOuId = (currentUser as any).ouId;
+        if (userOuId) {
+            const { OUScopeService } = await import('../services/ou-scope-service');
+            const scopedUserIds = await OUScopeService.getUsersInScope(userOuId);
+            scopedUserIds.push(currentUser.id);
+            return all.filter((r: any) => scopedUserIds.includes(r.createdById));
+        }
+    }
+    return all;
 }
 
 /**
@@ -41,7 +53,7 @@ export async function getDnfsPaginated(params: {
     endDate?: string;
     priorities?: number[];
 }) {
-    await requireAuth();
+    const currentUser = await requireAuth();
     const skip = (params.page - 1) * params.pageSize;
     
     // Construct where clause
@@ -68,11 +80,23 @@ export async function getDnfsPaginated(params: {
     
     const { total, dnfs } = await getDnfsPaginatedInternal(skip, params.pageSize, where);
     
+    // Apply OU scope filtering for non-admin users
+    let filtered = dnfs;
+    if (currentUser.role !== 'SUPER_ADMIN' && !currentUser.permissions?.includes('dnf:view_all')) {
+        const userOuId = (currentUser as any).ouId;
+        if (userOuId) {
+            const { OUScopeService } = await import('../services/ou-scope-service');
+            const scopedUserIds = await OUScopeService.getUsersInScope(userOuId);
+            scopedUserIds.push(currentUser.id);
+            filtered = filtered.filter((r: any) => scopedUserIds.includes(r.createdById));
+        }
+    }
+    
     return {
-        data: dnfs,
+        data: filtered,
         metadata: {
-            total,
-            pages: Math.ceil(total / params.pageSize)
+            total: filtered.length,
+            pages: Math.ceil(filtered.length / params.pageSize)
         }
     };
 }
