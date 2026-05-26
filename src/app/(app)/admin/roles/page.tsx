@@ -224,12 +224,14 @@ export default function RoleManagementPage() {
     fetchData();
   }, [fetchData]);
 
-  if (currentUserRole !== ROLE_SUPER_ADMIN) {
+  const isAuthorized = currentUserRole === ROLE_SUPER_ADMIN || user?.permissions?.includes('roles:manage');
+
+  if (!isAuthorized) {
     return (
       <div className="flex flex-col items-center justify-center h-full">
         <Card className="w-full max-w-md p-8 text-center">
           <CardTitle className="text-2xl text-destructive mb-4">{t.accessDenied}</CardTitle>
-          <CardDescription>{locale === 'vi' ? `Chỉ Quản trị viên cấp cao mới có quyền truy cập trang này.` : `Only Super Administrators can access this page.`}</CardDescription>
+          <CardDescription>{locale === 'vi' ? `Bạn không có quyền quản trị vai trò hệ thống.` : `You do not have permission to manage system roles.`}</CardDescription>
            <Button asChild className="mt-6">
             <Link href="/dashboard">
               {locale === 'vi' ? 'Quay lại Bảng điều khiển' : 'Back to Dashboard'}

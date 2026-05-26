@@ -50,6 +50,11 @@ export async function verifyInternalCredentials(email: string, password?: string
 
     if (!dbUser) return { error: "Email hoặc mật khẩu không chính xác." };
 
+    // Check Account Status
+    if (dbUser.status !== 'active') {
+        return { error: "Tài khoản đã bị vô hiệu hóa hoặc tạm khóa. Vui lòng liên hệ quản trị viên." };
+    }
+
     // Check Lockout
     if (dbUser.lockoutUntil && new Date(dbUser.lockoutUntil) > now) {
         const remaining = Math.ceil((new Date(dbUser.lockoutUntil).getTime() - now.getTime()) / 60000);

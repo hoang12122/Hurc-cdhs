@@ -207,6 +207,8 @@ export async function delete2FADevice(deviceId: string) {
           where: { id: dev.userId },
           data: { twoFactorEnabled: false }
         });
+        // Cascading cleanup of dangling backup codes when disabling 2FA
+        await authDb.backupCode.deleteMany({ where: { userId: dev.userId } });
       }
       return { success: true };
     } catch (e) {
@@ -222,6 +224,8 @@ export async function delete2FADevice(deviceId: string) {
   const remainDevices = await jsonDb.findMany<any>('two_fa_devices', (d: any) => d.userId === dev.userId);
   if (remainDevices.length === 0) {
     await jsonDb.updateRecord<any>('users', dev.userId, { twoFactorEnabled: false });
+    // Cascading cleanup of dangling backup codes when disabling 2FA in jsonDb
+    await jsonDb.delete('backup_codes', (b: any) => b.userId === dev.userId);
   }
   return { success: true };
 }

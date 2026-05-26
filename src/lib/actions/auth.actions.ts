@@ -103,6 +103,14 @@ export async function login2FA(userId: string, code: string, rememberMe: boolean
     const user = await getInternalUserById(userId);
     if (!user) return { error: "Không tìm thấy người dùng." };
 
+    if (!user.twoFactorEnabled) {
+        return { error: "Xác thực hai lớp (2FA) chưa được kích hoạt trên tài khoản này." };
+    }
+
+    if (user.status !== 'active') {
+        return { error: "Tài khoản đã bị vô hiệu hóa hoặc tạm khóa. Vui lòng liên hệ quản trị viên." };
+    }
+
     let isCodeValid = false;
 
     // 1. Try to verify as TOTP code
@@ -164,13 +172,13 @@ export async function getCurrentUser(): Promise<User | null> {
     return await getSessionUser();
 }
 
-/**
- * LOGOUT: Clears the session cookie
- */
 export async function logoutUser(): Promise<void> {
     const user = await getSessionUser();
     if (user) {
         await logSecurityEvent(user.id, "LOGOUT");
+        // Invalidate session in database: randomize activeSessionId to block stolen cookies
+        const newSessionId = require('crypto').randomUUID();
+        await updateInternalUser(user.id, { activeSessionId: newSessionId });
     }
     cookies().delete(SESSION_COOKIE_NAME);
 }
