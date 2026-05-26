@@ -12,7 +12,7 @@ export async function getOrganizationTree() {
     return await OrganizationService.getTreeStructure();
   } catch (error: any) {
     console.error('[ORGANIZATION-ACTION] getOrganizationTree failed:', error);
-    return [];
+    return { error: error.message || 'Unknown error inside getTreeStructure', stack: error.stack };
   }
 }
 
@@ -110,13 +110,20 @@ export async function deleteOrganizationalUnit(id: string) {
  */
 export async function seedOrganization() {
   try {
+    const forests = await OrganizationService.getForests();
+    if (forests.length > 0) {
+      revalidatePath('/admin/organization');
+      revalidatePath('/admin/users');
+      return { success: true, message: 'Cơ cấu tổ chức Active Directory đã tồn tại sẵn trong hệ thống!' };
+    }
+    
     const seeded = await OrganizationService.seedDefaultOrganization();
     if (seeded) {
       revalidatePath('/admin/organization');
       revalidatePath('/admin/users');
       return { success: true, message: 'Đã tạo cấu trúc Active Directory mẫu thành công!' };
     }
-    return { success: false, message: 'Cơ cấu tổ chức đã tồn tại hoặc không thể tạo.' };
+    return { success: false, message: 'Không thể tạo cơ cấu tổ chức.' };
   } catch (error: any) {
     console.error('[ORGANIZATION-ACTION] seedOrganization failed:', error);
     return { success: false, error: error.message || 'Lỗi không xác định.' };

@@ -83,11 +83,23 @@ export default function OrganizationPage() {
         getOrganizationTree(),
         getOUList()
       ]);
-      setTreeData(tree as TreeNode[]);
+      
+      if (tree && typeof tree === 'object' && 'error' in tree) {
+        toast({
+          variant: "destructive",
+          title: locale === 'vi' ? "Lỗi máy chủ" : "Server Error",
+          description: (tree as any).error
+        });
+        setTreeData([]);
+      } else {
+        setTreeData((tree || []) as TreeNode[]);
+      }
+      
       setOuList(ous);
       
       // Auto expand first few nodes if empty expanded list
-      if (Object.keys(expandedNodes).length === 0 && tree.length > 0) {
+      const actualTree = (tree && typeof tree === 'object' && 'error' in tree) ? [] : (tree || []) as TreeNode[];
+      if (Object.keys(expandedNodes).length === 0 && actualTree.length > 0) {
         const autoExpand: Record<string, boolean> = {};
         const expandFirst = (node: TreeNode, depth = 0) => {
           if (depth < 3) {
@@ -97,7 +109,7 @@ export default function OrganizationPage() {
             }
           }
         };
-        tree.forEach(f => expandFirst(f as TreeNode));
+        actualTree.forEach(f => expandFirst(f as TreeNode));
         setExpandedNodes(autoExpand);
       }
     } catch (e: any) {
