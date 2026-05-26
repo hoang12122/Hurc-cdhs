@@ -3,7 +3,7 @@
 import { revalidatePath } from 'next/cache';
 import { type User, type PasswordResetRequest } from '@/lib/constants';
 import { internalLogSystemEvent as logSystemEvent } from '../services/log-service';
-import { requirePermission, requireAuth } from '@/lib/auth-enforcer';
+import { requirePermission, requireAuth, requireScopedPermission } from '@/lib/auth-enforcer';
 import { sendVerificationEmail } from '../services/email';
 import { 
     getInternalUsers, 
@@ -60,7 +60,11 @@ export async function getUsers(): Promise<User[]> {
 }
 
 export async function addUser(user: Partial<User>): Promise<User> {
-    await requirePermission('users:manage');
+    try {
+        await requirePermission('users:manage');
+    } catch {
+        await requireScopedPermission('users:manage_scoped', user.ouId);
+    }
     const record = await createInternalUser(user);
     // Use welcome email logic if needed
     await logSystemEvent('CREATE_USER', 'INFO', `Created new user: ${record.name}`);
@@ -72,7 +76,11 @@ export async function updateUser(user: User): Promise<void> {
     const currentUser = await requireAuth();
     // Allow users to update themselves, otherwise require permission
     if (currentUser.id !== user.id) {
-        await requirePermission('users:manage');
+        try {
+            await requirePermission('users:manage');
+        } catch {
+            await requireScopedPermission('users:manage_scoped', user.ouId);
+        }
     }
     await updateInternalUser(user.id, user);
     await logSystemEvent('UPDATE_USER', 'INFO', `Updated user: ${user.name}`);
@@ -81,8 +89,18 @@ export async function updateUser(user: User): Promise<void> {
 }
 
 export async function deleteUser(userId: string) {
-    const currentUser = await requirePermission('users:manage');
-    if (currentUser?.id === userId) throw new Error("Cannot delete yourself.");
+    const targetUser = await getInternalUserById(userId);
+    if (!targetUser) throw new Error("Không tìm thấy người dùng.");
+    
+    try {
+        const currentUser = await requirePermission('users:manage');
+        if (currentUser?.id === userId) throw new Error("Cannot delete yourself.");
+    } catch (e: any) {
+        if (e.message === "Cannot delete yourself.") throw e;
+        const currentUser = await requireScopedPermission('users:manage_scoped', targetUser.ouId);
+        if (currentUser?.id === userId) throw new Error("Cannot delete yourself.");
+    }
+
     await deleteInternalUser(userId);
     await logSystemEvent('DELETE_USER', 'WARNING', `Deleted user ID: ${userId}`);
     revalidatePath('/admin/users');
