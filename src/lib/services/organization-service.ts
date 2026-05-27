@@ -1,6 +1,18 @@
 // src/lib/services/organization-service.ts
 import { dbProvider } from './db-wrapper';
-import { getInternalUsers } from './user-service';
+import { 
+  getInternalUsers,
+  getInternalRoles,
+  createInternalRole,
+  updateInternalRole
+} from './user-service';
+import { 
+  ROLE_SUPER_ADMIN, 
+  ROLE_ADMIN_PKTAT, 
+  ROLE_L3_SPECIALIST, 
+  ROLE_L2_TECHNICIAN, 
+  ROLE_L1_OPERATOR 
+} from '../constants';
 
 export interface Forest {
   id: string;
@@ -311,101 +323,350 @@ export class OrganizationService {
    * Seed a standard AD hierarchy if databases are empty
    */
   static async seedDefaultOrganization(): Promise<boolean> {
-    const existing = await this.getForests();
-    if (existing.length > 0) {
-      return false; // already seeded
-    }
-
     try {
-      // 1. Create Forest
+      // 1. Clean up any existing AD structure first to ensure no conflicts or duplicates
+      const existingForests = await this.getForests();
+      for (const forest of existingForests) {
+        await this.deleteForest(forest.id);
+      }
+
+      // 2. Seed / Upsert Graded Roles
+      const gradedRoles = [
+        {
+          id: ROLE_SUPER_ADMIN,
+          name: 'Super Admin',
+          description: 'Quản trị viên Cấp cao: Toàn quyền quản trị hệ thống, hạ tầng AD và chính sách bảo mật tối cao.',
+          permissions: ['*']
+        },
+        {
+          id: ROLE_ADMIN_PKTAT,
+          name: 'Admin (P.KTAT)',
+          description: 'Kiểm soát viên Phòng Kỹ thuật An toàn: Giám sát chất lượng bảo trì toàn diện, phê duyệt quy chuẩn bảo dưỡng, đại tu và kiểm soát an toàn hệ thống.',
+          permissions: [
+            'inspections:create',
+            'inspections:view_all',
+            'inspections:edit_all',
+            'inspections:delete',
+            'inspections:assign',
+            'inspections:approve',
+            'dnf:create',
+            'dnf:view_all',
+            'dnf:edit_all',
+            'dnf:delete',
+            'dnf:manage_status',
+            'dnf:import',
+            'corrective_actions:create',
+            'corrective_actions:view_all',
+            'corrective_actions:edit_all',
+            'corrective_actions:delete',
+            'corrective_actions:assign',
+            'corrective_actions:verify',
+            'hazard:create',
+            'hazard:view_all',
+            'hazard:assess',
+            'hazard:edit_all',
+            'hazard:delete',
+            'hazard:manage_status',
+            'improvements:create',
+            'improvements:view_all',
+            'improvements:edit_all',
+            'improvements:delete',
+            'reports:view',
+            'reports:manage',
+            'users:manage',
+            'roles:manage',
+            'checklist_templates:manage',
+            'settings:manage',
+            'ai:use',
+            'ai:vision',
+            'organization:view',
+            'organization:manage',
+            'users:view_scoped',
+            'users:manage_scoped'
+          ]
+        },
+        {
+          id: ROLE_L3_SPECIALIST,
+          name: 'Chuyên viên (L3)',
+          description: 'Chuyên viên Vận hành & Bảo trì (Cấp độ 3): Lập kế hoạch, phân công công tác tuần tra/bảo trì cấp 3 trong phạm vi OU trực thuộc. Giám sát kỹ thuật và phê duyệt hoàn thành.',
+          permissions: [
+            'users:view_scoped',
+            'users:manage_scoped',
+            'inspections:assign',
+            'inspections:approve',
+            'corrective_actions:assign',
+            'corrective_actions:verify',
+            'hazard:assess',
+            'hazard:manage_status',
+            'inspections:view_all',
+            'corrective_actions:view_all',
+            'hazard:view_all',
+            'dnf:view_all',
+            'dnf:manage_status',
+            'ai:use'
+          ]
+        },
+        {
+          id: ROLE_L2_TECHNICIAN,
+          name: 'Kỹ thuật viên (L2)',
+          description: 'Kỹ thuật viên Hiện trường (Cấp độ 2): Trực tiếp thực hiện bảo dưỡng định kỳ tuần/tháng, xử lý sự cố DNF và thực hiện hành động khắc phục lỗi chuyên sâu.',
+          permissions: [
+            'inspections:create',
+            'inspections:view_all',
+            'dnf:create',
+            'dnf:view_all',
+            'corrective_actions:create',
+            'corrective_actions:view_all',
+            'hazard:create',
+            'hazard:view_all',
+            'ai:use',
+            'ai:vision'
+          ]
+        },
+        {
+          id: ROLE_L1_OPERATOR,
+          name: 'Nhân viên (L1)',
+          description: 'Nhân viên Tuần tra & Vận hành (Cấp độ 1): Thực hiện bảo dưỡng cấp 1 (hàng ngày), tuần tra trực quan hiện trường phát hiện mối nguy (Hazard) và báo cáo hỏng hóc cơ bản.',
+          permissions: [
+            'inspections:create',
+            'inspections:view_all',
+            'dnf:create',
+            'dnf:view_all',
+            'hazard:create',
+            'hazard:view_all',
+            'ai:use'
+          ]
+        }
+      ];
+
+      const currentRoles = await getInternalRoles();
+      for (const r of gradedRoles) {
+        const found = currentRoles.find((cr: any) => cr.id === r.id);
+        if (found) {
+          await updateInternalRole(r.id, {
+            name: r.name,
+            description: r.description,
+            permissions: r.permissions
+          });
+        } else {
+          await createInternalRole(r);
+        }
+      }
+
+      // 3. Create Forest
       const forest = await this.createForest({
-        name: 'Forest (Rừng hệ thống)',
+        id: 'forest-metro-root',
+        name: 'HURC Metro System Forest',
         description: 'Rừng định danh trung tâm điều hành đường sắt đô thị (HURC No.1 CDHS Forest)',
-      });
+      } as any);
 
-      // 2. Create Tree
+      // 4. Create Tree
       const tree = await this.createTree({
-        name: 'Tree (Cây thư mục / Domain Root)',
-        description: 'Cây thư mục gốc - cdhs.hurc1.com.vn',
+        id: 'tree-metro-root',
+        name: 'HURC Maintenance & Operations Tree',
+        description: 'Cây thư mục gốc quản trị bảo trì - cdhs.hurc1.com.vn',
         forestId: forest.id
-      });
+      } as any);
 
-      // 3. Create Child Domain
+      // 5. Create Child Domain
       const domain = await this.createChildDomain({
-        name: 'Child Domain (Miền con)',
-        description: 'Miền con quản trị nhân sự & nghiệp vụ vận hành metro',
+        id: 'domain-metro-root',
+        name: 'maint.hurc.vn',
+        description: 'Miền con quản trị nhân sự & nghiệp vụ vận hành bảo trì Metro',
         treeId: tree.id
-      });
+      } as any);
 
-      // 4. Create Root OU (Đơn vị tổ chức)
-      const rootOu = await this.createOrganizationalUnit({
-        name: 'Organizational Units (OU gốc / Đơn vị tổ chức)',
-        description: 'OU gốc chứa toàn bộ các đơn vị tổ chức của doanh nghiệp',
+      // 6. Create nested OUs (Forest -> Tree -> Domain -> nested OUs)
+      // Level 1: Root OU
+      const ouRoot = await this.createOrganizationalUnit({
+        id: 'ou-cdhs-root',
+        name: 'Xí nghiệp Bảo trì Thiết bị',
+        description: 'Đơn vị tổ chức đầu não chịu trách nhiệm toàn bộ công tác bảo trì, bảo dưỡng hạ tầng, thông tin tín hiệu và đầu máy toa xe Metro (CDHS Maintenance Enterprise).',
         domainId: domain.id,
         parentId: undefined
-      });
+      } as any);
 
-      // 5. Create Departement OU & Branch OU
-      const deptOu = await this.createOrganizationalUnit({
-        name: 'OU Phòng ban (Marketing, IT, Nhân sự...)',
-        description: 'Khối phòng ban chức năng hành chính',
+      // Level 2: Phân xưởng
+      const ouInfra = await this.createOrganizationalUnit({
+        id: 'ou-infra',
+        name: 'Phân xưởng Bảo trì Hạ tầng',
+        description: 'Phòng ban chịu trách nhiệm bảo dưỡng hệ thống cơ sở hạ tầng đường sắt đô thị (đường ray, kiến trúc ga, cung cấp điện).',
         domainId: domain.id,
-        parentId: rootOu.id
-      });
+        parentId: ouRoot.id
+      } as any);
 
-      const branchOu = await this.createOrganizationalUnit({
-        name: 'OU Chi nhánh (Hà Nội, TP.HCM...)',
-        description: 'Khối chi nhánh địa lý và ga vận hành',
+      const ouSigTelecom = await this.createOrganizationalUnit({
+        id: 'ou-sig-telecom',
+        name: 'Phân xưởng Thông tin Tín hiệu',
+        description: 'Phòng ban phụ trách hệ thống chạy tàu tự động, thông tin tín hiệu điều khiển trung tâm OCC và viễn thông ga.',
         domainId: domain.id,
-        parentId: rootOu.id
-      });
+        parentId: ouRoot.id
+      } as any);
 
-      // 6. Create sub-OUs inside Dept OU
-      const itOu = await this.createOrganizationalUnit({
-        name: 'Công nghệ thông tin (IT)',
-        description: 'Phòng IT hạ tầng, mạng và phần mềm điều khiển',
+      const ouRollingStock = await this.createOrganizationalUnit({
+        id: 'ou-rolling-stock',
+        name: 'Phân xưởng Đầu máy Toa xe',
+        description: 'Phân xưởng bảo dưỡng, sửa chữa định kỳ và đại tu toàn bộ đội tàu, đầu máy và các toa xe vận hành trên tuyến.',
         domainId: domain.id,
-        parentId: deptOu.id
-      });
+        parentId: ouRoot.id
+      } as any);
 
-      const hrOu = await this.createOrganizationalUnit({
-        name: 'Nhân sự (HR)',
-        description: 'Ban tuyển dụng và đào tạo nhân sự Metro',
+      // Level 3: Đội under Infra
+      const ouTrackCivil = await this.createOrganizationalUnit({
+        id: 'ou-track-civil',
+        name: 'Đội Bảo trì Đường ray & Kiến trúc',
+        description: 'Đội phụ trách tuần tra ray, căn chỉnh khổ đường và duy tu kiến trúc tầng trên.',
         domainId: domain.id,
-        parentId: deptOu.id
-      });
+        parentId: ouInfra.id
+      } as any);
 
-      // 7. Create sub-OUs inside Branch OU
-      const hnOu = await this.createOrganizationalUnit({
-        name: 'Chi nhánh Hà Nội',
-        description: 'Ban điều hành ga và trung tâm vận hành Hà Nội',
+      const ouPowerSupply = await this.createOrganizationalUnit({
+        id: 'ou-power-supply',
+        name: 'Đội Cung cấp Điện',
+        description: 'Đội vận hành trạm biến áp trung thế, hệ thống điện lưới và ray thứ ba cung cấp điện chạy tàu.',
         domainId: domain.id,
-        parentId: branchOu.id
-      });
+        parentId: ouInfra.id
+      } as any);
 
-      const hcmOu = await this.createOrganizationalUnit({
-        name: 'Chi nhánh TP.HCM',
-        description: 'Ban điều hành ga và trung tâm vận hành TP.HCM',
+      // Level 4: Tổ under Track Civil
+      const ouL1TrackPatrol = await this.createOrganizationalUnit({
+        id: 'ou-l1-track-patrol',
+        name: 'Tổ tuần tra ray Cát Linh - Hà Đông',
+        description: 'Tổ bảo trì L1 (hàng ngày): tuần tra trực quan tuyến đường ray, phát hiện mối nguy nứt/gãy ray cơ bản.',
         domainId: domain.id,
-        parentId: branchOu.id
-      });
+        parentId: ouTrackCivil.id
+      } as any);
 
-      // 8. Assign existing users to seed OUs
+      const ouL2TrackMaint = await this.createOrganizationalUnit({
+        id: 'ou-l2-track-maint',
+        name: 'Đội Kỹ thuật Ray chuyên sâu',
+        description: 'Tổ bảo trì L2 (định kỳ): mài ray, căn chỉnh hình học ray bằng thiết bị đo đạc chuyên nghiệp.',
+        domainId: domain.id,
+        parentId: ouTrackCivil.id
+      } as any);
+
+      // Level 4: Tổ under Power Supply
+      const ouL1StationPower = await this.createOrganizationalUnit({
+        id: 'ou-l1-station-power',
+        name: 'Tổ vận hành trạm ga',
+        description: 'Tổ bảo trì L1 (hàng ngày): ghi chỉ số điện kế, kiểm tra trực quan tủ điện hạ thế và thiết bị chiếu sáng ga.',
+        domainId: domain.id,
+        parentId: ouPowerSupply.id
+      } as any);
+
+      const ouL2PowerGrid = await this.createOrganizationalUnit({
+        id: 'ou-l2-power-grid',
+        name: 'Tổ bảo dưỡng thiết bị điện chuyên sâu',
+        description: 'Tổ bảo trì L2 (định kỳ): bảo dưỡng máy biến áp, tủ ngắt mạch chân không VCB trạm biến áp chính.',
+        domainId: domain.id,
+        parentId: ouPowerSupply.id
+      } as any);
+
+      // Level 3: Đội under SigTelecom
+      const ouSignaling = await this.createOrganizationalUnit({
+        id: 'ou-signaling',
+        name: 'Đội Kỹ thuật Tín hiệu',
+        description: 'Đội chuyên trách hệ thống tín hiệu điều khiển chạy tàu tự động (ATC/CBTC).',
+        domainId: domain.id,
+        parentId: ouSigTelecom.id
+      } as any);
+
+      const ouTelecom = await this.createOrganizationalUnit({
+        id: 'ou-telecom',
+        name: 'Đội Kỹ thuật Viễn thông',
+        description: 'Đội phụ trách mạng truyền dẫn quang, hệ thống camera giám sát CCTV, phát thanh hành khách PA và thông tin nội bộ.',
+        domainId: domain.id,
+        parentId: ouSigTelecom.id
+      } as any);
+
+      // Level 4: Tổ under Signaling
+      const ouL1TrainControl = await this.createOrganizationalUnit({
+        id: 'ou-l1-train-control',
+        name: 'Tổ tuần tra thiết bị chạy tàu',
+        description: 'Tổ bảo trì L1 (hàng ngày): kiểm tra hiển thị đèn tín hiệu ga, bộ đếm trục và máy chuyển ghi hiện trường.',
+        domainId: domain.id,
+        parentId: ouSignaling.id
+      } as any);
+
+      const ouL2AtcSignaling = await this.createOrganizationalUnit({
+        id: 'ou-l2-atc-signaling',
+        name: 'Tổ bảo dưỡng chuyên sâu tín hiệu',
+        description: 'Tổ bảo trì L2 (định kỳ): căn chỉnh máy chuyển ghi, đo điện áp mạch vòng, kiểm thử phần mềm ATO/ATP trên tàu.',
+        domainId: domain.id,
+        parentId: ouSignaling.id
+      } as any);
+
+      // Level 4: Tổ under Telecom
+      const ouL2Telecom = await this.createOrganizationalUnit({
+        id: 'ou-l2-telecom',
+        name: 'Tổ bảo trì viễn thông ga',
+        description: 'Tổ bảo trì L2 (định kỳ): vệ sinh camera, kiểm định bộ đàm cầm tay, cấu hình tổng đài PABX ga.',
+        domainId: domain.id,
+        parentId: ouTelecom.id
+      } as any);
+
+      // Level 3: Đội under Rolling Stock
+      const ouRollingStockTeam = await this.createOrganizationalUnit({
+        id: 'ou-rolling-stock-team',
+        name: 'Đội Kỹ thuật Toa xe',
+        description: 'Đội phụ trách kiểm định, bảo trì hệ thống cơ khí và điện khí của các đoàn tàu metro.',
+        domainId: domain.id,
+        parentId: ouRollingStock.id
+      } as any);
+
+      // Level 4: Tổ under Rolling Stock Team
+      const ouL2BrakeServicing = await this.createOrganizationalUnit({
+        id: 'ou-l2-brake-servicing',
+        name: 'Tổ sửa chữa cơ cấu phanh hãm',
+        description: 'Tổ bảo trì L2 (định kỳ): siêu âm đĩa phanh, thay thế má phanh mòn và kiểm thử lực phanh thủy lực.',
+        domainId: domain.id,
+        parentId: ouRollingStockTeam.id
+      } as any);
+
+      const ouL2CabinPower = await this.createOrganizationalUnit({
+        id: 'ou-l2-cabin-power',
+        name: 'Tổ bảo dưỡng điện toa xe',
+        description: 'Tổ bảo trì L2 (định kỳ): kiểm tra ắc quy dự phòng, hệ thống điều hòa không khí HVAC cabin tàu và bảng mạch hiển thị thông tin.',
+        domainId: domain.id,
+        parentId: ouRollingStockTeam.id
+      } as any);
+
+      // 7. Assign existing users to seeded OUs & Roles
       const users = await getInternalUsers();
-      if (users.length > 0) {
-        // Assign the first few users to IT and Hanoi/HCM
-        const itUsers = users.slice(0, 2);
-        const hnUsers = users.slice(2, 4);
-        const hcmUsers = users.slice(4);
-
-        for (const u of itUsers) {
-          await dbProvider.update('User', u.id, { ouId: itOu.id, department: 'IT' });
-        }
-        for (const u of hnUsers) {
-          await dbProvider.update('User', u.id, { ouId: hnOu.id, department: 'Chi nhánh Hà Nội' });
-        }
-        for (const u of hcmUsers) {
-          await dbProvider.update('User', u.id, { ouId: hcmOu.id, department: 'Chi nhánh TP.HCM' });
+      for (const u of users) {
+        if (u.email === 'nhhoang@hurc.vn') {
+          await dbProvider.update('User', u.id, { 
+            ouId: ouRoot.id, 
+            department: 'Xí nghiệp Bảo trì Thiết bị',
+            role: ROLE_SUPER_ADMIN
+          });
+        } else {
+          // Dynamically distribute other users based on matching criteria
+          if (u.email.includes('specialist') || u.name.includes('Chuyên viên')) {
+            await dbProvider.update('User', u.id, {
+              ouId: ouInfra.id,
+              department: 'Phân xưởng Bảo trì Hạ tầng',
+              role: ROLE_L3_SPECIALIST
+            });
+          } else if (u.email.includes('tech') || u.name.includes('Kỹ thuật viên')) {
+            await dbProvider.update('User', u.id, {
+              ouId: ouL2PowerGrid.id,
+              department: 'Tổ bảo dưỡng thiết bị điện chuyên sâu',
+              role: ROLE_L2_TECHNICIAN
+            });
+          } else if (u.email.includes('operator') || u.name.includes('Nhân viên')) {
+            await dbProvider.update('User', u.id, {
+              ouId: ouL1TrackPatrol.id,
+              department: 'Tổ tuần tra ray Cát Linh - Hà Đông',
+              role: ROLE_L1_OPERATOR
+            });
+          } else if ((u.role as string) === 'Admin') {
+            await dbProvider.update('User', u.id, {
+              ouId: ouRoot.id,
+              department: 'Phòng Kỹ thuật An toàn',
+              role: ROLE_ADMIN_PKTAT
+            });
+          }
         }
       }
 
