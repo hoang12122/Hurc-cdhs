@@ -364,10 +364,13 @@ Lệnh này sẽ thực thi script [migrate-json-to-pg.ts](file:///d:/Hurc1CRM-m
 
 ## 6. THIẾT LẬP PHÂN QUYỀN VÀ QUẢN LÝ ĐỘI NHÓM THEO PHÂN CẤP AD (AD Hierarchy-Based Scoped RBAC)
 
-Hệ thống HURC No.1 CDHS áp dụng một cơ chế bảo mật kép độc đáo: **Kiểm soát Truy cập dựa trên Vai trò (RBAC)** kết hợp với **Giới hạn Phạm vi theo Phân cấp Tổ chức AD (AD-Scoped Access Control)**.
+Hệ thống HURC No.1 CDHS áp dụng một cơ chế bảo mật kép độc đáo: **Kiểm soát Truy cập dựa trên Vai trò (RBAC - Role-Based Access Control)** kết hợp với **Giới hạn Phạm vi theo Phân cấp Tổ chức AD (AD-Scoped Access Control)**.
 
-##### 6.1. Nguyên lý Hoạt động của Phân cấp Tổ chức AD
-Cơ cấu nhân sự được tổ chức theo hình cây tương thích Active Directory:
+---
+
+##### 6.1. Nguyên lý Hoạt động & Mô hình Phân cấp Cơ sở Dữ liệu (AD Hierarchy & Database Schema Model)
+
+Cơ cấu nhân sự được tổ chức theo hình cây tương thích Active Directory, cho phép quản lý chặt chẽ sơ đồ tổ chức từ cấp liên bộ phận đến từng ga tàu và kỹ sư:
 ```text
 Forest (Rừng hệ thống: hurc.local)
  └── Tree (Cây thư mục / Domain Root: metro1.hurc.local)
@@ -378,12 +381,228 @@ Forest (Rừng hệ thống: hurc.local)
 ```
 Mỗi người dùng (`User`) khi khởi tạo sẽ được gán vào một Đơn vị Tổ chức cụ thể (`ouId`). Nếu người dùng chưa được gán OU (trường `ouId = null`), phạm vi truy cập dữ liệu của họ bị thu hẹp ở mức tối thiểu (chỉ xem được dữ liệu cá nhân tự tạo).
 
+Hệ thống được thiết kế với cơ chế **Dual-Resilience** (Độ bền kép): Tự động định tuyến giữa **PostgreSQL (Prisma client)** ở trạng thái Online và **Atomic JSON Database (`db.json`)** ở trạng thái Offline.
+
+###### Sơ đồ ERD Phân cấp Cơ cấu Tổ chức (ERD Organization Hierarchy Schema)
+
+```mermaid
+erDiagram
+    FORESTS ||--o{ TREES : contains
+    TREES ||--o{ CHILD_DOMAINS : contains
+    CHILD_DOMAINS ||--o{ ORGANIZATIONAL_UNITS : contains
+    ORGANIZATIONAL_UNITS ||--o{ ORGANIZATIONAL_UNITS : recursive
+    ORGANIZATIONAL_UNITS ||--o{ USERS : contains
+    ROLES ||--o{ USERS : assigned
+    PATROL_LOCATIONS ||--o| ORGANIZATIONAL_UNITS : dynamic_mapping
+    RESPONSIBLE_UNITS ||--o| ORGANIZATIONAL_UNITS : dynamic_mapping
+    SUBSYSTEMS ||--o| ORGANIZATIONAL_UNITS : dynamic_mapping
+
+    FORESTS {
+        string id PK
+        string name UNIQUE
+        string description
+        datetime createdAt
+        datetime updatedAt
+    }
+    TREES {
+        string id PK
+        string name UNIQUE
+        string description
+        string forestId FK
+        datetime createdAt
+    }
+    CHILD_DOMAINS {
+        string id PK
+        string name UNIQUE
+        string description
+        string treeId FK
+    }
+    ORGANIZATIONAL_UNITS {
+        string id PK
+        string name
+        string description
+        string domainId FK
+        string parentId FK
+    }
+    USERS {
+        string id PK
+        string name
+        string email UNIQUE
+        string role FK
+        string ouId FK
+        string department
+        string permissions
+    }
+    ROLES {
+        string id PK
+        string name
+        string description
+        string permissions
+    }
+```
+
+###### Bảng phân tích chi tiết Ánh xạ Thuộc tính Metadata (Metadata Attribute Mapping)
+
+| Thực thể AD | Trường Dữ liệu | Kiểu Dữ liệu | Vai trò Kỹ thuật / Quy tắc Điều phối |
+| :--- | :--- | :--- | :--- |
+| **Forest** | `id` | `String (PK)` | Định danh duy nhất cho Rừng AD (Ví dụ: `forest-metro-root`). |
+| | `name` | `String` | Tên Rừng trung tâm điều hành Metro (Ví dụ: *HURC Metro System Forest*). |
+| **Tree** | `id` | `String (PK)` | Định danh Cây AD (Ví dụ: `tree-metro-root`). |
+| | `forestId` | `String (FK)` | Khóa ngoại liên kết chặt chẽ đệ quy lên `Forest.id` (`ON DELETE CASCADE`). |
+| **ChildDomain** | `id` | `String (PK)` | Định danh miền con (Ví dụ: `domain-metro-root`). |
+| | `name` | `String` | Domain chạy hệ thống dịch vụ kỹ thuật bảo trì (Ví dụ: `maint.hurc.vn`). |
+| **OrganizationalUnit** | `id` | `String (PK)` | Định danh OU chính thức trong DB hoặc tiền tố đặc thù cho OU ảo. |
+| | `parentId` | `String (FK)` | **Khóa ngoại tự liên kết đệ quy (Recursive self-relation)** trỏ tới `id` của OU cha. Cho phép tạo cây lồng nhau không giới hạn độ sâu. |
+| **User** | `ouId` | `String (FK)` | Định danh OU hiện tại người dùng đang trực thuộc (trỏ tới `OrganizationalUnit.id`). |
+| | `role` | `String (FK)` | Mã vai trò kỹ thuật trỏ tới `Role.id` trong Danh mục Vai trò. |
+| | `department` | `String` | Chuỗi tên phân xưởng/đội/ga làm việc của người dùng để tương thích ngược. |
+| | `permissions` | `String[]` | Danh sách quyền hạn đặc quyền được gán trực tiếp trên tài khoản (tĩnh). |
+
+---
+
 ##### 6.2. Phân tách Quyền hạn Toàn cầu và Quyền hạn theo Phạm vi (Global vs. Scoped Permissions)
-Hệ thống phân tách rõ ràng 2 nhóm quyền:
+
+Hệ thống phân tách rõ ràng 2 nhóm quyền hạn để vừa đảm bảo tính tập trung trong quản lý của phòng kỹ thuật, vừa tăng tính chủ động của các đội vận hành cơ sở:
 1. **Quyền hạn Toàn cầu (Global Permissions):** Thường dành cho `SUPER_ADMIN` hoặc các vai trò quản lý cấp cao tại Root Domain (ví dụ: `users:manage`, `inspections:view_all`, `corrective_actions:view_all`). Những người sở hữu quyền này có thể xem và chỉnh sửa dữ liệu trên toàn hệ thống mà không bị giới hạn bởi OU.
 2. **Quyền hạn theo Phạm vi (Scoped Permissions):** Thường dành cho các trưởng bộ phận hoặc chuyên viên tại các OU con (ví dụ: `users:view_scoped`, `users:manage_scoped`, `organization:view`). Quyền truy cập của họ bị giới hạn nghiêm ngặt trong OU họ trực thuộc và các OU con bên dưới.
 
-##### 6.3. Cơ chế Lọc Dữ liệu theo Phạm vi OU (OU-Scoped Data Filtering)
+---
+
+##### 6.3. Cơ chế Điều phối OU ảo liên kết Danh mục Động (Dynamic Virtual OU Coordination)
+
+Để tránh việc nhập liệu thủ công gấp đôi (Double Entry) và duy trì sự linh động tối đa theo Danh mục Người dùng & Vị trí làm việc, hệ thống sử dụng thuật toán **Ánh xạ Động theo Tiền tố (Prefix Dynamic Mapping)**. Khi gọi phương thức `getOrganizationalUnits()`, các danh mục động được tải trực tiếp từ cơ sở dữ liệu và chuyển đổi tức thời thành các OU ảo trên cây tổ chức AD.
+
+###### Ma trận Tiền tố Định danh OU ảo (Virtual OU ID Prefix Mapping Table)
+
+| Nguồn Danh mục | Tiền tố ID Sinh ra | Vị trí neo đậu trong AD (parentId) | Tên hiển thị AD tương ứng |
+| :--- | :--- | :--- | :--- |
+| **PatrolLocation**<br>*(Vị trí tuần tra/Nhà ga)* | `ou-loc-${id}` | Lồng dưới **Đội Vận hành Ga (`ou-stations`)** nếu có, hoặc thư mục cha `ou-category-locations`. | `Ga: ${loc.label}` |
+| **ResponsibleUnit**<br>*(Đội chuyên trách nghiệp vụ)* | `ou-unit-${id}` | Lồng dưới thư mục quản trị `ou-category-responsible-units`. | `Đơn vị: ${unit.name}` |
+| **Subsystem**<br>*(Hệ thống kỹ thuật chuyên ngành)* | `ou-sub-${id}` | Lồng dưới thư mục quản trị `ou-category-subsystems`. | `Hệ thống: ${subsystem.label}` |
+
+###### Luồng Nạp và Tra cứu Cơ cấu Tổ chức AD (AD Tree Building Flow)
+
+```text
+[Khởi động / Gọi Tree API]
+          │
+          ▼
+ Tải OUs chuẩn từ DB ➔ Array [Standard OUs]
+          │
+          ▼
+ Tải các Danh mục (Locations, Units, Subsystems) 
+          │
+          ├─► Chuyển đổi thành Array [Virtual OUs] bằng Tiền tố
+          │
+          ▼
+ Gộp mảng: [Merged OUs] = [Standard OUs] ∪ [Virtual OUs]
+          │
+          ▼
+ [Xây dựng Cây AD đệ quy theo parentId]
+   - Bắt đầu từ parentId = null (Root OUs)
+   - Lọc Users có User.ouId === OU.id
+   - Duyệt đệ quy con cháu đến các Tổ kỹ thuật và các Ga động
+          │
+          ▼
+[Kết quả: Sơ đồ AD Sâu 29-OU hoàn chỉnh cho Metro]
+```
+
+---
+
+##### 6.4. Ma trận Phân quyền Vai trò Bảo trì Phân cấp (Graded Maintenance Matrix)
+
+Phân quyền kỹ sư bảo trì và nhân viên vận hành được thiết kế nghiêm ngặt theo **5 cấp độ chuyên nghiệp** (Maintenance Levels), tương thích hoàn hảo với vai trò kỹ thuật thực tế tại các xí nghiệp:
+
+```text
+                  ┌──────────────────────────────────────────────┐
+                  │                 SUPER_ADMIN                  │  (Cấp độ Tối cao)
+                  │                   Quyền [*]                  │
+                  └──────────────────────┬───────────────────────┘
+                                         ▼
+                   ┌──────────────────────────────────────────────┐
+                   │                Admin (P.KTAT)                │  (Cấp độ 4 - Đại tu & An toàn)
+                   │       reports:manage, organization:manage    │
+                   └──────────────────────┬───────────────────────┘
+                                          ▼
+                   ┌──────────────────────────────────────────────┐
+                   │               Chuyên viên (L3)               │  (Cấp độ 3 - Lập kế hoạch & Phê duyệt)
+                   │       inspections:assign, dnf:manage_status  │
+                   └──────────────────────┬───────────────────────┘
+                                          ▼
+                   ┌──────────────────────────────────────────────┐
+                   │              Kỹ thuật viên (L2)              │  (Cấp độ 2 - Sửa chữa sự cố định kỳ)
+                   │       inspections:create, ai:vision          │
+                   └──────────────────────┬───────────────────────┘
+                                          ▼
+                   ┌──────────────────────────────────────────────┐
+                   │                Nhân viên (L1)                │  (Cấp độ 1 - Tuần tra & Báo cáo cơ bản)
+                   │       inspections:create, hazard:create      │
+                   └──────────────────────────────────────────────┘
+```
+
+###### Ma trận Phân phối Quyền hạn chi tiết (Precise Authorization Grid)
+
+| Nhóm chức năng | Mã Quyền hạn Hệ thống | L1 | L2 | L3 | Admin (P.KTAT) | Super Admin |
+| :--- | :--- | :---: | :---: | :---: | :---: | :---: |
+| **Kiểm tra (Inspection)** | `inspections:create` | ✅ | ✅ | ❌ | ✅ | ✅ |
+| | `inspections:view_all` | ✅ | ✅ | ✅ | ✅ | ✅ |
+| | `inspections:assign` | ❌ | ❌ | ✅ | ✅ | ✅ |
+| | `inspections:approve` | ❌ | ❌ | ✅ | ✅ | ✅ |
+| **Sự cố (Incidents DNF)**| `dnf:create` | ✅ | ✅ | ❌ | ✅ | ✅ |
+| | `dnf:view_all` | ✅ | ✅ | ✅ | ✅ | ✅ |
+| | `dnf:manage_status` | ❌ | ❌ | ✅ | ✅ | ✅ |
+| **Mối nguy (Hazards)** | `hazard:create` | ✅ | ✅ | ❌ | ✅ | ✅ |
+| | `hazard:assess` | ❌ | ❌ | ✅ | ✅ | ✅ |
+| | `hazard:manage_status` | ❌ | ❌ | ✅ | ✅ | ✅ |
+| **Khắc phục (Actions)** | `corrective_actions:create` | ❌ | ✅ | ❌ | ✅ | ✅ |
+| | `corrective_actions:assign` | ❌ | ❌ | ✅ | ✅ | ✅ |
+| | `corrective_actions:verify` | ❌ | ❌ | ✅ | ✅ | ✅ |
+| **Báo cáo (Reports)** | `reports:view` | ❌ | ❌ | ❌ | ✅ | ✅ |
+| | `reports:manage` | ❌ | ❌ | ❌ | ✅ | ✅ |
+| **Trí tuệ Nhân tạo (AI)** | `ai:use` | ✅ | ✅ | ✅ | ✅ | ✅ |
+| | `ai:vision` (Phân tích ảnh) | ❌ | ✅ | ❌ | ✅ | ✅ |
+| **Quản trị (Admin)** | `users:manage` | ❌ | ❌ | ❌ | ✅ | ✅ |
+| | `users:manage_scoped` (OU) | ❌ | ❌ | ✅ | ❌ | ✅ |
+| | `organization:manage` | ❌ | ❌ | ❌ | ✅ | ✅ |
+
+---
+
+##### 6.5. Công thức & Thuật toán Phân giải Quyền hạn Động (Dynamic Permission Resolution)
+
+Hệ thống thực hiện phân giải quyền hạn của người dùng tại thời điểm runtime khi thực thi yêu cầu (API Request). Cơ chế này loại bỏ hoàn toàn việc lưu trữ trùng lặp dữ liệu quyền hạn tĩnh trên tài khoản người dùng, đồng thời cho phép cập nhật chính sách phân quyền tức thời khi điều chỉnh Danh mục Vai trò.
+
+###### Công thức Toán học (Mathematical Formalism)
+
+Gọi $U$ là tài khoản Người dùng (User), $R$ là Vai trò (Role) được gán cho Người dùng đó trong Danh mục Vai trò. 
+Gọi $P(X)$ là tập hợp các quyền hạn của thực thể $X$.
+
+Tập hợp quyền hạn thực tế của người dùng tại thời điểm Runtime, ký hiệu là $P_{runtime}(U)$, được định nghĩa bằng phép Hợp (Union) của hai tập hợp:
+
+$$P_{runtime}(U) = P(R) \cup P(U)$$
+
+Trong đó:
+*   $P(R)$ là tập hợp các quyền hạn được cấu hình tập trung cho Vai trò $R$ tại **Danh mục Vai trò** (`userRole.permissions`).
+*   $P(U)$ là tập hợp các quyền hạn đặc cách/tùy biến được cấu hình trực tiếp trên **Tài khoản người dùng** $U$ (`dbUser.permissions`).
+
+###### Hiện thực hóa thuật toán bằng TypeScript (TypeScript Implementation)
+
+Được trích xuất trực tiếp từ [auth-service.ts](file:///d:/Hurc1CRM-main/Hurc-cdhs/src/lib/services/auth-service.ts):
+```typescript
+const roles: any[] = await getInternalRoles();
+const userRole = roles.find((r: any) => r.id === dbUser.role || r.name === dbUser.role);
+const rolePermissions = userRole?.permissions || [];
+
+const resolvedPermissions = Array.from(new Set([
+    ...rolePermissions,
+    ...(dbUser.permissions || [])
+]));
+```
+*   **Sử dụng `Set`:** Loại bỏ hoàn toàn các quyền trùng lặp, tối ưu hóa kích thước mảng bộ nhớ.
+*   **Độ phức tạp:** $O(N + M)$ trong đó $N$ là số quyền của Vai trò và $M$ là số quyền đặc cách của tài khoản. Cho phép xử lý cực nhanh dưới 1ms trong phiên làm việc.
+
+---
+
+##### 6.6. Cơ chế Lọc Dữ liệu theo Phạm vi OU (OU-Scoped Data Filtering)
+
 Quy tắc bảo mật theo phạm vi OU được áp dụng nghiêm ngặt trên cả **Quản lý Người dùng (User Management)** và **Dữ liệu Vận hành (Operational Data - Inspections, DNFs, Hazards)**:
 * **Đối với Quản lý Người dùng (User.actions - `getUsers`):**
   - Người dùng có quyền `users:manage` hoặc vai trò `SUPER_ADMIN` được quyền xem toàn bộ người dùng trong hệ thống.
@@ -394,15 +613,21 @@ Quy tắc bảo mật theo phạm vi OU được áp dụng nghiêm ngặt trên
   - Khi một kỹ sư thực hiện truy vấn danh sách sự cố DNF, kiểm tra Inspection hoặc hồ sơ mối nguy Hazard, hệ thống sẽ gọi hàm kiểm tra phạm vi. Người dùng chỉ nhìn thấy các bản ghi được tạo bởi các thành viên thuộc cùng OU hoặc các OU con trực thuộc.
   - Ví dụ: Một **Chuyên viên L3** thuộc OU **"IT"** sẽ nhìn thấy tất cả các phiếu kiểm tra, sự cố do các thành viên thuộc OU **"IT"** lập ra, nhưng hoàn toàn không thể thấy dữ liệu của OU **"Đội Bảo trì Đường ray"** trừ khi họ được gán quyền toàn cầu.
 
-##### 6.4. Động cơ Phân tích Phạm vi Tổ chức (`OUScopeService` - `ou-scope-service.ts`)
+---
+
+##### 6.7. Động cơ Phân tích Phạm vi Tổ chức (`OUScopeService` - `ou-scope-service.ts`)
+
 Lớp tĩnh `OUScopeService` cung cấp các thuật toán đệ quy tối ưu để phân tích mối quan hệ phân cấp:
 1. `getOUAncestors(ouId: string): Promise<string[]>`: Đi bộ ngược dòng cây thông qua `parentId` để thu thập mọi OU cha, ông cho tới gốc Domain.
 2. `getOUDescendants(ouId: string): Promise<string[]>`: Đệ quy đi xuống để thu thập toàn bộ danh sách các OU con và cháu trực thuộc.
-3. `isOUInScope(userOuId, targetOuId): Promise<boolean>`: Trả về `true` nếu OU mục tiêu trùng với OU của người dùng hoặc là con/cháu của OU đó.
-4. `getUsersInScope(userOuId): Promise<string[]>`: Trả về danh sách ID người dùng nằm trong phân cấp OU được gán.
+3. `isOUInScope(userOuId: string | null | undefined, targetOuId: string | null | undefined): Promise<boolean>`: Trả về `true` nếu OU mục tiêu trùng với OU của người dùng hoặc là con/cháu của OU đó.
+4. `getUsersInScope(userOuId: string | null | undefined): Promise<string[]>`: Trả về danh sách ID người dùng nằm trong phân cấp OU được gán.
 5. `getOUScopePath(ouId: string): Promise<string>`: Giải quyết đường dẫn đầy đủ dạng chuỗi (ví dụ: `hurc.local > metro1.hurc.local > ops.metro1.hurc.local > Xí nghiệp Bảo trì > Phân xưởng IT`).
 
-##### 6.5. Bộ kiểm soát Quyền theo Phạm vi (`requireScopedPermission` - `auth-enforcer.ts`)
+---
+
+##### 6.8. Bộ kiểm soát Quyền theo Phạm vi (`requireScopedPermission` - `auth-enforcer.ts`)
+
 Để bảo vệ các Server Action và các trang Web khỏi việc truy cập trái phép, hệ thống triển khai hàm kiểm soát an ninh `requireScopedPermission`:
 ```typescript
 export async function requireScopedPermission(permission: string, targetOuId?: string | null) {
@@ -436,18 +661,69 @@ export async function requireScopedPermission(permission: string, targetOuId?: s
 
 ---
 
-## 6. HƯỚNG DẪN CÀI ĐẶT & THAM CHIẾU CẤU HÌNH CHI TIẾT
+##### 6.9. Cơ chế Điều phối Bảo vệ Toàn vẹn Dữ liệu Đệ quy (Recursive Data Integrity Safeguards)
+
+Hai cơ chế an toàn tối cao giúp hệ thống tự động bảo vệ cơ sở dữ liệu khi cơ cấu tổ chức thay đổi hoặc bị xóa, ngăn chặn triệt để lỗi mồ côi (Dangling Pointers) và crash ứng dụng do OU ảo:
+
+###### 6.9.1. Lưu đồ Bảo vệ Xóa đệ quy AD (Safe OU Deletion Workflow)
+
+```mermaid
+graph TD
+    A[Yêu cầu xóa OU ID] --> B{ID có phải OU ảo?}
+    B -- Có (tiền tố ou-loc-, ou-unit-, ou-sub-) --> C[Return ngay lập tức - Không xóa DB]
+    B -- Không (OU tiêu chuẩn) --> D[Lấy toàn bộ OUs trong DB]
+    D --> E[Lọc các OU con có parentId === ID]
+    E --> F{Có OU con nào?}
+    F -- Có --> G[Gọi đệ quy deleteOrganizationalUnit cho từng OU con]
+    G --> E
+    F -- Không --> H[Lấy tất cả Users thuộc OU cha này]
+    H --> I[Cập nhật User: Đặt ouId = null và department = null]
+    I --> J[Thực hiện xóa bản ghi OU cha trong DB]
+    J --> K[Hoàn tất dọn dẹp dữ liệu sạch sẽ]
+```
+*   **Chốt chặn bảo vệ OU ảo:** Hàm `deleteOrganizationalUnit` được cấu hình chốt chặn `if (id.startsWith(...)) return;` để ngăn chặn việc gọi lệnh xóa xuống DB đối với các ID có cấu trúc ảo (`ou-loc-`, `ou-unit-`, `ou-sub-`).
+*   **Bảo vệ đệ quy cascade:** Tự động quyét và xóa các OU con sâu bên dưới trước khi thực hiện xóa OU cha.
+
+###### 6.9.2. Cơ chế Khắc phục Mồ côi Người dùng khi Xóa Danh mục (Category-Dangling Cleanup)
+
+Khi một danh mục nghiệp vụ (ví dụ: một Ga hành khách $L$) bị xóa ở trang Quản lý Danh mục, hệ thống sẽ thực thi điều phối ánh xạ dữ liệu:
+
+$$\text{Nếu } L \text{ bị xóa } \Longrightarrow \forall U \in \text{Users } \mid U.ouId == \text{"ou-loc-" + } L.id \Longrightarrow U.ouId = \text{null}$$
+
+Hiện thực hóa trong mã nguồn [category-service.ts](file:///d:/Hurc1CRM-main/Hurc-cdhs/src/lib/services/category-service.ts):
+```typescript
+export async function deleteInternalLocation(id: string) {
+    // 1. Quét dọn trước để tránh rác dữ liệu trên người dùng gán với ga này
+    try {
+      const users = await dbProvider.findMany<any>('User');
+      const virtualOuId = `ou-loc-${id}`;
+      const affectedUsers = users.filter((u: any) => u.ouId === virtualOuId);
+      for (const u of affectedUsers) {
+        await dbProvider.update('User', u.id, { ouId: null });
+      }
+    } catch (e) {
+      console.warn('[CATEGORY-SERVICE] Failed to clean up user references for deleted location:', e);
+    }
+    
+    // 2. Tiến hành xóa ga khỏi DB
+    // ...
+}
+```
+
+---
+
+## 7. HƯỚNG DẪN CÀI ĐẶT & THAM CHIẾU CẤU HÌNH CHI TIẾT
 
 Dưới đây là phần giải nghĩa chi tiết cấu hình và hướng dẫn cài đặt hệ thống nhằm bảo vệ tính an toàn và bất biến tuyệt đối.
 
-### 6.0. Yêu cầu Môi trường & Phiên bản Node.js (Node.js & Environment Requirements)
+### 7.0. Yêu cầu Môi trường & Phiên bản Node.js (Node.js & Environment Requirements)
 
 Để hệ thống hoạt động ổn định và tránh lỗi bất tương thích nhị phân (ABI) trong các thư viện (đặc biệt là Prisma ORM và các module mã hóa), hệ thống áp đặt quy định chặt chẽ về phiên bản Node.js:
 - **Phiên bản bắt buộc:** Node.js **`v20.12.2`** (được chỉ định động tại tệp `.nvmrc` và `.node-version`).
 - **Chốt chặn cục bộ (Preflight Node Guard):** Chốt chặn `scripts/preflight-node.js` đã được tích hợp trực tiếp vào vòng đời của các lệnh `npm run dev` và `npm run build`. Nếu chạy bằng phiên bản Node.js khác, tiến trình sẽ ngay lập tức bị ngắt (`exit 1`) và hướng dẫn kỹ sư cách đồng bộ.
 - **Sử dụng NVM:** Chạy lệnh `nvm install 20.12.2 && nvm use 20.12.2` để thiết lập đúng phiên bản trước khi chạy cài đặt hoặc khởi chạy.
 
-### 6.1. Tham chiếu chi tiết tệp cấu hình .env
+### 7.1. Tham chiếu chi tiết tệp cấu hình .env
 
 Tệp tin này nằm tại thư mục gốc [.env](.env), điều khiển toàn bộ hành vi khởi chạy hệ thống:
 
@@ -477,7 +753,7 @@ JWT_SECRET="secure_token_generation_key_hurc1_metro_2026"
 
 ---
 
-### 6.2. Tham chiếu chi tiết dịch vụ docker-compose.yml
+### 7.2. Tham chiếu chi tiết dịch vụ docker-compose.yml
 
 Tệp cấu hình [docker-compose.yml](docker-compose.yml) định nghĩa cách các container được dựng lên và cô lập cổng mạng.
 
@@ -522,7 +798,18 @@ Tệp cấu hình [docker-compose.yml](docker-compose.yml) định nghĩa cách 
 
 ---
 
-## 7. ẨN DỤ ĐỜI THƯỜNG DÀNH CHO NGƯỜI MỚI
+### 7.3. Quy trình Kiểm nghiệm Sức bền (Smoke Test & Rollback Policies)
+
+Hệ thống tích hợp quy trình kiểm duyệt chất lượng và sức bền tự động cực kỳ nghiêm ngặt nhằm tránh việc "Build thành công nhưng Runtime thất bại" (Build Pass but Runtime Fail):
+1. **Chốt chặn Smoke Test cục bộ:** Kịch bản `scripts/smoke-deploy.sh` sẽ thực hiện gửi các gói tin HTTP kiểm tra đến các cổng API của Nginx, App, YOLO-Service, và Ollama.
+2. **Đặc cách cho container tác vụ ngắn hạn:** Đối với container `hurc_ollama_pull` (có nhiệm vụ tải model AI khi khởi chạy rồi tự dừng ở trạng thái `exited` với mã thoát `0`), trình kiểm duyệt sẽ đặc cách bỏ qua kiểm tra trạng thái hoạt động dài hạn nếu mã thoát là `0` để tránh phát hiện lỗi giả (false-positive).
+3. **Quy tắc GO/NO-GO & Rollback:** 
+   - **GO:** Tiến trình deploy được hoàn tất nếu và chỉ nếu toàn bộ các chốt chặn kiểm thử sức bền đạt 100% kết quả thành công.
+   - **NO-GO:** Nếu bất kỳ một kiểm thử nhỏ nào thất bại, hệ thống tự động kích hoạt tiến trình Rollback nhanh khẩn cấp (sử dụng `scripts/rollback-drill.sh` hoặc checkout lại commit ổn định gần nhất) để giữ vững tính ổn định tuyệt đối của hệ thống Metro.
+
+---
+
+## 8. ẨN DỤ ĐỜI THƯỜNG DÀNH CHO NGƯỜI MỚI
 
 Để giúp những người hoàn toàn không có kiến thức kỹ thuật cơ bản vẫn có thể hiểu và tự tay vận hành được toàn bộ hệ thống này, dưới đây là bảng quy đổi toàn bộ kiến trúc phức tạp trên thành những hình ảnh vô cùng dân dã:
 
@@ -557,15 +844,6 @@ Tệp cấu hình [docker-compose.yml](docker-compose.yml) định nghĩa cách 
 - **Ngôi nhà chính (Next.js App)** sẽ mở **Tủ hồ sơ (Database)** ra kiểm tra xem khách hàng đó tên gì, có tiền án tiền sự hay không.
 - Nếu khách hàng có câu hỏi khó về kỹ thuật tàu hỏa, chủ nhà sẽ chạy sang **Phòng cố vấn chiến lược (Ollama AI)** để hỏi ý kiến chuyên gia. Chuyên gia sẽ giở đúng cuốn **Sách hướng dẫn tàu (RAG)** đặt trên kệ để đọc câu trả lời chính xác, tránh việc tự bịa ra thông tin làm hại đến an toàn hành khách.
 - Mọi hoạt động trong ngôi nhà từ việc đón khách, mở tủ hồ sơ, đến câu hỏi của chuyên gia đều được ghi chép cẩn thận vào cuốn **Sổ nhật ký của người giám sát (Loki logs)** và hiển thị liên tục lên **Màn hình camera an ninh (Grafana)** để Ban giám đốc theo dõi từ xa.
-
-### 6.3. Quy trình Kiểm nghiệm Sức bền (Smoke Test & Rollback Policies)
-
-Hệ thống tích hợp quy trình kiểm duyệt chất lượng và sức bền tự động cực kỳ nghiêm ngặt nhằm tránh việc "Build thành công nhưng Runtime thất bại" (Build Pass but Runtime Fail):
-1. **Chốt chặn Smoke Test cục bộ:** Kịch bản `scripts/smoke-deploy.sh` sẽ thực hiện gửi các gói tin HTTP kiểm tra đến các cổng API của Nginx, App, YOLO-Service, và Ollama.
-2. **Đặc cách cho container tác vụ ngắn hạn:** Đối với container `hurc_ollama_pull` (có nhiệm vụ tải model AI khi khởi chạy rồi tự dừng ở trạng thái `exited` với mã thoát `0`), trình kiểm duyệt sẽ đặc cách bỏ qua kiểm tra trạng thái hoạt động dài hạn nếu mã thoát là `0` để tránh phát hiện lỗi giả (false-positive).
-3. **Quy tắc GO/NO-GO & Rollback:** 
-   - **GO:** Tiến trình deploy được hoàn tất nếu và chỉ nếu toàn bộ các chốt chặn kiểm thử sức bền đạt 100% kết quả thành công.
-   - **NO-GO:** Nếu bất kỳ một kiểm thử nhỏ nào thất bại, hệ thống tự động kích hoạt tiến trình Rollback nhanh khẩn cấp (sử dụng `scripts/rollback-drill.sh` hoặc checkout lại commit ổn định gần nhất) để giữ vững tính ổn định tuyệt đối của hệ thống Metro.
 
 ---
 *Tài liệu được biên soạn và bảo chứng chất lượng ở mức độ phân tử bởi Đội ngũ kỹ sư Hệ thống HURC1 CRM.*
