@@ -137,17 +137,25 @@ export class OrganizationService {
         dbProvider.findMany<any>('Subsystem')
       ]);
 
-      const defaultDomain = domainId || (ous[0]?.domainId) || 'domain-default';
+      const defaultDomain = domainId || (ous[0]?.domainId) || 'domain-metro-root';
 
-      // 1. Virtual categories parent OUs
-      const categoryParents: OrganizationalUnit[] = [
-        {
+      // Check if the seeded Operations Station OU exists
+      const hasOuStations = ous.some(o => o.id === 'ou-stations');
+
+      // 1. Virtual categories parent OUs (only include locations category folder if not integrated into operations branch)
+      const categoryParents: OrganizationalUnit[] = [];
+      
+      if (!hasOuStations) {
+        categoryParents.push({
           id: 'ou-category-locations',
           name: 'Danh mục Vị trí (Locations)',
           description: 'Các đơn vị phân cấp theo địa lý và vị trí tuần tra',
           domainId: defaultDomain,
           parentId: ous[0]?.parentId || undefined
-        },
+        });
+      }
+
+      categoryParents.push(
         {
           id: 'ou-category-responsible-units',
           name: 'Danh mục Đơn vị chịu trách nhiệm (Responsible Units)',
@@ -162,16 +170,22 @@ export class OrganizationService {
           domainId: defaultDomain,
           parentId: ous[0]?.parentId || undefined
         }
-      ];
+      );
 
-      // 2. Map locations to OUs
-      const locationOus: OrganizationalUnit[] = locations.map(loc => ({
-        id: `ou-loc-${loc.id}`,
-        name: `Vị trí: ${loc.label}`,
-        description: `Vị trí tuần tra liên kết từ danh mục`,
-        domainId: defaultDomain,
-        parentId: 'ou-category-locations'
-      }));
+      // 2. Map locations to dynamic/virtual OUs
+      const locationOus: OrganizationalUnit[] = locations.map(loc => {
+        const labelVi = typeof loc.label === 'object'
+          ? (loc.label.vi || loc.label.en || loc.id)
+          : (loc.label || loc.id);
+
+        return {
+          id: `ou-loc-${loc.id}`,
+          name: hasOuStations ? `Ga: ${labelVi}` : `Vị trí: ${labelVi}`,
+          description: `Vị trí nhà ga vận hành liên kết động từ danh mục`,
+          domainId: defaultDomain,
+          parentId: hasOuStations ? 'ou-stations' : 'ou-category-locations'
+        };
+      });
 
       // 3. Map responsible units to OUs
       const unitOus: OrganizationalUnit[] = responsibleUnits.map(unit => ({
@@ -685,31 +699,6 @@ export class OrganizationService {
         parentId: ouOcc.id
       } as any);
 
-      // Level 3: Nhóm ga under Stations (Working Locations)
-      const ouStationCatLinh = await this.createOrganizationalUnit({
-        id: 'ou-station-catlinh',
-        name: 'Nhóm ga Cát Linh (Terminal Station)',
-        description: 'Tổ vận hành tại ga đầu tuyến Cát Linh: Trưởng ga, Trực ban và Nhân viên bán vé ga.',
-        domainId: domain.id,
-        parentId: ouStations.id
-      } as any);
-
-      const ouStationPhungKhoang = await this.createOrganizationalUnit({
-        id: 'ou-station-phungkhoang',
-        name: 'Nhóm ga Phùng Khoang (Intermediate Station)',
-        description: 'Tổ vận hành tại ga trung gian Phùng Khoang.',
-        domainId: domain.id,
-        parentId: ouStations.id
-      } as any);
-
-      const ouStationYenNghia = await this.createOrganizationalUnit({
-        id: 'ou-station-yennghia',
-        name: 'Nhóm ga Yên Nghĩa (Terminal Station & Depot)',
-        description: 'Tổ vận hành tại ga cuối Yên Nghĩa và phụ cận khu vực Depot.',
-        domainId: domain.id,
-        parentId: ouStations.id
-      } as any);
-
       // Level 3: Tổ under Train Driving (Drivers)
       const ouDriverMain = await this.createOrganizationalUnit({
         id: 'ou-driver-main',
@@ -729,6 +718,15 @@ export class OrganizationService {
 
       // 7. Assign existing users to seeded OUs & Roles
       const users = await getInternalUsers();
+      
+      // Fetch dynamic locations to map station operations users instead of hardcoding
+      const patrolLocations = await dbProvider.findMany<any>('PatrolLocation');
+      const firstLocation = patrolLocations[0];
+      const dynamicStationOuId = firstLocation ? `ou-loc-${firstLocation.id}` : ouStations.id;
+      const dynamicStationName = firstLocation 
+        ? `Ga: ${typeof firstLocation.label === 'object' ? (firstLocation.label.vi || firstLocation.label.en) : firstLocation.label}` 
+        : 'Đội Vận hành Ga';
+
       for (const u of users) {
         if (u.email === 'nhhoang@hurc.vn') {
           await dbProvider.update('User', u.id, { 
@@ -758,15 +756,15 @@ export class OrganizationService {
           } else if (emailLower.includes('station') || nameLower.includes('trưởng ga') || nameLower.includes('trực ban')) {
             // Station Masters -> Technician L2
             await dbProvider.update('User', u.id, {
-              ouId: ouStationCatLinh.id,
-              department: 'Nhóm ga Cát Linh',
+              ouId: dynamicStationOuId,
+              department: dynamicStationName,
               role: ROLE_L2_TECHNICIAN
             });
           } else if (emailLower.includes('operator') || nameLower.includes('bán vé') || nameLower.includes('nhân viên ga')) {
             // Station Staff -> Operator L1
             await dbProvider.update('User', u.id, {
-              ouId: ouStationCatLinh.id,
-              department: 'Nhóm ga Cát Linh',
+              ouId: dynamicStationOuId,
+              department: dynamicStationName,
               role: ROLE_L1_OPERATOR
             });
           } else if (emailLower.includes('specialist') || nameLower.includes('chuyên viên')) {
