@@ -97,7 +97,7 @@ export async function getSessionUser(): Promise<User | null> {
         // Fetch roles using getInternalRoles() which handles ONLINE (authDb) and OFFLINE (jsonDb) modes
         const roles: any[] = await getInternalRoles();
         const userRole = roles.find((r: any) => r.id === dbUser.role || r.name === dbUser.role);
-        const permissions = userRole?.permissions || [];
+        const rolePermissions = userRole?.permissions || [];
 
         return {
             id: dbUser.id || userId,
@@ -109,7 +109,10 @@ export async function getSessionUser(): Promise<User | null> {
             isVerified: dbUser.isVerified ?? true,
             mustChangePassword: dbUser.mustChangePassword ?? false,
             passwordLastChangedAt: typeof dbUser.passwordLastChangedAt === 'string' ? dbUser.passwordLastChangedAt : (dbUser.passwordLastChangedAt as any)?.toISOString?.() || new Date().toISOString(),
-            permissions: dbUser.permissions || permissions,
+            permissions: Array.from(new Set([
+                ...rolePermissions,
+                ...(dbUser.permissions || [])
+            ])),
             activeSessionId: dbUser.activeSessionId,
             ouId: dbUser.ouId || null,
         };
