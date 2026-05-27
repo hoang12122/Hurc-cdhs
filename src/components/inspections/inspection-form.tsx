@@ -472,7 +472,23 @@ export function InspectionForm({ initialData, isEditMode = false }: InspectionFo
 
 
   const onSubmit = async (data: InspectionFormValues) => {
-    const finalStatus: InspectionDetail['status'] = "Mới";
+    // === Validation Gate: Block saving if any "fail" item has no findings with descriptions ===
+    const failItemsWithoutFindings = data.checklistItems.filter(
+      (item) => item.status === 'fail' && (!item.findings || item.findings.length === 0 || item.findings.every((f) => !f.description || f.description.trim() === ''))
+    );
+    if (failItemsWithoutFindings.length > 0) {
+      toast({
+        variant: "destructive",
+        title: locale === 'vi' ? "Lỗi kiểm duyệt" : "Validation Error",
+        description: locale === 'vi'
+          ? `Các hạng mục 'Không đạt' (${failItemsWithoutFindings.map(i => i.text).join(', ')}) bắt buộc phải có ít nhất một phát hiện ghi rõ mô tả lỗi.`
+          : `Failed items (${failItemsWithoutFindings.map(i => i.text).join(', ')}) must have at least one finding with a description.`,
+      });
+      return;
+    }
+
+    // === Status Preservation: In edit mode, keep the original status instead of resetting to "Mới" ===
+    const finalStatus: InspectionDetail['status'] = isEditMode && initialData?.status ? initialData.status : "Mới";
             
     if (isEditMode && initialData?.id) {
         const inspectionRecord: InspectionDetail = {
@@ -797,6 +813,14 @@ export function InspectionForm({ initialData, isEditMode = false }: InspectionFo
                                         updatedFindings[0] = { ...updatedFindings[0], description: autoDescription, quantity: actualQty };
                                         form.setValue(`checklistItems.${checklistIndex}.findings`, updatedFindings);
                                     }
+                                    } else {
+                                    // === Auto-correction: Value returned within tolerance → auto-pass & cleanup ===
+                                    form.setValue(`checklistItems.${checklistIndex}.status`, 'pass');
+                                    const currentFindings = form.getValues(`checklistItems.${checklistIndex}.findings`) || [];
+                                    const cleanedFindings = currentFindings.filter(
+                                        (f: any) => !(f.id && String(f.id).startsWith('finding-auto-'))
+                                    );
+                                    form.setValue(`checklistItems.${checklistIndex}.findings`, cleanedFindings);
                                     }
                                 }
                                 }}

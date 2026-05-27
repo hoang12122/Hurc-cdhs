@@ -56,6 +56,9 @@ export function mapInternalInspectionToUi(inspection: any): InspectionDetail {
     const updatedAt = typeof inspection.updatedAt === 'object' ? inspection.updatedAt.toISOString() : (inspection.updatedAt || new Date().toISOString());
     const lastStatusUpdateAt = typeof inspection.lastStatusUpdateAt === 'object' ? inspection.lastStatusUpdateAt.toISOString() : inspection.lastStatusUpdateAt;
 
+    // Normalizing checklist items properties to prevent database key mismatches (camelCase <-> snake_case)
+    const checklistItems = inspection.checklistItems || inspection.checklist_items || [];
+
     return {
         ...inspection,
         id,
@@ -66,7 +69,11 @@ export function mapInternalInspectionToUi(inspection: any): InspectionDetail {
         lastStatusUpdateAt,
         status: inspection.status || 'Draft',
         isArchived: inspection.isArchived || false,
-        areaIds: inspection.areaIds || (inspection.stationId ? [inspection.stationId] : [])
+        areaIds: inspection.areaIds || (inspection.stationId ? [inspection.stationId] : []),
+        checklistItems: checklistItems.map((item: any) => ({
+            ...item,
+            findings: item.findings || item.finding_details || []
+        }))
     } as unknown as InspectionDetail;
 }
 

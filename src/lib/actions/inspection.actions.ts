@@ -62,7 +62,7 @@ export async function getInspectionById(id: string): Promise<InspectionDetail | 
 }
 
 export async function addInspection(inspectionData: Omit<InspectionDetail, 'id'>): Promise<InspectionDetail> {
-    const user = await requirePermission('inspection:create');
+    const user = await requirePermission('inspections:create');
     const record = await createInternalInspection(inspectionData, user.id, user.name);
     await logSystemEvent('CREATE_INSPECTION', 'INFO', `Created inspection: ${record.title}`);
     revalidatePath('/inspections');
@@ -71,13 +71,26 @@ export async function addInspection(inspectionData: Omit<InspectionDetail, 'id'>
 
 export async function updateInspection(updatedInspection: InspectionDetail): Promise<void> {
     const user = await requireAuth();
+
+    // Scoped Permission validation for updating inspections
+    if (user.role !== 'SUPER_ADMIN' && !user.permissions?.includes('inspections:edit_all')) {
+        const isOwner = updatedInspection.inspector === user.id || updatedInspection.inspector === user.name;
+        const isLocked = ['Đóng', 'Hủy', 'Hoàn thành', 'Đã duyệt'].includes(updatedInspection.status);
+        if (!isOwner) {
+            throw new Error("Bạn không có quyền chỉnh sửa phiếu kiểm tra này.");
+        }
+        if (isLocked) {
+            throw new Error("Phiếu kiểm tra đã được phê duyệt/khóa, không thể chỉnh sửa.");
+        }
+    }
+
     await updateInternalInspection(updatedInspection.id, updatedInspection, user.name);
     await logSystemEvent('UPDATE_INSPECTION', 'INFO', `Updated inspection: ${updatedInspection.title}`);
     revalidatePath('/inspections');
 }
 
 export async function deleteInspection(id: string): Promise<void> {
-    await requirePermission('inspection:delete');
+    await requirePermission('inspections:delete');
     await deleteInternalInspection(id);
     await logSystemEvent('DELETE_INSPECTION', 'WARNING', `Deleted inspection ID: ${id}`);
     revalidatePath('/inspections');
