@@ -204,9 +204,15 @@ export const jsonDb = {
     // 1. Tự sinh UUID nếu chưa có id (Sử dụng crypto.randomUUID() chuẩn Node.js)
     const id = record.id || (await import('crypto')).randomUUID();
     
-    // 2. Kiểm tra trùng lặp ID để tránh ghi đè bản ghi cũ
-    if (db[collectionName].some((item: any) => item.id === id)) {
-      throw new Error(`Record with ID ${id} already exists in collection '${collectionName}'.`);
+    // 2. Kiểm tra trùng lặp ID để tránh ghi đè bản ghi cũ (Cho phép ghi đè nếu bản ghi cũ đã bị xóa mềm)
+    const existingIndex = db[collectionName].findIndex((item: any) => item.id === id);
+    if (existingIndex !== -1) {
+      const existing = db[collectionName][existingIndex];
+      if (existing.deletedAt) {
+        db[collectionName].splice(existingIndex, 1);
+      } else {
+        throw new Error(`Record with ID ${id} already exists in collection '${collectionName}'.`);
+      }
     }
 
     const now = new Date().toISOString();
