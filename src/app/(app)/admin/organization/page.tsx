@@ -362,7 +362,12 @@ export default function IntegratedADConsolePage() {
             }
           }
         } else if (selectedNode.type === 'ou') {
-          defaultParentId = selectedNode.id;
+          const isVirtual = 
+            selectedNode.id.startsWith('ou-category-') ||
+            selectedNode.id.startsWith('ou-loc-') ||
+            selectedNode.id.startsWith('ou-unit-') ||
+            selectedNode.id.startsWith('ou-sub-');
+          defaultParentId = isVirtual ? "" : selectedNode.id;
           for (const f of treeData) {
             if (f.children) {
               for (const t of f.children) {
@@ -547,10 +552,21 @@ export default function IntegratedADConsolePage() {
   };
 
   // Node styling helpers for AD tree
-  const getNodeColor = (type: TreeNode['type'], isSelected: boolean) => {
+  const getNodeColor = (node: TreeNode, isSelected: boolean) => {
     if (isSelected) return "border-primary bg-primary/10 shadow-[0_0_15px_rgba(59,130,246,0.3)] text-primary";
     
-    switch (type) {
+    const isVirtualOu = node.type === 'ou' && (
+      node.id.startsWith('ou-category-') ||
+      node.id.startsWith('ou-loc-') ||
+      node.id.startsWith('ou-unit-') ||
+      node.id.startsWith('ou-sub-')
+    );
+
+    if (isVirtualOu) {
+      return "border-cyan-500/20 hover:border-cyan-400 text-cyan-400 bg-cyan-950/20";
+    }
+
+    switch (node.type) {
       case 'forest': return "border-blue-500/20 hover:border-blue-400 text-blue-400 bg-blue-950/20";
       case 'tree': return "border-emerald-500/20 hover:border-emerald-400 text-emerald-400 bg-emerald-950/20";
       case 'domain': return "border-violet-500/20 hover:border-violet-400 text-violet-400 bg-violet-950/20";
@@ -559,8 +575,19 @@ export default function IntegratedADConsolePage() {
     }
   };
 
-  const getNodeIcon = (type: TreeNode['type']) => {
-    switch (type) {
+  const getNodeIcon = (node: TreeNode) => {
+    const isVirtualOu = node.type === 'ou' && (
+      node.id.startsWith('ou-category-') ||
+      node.id.startsWith('ou-loc-') ||
+      node.id.startsWith('ou-unit-') ||
+      node.id.startsWith('ou-sub-')
+    );
+
+    if (isVirtualOu) {
+      return <Layers className="h-4 w-4 text-cyan-400 animate-pulse" />;
+    }
+
+    switch (node.type) {
       case 'forest': return <Network className="h-4 w-4" />;
       case 'tree': return <FolderGit2 className="h-4 w-4" />;
       case 'domain': return <Globe2 className="h-4 w-4" />;
@@ -569,7 +596,18 @@ export default function IntegratedADConsolePage() {
     }
   };
 
-  const getLabelByType = (type: TreeNode['type']) => {
+  const getLabelByType = (type: TreeNode['type'], id?: string) => {
+    const isVirtualOu = type === 'ou' && id && (
+      id.startsWith('ou-category-') ||
+      id.startsWith('ou-loc-') ||
+      id.startsWith('ou-unit-') ||
+      id.startsWith('ou-sub-')
+    );
+
+    if (isVirtualOu) {
+      return locale === 'vi' ? "Đơn vị ảo (Virtual OU)" : "Virtual OU";
+    }
+
     switch (type) {
       case 'forest': return locale === 'vi' ? "Rừng hệ thống" : "Forest Root";
       case 'tree': return locale === 'vi' ? "Cây thư mục" : "Tree Root";
@@ -590,7 +628,7 @@ export default function IntegratedADConsolePage() {
         <div key={node.id} className="flex flex-col ml-4">
           <div 
             onClick={() => handleSelectNode(node)}
-            className={`flex items-center gap-2 p-2.5 my-1 rounded-lg border backdrop-blur-sm cursor-pointer transition-all duration-300 ${getNodeColor(node.type, isSelected)}`}
+            className={`flex items-center gap-2 p-2.5 my-1 rounded-lg border backdrop-blur-sm cursor-pointer transition-all duration-300 ${getNodeColor(node, isSelected)}`}
           >
             {hasChildren ? (
               <button 
@@ -603,7 +641,7 @@ export default function IntegratedADConsolePage() {
               <div className="w-4.5" />
             )}
             
-            {getNodeIcon(node.type)}
+            {getNodeIcon(node)}
             <span className="font-medium text-sm font-sans truncate">{node.name}</span>
             {node.type !== 'user' && node.children && (
               <span className="text-[10px] opacity-60 ml-auto mr-1 bg-black/30 px-1.5 py-0.5 rounded-full">
@@ -788,6 +826,11 @@ export default function IntegratedADConsolePage() {
         await addResponsibleUnit({ name: catFieldLabel });
         toast({ title: locale === 'vi' ? "Đã thêm đơn vị chịu trách nhiệm." : "Unit created." });
       } else {
+        if (responsibleUnits.some(u => u.name === catFieldLabel && u.id !== catFieldId)) {
+          toast({ variant: "destructive", title: locale === 'vi' ? "Tên đơn vị này đã tồn tại." : "Unit name exists." });
+          setLoading(false);
+          return;
+        }
         await updateResponsibleUnit({ id: catFieldId, name: catFieldLabel });
         toast({ title: locale === 'vi' ? "Đã cập nhật đơn vị chịu trách nhiệm." : "Unit updated." });
       }
@@ -1061,7 +1104,7 @@ export default function IntegratedADConsolePage() {
                   </span>
                   {selectedNode && (
                     <Badge variant="outline" className="text-[10px] uppercase font-bold border-slate-700 bg-slate-950 px-2 py-0.5">
-                      {getLabelByType(selectedNode.type)}
+                      {getLabelByType(selectedNode.type, selectedNode.id)}
                     </Badge>
                   )}
                 </CardTitle>
@@ -1501,9 +1544,17 @@ export default function IntegratedADConsolePage() {
                     className="w-full h-10 px-3 rounded-lg border border-slate-800 bg-slate-950 text-slate-100 focus:outline-none focus:border-primary text-sm"
                   >
                     <option value="">{locale === 'vi' ? "-- Tên miền gốc (Root OU) --" : "-- None (Root OU) --"}</option>
-                    {ouList.filter(o => o.id !== adDialogTarget.id).map(o => (
-                      <option key={o.id} value={o.id}>{o.name}</option>
-                    ))}
+                    {ouList
+                      .filter(o => 
+                        o.id !== adDialogTarget.id &&
+                        !o.id.startsWith('ou-category-') &&
+                        !o.id.startsWith('ou-loc-') &&
+                        !o.id.startsWith('ou-unit-') &&
+                        !o.id.startsWith('ou-sub-')
+                      )
+                      .map(o => (
+                        <option key={o.id} value={o.id}>{o.name}</option>
+                      ))}
                   </select>
                 </div>
               </>
