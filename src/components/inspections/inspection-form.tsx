@@ -489,69 +489,96 @@ export function InspectionForm({ initialData, isEditMode = false }: InspectionFo
 
     // === Status Preservation: In edit mode, keep the original status instead of resetting to "Mới" ===
     const finalStatus: InspectionDetail['status'] = isEditMode && initialData?.status ? initialData.status : "Mới";
-            
-    if (isEditMode && initialData?.id) {
-        const inspectionRecord: InspectionDetail = {
-            ...(initialData as InspectionDetail),
-            title: data.inspectionTitle,
-            date: data.inspectionDate,
-            inspector: data.inspectorName,
-            checklistTemplateId: data.checklistTemplateId,
-            areaIds: data.areaIds,
-            checklistItems: data.checklistItems as any,
-            generalNotes: data.generalNotes,
-            status: finalStatus,
-            scheduledStartDate: data.scheduledStartDate,
-            scheduledFinishDate: data.scheduledFinishDate,
-            estimatedDurationHours: data.estimatedDurationHours,
-        };
-        await updateInspection(inspectionRecord);
-        toast({
-            title: t.updateSuccessTitle,
-            description: t.updateSuccessDesc(data.inspectionTitle),
-        });
-        router.push(`/inspections/${initialData.id}`);
-    } else {
-        const inspectionRecord: Omit<InspectionDetail, 'id'> = {
-            title: data.inspectionTitle,
-            date: data.inspectionDate,
-            inspector: data.inspectorName,
-            checklistTemplateId: data.checklistTemplateId,
-            areaIds: data.areaIds,
-            checklistItems: data.checklistItems as any,
-            generalNotes: data.generalNotes,
-            status: finalStatus,
-            scheduledStartDate: data.scheduledStartDate,
-            scheduledFinishDate: data.scheduledFinishDate,
-            estimatedDurationHours: data.estimatedDurationHours
-        };
 
-        if (!isOnline) {
-            await offlineSync.addAction({
-                type: 'INSPECTION_CREATE',
-                entityType: 'INSPECTION',
-                data: inspectionRecord,
-            });
-            toast({
-                title: locale === 'vi' ? "Đã lưu Ngoại tuyến" : "Saved Offline",
-                description: locale === 'vi' ? "Dữ liệu sẽ được tự động đồng bộ khi có mạng." : "Data will be synced automatically when online.",
-            });
-            router.push("/inspections");
-            return;
-        }
+    try {
+      if (isEditMode && initialData?.id) {
+          const inspectionRecord: InspectionDetail = {
+              ...(initialData as InspectionDetail),
+              title: data.inspectionTitle,
+              date: data.inspectionDate,
+              inspector: data.inspectorName,
+              checklistTemplateId: data.checklistTemplateId,
+              areaIds: data.areaIds,
+              checklistItems: data.checklistItems as any,
+              generalNotes: data.generalNotes,
+              status: finalStatus,
+              scheduledStartDate: data.scheduledStartDate,
+              scheduledFinishDate: data.scheduledFinishDate,
+              estimatedDurationHours: data.estimatedDurationHours,
+          };
+          await updateInspection(inspectionRecord);
+          toast({
+              title: t.updateSuccessTitle,
+              description: t.updateSuccessDesc(data.inspectionTitle),
+          });
+          router.push(`/inspections/${initialData.id}`);
+      } else {
+          const inspectionRecord: Omit<InspectionDetail, 'id'> = {
+              title: data.inspectionTitle,
+              date: data.inspectionDate,
+              inspector: data.inspectorName,
+              checklistTemplateId: data.checklistTemplateId,
+              areaIds: data.areaIds,
+              checklistItems: data.checklistItems as any,
+              generalNotes: data.generalNotes,
+              status: finalStatus,
+              scheduledStartDate: data.scheduledStartDate,
+              scheduledFinishDate: data.scheduledFinishDate,
+              estimatedDurationHours: data.estimatedDurationHours
+          };
 
-        await addInspection(inspectionRecord);
-        toast({
-            title: t.saveSuccessTitle,
-            description: t.saveSuccessDesc(data.inspectionTitle),
-        });
-        router.push("/inspections?refresh=true");
+          if (!isOnline) {
+              await offlineSync.addAction({
+                  type: 'INSPECTION_CREATE',
+                  entityType: 'INSPECTION',
+                  data: inspectionRecord,
+              });
+              toast({
+                  title: locale === 'vi' ? "Đã lưu Ngoại tuyến" : "Saved Offline",
+                  description: locale === 'vi' ? "Dữ liệu sẽ được tự động đồng bộ khi có mạng." : "Data will be synced automatically when online.",
+              });
+              router.push("/inspections");
+              return;
+          }
+
+          await addInspection(inspectionRecord);
+          toast({
+              title: t.saveSuccessTitle,
+              description: t.saveSuccessDesc(data.inspectionTitle),
+          });
+          router.push("/inspections?refresh=true");
+      }
+    } catch (error: any) {
+      console.error("[InspectionForm] Save failed:", error);
+      toast({
+        variant: "destructive",
+        title: locale === 'vi' ? "Lỗi lưu kiểm tra" : "Save Error",
+        description: error?.message || (locale === 'vi' ? "Đã xảy ra lỗi khi lưu. Vui lòng thử lại." : "An error occurred while saving. Please try again."),
+      });
     }
+  };
+
+  const onFormError = (errors: any) => {
+    console.error("[InspectionForm] Validation errors:", errors);
+    const errorMessages: string[] = [];
+    if (errors.inspectionTitle) errorMessages.push(locale === 'vi' ? 'Thiếu tiêu đề' : 'Missing title');
+    if (errors.inspectionDate) errorMessages.push(locale === 'vi' ? 'Thiếu ngày kiểm tra' : 'Missing date');
+    if (errors.inspectorName) errorMessages.push(locale === 'vi' ? 'Thiếu tên người kiểm tra' : 'Missing inspector');
+    if (errors.areaIds) errorMessages.push(locale === 'vi' ? 'Chưa chọn khu vực' : 'No area selected');
+    if (errors.checklistItems) errorMessages.push(locale === 'vi' ? 'Lỗi dữ liệu hạng mục checklist' : 'Checklist item data error');
+    
+    toast({
+      variant: "destructive",
+      title: locale === 'vi' ? "Biểu mẫu chưa hợp lệ" : "Form Validation Error",
+      description: errorMessages.length > 0
+        ? errorMessages.join(', ')
+        : (locale === 'vi' ? 'Vui lòng kiểm tra lại các trường bắt buộc.' : 'Please check required fields.'),
+    });
   };
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+      <form onSubmit={form.handleSubmit(onSubmit, onFormError)} className="space-y-8">
         <Card>
           <CardHeader>
             <CardTitle>{t.generalInfoTitle}</CardTitle>
