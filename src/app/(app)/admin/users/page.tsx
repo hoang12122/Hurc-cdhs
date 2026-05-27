@@ -216,6 +216,8 @@ export default function UserManagementPage() {
   const [ouList, setOuList] = React.useState<any[]>([]);
   const [isUserDialogOpen, setIsUserDialogOpen] = React.useState(false);
   const [editingUser, setEditingUser] = React.useState<User | null>(null);
+  const [isOuPopoverOpen, setIsOuPopoverOpen] = React.useState(false);
+  const [ouSearchText, setOuSearchText] = React.useState("");
   const [searchTerm, setSearchTerm] = React.useState("");
   const [showPassword, setShowPassword] = React.useState(false);
   const [isResetPasswordDialogOpen, setIsResetPasswordDialogOpen] = React.useState(false);
@@ -560,32 +562,86 @@ export default function UserManagementPage() {
                   control={form.control}
                   name="ouId"
                   render={({ field }) => (
-                    <FormItem>
+                    <FormItem className="flex flex-col">
                       <FormLabel htmlFor="user_ouId">{locale === 'vi' ? "Đơn vị tổ chức (OU)" : "Organizational Unit (OU)"}</FormLabel>
-                      <Select 
-                        onValueChange={(val) => {
-                          field.onChange(val);
-                          // Auto-fill department with the OU name for backward compatibility
-                          const matchingOu = ouList.find(o => o.id === val);
-                          if (matchingOu) {
-                            form.setValue('department', matchingOu.name);
-                          }
-                        }} 
-                        value={field.value}
-                      >
-                        <FormControl>
-                          <SelectTrigger id="user_ouId">
-                            <SelectValue placeholder={locale === 'vi' ? "Chọn đơn vị tổ chức" : "Select OU"} />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {ouList.map(ou => (
-                            <SelectItem key={ou.id} value={ou.id}>
-                              {'\u00A0\u00A0'.repeat(ou.level * 2) + (ou.level > 0 ? '↳ ' : '') + ou.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                      <div className="relative">
+                        <button
+                          id="user_ouId"
+                          type="button"
+                          onClick={() => setIsOuPopoverOpen(prev => !prev)}
+                          className="flex h-10 w-full items-center justify-between rounded-md border border-slate-800 bg-slate-950 px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-primary disabled:cursor-not-allowed disabled:opacity-50"
+                        >
+                          <span className="truncate">
+                            {field.value
+                              ? ouList.find(o => o.id === field.value)?.name || field.value
+                              : (locale === 'vi' ? "Chọn đơn vị tổ chức" : "Select OU")}
+                          </span>
+                          <ChevronsUpDown className="h-4 w-4 opacity-50" />
+                        </button>
+                        
+                        {isOuPopoverOpen && (
+                          <div className="absolute z-50 mt-1 max-h-60 w-full overflow-hidden rounded-md border border-slate-800 bg-slate-950 shadow-2xl animate-fadeIn flex flex-col">
+                            <div className="flex items-center gap-1.5 p-2 border-b border-slate-900 bg-slate-950/80">
+                              <Search className="h-3.5 w-3.5 text-slate-400 shrink-0" />
+                              <input
+                                type="text"
+                                placeholder={locale === 'vi' ? "Tìm kiếm đơn vị..." : "Search unit..."}
+                                value={ouSearchText}
+                                onChange={(e) => setOuSearchText(e.target.value)}
+                                className="w-full bg-transparent text-xs text-slate-100 placeholder:text-slate-500 focus:outline-none"
+                                autoFocus
+                              />
+                              {ouSearchText && (
+                                <button 
+                                  type="button" 
+                                  onClick={() => setOuSearchText("")}
+                                  className="text-slate-500 hover:text-slate-300 text-xs px-1"
+                                >
+                                  ✕
+                                </button>
+                              )}
+                            </div>
+                            
+                            <div className="overflow-y-auto custom-scrollbar flex-1 py-1 max-h-48">
+                              <div 
+                                onClick={() => {
+                                  field.onChange("");
+                                  setIsOuPopoverOpen(false);
+                                  setOuSearchText("");
+                                }}
+                                className="relative flex w-full cursor-pointer select-none items-center rounded-sm py-1.5 px-3 text-xs text-slate-400 outline-none hover:bg-slate-900 hover:text-slate-100 transition-colors"
+                              >
+                                {locale === 'vi' ? "-- Không gán (None) --" : "-- None --"}
+                              </div>
+                              
+                              {ouList
+                                .filter(ou => ou.name.toLowerCase().includes(ouSearchText.toLowerCase()))
+                                .map(ou => (
+                                  <div
+                                    key={ou.id}
+                                    onClick={() => {
+                                      field.onChange(ou.id);
+                                      // Auto-fill department for backward compatibility
+                                      form.setValue('department', ou.name);
+                                      setIsOuPopoverOpen(false);
+                                      setOuSearchText("");
+                                    }}
+                                    className={`relative flex w-full cursor-pointer select-none items-center rounded-sm py-1.5 px-3 text-xs outline-none transition-colors ${field.value === ou.id ? 'bg-primary/20 text-primary font-semibold' : 'text-slate-300 hover:bg-slate-900 hover:text-slate-100'}`}
+                                  >
+                                    {'\u00A0\u00A0'.repeat(ou.level * 2) + (ou.level > 0 ? '↳ ' : '') + ou.name}
+                                  </div>
+                                ))
+                              }
+                              
+                              {ouList.filter(ou => ou.name.toLowerCase().includes(ouSearchText.toLowerCase())).length === 0 && (
+                                <div className="p-4 text-center text-xs text-slate-500 italic">
+                                  {locale === 'vi' ? "Không tìm thấy kết quả" : "No results found"}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        )}
+                      </div>
                       <FormMessage />
                     </FormItem>
                   )}
