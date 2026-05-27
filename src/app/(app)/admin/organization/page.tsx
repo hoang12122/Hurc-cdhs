@@ -923,7 +923,14 @@ export default function IntegratedADConsolePage() {
 
           {activeTab === "categories" && (
             <Button 
-              onClick={() => handleOpenCatDialog(categorySubTab as any, 'create')}
+              onClick={() => {
+                const subtabToType: Record<string, 'location' | 'unit' | 'subsystem'> = {
+                  'locations': 'location',
+                  'responsible-units': 'unit',
+                  'subsystems': 'subsystem'
+                };
+                handleOpenCatDialog(subtabToType[categorySubTab] || 'location', 'create');
+              }}
               className="bg-primary hover:bg-primary/95 text-white gap-1 shadow-glow"
             >
               <PlusCircle className="h-4 w-4" />
