@@ -27,7 +27,7 @@ import {
   ChevronRight, ChevronDown, Plus, Trash2, Edit, RefreshCw, 
   ShieldAlert, UserCheck, Layers, Settings, Undo2, MapPin, 
   Building2, SlidersHorizontal, ShieldCheck, CheckSquare, PlusCircle,
-  Database
+  Database, Info
 } from "lucide-react";
 import { ROLE_SUPER_ADMIN, SYSTEM_PERMISSIONS, type SystemPermission, type Role, type ResponsibleUnit, type Subsystem, type PatrolLocation } from "@/lib/constants";
 import { 
@@ -692,11 +692,14 @@ export default function IntegratedADConsolePage() {
   };
 
   const handlePermissionChange = (permissionId: string, checked: boolean | string) => {
-    setCurrentPermissions(prev =>
-      checked
-        ? [...prev, permissionId]
-        : prev.filter(p => p !== permissionId)
-    );
+    setCurrentPermissions(prev => {
+      const isChecked = !!checked;
+      if (isChecked) {
+        return prev.includes(permissionId) ? prev : [...prev, permissionId];
+      } else {
+        return prev.filter(p => p !== permissionId);
+      }
+    });
   };
 
   const handleSavePermissions = async () => {
@@ -1080,7 +1083,14 @@ export default function IntegratedADConsolePage() {
                         )}
                       </div>
                       
-                      {['forest', 'tree', 'domain', 'ou'].includes(selectedNode.type) && isSuperAdmin && (
+                      {['forest', 'tree', 'domain', 'ou'].includes(selectedNode.type) && isSuperAdmin && !(
+                        selectedNode.type === 'ou' && (
+                          selectedNode.id.startsWith('ou-category-') || 
+                          selectedNode.id.startsWith('ou-loc-') || 
+                          selectedNode.id.startsWith('ou-unit-') || 
+                          selectedNode.id.startsWith('ou-sub-')
+                        )
+                      ) && (
                         <div className="flex items-center gap-1.5 shrink-0">
                           <Button 
                             variant="outline" 
@@ -1103,6 +1113,26 @@ export default function IntegratedADConsolePage() {
                         </div>
                       )}
                     </div>
+
+                    {/* Virtual OU Warning Banner */}
+                    {selectedNode.type === 'ou' && (
+                      selectedNode.id.startsWith('ou-category-') || 
+                      selectedNode.id.startsWith('ou-loc-') || 
+                      selectedNode.id.startsWith('ou-unit-') || 
+                      selectedNode.id.startsWith('ou-sub-')
+                    ) && (
+                      <div className="p-3.5 rounded-xl border border-blue-500/20 bg-blue-950/20 flex items-start gap-2.5 text-xs text-blue-400">
+                        <Info className="h-4.5 w-4.5 shrink-0 text-blue-400 mt-0.5" />
+                        <div className="flex flex-col gap-1">
+                          <span className="font-semibold">{locale === 'vi' ? "Đơn vị tổ chức tự động (Virtual OU)" : "Dynamically Managed OU"}</span>
+                          <span>
+                            {locale === 'vi' 
+                              ? "Đơn vị này được liên kết động từ Danh mục Nghiệp vụ. Bạn không thể chỉnh sửa hoặc xóa trực tiếp tại đây. Vui lòng chuyển sang tab \"Danh mục\" để cập nhật."
+                              : "This unit is dynamically linked from Business Categories. It cannot be modified or deleted directly here. Please manage it under the \"Categories\" tab."}
+                          </span>
+                        </div>
+                      </div>
+                    )}
 
                     {/* Member Listing under node hierarchy */}
                     <div className="flex flex-col gap-3">
