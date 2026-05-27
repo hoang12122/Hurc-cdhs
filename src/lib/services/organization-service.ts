@@ -631,6 +631,102 @@ export class OrganizationService {
         parentId: ouRollingStockTeam.id
       } as any);
 
+      // ==========================================
+      // XÍ NGHIỆP VẬN HÀNH (Operations Enterprise)
+      // ==========================================
+      // Level 1: Root OU for Operations
+      const ouOpsRoot = await this.createOrganizationalUnit({
+        id: 'ou-ops-root',
+        name: 'Xí nghiệp Vận hành',
+        description: 'Đơn vị tổ chức đầu não chịu trách nhiệm toàn bộ công tác điều hành chạy tàu, bán vé và phục vụ hành khách ga Metro (Operations Enterprise).',
+        domainId: domain.id,
+        parentId: undefined
+      } as any);
+
+      // Level 2: Các bộ phận under Operations
+      const ouOcc = await this.createOrganizationalUnit({
+        id: 'ou-occ',
+        name: 'Trung tâm Điều độ OCC',
+        description: 'Trung tâm kiểm soát điều khiển chạy tàu, cung cấp điện và thông tin tín hiệu toàn mạng lưới đường sắt đô thị (OCC Dispatch Center).',
+        domainId: domain.id,
+        parentId: ouOpsRoot.id
+      } as any);
+
+      const ouStations = await this.createOrganizationalUnit({
+        id: 'ou-stations',
+        name: 'Đội Vận hành Ga',
+        description: 'Đội quản lý toàn bộ các ga hành khách, dịch vụ bán vé, an ninh ga và đón tiễn tàu.',
+        domainId: domain.id,
+        parentId: ouOpsRoot.id
+      } as any);
+
+      const ouDrivers = await this.createOrganizationalUnit({
+        id: 'ou-drivers',
+        name: 'Đội Vận hành Tàu',
+        description: 'Đội quản lý lực lượng lái tàu chính tuyến và lái tàu dồn dịch trong Depot.',
+        domainId: domain.id,
+        parentId: ouOpsRoot.id
+      } as any);
+
+      // Level 3: Tổ under OCC
+      const ouDispatcherTrain = await this.createOrganizationalUnit({
+        id: 'ou-dispatcher-train',
+        name: 'Tổ điều độ chạy tàu (Train Dispatcher)',
+        description: 'Tổ kiểm soát lộ trình tàu chạy trực tuyến, điều phối giãn cách và tốc độ các đoàn tàu hiện trường.',
+        domainId: domain.id,
+        parentId: ouOcc.id
+      } as any);
+
+      const ouDispatcherPower = await this.createOrganizationalUnit({
+        id: 'ou-dispatcher-power',
+        name: 'Tổ điều độ cung cấp điện (Power Dispatcher)',
+        description: 'Tổ giám sát và ngắt tủ điện ngầm, cung cấp điện chạy tàu và điện ga an toàn.',
+        domainId: domain.id,
+        parentId: ouOcc.id
+      } as any);
+
+      // Level 3: Nhóm ga under Stations (Working Locations)
+      const ouStationCatLinh = await this.createOrganizationalUnit({
+        id: 'ou-station-catlinh',
+        name: 'Nhóm ga Cát Linh (Terminal Station)',
+        description: 'Tổ vận hành tại ga đầu tuyến Cát Linh: Trưởng ga, Trực ban và Nhân viên bán vé ga.',
+        domainId: domain.id,
+        parentId: ouStations.id
+      } as any);
+
+      const ouStationPhungKhoang = await this.createOrganizationalUnit({
+        id: 'ou-station-phungkhoang',
+        name: 'Nhóm ga Phùng Khoang (Intermediate Station)',
+        description: 'Tổ vận hành tại ga trung gian Phùng Khoang.',
+        domainId: domain.id,
+        parentId: ouStations.id
+      } as any);
+
+      const ouStationYenNghia = await this.createOrganizationalUnit({
+        id: 'ou-station-yennghia',
+        name: 'Nhóm ga Yên Nghĩa (Terminal Station & Depot)',
+        description: 'Tổ vận hành tại ga cuối Yên Nghĩa và phụ cận khu vực Depot.',
+        domainId: domain.id,
+        parentId: ouStations.id
+      } as any);
+
+      // Level 3: Tổ under Train Driving (Drivers)
+      const ouDriverMain = await this.createOrganizationalUnit({
+        id: 'ou-driver-main',
+        name: 'Tổ lái tàu chính Tuyến Cát Linh - Hà Đông',
+        description: 'Tổ lái tàu chính chịu trách nhiệm trực tiếp điều khiển các đoàn tàu đón trả khách an toàn.',
+        domainId: domain.id,
+        parentId: ouDrivers.id
+      } as any);
+
+      const ouDriverDepot = await this.createOrganizationalUnit({
+        id: 'ou-driver-depot',
+        name: 'Tổ lái tàu dồn dịch Depot',
+        description: 'Tổ lái tàu chuyên dụng dồn tàu vào xưởng sửa chữa, khu vực đỗ xe và chạy thử trong khu vực Depot.',
+        domainId: domain.id,
+        parentId: ouDrivers.id
+      } as any);
+
       // 7. Assign existing users to seeded OUs & Roles
       const users = await getInternalUsers();
       for (const u of users) {
@@ -641,20 +737,54 @@ export class OrganizationService {
             role: ROLE_SUPER_ADMIN
           });
         } else {
-          // Dynamically distribute other users based on matching criteria
-          if (u.email.includes('specialist') || u.name.includes('Chuyên viên')) {
+          // Dynamic allocation to support BOTH Maintenance and Operations Branches!
+          const emailLower = u.email.toLowerCase();
+          const nameLower = u.name.toLowerCase();
+
+          if (emailLower.includes('dispatcher') || nameLower.includes('điều độ') || nameLower.includes('occ')) {
+            // OCC Dispatchers -> Specialist L3
+            await dbProvider.update('User', u.id, {
+              ouId: ouDispatcherTrain.id,
+              department: 'Tổ điều độ chạy tàu',
+              role: ROLE_L3_SPECIALIST
+            });
+          } else if (emailLower.includes('driver') || nameLower.includes('lái tàu')) {
+            // Train Drivers -> Technician L2
+            await dbProvider.update('User', u.id, {
+              ouId: ouDriverMain.id,
+              department: 'Tổ lái tàu chính Tuyến Cát Linh - Hà Đông',
+              role: ROLE_L2_TECHNICIAN
+            });
+          } else if (emailLower.includes('station') || nameLower.includes('trưởng ga') || nameLower.includes('trực ban')) {
+            // Station Masters -> Technician L2
+            await dbProvider.update('User', u.id, {
+              ouId: ouStationCatLinh.id,
+              department: 'Nhóm ga Cát Linh',
+              role: ROLE_L2_TECHNICIAN
+            });
+          } else if (emailLower.includes('operator') || nameLower.includes('bán vé') || nameLower.includes('nhân viên ga')) {
+            // Station Staff -> Operator L1
+            await dbProvider.update('User', u.id, {
+              ouId: ouStationCatLinh.id,
+              department: 'Nhóm ga Cát Linh',
+              role: ROLE_L1_OPERATOR
+            });
+          } else if (emailLower.includes('specialist') || nameLower.includes('chuyên viên')) {
+            // Maintenance Specialists -> Specialist L3
             await dbProvider.update('User', u.id, {
               ouId: ouInfra.id,
               department: 'Phân xưởng Bảo trì Hạ tầng',
               role: ROLE_L3_SPECIALIST
             });
-          } else if (u.email.includes('tech') || u.name.includes('Kỹ thuật viên')) {
+          } else if (emailLower.includes('tech') || nameLower.includes('kỹ thuật viên')) {
+            // Maintenance Technicians -> Technician L2
             await dbProvider.update('User', u.id, {
               ouId: ouL2PowerGrid.id,
               department: 'Tổ bảo dưỡng thiết bị điện chuyên sâu',
               role: ROLE_L2_TECHNICIAN
             });
-          } else if (u.email.includes('operator') || u.name.includes('Nhân viên')) {
+          } else if (emailLower.includes('operator') || nameLower.includes('nhân viên bảo trì')) {
+            // Maintenance Operators -> Operator L1
             await dbProvider.update('User', u.id, {
               ouId: ouL1TrackPatrol.id,
               department: 'Tổ tuần tra ray Cát Linh - Hà Đông',
