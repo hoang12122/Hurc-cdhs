@@ -5,7 +5,8 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { 
   Users, ShieldCheck, Database, FileText, Settings, 
-  Activity, ShieldAlert, LayoutDashboard, Undo2, AlertTriangle, Network
+  Activity, ShieldAlert, LayoutDashboard, Undo2, AlertTriangle, Network,
+  Layers
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -25,24 +26,14 @@ const adminNavItems = [
     path: "/admin/users",
   },
   {
-    icon: Network,
-    label: { vi: "Cơ cấu AD", en: "AD Hierarchy" },
+    icon: Layers,
+    label: { vi: "Cơ cấu & Phân quyền", en: "AD Console & RBAC" },
     path: "/admin/organization",
-  },
-  {
-    icon: ShieldCheck,
-    label: { vi: "Vai trò", en: "Roles" },
-    path: "/admin/roles",
   },
   {
     icon: Activity,
     label: { vi: "Nhật ký", en: "Logs" },
     path: "/admin/system-logs",
-  },
-  {
-    icon: Database,
-    label: { vi: "Danh mục", en: "Category" },
-    path: "/admin/categories",
   },
   {
     icon: ShieldAlert,
