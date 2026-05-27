@@ -2,6 +2,7 @@ import { opsDb, IS_DATABASE_OFFLINE } from '../prisma';
 import { jsonDb } from '../db/json-db';
 import { cache, CACHE_KEYS, TTL_REFERENCE } from '../cache';
 import { type ResponsibleUnit, type Subsystem, type PatrolLocation } from '../constants';
+import { dbProvider } from './db-wrapper';
 
 /**
  * CORE LOGIC ONLY - NO 'use server'
@@ -60,6 +61,18 @@ export async function updateInternalResponsibleUnit(id: string, name: string) {
 }
 
 export async function deleteInternalResponsibleUnit(id: string) {
+    // Clean up dynamic user OU references
+    try {
+      const users = await dbProvider.findMany<any>('User');
+      const virtualOuId = `ou-unit-${id}`;
+      const affectedUsers = users.filter((u: any) => u.ouId === virtualOuId);
+      for (const u of affectedUsers) {
+        await dbProvider.update('User', u.id, { ouId: null });
+      }
+    } catch (e) {
+      console.warn('[CATEGORY-SERVICE] Failed to clean up user references for deleted unit:', e);
+    }
+
     if (!IS_DATABASE_OFFLINE) {
         try {
             const record = await opsDb.responsibleUnit.delete({ where: { id } });
@@ -138,6 +151,18 @@ export async function updateInternalSubsystem(id: string, label: any) {
 }
 
 export async function deleteInternalSubsystem(id: string) {
+    // Clean up dynamic user OU references
+    try {
+      const users = await dbProvider.findMany<any>('User');
+      const virtualOuId = `ou-sub-${id}`;
+      const affectedUsers = users.filter((u: any) => u.ouId === virtualOuId);
+      for (const u of affectedUsers) {
+        await dbProvider.update('User', u.id, { ouId: null });
+      }
+    } catch (e) {
+      console.warn('[CATEGORY-SERVICE] Failed to clean up user references for deleted subsystem:', e);
+    }
+
     if (!IS_DATABASE_OFFLINE) {
         try {
             const record = await opsDb.subsystem.delete({ where: { id } });
@@ -203,6 +228,18 @@ export async function updateInternalLocation(id: string, label: string) {
 }
 
 export async function deleteInternalLocation(id: string) {
+    // Clean up dynamic user OU references
+    try {
+      const users = await dbProvider.findMany<any>('User');
+      const virtualOuId = `ou-loc-${id}`;
+      const affectedUsers = users.filter((u: any) => u.ouId === virtualOuId);
+      for (const u of affectedUsers) {
+        await dbProvider.update('User', u.id, { ouId: null });
+      }
+    } catch (e) {
+      console.warn('[CATEGORY-SERVICE] Failed to clean up user references for deleted location:', e);
+    }
+
     if (!IS_DATABASE_OFFLINE) {
         try {
             const record = await opsDb.patrolLocation.delete({ where: { id } });

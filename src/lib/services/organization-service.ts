@@ -239,6 +239,11 @@ export class OrganizationService {
   }
 
   static async deleteOrganizationalUnit(id: string): Promise<void> {
+    // Prevent deletion of virtual/dynamic OUs which do not exist in the database
+    if (id.startsWith('ou-category-') || id.startsWith('ou-loc-') || id.startsWith('ou-unit-') || id.startsWith('ou-sub-')) {
+      return;
+    }
+
     // Re-assign child OUs or delete them
     const allOus = await this.getOrganizationalUnits();
     const childOus = allOus.filter(o => o.parentId === id);
