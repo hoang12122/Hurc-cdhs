@@ -21,6 +21,7 @@ export async function addRole(role: Role): Promise<void> {
     await createInternalRole(role);
     await logSystemEvent('CREATE_ROLE', 'INFO', `Created new role: ${role.name}`);
     revalidatePath('/admin/roles');
+    revalidatePath('/admin/organization');
 }
 
 export async function updateRole(updatedRole: Role): Promise<void> {
@@ -28,6 +29,7 @@ export async function updateRole(updatedRole: Role): Promise<void> {
     await updateInternalRole(updatedRole.id, updatedRole);
     await logSystemEvent('UPDATE_ROLE', 'INFO', `Updated role: ${updatedRole.name}`);
     revalidatePath('/admin/roles');
+    revalidatePath('/admin/organization');
 }
 
 export async function deleteRole(roleId: string): Promise<void> {
@@ -35,4 +37,5 @@ export async function deleteRole(roleId: string): Promise<void> {
     await deleteInternalRole(roleId);
     await logSystemEvent('DELETE_ROLE', 'WARNING', `Deleted role: ${roleId}`);
     revalidatePath('/admin/roles');
+    revalidatePath('/admin/organization');
 }

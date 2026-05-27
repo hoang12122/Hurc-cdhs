@@ -29,6 +29,7 @@ export async function addResponsibleUnit(unit: Omit<ResponsibleUnit, 'id'>): Pro
     await requirePermission('settings:manage');
     const record = await createInternalResponsibleUnit(unit.name);
     revalidatePath('/admin/categories');
+    revalidatePath('/admin/organization');
     return record as ResponsibleUnit;
 }
 
@@ -37,6 +38,7 @@ export async function updateResponsibleUnit(updatedUnit: ResponsibleUnit): Promi
     await updateInternalResponsibleUnit(updatedUnit.id, updatedUnit.name);
     await logSystemEvent('UPDATE_RESPONSIBLE_UNIT', 'INFO', `Updated unit: ${updatedUnit.name}`);
     revalidatePath('/admin/categories');
+    revalidatePath('/admin/organization');
 }
 
 export async function deleteResponsibleUnit(unitId: string): Promise<void> {
@@ -44,6 +46,7 @@ export async function deleteResponsibleUnit(unitId: string): Promise<void> {
     await deleteInternalResponsibleUnit(unitId);
     await logSystemEvent('DELETE_RESPONSIBLE_UNIT', 'WARNING', `Deleted unit: ${unitId}`);
     revalidatePath('/admin/categories');
+    revalidatePath('/admin/organization');
 }
 
 // ============ Subsystems ============
@@ -57,6 +60,7 @@ export async function addSubsystem(subsystem: Subsystem): Promise<Subsystem> {
     const record = await createInternalSubsystem(subsystem.id, subsystem.label);
     await logSystemEvent('CREATE_SUBSYSTEM', 'INFO', `Created subsystem: ${subsystem.id}`);
     revalidatePath('/admin/categories');
+    revalidatePath('/admin/organization');
     return record as unknown as Subsystem;
 }
 
@@ -64,12 +68,14 @@ export async function updateSubsystem(updatedSubsystem: Subsystem): Promise<void
     await requirePermission('settings:manage');
     await updateInternalSubsystem(updatedSubsystem.id, updatedSubsystem.label);
     revalidatePath('/admin/categories');
+    revalidatePath('/admin/organization');
 }
 
 export async function deleteSubsystem(subsystemId: string): Promise<void> {
     await requirePermission('settings:manage');
     await deleteInternalSubsystem(subsystemId);
     revalidatePath('/admin/categories');
+    revalidatePath('/admin/organization');
 }
 
 // ============ Locations ============
@@ -82,6 +88,7 @@ export async function addLocation(location: PatrolLocation): Promise<PatrolLocat
     await requirePermission('settings:manage');
     const record = await createInternalLocation(location.id, location.label);
     revalidatePath('/admin/categories');
+    revalidatePath('/admin/organization');
     return record as PatrolLocation;
 }
 
@@ -89,10 +96,12 @@ export async function updateLocation(updatedLocation: PatrolLocation): Promise<v
     await requirePermission('settings:manage');
     await updateInternalLocation(updatedLocation.id, updatedLocation.label);
     revalidatePath('/admin/categories');
+    revalidatePath('/admin/organization');
 }
 
 export async function deleteLocation(locationId: string): Promise<void> {
     await requirePermission('settings:manage');
     await deleteInternalLocation(locationId);
     revalidatePath('/admin/categories');
+    revalidatePath('/admin/organization');
 }
