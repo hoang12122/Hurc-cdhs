@@ -19,7 +19,7 @@ import { requirePermission, requireAuth } from '@/lib/auth-enforcer';
 const migrateMaintenanceStandard = (record: any): MaintenanceStandard => {
   const migrated = { ...record };
   if (migrated.locationId && !migrated.locationIds) {
-    migrated.locationId = Array.isArray(migrated.locationId) ? migrated.locationId : [migrated.locationId];
+    migrated.locationIds = Array.isArray(migrated.locationId) ? migrated.locationId : [migrated.locationId];
   } else if (!migrated.locationIds) {
     migrated.locationIds = [];
   }

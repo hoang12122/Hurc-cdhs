@@ -14,7 +14,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { 
     SEVERITY_LEVELS, type InspectionDetail as AppInspectionDetail, FINDING_TYPES, 
-    MOCK_CURRENT_USER, ROLE_ADMIN_PKTAT, ROLE_L3_SPECIALIST, 
+    ROLE_ADMIN_PKTAT, ROLE_L3_SPECIALIST, 
     type InspectionStatus, 
     type MaintenanceStandard, type PatrolLocation,
     INSPECTION_STATUS_TRANSITIONS,
@@ -32,6 +32,7 @@ import { useNetwork } from '@/components/providers/network-provider';
 import { offlineSync } from '@/lib/services/offline-sync';
 import { cn } from '@/lib/utils';
 import { ReportLayout } from '@/components/shared/report-layout';
+import { useAuth } from '@/contexts/auth-context';
 
 const translations = {
   vi: {
@@ -117,6 +118,9 @@ export function InspectionDetailClient({ initialInspection, maintenanceStandards
   const t = translations[locale as 'vi'] || translations.vi;
   const { toast } = useToast(); 
   const { isOnline } = useNetwork();
+  const { user: currentUser } = useAuth();
+  const userRole = (currentUser?.role || 'Client') as UserRole;
+  const userId = currentUser?.id || 'unknown';
   
   const [inspection, setInspection] = useState<AppInspectionDetail>(initialInspection);
   const [approvalComments, setApprovalComments] = useState(initialInspection.approvalComments || ""); 
@@ -143,7 +147,7 @@ export function InspectionDetailClient({ initialInspection, maintenanceStandards
   const handleStatusUpdate = async (newStatus: InspectionStatus) => {
     if (!inspection) return;
 
-    if (!canTransitionToStatus(inspection.status as InspectionStatus, newStatus, MOCK_CURRENT_USER.role)) {
+    if (!canTransitionToStatus(inspection.status as InspectionStatus, newStatus, userRole)) {
         toast({ title: "Lỗi", description: t.statusUpdateFailed, variant: "destructive"});
         return;
     }
@@ -152,7 +156,7 @@ export function InspectionDetailClient({ initialInspection, maintenanceStandards
         ...inspection,
         status: newStatus,
         approvalComments: approvalComments,
-        lastStatusUpdateBy: MOCK_CURRENT_USER.id,
+        lastStatusUpdateBy: userId,
         lastStatusUpdateAt: new Date().toISOString(),
     };
     

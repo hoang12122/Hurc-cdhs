@@ -8,7 +8,7 @@ import { useParams, useRouter } from "next/navigation";
 import * as React from "react";
 import { type InspectionDetail } from "@/lib/constants"; 
 import { useLanguage } from "@/contexts/language-context";
-import { getInspections } from "@/lib/actions/inspection.actions";
+import { getInspectionById } from "@/lib/actions/inspection.actions";
 import { getMaintenanceStandardItems } from "@/lib/actions/maintenance.actions";
 
 type ErrorCode = "NOT_FOUND" | "INVALID_ID" | "GENERAL_ERROR";
@@ -60,12 +60,11 @@ export default function EditInspectionPage() {
         setLoading(true);
         setError(null);
         try {
-            const [allInspections, allStandardItems] = await Promise.all([
-                getInspections(),
+            // BUG #4 FIX: Use getInspectionById instead of fetching ALL inspections
+            const [foundInspection, allStandardItems] = await Promise.all([
+                getInspectionById(inspectionId),
                 getMaintenanceStandardItems(),
             ]);
-
-            const foundInspection = allInspections.find(insp => insp.id === inspectionId);
 
             if (foundInspection) {
               let checklistItems = foundInspection.checklistItems || [];

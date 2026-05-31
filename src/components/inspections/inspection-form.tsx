@@ -336,6 +336,12 @@ export function InspectionForm({ initialData, isEditMode = false }: InspectionFo
   }, [initialData, form, getInitialFormValues]);
 
   React.useEffect(() => {
+    // BUG #13 FIX: Skip template reload when editing with existing checklist items
+    // to prevent wiping pass/fail statuses and findings set during previous save
+    if (isEditMode && initialData?.checklistItems && initialData.checklistItems.length > 0) {
+      return;
+    }
+
     const customItems = form.getValues('checklistItems').filter(item => item.isCustom);
 
     if (selectedTemplateId && selectedTemplateId !== NO_TEMPLATE_VALUE) {
@@ -346,6 +352,7 @@ export function InspectionForm({ initialData, isEditMode = false }: InspectionFo
           criteria: task.criteria || "",
           status: "pending" as "pending" | "pass" | "fail",
           findings: [],
+          images: [],
           isCustom: false,
           unit: task.unit,
           standardQuantity: task.standardQuantity,
@@ -506,6 +513,22 @@ export function InspectionForm({ initialData, isEditMode = false }: InspectionFo
               scheduledFinishDate: data.scheduledFinishDate,
               estimatedDurationHours: data.estimatedDurationHours,
           };
+
+          // BUG #11 FIX: Add offline sync for edit mode
+          if (!isOnline) {
+              await offlineSync.addAction({
+                  type: 'STATUS_UPDATE',
+                  entityType: 'INSPECTION',
+                  data: inspectionRecord,
+              });
+              toast({
+                  title: locale === 'vi' ? "Đã lưu Ngoại tuyến" : "Saved Offline",
+                  description: locale === 'vi' ? "Dữ liệu cập nhật sẽ được tự động đồng bộ khi có mạng." : "Updated data will be synced automatically when online.",
+              });
+              router.push(`/inspections/${initialData.id}`);
+              return;
+          }
+
           await updateInspection(inspectionRecord);
           toast({
               title: t.updateSuccessTitle,
@@ -841,9 +864,15 @@ export function InspectionForm({ initialData, isEditMode = false }: InspectionFo
                                         form.setValue(`checklistItems.${checklistIndex}.findings`, updatedFindings);
                                     }
                                     } else {
-                                    // === Auto-correction: Value returned within tolerance → auto-pass & cleanup ===
-                                    form.setValue(`checklistItems.${checklistIndex}.status`, 'pass');
+                                    // === BUG #8 FIX: Auto-pass only if no manual findings exist ===
                                     const currentFindings = form.getValues(`checklistItems.${checklistIndex}.findings`) || [];
+                                    const hasManualFindings = currentFindings.some(
+                                        (f: any) => !(f.id && String(f.id).startsWith('finding-auto-'))
+                                    );
+                                    if (!hasManualFindings) {
+                                        form.setValue(`checklistItems.${checklistIndex}.status`, 'pass');
+                                    }
+                                    // Always clean up auto-generated findings
                                     const cleanedFindings = currentFindings.filter(
                                         (f: any) => !(f.id && String(f.id).startsWith('finding-auto-'))
                                     );

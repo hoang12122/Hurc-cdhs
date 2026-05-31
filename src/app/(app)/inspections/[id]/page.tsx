@@ -56,6 +56,7 @@ export default function InspectionDetailPage() {
                         unit: task.unit,
                         status: "pending",
                         findings: [],
+                        images: [],
                         isCustom: false,
                         standardQuantity: task.standardQuantity,
                         toleranceOperator: task.toleranceOperator,

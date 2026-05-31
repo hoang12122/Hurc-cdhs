@@ -29,7 +29,7 @@ export async function getInspectionsPaginated(params: any) {
             const { OUScopeService } = await import('../services/ou-scope-service');
             const scopedUserIds = await OUScopeService.getUsersInScope(userOuId);
             scopedUserIds.push(currentUser.id); // Always include self
-            filtered = filtered.filter((r: any) => scopedUserIds.includes(r.inspector || r.createdById));
+            filtered = filtered.filter((r: any) => scopedUserIds.includes(r.createdById || r.inspector));
         }
     }
     
@@ -50,7 +50,7 @@ export async function getInspections(): Promise<InspectionDetail[]> {
             const { OUScopeService } = await import('../services/ou-scope-service');
             const scopedUserIds = await OUScopeService.getUsersInScope(userOuId);
             scopedUserIds.push(currentUser.id);
-            return all.filter((r: any) => scopedUserIds.includes(r.inspector || r.createdById));
+            return all.filter((r: any) => scopedUserIds.includes(r.createdById || r.inspector));
         }
     }
     return all;
@@ -75,7 +75,7 @@ export async function updateInspection(updatedInspection: InspectionDetail): Pro
     // Scoped Permission validation for updating inspections
     if (user.role !== 'SUPER_ADMIN' && !user.permissions?.includes('inspections:edit_all')) {
         const isOwner = updatedInspection.inspector === user.id || updatedInspection.inspector === user.name;
-        const isLocked = ['Đóng', 'Hủy', 'Hoàn thành', 'Đã duyệt'].includes(updatedInspection.status);
+        const isLocked = ['Đóng', 'Hủy'].includes(updatedInspection.status);
         if (!isOwner) {
             throw new Error("Bạn không có quyền chỉnh sửa phiếu kiểm tra này.");
         }
@@ -97,8 +97,9 @@ export async function deleteInspection(id: string): Promise<void> {
 }
 
 export async function archiveCompletedInspections(): Promise<number> {
+    await requirePermission('inspections:delete');
     const records = await getInternalInspections();
-    const toArchiveIds = records.filter((i: any) => (i.status === 'Hoàn thành' || i.status === 'Đã duyệt') && !i.isArchived).map((i: any) => i.id);
+    const toArchiveIds = records.filter((i: any) => i.status === 'Đóng' && !i.isArchived).map((i: any) => i.id);
     if (toArchiveIds.length > 0) {
         await archiveInternalInspections(toArchiveIds, '[DỮ LIỆU ĐÃ LƯU TRỮ]');
         await logSystemEvent('ARCHIVE_INSPECTION', 'INFO', `Archived ${toArchiveIds.length} inspections`);

@@ -67,7 +67,7 @@ export function mapInternalInspectionToUi(inspection: any): InspectionDetail {
         createdAt,
         updatedAt,
         lastStatusUpdateAt,
-        status: inspection.status || 'Draft',
+        status: inspection.status || 'Mới',
         isArchived: inspection.isArchived || false,
         areaIds: inspection.areaIds || (inspection.stationId ? [inspection.stationId] : []),
         checklistItems: checklistItems.map((item: any) => ({
@@ -260,8 +260,9 @@ export async function createInternalInspection(data: any, userId: string, userNa
                     ...data,
                     id: data.id || `INS-${Date.now()}`,
                     inspector: data.inspector || userId,
+                    createdById: userId,
                     date: new Date(data.date),
-                    status: data.status || 'Draft',
+                    status: data.status || 'Mới',
                     isArchived: false,
                     lastStatusUpdateBy: userName,
                     lastStatusUpdateAt: new Date(),
@@ -274,8 +275,9 @@ export async function createInternalInspection(data: any, userId: string, userNa
     const inspection = await jsonDb.insertRecord('inspections', {
         ...data,
         inspector: data.inspector || userId,
+        createdById: userId,
         date: new Date(data.date).toISOString(),
-        status: data.status || 'Draft',
+        status: data.status || 'Mới',
         isArchived: false,
         lastStatusUpdateBy: userName,
         lastStatusUpdateAt: new Date().toISOString()
