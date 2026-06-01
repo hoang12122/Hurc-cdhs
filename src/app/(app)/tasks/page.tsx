@@ -196,7 +196,7 @@ function PriorityBadge({ priority }: { priority?: 'Cao' | 'Trung bình' | 'Thấ
 const isTaskCompleted = (task: UnifiedTask): boolean => {
     switch (task.type) {
         case 'Kiểm tra':
-            return ['Hoàn thành', 'Hoàn thành (Có phát hiện)', 'Đã xem xét', 'Đã duyệt để tạo báo cáo'].includes(task.status);
+            return ['Đóng', 'Hủy'].includes(task.status);
         case 'Sự cố':
             return ['Đã đóng', 'Hủy'].includes(task.status);
         case 'Mối nguy':

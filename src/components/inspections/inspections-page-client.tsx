@@ -25,7 +25,6 @@ import { Search, Filter, Edit, Trash2, PlusCircle, RefreshCw } from "lucide-reac
 import { Badge } from "@/components/ui/badge";
 import { Label } from '@/components/ui/label'; 
 import { 
-    MOCK_CURRENT_USER, 
     ROLE_ADMIN_PKTAT, 
     ROLE_L2_TECHNICIAN, 
     ROLE_L3_SPECIALIST, 
@@ -43,6 +42,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { useRouter, useSearchParams } from 'next/navigation';
 import { hasPermission } from "@/lib/auth";
 import { useLanguage } from "@/contexts/language-context";
+import { useAuth } from '@/contexts/auth-context';
 import { cn } from "@/lib/utils";
 
 const ROWS_PER_PAGE = 20;
@@ -188,7 +188,8 @@ export function InspectionsPageClient({ initialInspections, initialTotalPages = 
   const { toast } = useToast(); 
   const router = useRouter();
   const searchParams = useSearchParams();
-  const currentUser = MOCK_CURRENT_USER;
+  const { user: authUser } = useAuth();
+  const currentUser = authUser || { id: '', name: '', role: 'Client' as any, permissions: [] as string[], assignedSubsystems: [] as string[] };
   const [isMounted, setIsMounted] = React.useState(false);
   const [inspectionsData, setInspectionsData] = React.useState<InspectionDetail[]>(initialInspections);
   const [maintenanceStandards, setMaintenanceStandards] = React.useState<MaintenanceStandard[]>(initialMaintenanceStandards);

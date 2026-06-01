@@ -78,7 +78,7 @@ export async function getInternalTasks(currentUser: any): Promise<UnifiedTask[]>
               getSubsystems(),
               opsDb.inspectionDetail.findMany({
                   where: {
-                      status: { notIn: ['Hoàn thành', 'Hoàn thành (Có phát hiện)', 'Đã duyệt để tạo báo cáo', 'Đã xem xét'] },
+                      status: { notIn: ['Đóng', 'Hủy'] },
                       isArchived: false,
                   },
                   select: INSPECTION_SELECT_FOR_TASKS,
@@ -127,7 +127,7 @@ export async function getInternalTasks(currentUser: any): Promise<UnifiedTask[]>
       subsystems = subs;
       
       inspectionsRaw = inspJson.filter((i: any) => 
-        !['Hoàn thành', 'Hoàn thành (Có phát hiện)', 'Đã duyệt để tạo báo cáo', 'Đã xem xét'].includes(i.status) && !i.isArchived
+        !['Đóng', 'Hủy'].includes(i.status) && !i.isArchived
       );
       dnfsRaw = dnfJson.filter((d: any) => 
         !['Đã đóng', 'Hủy'].includes(d.status) && !d.isArchived

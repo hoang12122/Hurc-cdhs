@@ -51,7 +51,7 @@ export async function archiveCompletedInspections() {
         try {
             const result = await opsDb.inspectionDetail.updateMany({
                 where: {
-                    status: { in: ['Hoàn thành', 'Đã xem xét'] },
+                    status: { in: ['Đóng'] },
                     isArchived: false,
                     date: {
                         lt: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
@@ -70,7 +70,7 @@ export async function archiveCompletedInspections() {
     const threshold = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).getTime();
     const inspections = await jsonDb.getCollection<any>('inspections');
     const toArchive = inspections.filter((i: any) => 
-        ['Hoàn thành', 'Đã xem xét'].includes(i.status) && 
+        ['Đóng'].includes(i.status) && 
         !i.isArchived && 
         new Date(i.date || 0).getTime() < threshold
     );
