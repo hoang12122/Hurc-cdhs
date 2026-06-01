@@ -69,7 +69,7 @@ export async function getOUList() {
  * Action to create or update an Organizational Unit (OU)
  */
 export async function upsertOrganizationalUnit(
-  data: { id?: string; name: string; description?: string; domainId: string; parentId?: string; mode?: 'create' | 'edit' }
+  data: { id?: string; name: string; description?: string; parentId?: string; mode?: 'create' | 'edit' }
 ) {
   try {
     await requirePermission('organization:manage');
@@ -98,7 +98,6 @@ export async function upsertOrganizationalUnit(
         id: data.id,
         name: data.name,
         description: data.description,
-        domainId: data.domainId,
         parentId: data.parentId || undefined
       } as any);
     }
@@ -138,8 +137,8 @@ export async function deleteOrganizationalUnit(id: string) {
 export async function seedOrganization() {
   try {
     await requirePermission('organization:manage');
-    const forests = await OrganizationService.getForests();
-    if (forests.length > 0) {
+    const ous = await OrganizationService.getOrganizationalUnits();
+    if (ous.length > 0) {
       revalidatePath('/admin/organization');
       revalidatePath('/admin/users');
       return { success: true, message: 'Cơ cấu tổ chức Active Directory đã tồn tại sẵn trong hệ thống!' };
@@ -158,112 +157,3 @@ export async function seedOrganization() {
   }
 }
 
-/**
- * Forest CRUD Actions
- */
-export async function upsertForest(data: { id?: string; name: string; description?: string; mode?: 'create' | 'edit' }) {
-  try {
-    await requirePermission('organization:manage');
-    if (data.id && data.mode !== 'create') {
-      const { id, mode, ...updateData } = data;
-      await OrganizationService.updateForest(id, updateData);
-    } else {
-      await OrganizationService.createForest({
-        id: data.id,
-        name: data.name,
-        description: data.description
-      } as any);
-    }
-    revalidatePath('/admin/organization');
-    return { success: true };
-  } catch (error: any) {
-    console.error('[ORGANIZATION-ACTION] upsertForest failed:', error);
-    return { success: false, error: error.message || 'Lỗi không xác định.' };
-  }
-}
-
-export async function deleteForest(id: string) {
-  try {
-    await requirePermission('organization:manage');
-    await OrganizationService.deleteForest(id);
-    revalidatePath('/admin/organization');
-    return { success: true };
-  } catch (error: any) {
-    console.error('[ORGANIZATION-ACTION] deleteForest failed:', error);
-    return { success: false, error: error.message || 'Lỗi không xác định.' };
-  }
-}
-
-/**
- * Tree CRUD Actions
- */
-export async function upsertTree(data: { id?: string; name: string; description?: string; forestId: string; mode?: 'create' | 'edit' }) {
-  try {
-    await requirePermission('organization:manage');
-    if (data.id && data.mode !== 'create') {
-      const { id, mode, ...updateData } = data;
-      await OrganizationService.updateTree(id, updateData);
-    } else {
-      await OrganizationService.createTree({
-        id: data.id,
-        name: data.name,
-        description: data.description,
-        forestId: data.forestId
-      } as any);
-    }
-    revalidatePath('/admin/organization');
-    return { success: true };
-  } catch (error: any) {
-    console.error('[ORGANIZATION-ACTION] upsertTree failed:', error);
-    return { success: false, error: error.message || 'Lỗi không xác định.' };
-  }
-}
-
-export async function deleteTree(id: string) {
-  try {
-    await requirePermission('organization:manage');
-    await OrganizationService.deleteTree(id);
-    revalidatePath('/admin/organization');
-    return { success: true };
-  } catch (error: any) {
-    console.error('[ORGANIZATION-ACTION] deleteTree failed:', error);
-    return { success: false, error: error.message || 'Lỗi không xác định.' };
-  }
-}
-
-/**
- * Child Domain CRUD Actions
- */
-export async function upsertDomain(data: { id?: string; name: string; description?: string; treeId: string; mode?: 'create' | 'edit' }) {
-  try {
-    await requirePermission('organization:manage');
-    if (data.id && data.mode !== 'create') {
-      const { id, mode, ...updateData } = data;
-      await OrganizationService.updateChildDomain(id, updateData);
-    } else {
-      await OrganizationService.createChildDomain({
-        id: data.id,
-        name: data.name,
-        description: data.description,
-        treeId: data.treeId
-      } as any);
-    }
-    revalidatePath('/admin/organization');
-    return { success: true };
-  } catch (error: any) {
-    console.error('[ORGANIZATION-ACTION] upsertDomain failed:', error);
-    return { success: false, error: error.message || 'Lỗi không xác định.' };
-  }
-}
-
-export async function deleteDomain(id: string) {
-  try {
-    await requirePermission('organization:manage');
-    await OrganizationService.deleteChildDomain(id);
-    revalidatePath('/admin/organization');
-    return { success: true };
-  } catch (error: any) {
-    console.error('[ORGANIZATION-ACTION] deleteDomain failed:', error);
-    return { success: false, error: error.message || 'Lỗi không xác định.' };
-  }
-}

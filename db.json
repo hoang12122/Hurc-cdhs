@@ -442,79 +442,8 @@
       "deletedAt": null
     }
   ],
-  "forests": [
-    {
-      "id": "forest-metro-root",
-      "name": "HURC Metro System Forest",
-      "description": "Rừng định danh trung tâm điều hành đường sắt đô thị (HURC No.1 CDHS Forest)",
-      "createdAt": "2026-05-27T07:33:34.822Z",
-      "updatedAt": "2026-05-27T07:33:34.822Z"
-    }
-  ],
-  "trees": [
-    {
-      "id": "tree-metro-root",
-      "name": "HURC Maintenance & Operations Tree",
-      "description": "Cây thư mục gốc quản trị bảo trì - cdhs.hurc1.com.vn",
-      "forestId": "forest-metro-root",
-      "createdAt": "2026-05-27T07:33:34.822Z",
-      "updatedAt": "2026-05-27T07:33:34.822Z"
-    }
-  ],
-  "child_domains": [
-    {
-      "id": "domain-metro-root",
-      "name": "maint.hurc.vn",
-      "description": "Miền con quản trị nhân sự & nghiệp vụ vận hành bảo trì Metro",
-      "treeId": "tree-metro-root",
-      "createdAt": "2026-05-27T07:33:34.822Z",
-      "updatedAt": "2026-05-27T07:33:34.822Z"
-    }
-  ],
-  "organizational_units": [
-    {
-      "id": "ou-cdhs-root",
-      "name": "Xí nghiệp Bảo trì Thiết bị",
-      "description": "Đơn vị tổ chức đầu não chịu trách nhiệm toàn bộ công tác bảo trì, bảo dưỡng hạ tầng, thông tin tín hiệu và đầu máy toa xe Metro (CDHS Maintenance Enterprise).",
-      "domainId": "domain-metro-root",
-      "createdAt": "2026-05-27T07:33:34.822Z",
-      "updatedAt": "2026-05-27T07:33:34.822Z"
-    },
-    {
-      "id": "ou-infra",
-      "name": "Phân xưởng Bảo trì Hạ tầng",
-      "description": "Phòng ban chịu trách nhiệm bảo dưỡng hệ thống cơ sở hạ tầng đường sắt đô thị (đường ray, kiến trúc ga, cung cấp điện).",
-      "domainId": "domain-metro-root",
-      "parentId": "ou-cdhs-root",
-      "createdAt": "2026-05-27T07:33:34.822Z",
-      "updatedAt": "2026-05-27T07:33:34.822Z"
-    },
-    {
-      "id": "ou-track-civil",
-      "name": "Đội Bảo trì Đường ray & Kiến trúc",
-      "description": "Đội phụ trách tuần tra ray, căn chỉnh khổ đường và duy tu kiến trúc tầng trên.",
-      "domainId": "domain-metro-root",
-      "parentId": "ou-infra",
-      "createdAt": "2026-05-27T07:33:34.822Z",
-      "updatedAt": "2026-05-27T07:33:34.822Z"
-    },
-    {
-      "id": "ou-sig-telecom",
-      "name": "Phân xưởng Thông tin Tín hiệu",
-      "description": "Phòng ban phụ trách hệ thống chạy tàu tự động, thông tin tín hiệu điều khiển trung tâm OCC và viễn thông ga.",
-      "domainId": "domain-metro-root",
-      "parentId": "ou-cdhs-root",
-      "createdAt": "2026-05-27T07:33:34.822Z",
-      "updatedAt": "2026-05-27T07:33:34.822Z"
-    },
-    {
-      "id": "ou-rolling-stock",
-      "name": "Phân xưởng Đầu máy Toa xe",
-      "description": "Phân xưởng bảo dưỡng, sửa chữa định kỳ và đại tu toàn bộ đội tàu, đầu máy và các toa xe vận hành trên tuyến.",
-      "domainId": "domain-metro-root",
-      "parentId": "ou-cdhs-root",
-      "createdAt": "2026-05-27T07:33:34.822Z",
-      "updatedAt": "2026-05-27T07:33:34.822Z"
-    }
-  ]
+  "forests": [],
+  "trees": [],
+  "child_domains": [],
+  "organizational_units": []
 }

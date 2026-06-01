@@ -265,9 +265,6 @@ export class JsonProvider implements IDataProvider {
     // Mapping Prisma models to db.json collections
     const lower = model.toLowerCase();
     const mappings: Record<string, string> = {
-        'Forest': 'forests',
-        'Tree': 'trees',
-        'ChildDomain': 'child_domains',
         'OrganizationalUnit': 'organizational_units',
         'DnfDocument': 'dnf_documents',
         'HazardRecord': 'hazards',
@@ -330,9 +327,6 @@ export class RoutedPrismaProvider extends PrismaProvider {
       user: authDb,
       role: authDb,
       passwordResetRequest: authDb,
-      forest: authDb,
-      tree: authDb,
-      childDomain: authDb,
       organizationalUnit: authDb,
 
       // aiDb

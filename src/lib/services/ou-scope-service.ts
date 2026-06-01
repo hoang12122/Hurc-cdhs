@@ -102,14 +102,9 @@ export class OUScopeService {
    * @returns The assembled path string, or an empty string if the OU is not found.
    */
   static async getOUScopePath(ouId: string): Promise<string> {
-    const [forests, trees, domains, allOUs] = await Promise.all([
-      OrganizationService.getForests(),
-      OrganizationService.getTrees(),
-      OrganizationService.getChildDomains(),
-      OrganizationService.getOrganizationalUnits(),
-    ]);
+    const allOUs = await OrganizationService.getOrganizationalUnits();
 
-    const ouMap = new Map(allOUs.map(ou => [ou.id, ou]));
+    const ouMap = new Map(allOUs.map((ou: any) => [ou.id, ou]));
     const target = ouMap.get(ouId);
     if (!target) return '';
 
@@ -125,18 +120,7 @@ export class OUScopeService {
       }
     }
 
-    // Resolve domain → tree → forest names
-    const domain = domains.find(d => d.id === target.domainId);
-    const tree = domain ? trees.find(t => t.id === domain.treeId) : undefined;
-    const forest = tree ? forests.find(f => f.id === tree.forestId) : undefined;
-
-    const pathParts: string[] = [];
-    if (forest) pathParts.push(forest.name);
-    if (tree) pathParts.push(tree.name);
-    if (domain) pathParts.push(domain.name);
-    pathParts.push(...ouChain);
-
-    return pathParts.join(' > ');
+    return ouChain.join(' > ');
   }
 
   /**

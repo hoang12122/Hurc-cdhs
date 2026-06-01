@@ -14,37 +14,10 @@ import {
   ROLE_L1_OPERATOR 
 } from '../constants';
 
-export interface Forest {
-  id: string;
-  name: string;
-  description?: string;
-  createdAt?: string;
-  updatedAt?: string;
-}
-
-export interface Tree {
-  id: string;
-  name: string;
-  description?: string;
-  forestId: string;
-  createdAt?: string;
-  updatedAt?: string;
-}
-
-export interface ChildDomain {
-  id: string;
-  name: string;
-  description?: string;
-  treeId: string;
-  createdAt?: string;
-  updatedAt?: string;
-}
-
 export interface OrganizationalUnit {
   id: string;
   name: string;
   description?: string;
-  domainId: string;
   parentId?: string; // recursive parent relation
   createdAt?: string;
   updatedAt?: string;
@@ -54,79 +27,7 @@ export interface OrganizationalUnit {
  * Service to manage Active Directory-style hierarchy
  */
 export class OrganizationService {
-  // Forest Actions
-  static async getForests(): Promise<Forest[]> {
-    return await dbProvider.findMany<Forest>('Forest');
-  }
-
-  static async createForest(data: Omit<Forest, 'id'>): Promise<Forest> {
-    return await dbProvider.create<Forest>('Forest', data);
-  }
-
-  static async updateForest(id: string, data: Partial<Forest>): Promise<Forest> {
-    return await dbProvider.update<Forest>('Forest', id, data);
-  }
-
-  static async deleteForest(id: string): Promise<void> {
-    // Cascade-like deletion for JSON fallback safety
-    const trees = await this.getTrees(id);
-    for (const tree of trees) {
-      await this.deleteTree(tree.id);
-    }
-    await dbProvider.delete('Forest', id);
-  }
-
-  // Tree Actions
-  static async getTrees(forestId?: string): Promise<Tree[]> {
-    const trees = await dbProvider.findMany<Tree>('Tree');
-    if (forestId) {
-      return trees.filter(t => t.forestId === forestId);
-    }
-    return trees;
-  }
-
-  static async createTree(data: Omit<Tree, 'id'>): Promise<Tree> {
-    return await dbProvider.create<Tree>('Tree', data);
-  }
-
-  static async updateTree(id: string, data: Partial<Tree>): Promise<Tree> {
-    return await dbProvider.update<Tree>('Tree', id, data);
-  }
-
-  static async deleteTree(id: string): Promise<void> {
-    const domains = await this.getChildDomains(id);
-    for (const domain of domains) {
-      await this.deleteChildDomain(domain.id);
-    }
-    await dbProvider.delete('Tree', id);
-  }
-
-  // ChildDomain Actions
-  static async getChildDomains(treeId?: string): Promise<ChildDomain[]> {
-    const domains = await dbProvider.findMany<ChildDomain>('ChildDomain');
-    if (treeId) {
-      return domains.filter(d => d.treeId === treeId);
-    }
-    return domains;
-  }
-
-  static async createChildDomain(data: Omit<ChildDomain, 'id'>): Promise<ChildDomain> {
-    return await dbProvider.create<ChildDomain>('ChildDomain', data);
-  }
-
-  static async updateChildDomain(id: string, data: Partial<ChildDomain>): Promise<ChildDomain> {
-    return await dbProvider.update<ChildDomain>('ChildDomain', id, data);
-  }
-
-  static async deleteChildDomain(id: string): Promise<void> {
-    const ous = await this.getOrganizationalUnits(id);
-    for (const ou of ous) {
-      await this.deleteOrganizationalUnit(ou.id);
-    }
-    await dbProvider.delete('ChildDomain', id);
-  }
-
-  static async getOrganizationalUnits(domainId?: string): Promise<OrganizationalUnit[]> {
+  static async getOrganizationalUnits(): Promise<OrganizationalUnit[]> {
     const ous = await dbProvider.findMany<OrganizationalUnit>('OrganizationalUnit');
     
     // Fetch categories and map them to virtual OUs dynamically
@@ -136,8 +37,6 @@ export class OrganizationService {
         dbProvider.findMany<any>('ResponsibleUnit'),
         dbProvider.findMany<any>('Subsystem')
       ]);
-
-      const defaultDomain = domainId || (ous[0]?.domainId) || 'domain-metro-root';
 
       // Check if the seeded Operations Station OU exists
       const hasOuStations = ous.some(o => o.id === 'ou-stations');
@@ -150,7 +49,6 @@ export class OrganizationService {
           id: 'ou-category-locations',
           name: 'Danh mục Vị trí (Locations)',
           description: 'Các đơn vị phân cấp theo địa lý và vị trí tuần tra',
-          domainId: defaultDomain,
           parentId: ous[0]?.parentId || undefined
         });
       }
@@ -160,14 +58,12 @@ export class OrganizationService {
           id: 'ou-category-responsible-units',
           name: 'Danh mục Đơn vị chịu trách nhiệm (Responsible Units)',
           description: 'Các đội/phòng chịu trách nhiệm nghiệp vụ',
-          domainId: defaultDomain,
           parentId: ous[0]?.parentId || undefined
         },
         {
           id: 'ou-category-subsystems',
           name: 'Danh mục Hệ thống (Subsystems)',
           description: 'Các hệ thống kỹ thuật metro chuyên ngành',
-          domainId: defaultDomain,
           parentId: ous[0]?.parentId || undefined
         }
       );
@@ -182,7 +78,6 @@ export class OrganizationService {
           id: `ou-loc-${loc.id}`,
           name: hasOuStations ? `Ga: ${labelVi}` : `Vị trí: ${labelVi}`,
           description: `Vị trí nhà ga vận hành liên kết động từ danh mục`,
-          domainId: defaultDomain,
           parentId: hasOuStations ? 'ou-stations' : 'ou-category-locations'
         };
       });
@@ -192,7 +87,6 @@ export class OrganizationService {
         id: `ou-unit-${unit.id}`,
         name: `Đơn vị: ${unit.name}`,
         description: `Đơn vị chịu trách nhiệm liên kết từ danh mục`,
-        domainId: defaultDomain,
         parentId: 'ou-category-responsible-units'
       }));
 
@@ -203,7 +97,6 @@ export class OrganizationService {
           id: `ou-sub-${sub.id}`,
           name: `Hệ thống: ${labelVi}`,
           description: `Hệ thống kỹ thuật liên kết từ danh mục`,
-          domainId: defaultDomain,
           parentId: 'ou-category-subsystems'
         };
       });
@@ -217,15 +110,9 @@ export class OrganizationService {
         ...subsystemOus
       ];
 
-      if (domainId) {
-        return mergedOus.filter(o => o.domainId === domainId);
-      }
       return mergedOus;
     } catch (e) {
       console.warn('[ORGANIZATION-SERVICE] Failed to fetch category items for dynamic OUs, returning standard OUs only:', e);
-      if (domainId) {
-        return ous.filter(o => o.domainId === domainId);
-      }
       return ous;
     }
   }
@@ -265,77 +152,45 @@ export class OrganizationService {
    * Constructs the complete nested AD structure down to OUs & Users
    */
   static async getTreeStructure(): Promise<any[]> {
-    const forests = await this.getForests();
-    const trees = await this.getTrees();
-    const domains = await this.getChildDomains();
     const ous = await this.getOrganizationalUnits();
     const users = await getInternalUsers();
 
-    // Map each Forest
-    return forests.map(forest => {
-      const forestTrees = trees.filter(t => t.forestId === forest.id);
-      return {
-        id: forest.id,
-        name: forest.name,
-        type: 'forest',
-        description: forest.description,
-        children: forestTrees.map(tree => {
-          const treeDomains = domains.filter(d => d.treeId === tree.id);
-          return {
-            id: tree.id,
-            name: tree.name,
-            type: 'tree',
-            description: tree.description,
-            children: treeDomains.map(domain => {
-              const domainOus = ous.filter(o => o.domainId === domain.id);
-              
-              // Build recursive OU tree under the domain root
-              const buildOuTree = (parentId: string | null | undefined): any[] => {
-                const levelOus = domainOus.filter(o => {
-                  if (!parentId) {
-                    return !o.parentId || o.parentId === 'null' || o.parentId === '';
-                  }
-                  return o.parentId === parentId;
-                });
-                return levelOus.map(ou => {
-                  const subOusAndUsers = [
-                    ...buildOuTree(ou.id),
-                    ...users
-                      .filter((u: any) => u.ouId === ou.id)
-                      .map((u: any) => ({
-                        id: u.id,
-                        name: u.name,
-                        email: u.email,
-                        role: u.role,
-                        type: 'user',
-                        status: u.status,
-                      }))
-                  ];
-                  return {
-                    id: ou.id,
-                    name: ou.name,
-                    type: 'ou',
-                    description: ou.description,
-                    children: subOusAndUsers
-                  };
-                });
-              };
+    // Build recursive OU tree
+    const buildOuTree = (parentId: string | null | undefined): any[] => {
+      const levelOus = ous.filter(o => {
+        if (!parentId) {
+          return !o.parentId || o.parentId === 'null' || o.parentId === '';
+        }
+        return o.parentId === parentId;
+      });
+      return levelOus.map(ou => {
+        const subOusAndUsers = [
+          ...buildOuTree(ou.id),
+          ...users
+            .filter((u: any) => u.ouId === ou.id)
+            .map((u: any) => ({
+              id: u.id,
+              name: u.name,
+              email: u.email,
+              role: u.role,
+              type: 'user',
+              status: u.status,
+            }))
+        ];
+        return {
+          id: ou.id,
+          name: ou.name,
+          type: 'ou',
+          description: ou.description,
+          children: subOusAndUsers
+        };
+      });
+    };
 
-              // First layer OUs (root OUs under this domain)
-              const rootOus = buildOuTree(null);
+    // First layer OUs (root OUs)
+    const rootOus = buildOuTree(null);
 
-              return {
-                id: domain.id,
-                name: domain.name,
-                type: 'domain',
-                description: domain.description,
-                children: rootOus
-              };
-            })
-          };
-        })
-      };
-    });
+    return rootOus;
   }
 
   /**
@@ -343,11 +198,7 @@ export class OrganizationService {
    */
   static async seedDefaultOrganization(): Promise<boolean> {
     try {
-      // 1. Clean up any existing AD structure first to ensure no conflicts or duplicates
-      const existingForests = await this.getForests();
-      for (const forest of existingForests) {
-        await this.deleteForest(forest.id);
-      }
+      // 1. Clean up any existing OUs (optional, skipped for safety or handle differently)
 
       // 2. Seed / Upsert Graded Roles
       const gradedRoles = [
@@ -472,36 +323,12 @@ export class OrganizationService {
         }
       }
 
-      // 3. Create Forest
-      const forest = await this.createForest({
-        id: 'forest-metro-root',
-        name: 'HURC Metro System Forest',
-        description: 'Rừng định danh trung tâm điều hành đường sắt đô thị (HURC No.1 CDHS Forest)',
-      } as any);
-
-      // 4. Create Tree
-      const tree = await this.createTree({
-        id: 'tree-metro-root',
-        name: 'HURC Maintenance & Operations Tree',
-        description: 'Cây thư mục gốc quản trị bảo trì - cdhs.hurc1.com.vn',
-        forestId: forest.id
-      } as any);
-
-      // 5. Create Child Domain
-      const domain = await this.createChildDomain({
-        id: 'domain-metro-root',
-        name: 'maint.hurc.vn',
-        description: 'Miền con quản trị nhân sự & nghiệp vụ vận hành bảo trì Metro',
-        treeId: tree.id
-      } as any);
-
-      // 6. Create nested OUs (Forest -> Tree -> Domain -> nested OUs)
+      // 6. Create nested OUs
       // Level 1: Root OU
       const ouRoot = await this.createOrganizationalUnit({
         id: 'ou-cdhs-root',
         name: 'Xí nghiệp Bảo trì Thiết bị',
         description: 'Đơn vị tổ chức đầu não chịu trách nhiệm toàn bộ công tác bảo trì, bảo dưỡng hạ tầng, thông tin tín hiệu và đầu máy toa xe Metro (CDHS Maintenance Enterprise).',
-        domainId: domain.id,
         parentId: undefined
       } as any);
 
@@ -510,7 +337,6 @@ export class OrganizationService {
         id: 'ou-infra',
         name: 'Phân xưởng Bảo trì Hạ tầng',
         description: 'Phòng ban chịu trách nhiệm bảo dưỡng hệ thống cơ sở hạ tầng đường sắt đô thị (đường ray, kiến trúc ga, cung cấp điện).',
-        domainId: domain.id,
         parentId: ouRoot.id
       } as any);
 
@@ -518,7 +344,6 @@ export class OrganizationService {
         id: 'ou-sig-telecom',
         name: 'Phân xưởng Thông tin Tín hiệu',
         description: 'Phòng ban phụ trách hệ thống chạy tàu tự động, thông tin tín hiệu điều khiển trung tâm OCC và viễn thông ga.',
-        domainId: domain.id,
         parentId: ouRoot.id
       } as any);
 
@@ -526,7 +351,6 @@ export class OrganizationService {
         id: 'ou-rolling-stock',
         name: 'Phân xưởng Đầu máy Toa xe',
         description: 'Phân xưởng bảo dưỡng, sửa chữa định kỳ và đại tu toàn bộ đội tàu, đầu máy và các toa xe vận hành trên tuyến.',
-        domainId: domain.id,
         parentId: ouRoot.id
       } as any);
 
@@ -535,7 +359,6 @@ export class OrganizationService {
         id: 'ou-track-civil',
         name: 'Đội Bảo trì Đường ray & Kiến trúc',
         description: 'Đội phụ trách tuần tra ray, căn chỉnh khổ đường và duy tu kiến trúc tầng trên.',
-        domainId: domain.id,
         parentId: ouInfra.id
       } as any);
 
@@ -543,7 +366,6 @@ export class OrganizationService {
         id: 'ou-power-supply',
         name: 'Đội Cung cấp Điện',
         description: 'Đội vận hành trạm biến áp trung thế, hệ thống điện lưới và ray thứ ba cung cấp điện chạy tàu.',
-        domainId: domain.id,
         parentId: ouInfra.id
       } as any);
 
@@ -552,7 +374,6 @@ export class OrganizationService {
         id: 'ou-l1-track-patrol',
         name: 'Tổ tuần tra ray Cát Linh - Hà Đông',
         description: 'Tổ bảo trì L1 (hàng ngày): tuần tra trực quan tuyến đường ray, phát hiện mối nguy nứt/gãy ray cơ bản.',
-        domainId: domain.id,
         parentId: ouTrackCivil.id
       } as any);
 
@@ -560,7 +381,6 @@ export class OrganizationService {
         id: 'ou-l2-track-maint',
         name: 'Đội Kỹ thuật Ray chuyên sâu',
         description: 'Tổ bảo trì L2 (định kỳ): mài ray, căn chỉnh hình học ray bằng thiết bị đo đạc chuyên nghiệp.',
-        domainId: domain.id,
         parentId: ouTrackCivil.id
       } as any);
 
@@ -569,7 +389,6 @@ export class OrganizationService {
         id: 'ou-l1-station-power',
         name: 'Tổ vận hành trạm ga',
         description: 'Tổ bảo trì L1 (hàng ngày): ghi chỉ số điện kế, kiểm tra trực quan tủ điện hạ thế và thiết bị chiếu sáng ga.',
-        domainId: domain.id,
         parentId: ouPowerSupply.id
       } as any);
 
@@ -577,7 +396,6 @@ export class OrganizationService {
         id: 'ou-l2-power-grid',
         name: 'Tổ bảo dưỡng thiết bị điện chuyên sâu',
         description: 'Tổ bảo trì L2 (định kỳ): bảo dưỡng máy biến áp, tủ ngắt mạch chân không VCB trạm biến áp chính.',
-        domainId: domain.id,
         parentId: ouPowerSupply.id
       } as any);
 
@@ -586,7 +404,6 @@ export class OrganizationService {
         id: 'ou-signaling',
         name: 'Đội Kỹ thuật Tín hiệu',
         description: 'Đội chuyên trách hệ thống tín hiệu điều khiển chạy tàu tự động (ATC/CBTC).',
-        domainId: domain.id,
         parentId: ouSigTelecom.id
       } as any);
 
@@ -594,7 +411,6 @@ export class OrganizationService {
         id: 'ou-telecom',
         name: 'Đội Kỹ thuật Viễn thông',
         description: 'Đội phụ trách mạng truyền dẫn quang, hệ thống camera giám sát CCTV, phát thanh hành khách PA và thông tin nội bộ.',
-        domainId: domain.id,
         parentId: ouSigTelecom.id
       } as any);
 
@@ -603,7 +419,6 @@ export class OrganizationService {
         id: 'ou-l1-train-control',
         name: 'Tổ tuần tra thiết bị chạy tàu',
         description: 'Tổ bảo trì L1 (hàng ngày): kiểm tra hiển thị đèn tín hiệu ga, bộ đếm trục và máy chuyển ghi hiện trường.',
-        domainId: domain.id,
         parentId: ouSignaling.id
       } as any);
 
@@ -611,7 +426,6 @@ export class OrganizationService {
         id: 'ou-l2-atc-signaling',
         name: 'Tổ bảo dưỡng chuyên sâu tín hiệu',
         description: 'Tổ bảo trì L2 (định kỳ): căn chỉnh máy chuyển ghi, đo điện áp mạch vòng, kiểm thử phần mềm ATO/ATP trên tàu.',
-        domainId: domain.id,
         parentId: ouSignaling.id
       } as any);
 
@@ -620,7 +434,6 @@ export class OrganizationService {
         id: 'ou-l2-telecom',
         name: 'Tổ bảo trì viễn thông ga',
         description: 'Tổ bảo trì L2 (định kỳ): vệ sinh camera, kiểm định bộ đàm cầm tay, cấu hình tổng đài PABX ga.',
-        domainId: domain.id,
         parentId: ouTelecom.id
       } as any);
 
@@ -629,7 +442,6 @@ export class OrganizationService {
         id: 'ou-rolling-stock-team',
         name: 'Đội Kỹ thuật Toa xe',
         description: 'Đội phụ trách kiểm định, bảo trì hệ thống cơ khí và điện khí của các đoàn tàu metro.',
-        domainId: domain.id,
         parentId: ouRollingStock.id
       } as any);
 
@@ -638,7 +450,6 @@ export class OrganizationService {
         id: 'ou-l2-brake-servicing',
         name: 'Tổ sửa chữa cơ cấu phanh hãm',
         description: 'Tổ bảo trì L2 (định kỳ): siêu âm đĩa phanh, thay thế má phanh mòn và kiểm thử lực phanh thủy lực.',
-        domainId: domain.id,
         parentId: ouRollingStockTeam.id
       } as any);
 
@@ -646,7 +457,6 @@ export class OrganizationService {
         id: 'ou-l2-cabin-power',
         name: 'Tổ bảo dưỡng điện toa xe',
         description: 'Tổ bảo trì L2 (định kỳ): kiểm tra ắc quy dự phòng, hệ thống điều hòa không khí HVAC cabin tàu và bảng mạch hiển thị thông tin.',
-        domainId: domain.id,
         parentId: ouRollingStockTeam.id
       } as any);
 
@@ -658,7 +468,6 @@ export class OrganizationService {
         id: 'ou-ops-root',
         name: 'Xí nghiệp Vận hành',
         description: 'Đơn vị tổ chức đầu não chịu trách nhiệm toàn bộ công tác điều hành chạy tàu, bán vé và phục vụ hành khách ga Metro (Operations Enterprise).',
-        domainId: domain.id,
         parentId: undefined
       } as any);
 
@@ -667,7 +476,6 @@ export class OrganizationService {
         id: 'ou-occ',
         name: 'Trung tâm Điều độ OCC',
         description: 'Trung tâm kiểm soát điều khiển chạy tàu, cung cấp điện và thông tin tín hiệu toàn mạng lưới đường sắt đô thị (OCC Dispatch Center).',
-        domainId: domain.id,
         parentId: ouOpsRoot.id
       } as any);
 
@@ -675,7 +483,6 @@ export class OrganizationService {
         id: 'ou-stations',
         name: 'Đội Vận hành Ga',
         description: 'Đội quản lý toàn bộ các ga hành khách, dịch vụ bán vé, an ninh ga và đón tiễn tàu.',
-        domainId: domain.id,
         parentId: ouOpsRoot.id
       } as any);
 
@@ -683,7 +490,6 @@ export class OrganizationService {
         id: 'ou-drivers',
         name: 'Đội Vận hành Tàu',
         description: 'Đội quản lý lực lượng lái tàu chính tuyến và lái tàu dồn dịch trong Depot.',
-        domainId: domain.id,
         parentId: ouOpsRoot.id
       } as any);
 
@@ -692,7 +498,6 @@ export class OrganizationService {
         id: 'ou-dispatcher-train',
         name: 'Tổ điều độ chạy tàu (Train Dispatcher)',
         description: 'Tổ kiểm soát lộ trình tàu chạy trực tuyến, điều phối giãn cách và tốc độ các đoàn tàu hiện trường.',
-        domainId: domain.id,
         parentId: ouOcc.id
       } as any);
 
@@ -700,7 +505,6 @@ export class OrganizationService {
         id: 'ou-dispatcher-power',
         name: 'Tổ điều độ cung cấp điện (Power Dispatcher)',
         description: 'Tổ giám sát và ngắt tủ điện ngầm, cung cấp điện chạy tàu và điện ga an toàn.',
-        domainId: domain.id,
         parentId: ouOcc.id
       } as any);
 
@@ -709,7 +513,6 @@ export class OrganizationService {
         id: 'ou-driver-main',
         name: 'Tổ lái tàu chính Tuyến Cát Linh - Hà Đông',
         description: 'Tổ lái tàu chính chịu trách nhiệm trực tiếp điều khiển các đoàn tàu đón trả khách an toàn.',
-        domainId: domain.id,
         parentId: ouDrivers.id
       } as any);
 
@@ -717,7 +520,6 @@ export class OrganizationService {
         id: 'ou-driver-depot',
         name: 'Tổ lái tàu dồn dịch Depot',
         description: 'Tổ lái tàu chuyên dụng dồn tàu vào xưởng sửa chữa, khu vực đỗ xe và chạy thử trong khu vực Depot.',
-        domainId: domain.id,
         parentId: ouDrivers.id
       } as any);
 

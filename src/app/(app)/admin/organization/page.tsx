@@ -36,12 +36,6 @@ import {
   upsertOrganizationalUnit, 
   deleteOrganizationalUnit, 
   seedOrganization,
-  upsertForest,
-  deleteForest,
-  upsertTree,
-  deleteTree,
-  upsertDomain,
-  deleteDomain
 } from "@/lib/actions/organization.actions";
 import { addRole, updateRole, deleteRole, getRoles } from "@/lib/actions/role.actions";
 import { getUsers } from "@/lib/actions/user.actions";
@@ -57,7 +51,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 interface TreeNode {
   id: string;
   name: string;
-  type: 'forest' | 'tree' | 'domain' | 'ou' | 'user';
+  type: 'ou' | 'user';
   description?: string;
   email?: string;
   role?: string;
@@ -99,15 +93,13 @@ export default function IntegratedADConsolePage() {
   // Dialog state for AD Nodes
   const [isADDialogOpen, setIsADDialogOpen] = React.useState(false);
   const [adDialogMode, setAdDialogMode] = React.useState<'create' | 'edit'>('create');
-  const [adDialogNodeType, setAdDialogNodeType] = React.useState<'forest' | 'tree' | 'domain' | 'ou'>('ou');
+  const [adDialogNodeType, setAdDialogNodeType] = React.useState<'ou'>('ou');
   const [adDialogTarget, setAdDialogTarget] = React.useState<{
     id?: string;
     name: string;
     description: string;
-    forestId?: string;
-    treeId?: string;
-    domainId?: string;
     parentId?: string;
+    mode?: 'create' | 'edit';
   }>({ name: "", description: "" });
 
   // ==========================================
@@ -334,91 +326,36 @@ export default function IntegratedADConsolePage() {
   // ==========================================
   // CRUD ENGINE 1: AD HIERARCHY
   // ==========================================
-  const openADNodeDialog = (mode: 'create' | 'edit', type: 'forest' | 'tree' | 'domain' | 'ou' = 'ou', node?: TreeNode) => {
+  const openADNodeDialog = (mode: 'create' | 'edit', type: 'ou' = 'ou', node?: TreeNode) => {
     setAdDialogMode(mode);
     setAdDialogNodeType(type);
     
     if (mode === 'create') {
-      let defaultForestId = treeData[0]?.id || "";
-      let defaultTreeId = treeData[0]?.children?.[0]?.id || "";
-      let defaultDomainId = treeData[0]?.children?.[0]?.children?.[0]?.id || "";
       let defaultParentId = "";
       
       if (selectedNode) {
-        if (selectedNode.type === 'forest') {
-          defaultForestId = selectedNode.id;
-        } else if (selectedNode.type === 'tree') {
-          defaultTreeId = selectedNode.id;
-          const foundForest = treeData.find(f => f.children?.some(t => t.id === selectedNode.id));
-          if (foundForest) defaultForestId = foundForest.id;
-        } else if (selectedNode.type === 'domain') {
-          defaultDomainId = selectedNode.id;
-          for (const f of treeData) {
-            const foundTree = f.children?.find(t => t.children?.some(d => d.id === selectedNode.id));
-            if (foundTree) {
-              defaultTreeId = foundTree.id;
-              defaultForestId = f.id;
-              break;
-            }
-          }
-        } else if (selectedNode.type === 'ou') {
+        if (selectedNode.type === 'ou') {
           const isVirtual = 
             selectedNode.id.startsWith('ou-category-') ||
             selectedNode.id.startsWith('ou-loc-') ||
             selectedNode.id.startsWith('ou-unit-') ||
             selectedNode.id.startsWith('ou-sub-');
           defaultParentId = isVirtual ? "" : selectedNode.id;
-          for (const f of treeData) {
-            if (f.children) {
-              for (const t of f.children) {
-                if (t.children) {
-                  for (const d of t.children) {
-                    const checkOus = (ouNodes: TreeNode[]): boolean => {
-                      return ouNodes.some(o => o.id === selectedNode.id || (o.children && checkOus(o.children)));
-                    };
-                    if (d.children && checkOus(d.children)) {
-                      defaultDomainId = d.id;
-                      defaultTreeId = t.id;
-                      defaultForestId = f.id;
-                      break;
-                    }
-                  }
-                }
-              }
-            }
-          }
         }
       }
 
       setAdDialogTarget({
         name: "",
         description: "",
-        forestId: defaultForestId,
-        treeId: defaultTreeId,
-        domainId: defaultDomainId,
-        parentId: defaultParentId
+        parentId: defaultParentId,
+        mode: 'create'
       });
     } else if (mode === 'edit' && node) {
-      let defaultForestId = "";
-      let defaultTreeId = "";
-      let defaultDomainId = "";
       let defaultParentId = "";
 
-      if (type === 'tree') {
-        const foundForest = treeData.find(f => f.children?.some(t => t.id === node.id));
-        if (foundForest) defaultForestId = foundForest.id;
-      } else if (type === 'domain') {
-        for (const f of treeData) {
-          const foundTree = f.children?.find(t => t.children?.some(d => d.id === node.id));
-          if (foundTree) {
-            defaultTreeId = foundTree.id;
-            break;
-          }
-        }
-      } else if (type === 'ou') {
+      if (type === 'ou') {
         const ouInfo = ouList.find(o => o.id === node.id);
         if (ouInfo) {
-          defaultDomainId = ouInfo.domainId || "";
           defaultParentId = ouInfo.parentId || "";
         }
       }
@@ -427,10 +364,8 @@ export default function IntegratedADConsolePage() {
         id: node.id,
         name: node.name,
         description: node.description || "",
-        forestId: defaultForestId,
-        treeId: defaultTreeId,
-        domainId: defaultDomainId,
-        parentId: defaultParentId
+        parentId: defaultParentId,
+        mode: 'edit'
       });
     }
     setIsADDialogOpen(true);
@@ -449,50 +384,11 @@ export default function IntegratedADConsolePage() {
     setLoading(true);
     let res: { success: boolean; error?: string } = { success: false, error: "Loại đối tượng không xác định" };
 
-    if (adDialogNodeType === 'forest') {
-      res = await upsertForest({
-        id: adDialogTarget.id,
-        name: adDialogTarget.name,
-        description: adDialogTarget.description,
-        mode: adDialogMode
-      });
-    } else if (adDialogNodeType === 'tree') {
-      if (!adDialogTarget.forestId) {
-        toast({ variant: "destructive", title: "Lỗi", description: "Vui lòng chọn Rừng trực thuộc." });
-        setLoading(false);
-        return;
-      }
-      res = await upsertTree({
-        id: adDialogTarget.id,
-        name: adDialogTarget.name,
-        description: adDialogTarget.description,
-        forestId: adDialogTarget.forestId,
-        mode: adDialogMode
-      });
-    } else if (adDialogNodeType === 'domain') {
-      if (!adDialogTarget.treeId) {
-        toast({ variant: "destructive", title: "Lỗi", description: "Vui lòng chọn Cây trực thuộc." });
-        setLoading(false);
-        return;
-      }
-      res = await upsertDomain({
-        id: adDialogTarget.id,
-        name: adDialogTarget.name,
-        description: adDialogTarget.description,
-        treeId: adDialogTarget.treeId,
-        mode: adDialogMode
-      });
-    } else if (adDialogNodeType === 'ou') {
-      if (!adDialogTarget.domainId) {
-        toast({ variant: "destructive", title: "Lỗi", description: "Vui lòng chọn Miền con trực thuộc." });
-        setLoading(false);
-        return;
-      }
+    if (adDialogNodeType === 'ou') {
       res = await upsertOrganizationalUnit({
         id: adDialogTarget.id,
         name: adDialogTarget.name,
         description: adDialogTarget.description,
-        domainId: adDialogTarget.domainId,
         parentId: adDialogTarget.parentId || undefined,
         mode: adDialogMode
       });
@@ -526,18 +422,12 @@ export default function IntegratedADConsolePage() {
     if (!confirm(confirmMsg)) return;
 
     setLoading(true);
-    let res: { success: boolean; error?: string } = { success: false, error: "Không thể thực hiện xóa" };
 
-    if (type === 'forest') {
-      res = await deleteForest(id);
-    } else if (type === 'tree') {
-      res = await deleteTree(id);
-    } else if (type === 'domain') {
-      res = await deleteDomain(id);
-    } else if (type === 'ou') {
+    let res: { success: boolean; error?: string } = { success: false, error: "Lỗi" };
+    if (type === 'ou') {
       res = await deleteOrganizationalUnit(id);
     }
-
+    
     if (res.success) {
       toast({
         title: locale === 'vi' ? "Thành công" : "Success",
@@ -571,9 +461,6 @@ export default function IntegratedADConsolePage() {
     }
 
     switch (node.type) {
-      case 'forest': return "border-blue-500/20 hover:border-blue-400 text-blue-400 bg-blue-950/20";
-      case 'tree': return "border-emerald-500/20 hover:border-emerald-400 text-emerald-400 bg-emerald-950/20";
-      case 'domain': return "border-violet-500/20 hover:border-violet-400 text-violet-400 bg-violet-950/20";
       case 'ou': return "border-amber-500/20 hover:border-amber-400 text-amber-400 bg-amber-950/20";
       case 'user': return "border-slate-800/30 hover:border-slate-500 text-slate-300 bg-slate-900/10";
     }
@@ -592,9 +479,6 @@ export default function IntegratedADConsolePage() {
     }
 
     switch (node.type) {
-      case 'forest': return <Network className="h-4 w-4" />;
-      case 'tree': return <FolderGit2 className="h-4 w-4" />;
-      case 'domain': return <Globe2 className="h-4 w-4" />;
       case 'ou': return <FolderTree className="h-4 w-4" />;
       case 'user': return <UserIcon className="h-4 w-4 text-slate-400" />;
     }
@@ -613,9 +497,6 @@ export default function IntegratedADConsolePage() {
     }
 
     switch (type) {
-      case 'forest': return locale === 'vi' ? "Rừng hệ thống" : "Forest Root";
-      case 'tree': return locale === 'vi' ? "Cây thư mục" : "Tree Root";
-      case 'domain': return locale === 'vi' ? "Miền con" : "Child Domain";
       case 'ou': return locale === 'vi' ? "Đơn vị tổ chức" : "Organizational Unit";
       case 'user': return locale === 'vi' ? "Người dùng" : "User Account";
     }
@@ -1472,72 +1353,8 @@ export default function IntegratedADConsolePage() {
           </DialogHeader>
 
           <div className="space-y-4 py-3 text-sm">
-            <div className="flex flex-col gap-1.5">
-              <Label htmlFor="node_type" className="text-xs text-slate-400 font-medium">{locale === 'vi' ? "Phân cấp đối tượng (Type)" : "AD Object Type"}</Label>
-              <select
-                id="node_type"
-                value={adDialogNodeType}
-                disabled={adDialogMode === 'edit'}
-                onChange={(e) => setAdDialogNodeType(e.target.value as any)}
-                className="w-full h-10 px-3 rounded-lg border border-slate-800 bg-slate-950 text-slate-100 focus:outline-none focus:border-primary text-sm disabled:opacity-50"
-              >
-                <option value="forest">{locale === 'vi' ? "Forest (Rừng hệ thống)" : "Forest Root"}</option>
-                <option value="tree">{locale === 'vi' ? "Tree (Cây thư mục)" : "Tree Root"}</option>
-                <option value="domain">{locale === 'vi' ? "Child Domain (Miền con)" : "Child Domain"}</option>
-                <option value="ou">{locale === 'vi' ? "Organizational Unit (OU)" : "Organizational Unit (OU)"}</option>
-              </select>
-            </div>
-
-            {adDialogNodeType === 'tree' && (
-              <div className="flex flex-col gap-1.5">
-                <Label htmlFor="tree_forestId" className="text-xs text-slate-400 font-medium">{locale === 'vi' ? "Rừng trực thuộc" : "Target Forest"}</Label>
-                <select
-                  id="tree_forestId"
-                  value={adDialogTarget.forestId || ""}
-                  onChange={(e) => setAdDialogTarget(prev => ({ ...prev, forestId: e.target.value }))}
-                  className="w-full h-10 px-3 rounded-lg border border-slate-800 bg-slate-950 text-slate-100 focus:outline-none focus:border-primary text-sm"
-                >
-                  <option value="">{locale === 'vi' ? "-- Chọn Rừng hệ thống --" : "-- Select Forest --"}</option>
-                  {treeData.map(f => (
-                    <option key={f.id} value={f.id}>{f.name}</option>
-                  ))}
-                </select>
-              </div>
-            )}
-
-            {adDialogNodeType === 'domain' && (
-              <div className="flex flex-col gap-1.5">
-                <Label htmlFor="domain_treeId" className="text-xs text-slate-400 font-medium">{locale === 'vi' ? "Cây thư mục trực thuộc" : "Target Tree"}</Label>
-                <select
-                  id="domain_treeId"
-                  value={adDialogTarget.treeId || ""}
-                  onChange={(e) => setAdDialogTarget(prev => ({ ...prev, treeId: e.target.value }))}
-                  className="w-full h-10 px-3 rounded-lg border border-slate-800 bg-slate-950 text-slate-100 focus:outline-none focus:border-primary text-sm"
-                >
-                  <option value="">{locale === 'vi' ? "-- Chọn Cây thư mục --" : "-- Select Tree --"}</option>
-                  {treeData.flatMap(f => f.children || []).map(t => (
-                    <option key={t.id} value={t.id}>{t.name}</option>
-                  ))}
-                </select>
-              </div>
-            )}
-
             {adDialogNodeType === 'ou' && (
               <>
-                <div className="flex flex-col gap-1.5">
-                  <Label htmlFor="ou_domainId" className="text-xs text-slate-400 font-medium">{locale === 'vi' ? "Miền con (Domain) trực thuộc" : "Target Child Domain"}</Label>
-                  <select
-                    id="ou_domainId"
-                    value={adDialogTarget.domainId || ""}
-                    onChange={(e) => setAdDialogTarget(prev => ({ ...prev, domainId: e.target.value }))}
-                    className="w-full h-10 px-3 rounded-lg border border-slate-800 bg-slate-950 text-slate-100 focus:outline-none focus:border-primary text-sm"
-                  >
-                    <option value="">{locale === 'vi' ? "-- Chọn Miền con --" : "-- Select Child Domain --"}</option>
-                    {treeData.flatMap(f => f.children || []).flatMap(t => t.children || []).map(d => (
-                      <option key={d.id} value={d.id}>{d.name}</option>
-                    ))}
-                  </select>
-                </div>
 
                 <div className="flex flex-col gap-1.5">
                   <Label htmlFor="ou_parentId" className="text-xs text-slate-400 font-medium">{locale === 'vi' ? "Đơn vị OU Cha (Tùy chọn)" : "Parent OU (Optional)"}</Label>
@@ -1773,3 +1590,5 @@ export default function IntegratedADConsolePage() {
     </div>
   );
 }
+
+// trigger hot reload
