@@ -87,7 +87,13 @@ const checklistItemSchema = z.object({
   toleranceOperator: z.enum(['>', '<', '>=', '<=', '==', '±']).optional(),
   toleranceValue: z.number().optional(),
   actualQuantity: z.preprocess(
-    (val) => (String(val).trim() === '' ? undefined : Number(val)),
+    (val) => {
+      if (val === undefined || val === null) return undefined;
+      const s = String(val).trim();
+      if (s === '' || s === 'undefined' || s === 'null' || s === 'NaN') return undefined;
+      const num = Number(val);
+      return isNaN(num) ? undefined : num;
+    },
     z.number().optional()
   ),
   requiredTools: z.string().optional(),
@@ -104,7 +110,13 @@ const inspectionFormSchema = z.object({
   scheduledStartDate: z.string().optional(),
   scheduledFinishDate: z.string().optional(),
   estimatedDurationHours: z.preprocess(
-    (val) => (val === "" ? undefined : Number(val)),
+    (val) => {
+      if (val === undefined || val === null) return undefined;
+      const s = String(val).trim();
+      if (s === '' || s === 'undefined' || s === 'null' || s === 'NaN') return undefined;
+      const num = Number(val);
+      return isNaN(num) ? undefined : num;
+    },
     z.number().optional()
   ),
 });

@@ -255,12 +255,12 @@ export async function getInternalInspectionsPaginated(skip: number, take: number
 export async function createInternalInspection(data: any, userId: string, userName: string) {
     if (!IS_DATABASE_OFFLINE) {
         try {
+            const { createdById, ...prismaData } = data as any;
             const inspection = await opsDb.inspectionDetail.create({
                 data: {
-                    ...data,
+                    ...prismaData,
                     id: data.id || `INS-${Date.now()}`,
                     inspector: data.inspector || userId,
-                    createdById: userId,
                     date: new Date(data.date),
                     status: data.status || 'Mới',
                     isArchived: false,
