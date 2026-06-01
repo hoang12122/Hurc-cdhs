@@ -69,7 +69,7 @@ export async function getOUList() {
  * Action to create or update an Organizational Unit (OU)
  */
 export async function upsertOrganizationalUnit(
-  data: { id?: string; name: string; description?: string; domainId: string; parentId?: string }
+  data: { id?: string; name: string; description?: string; domainId: string; parentId?: string; mode?: 'create' | 'edit' }
 ) {
   try {
     await requirePermission('organization:manage');
@@ -90,16 +90,17 @@ export async function upsertOrganizationalUnit(
       }
     }
     
-    if (data.id) {
-      const { id, ...updateData } = data;
+    if (data.id && data.mode !== 'create') {
+      const { id, mode, ...updateData } = data;
       await OrganizationService.updateOrganizationalUnit(id, updateData);
     } else {
       await OrganizationService.createOrganizationalUnit({
+        id: data.id,
         name: data.name,
         description: data.description,
         domainId: data.domainId,
         parentId: data.parentId || undefined
-      });
+      } as any);
     }
     
     revalidatePath('/admin/organization');
@@ -160,17 +161,18 @@ export async function seedOrganization() {
 /**
  * Forest CRUD Actions
  */
-export async function upsertForest(data: { id?: string; name: string; description?: string }) {
+export async function upsertForest(data: { id?: string; name: string; description?: string; mode?: 'create' | 'edit' }) {
   try {
     await requirePermission('organization:manage');
-    if (data.id) {
-      const { id, ...updateData } = data;
+    if (data.id && data.mode !== 'create') {
+      const { id, mode, ...updateData } = data;
       await OrganizationService.updateForest(id, updateData);
     } else {
       await OrganizationService.createForest({
+        id: data.id,
         name: data.name,
         description: data.description
-      });
+      } as any);
     }
     revalidatePath('/admin/organization');
     return { success: true };
@@ -195,18 +197,19 @@ export async function deleteForest(id: string) {
 /**
  * Tree CRUD Actions
  */
-export async function upsertTree(data: { id?: string; name: string; description?: string; forestId: string }) {
+export async function upsertTree(data: { id?: string; name: string; description?: string; forestId: string; mode?: 'create' | 'edit' }) {
   try {
     await requirePermission('organization:manage');
-    if (data.id) {
-      const { id, ...updateData } = data;
+    if (data.id && data.mode !== 'create') {
+      const { id, mode, ...updateData } = data;
       await OrganizationService.updateTree(id, updateData);
     } else {
       await OrganizationService.createTree({
+        id: data.id,
         name: data.name,
         description: data.description,
         forestId: data.forestId
-      });
+      } as any);
     }
     revalidatePath('/admin/organization');
     return { success: true };
@@ -231,18 +234,19 @@ export async function deleteTree(id: string) {
 /**
  * Child Domain CRUD Actions
  */
-export async function upsertDomain(data: { id?: string; name: string; description?: string; treeId: string }) {
+export async function upsertDomain(data: { id?: string; name: string; description?: string; treeId: string; mode?: 'create' | 'edit' }) {
   try {
     await requirePermission('organization:manage');
-    if (data.id) {
-      const { id, ...updateData } = data;
+    if (data.id && data.mode !== 'create') {
+      const { id, mode, ...updateData } = data;
       await OrganizationService.updateChildDomain(id, updateData);
     } else {
       await OrganizationService.createChildDomain({
+        id: data.id,
         name: data.name,
         description: data.description,
         treeId: data.treeId
-      });
+      } as any);
     }
     revalidatePath('/admin/organization');
     return { success: true };

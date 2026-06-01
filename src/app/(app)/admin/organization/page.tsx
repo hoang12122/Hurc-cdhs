@@ -453,7 +453,8 @@ export default function IntegratedADConsolePage() {
       res = await upsertForest({
         id: adDialogTarget.id,
         name: adDialogTarget.name,
-        description: adDialogTarget.description
+        description: adDialogTarget.description,
+        mode: adDialogMode
       });
     } else if (adDialogNodeType === 'tree') {
       if (!adDialogTarget.forestId) {
@@ -465,7 +466,8 @@ export default function IntegratedADConsolePage() {
         id: adDialogTarget.id,
         name: adDialogTarget.name,
         description: adDialogTarget.description,
-        forestId: adDialogTarget.forestId
+        forestId: adDialogTarget.forestId,
+        mode: adDialogMode
       });
     } else if (adDialogNodeType === 'domain') {
       if (!adDialogTarget.treeId) {
@@ -477,7 +479,8 @@ export default function IntegratedADConsolePage() {
         id: adDialogTarget.id,
         name: adDialogTarget.name,
         description: adDialogTarget.description,
-        treeId: adDialogTarget.treeId
+        treeId: adDialogTarget.treeId,
+        mode: adDialogMode
       });
     } else if (adDialogNodeType === 'ou') {
       if (!adDialogTarget.domainId) {
@@ -490,7 +493,8 @@ export default function IntegratedADConsolePage() {
         name: adDialogTarget.name,
         description: adDialogTarget.description,
         domainId: adDialogTarget.domainId,
-        parentId: adDialogTarget.parentId || undefined
+        parentId: adDialogTarget.parentId || undefined,
+        mode: adDialogMode
       });
     }
 
