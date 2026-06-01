@@ -1,91 +1,86 @@
 # TÀI LIỆU 4: VẬN HÀNH VÀ TRIỂN KHAI PRODUCTION (DEPLOYMENT & OPS)
 
-Tài liệu này hướng dẫn cách triển khai hệ thống **HURC1 CRM (Metro Inspect Pro)** trên hệ điều hành **Ubuntu Server (22.04 LTS / 24.04 LTS)** theo tiêu chuẩn **Ironclad Production**.
+Tài liệu này không chỉ hướng dẫn cài đặt cơ bản, mà còn đi sâu vào cấu hình chi tiết (Snippets) để đảm bảo hệ thống **HURC1 CRM** chịu tải được hàng ngàn truy vấn trong môi trường đường sắt khắc nghiệt.
 
 ---
 
-## 1. YÊU CẦU HỆ THỐNG VÀ CÀI ĐẶT
+## 1. YÊU CẦU PHẦN CỨNG CHI TIẾT (HARDWARE METRICS)
 
-### 1.1 Cấu hình phần cứng
-- **CPU:** Tối thiểu 4 Cores (Khuyến nghị 8 Cores nếu chạy YOLO Vision & AI Chat).
-- **RAM:** Tối thiểu 8GB (Hệ thống có RAM Guard sẽ cảnh báo nếu RAM trống < 15%).
-- **Ổ cứng:** SSD trống tối thiểu 50GB.
+Để hệ thống hoạt động không bị thắt cổ chai, máy chủ Ubuntu (Production) cần đáp ứng:
 
-### 1.2 Cài đặt Môi trường
-Bắt buộc cài đặt Docker Engine và Docker Compose v2:
-```bash
-# Cài đặt docker cơ bản trên Ubuntu
-curl -fsSL https://get.docker.com -o get-docker.sh
-sudo sh get-docker.sh
-sudo usermod -aG docker $USER
+| Dịch vụ (Layer) | Cấu hình tối thiểu | Khuyến nghị (Có AI) | Ghi chú |
+|---|---|---|---|
+| **Core App (Next.js)** | 2 Cores, 4GB RAM | 4 Cores, 8GB RAM | Xử lý Request HTTP |
+| **PostgreSQL (4 DBs)** | 2 Cores, 8GB RAM | 4 Cores, 16GB RAM | Cần ổ cứng NVMe SSD |
+| **AI Vision (YOLOv8)** | 4 Cores, 8GB RAM | 1x GPU T4 (Nvidia) | Nếu không có GPU, CPU sẽ chạy rất chậm |
+| **AI Chat (Ollama RAG)** | 4 Cores, 16GB RAM | 1x GPU RTX 3090/4090 | LLM Llama3 cần nhiều VRAM |
+
+---
+
+## 2. STRICT LAYERED DEPLOYMENT VÀ DOCKER COMPOSE SNIPPETS
+
+### 2.1 Tại sao phải triển khai phân lớp (Layered)?
+Thay vì `docker compose up -d` bừa bãi toàn bộ 10 container cùng lúc gây nghẽn RAM, script `./scripts/deploy-prod.sh` chia quá trình thành 3 lớp khởi động (Core -> Database -> AI).
+
+### 2.2 Cấu hình Nginx Reverse Proxy chuẩn
+Để trỏ domain nội bộ (ví dụ: `metro.hurc.vn`) về Next.js và giới hạn dung lượng ảnh tải lên (Upload DNF), bạn phải cấu hình Nginx:
+
+```nginx
+# /etc/nginx/sites-available/hurc-cdhs
+server {
+    listen 80;
+    server_name metro.hurc.vn 192.168.1.213;
+
+    # Cực kỳ quan trọng: Cho phép upload ảnh hiện trường tối đa 50MB
+    client_max_body_size 50M;
+
+    location / {
+        proxy_pass http://localhost:3000;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+        proxy_cache_bypass $http_upgrade;
+    }
+}
+```
+
+### 2.3 Docker Compose Snippet (Mẫu tham khảo)
+Đảm bảo container `app` luôn khởi động lại nếu bị sập (Crash loop):
+```yaml
+# docker-compose.yml
+services:
+  app:
+    image: hurc-cdhs:latest
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - IS_DATABASE_OFFLINE=false
+    depends_on:
+      - postgres-core
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 ```
 
 ---
 
-## 2. QUY TRÌNH TRIỂN KHAI PHÂN LỚP (STRICT LAYERED DEPLOYMENT)
+## 3. CI/CD PIPELINES (ĐỀ XUẤT)
 
-Để đảm bảo hệ thống không bao giờ bị "sập toàn phần", chúng tôi áp dụng cơ chế triển khai phân lớp nghiêm ngặt qua script `./scripts/deploy-prod.sh`. Nếu một lớp thất bại ở bài kiểm tra Smoke Test, tiến trình sẽ Rollback lập tức.
+Nếu HURC áp dụng GitLab CI hoặc GitHub Actions cho mạng nội bộ, Pipeline phải tuân thủ luồng Invariants sau:
 
-### 2.1 Sơ đồ Quy trình Triển khai
-```mermaid
-graph TD
-    A[Preflight Check] --> B[Hot Backup CSDL cũ]
-    B --> C[Lớp 1: Khởi chạy Core Services]
-    C --> D{Smoke Test Core?}
-    D -- Thất bại -- > E[Rollback Core & Dừng]
-    D -- Thành công --> F[Lớp 2: Khởi chạy AI Services]
-    F --> G{Smoke Test AI?}
-    G -- Thất bại --> H[Rollback Toàn bộ & Dừng]
-    G -- Thành công --> I[Lớp 3: Observability]
-    I --> J[Hệ thống Online 100%]
-```
-
-### 2.2 Các Lệnh Vận Hành Cơ Bản
-**1. Deploy Toàn bộ (Bao gồm AI):**
-```bash
-./scripts/deploy-prod.sh
-```
-
-**2. Deploy Chế độ Dự phòng (Core-Only):**
-Phù hợp cho máy chủ RAM yếu hoặc không có GPU. Chế độ này bỏ qua YOLO và Ollama.
-```bash
-DEPLOY_PROFILE=core ./scripts/deploy-prod.sh
-```
-
-**3. Nghiệm thu & Giám sát (Smoke Test & Logs):**
-```bash
-./scripts/smoke-deploy.sh all
-docker compose logs -f --tail=100 app
-```
+1. **Giai đoạn 1 (Linter & Type Check):** Chạy `npm run lint` và `tsc --noEmit`. Nếu code vi phạm chuẩn Vibe Code (Ví dụ: Dùng mã hex màu sai), đánh rớt Pipeline.
+2. **Giai đoạn 2 (Test Hồi quy):** Chạy `npm run test` (Jest) đặc biệt với file `ou-scope-service.test.ts` để đảm bảo hệ thống AD Tree không bị phá vỡ.
+3. **Giai đoạn 3 (Build):** Đóng gói Docker Image. Bắt buộc nhúng biến `IS_DATABASE_OFFLINE=true` để vượt qua lỗi Prisma ngáng đường lúc build.
+4. **Giai đoạn 4 (Deploy):** Bắn Image sang Server 192.168.1.213. Chạy lệnh `docker pull` và tái khởi động container.
 
 ---
 
-## 3. SAO LƯU VÀ PHỤC HỒI DỮ LIỆU (DISASTER RECOVERY)
+## 4. CHIẾN LƯỢC SAO LƯU (BACKUP RUNBOOK)
 
-### 3.1 Hot Backup Tự Động
-Hệ thống tự động sao lưu toàn diện SQL, NoSQL và logs:
-```bash
-./scripts/backup-system.sh
-```
-File sao lưu nằm trong thư mục `./backups/YYYY-MM-DD_HH-MM-SS/` kèm mã hash SHA-256 để chống lỗi bit rot.
-
-### 3.2 Di Trú Dữ Liệu Lên Postgres (Migration)
-Nếu máy chủ phải chạy chế độ Offline (sử dụng `db.json`), sau khi mạng được khôi phục, bạn cần đồng bộ dữ liệu vào PostgreSQL trung tâm:
-```bash
-# Chạy bên trong container app, hoặc dùng lệnh npm nếu node ở host:
-docker exec -it hurc_app npm run migrate
-```
-Lệnh này quét dọn dữ liệu mồ côi và ghi đè đồng bộ an toàn 100%.
-
-### 3.3 Khôi Phục Tài Khoản (2FA Backup Codes)
-Hệ thống sử dụng cơ chế bảo mật 2FA. Trong trường hợp khẩn cấp mất thiết bị xác thực:
-- Mỗi tài khoản có 8 mã dự phòng khẩn cấp (`XXXX-XXXX`) được cấp lúc bật 2FA.
-- Mã dự phòng được mã hóa **SHA-256** trong Database `authDb`.
-- Nhập 1 mã dự phòng vào màn hình đăng nhập sẽ vô hiệu hóa mã đó vĩnh viễn và cấp quyền vào hệ thống.
-
----
-
-## 4. INVARIANTS VÀ LỖI THƯỜNG GẶP
-- **Nginx HTTP 502:** Nguyên nhân do Next.js mặc định lắng nghe trên `localhost`. Phải đảm bảo `HOSTNAME=0.0.0.0` trong tệp `.env`.
-- **Lỗi Prisma Client Undefined:** Model Prisma trả về kiểu `camelCase`. Phải sử dụng bộ đệm (Wrapper) trong `db-wrapper.ts` để ánh xạ chính xác định dạng tên Model.
-- **YOLO Connection Refused:** Port `5005` của YOLO không mở public. Smoke test phải dùng `docker exec` để curl nội bộ.
+- **Hot Backup Cronjob:** Đặt Cronjob chạy script backup mỗi 2h sáng: `0 2 * * * /opt/hurc/scripts/backup-system.sh > /dev/null 2>&1`.
+- **Nơi lưu trữ:** Script sẽ dump Postgres ra các file `.sql` và nén `.gz`. Yêu cầu đẩy các file này sang một máy chủ vật lý khác (Off-site backup) qua rsync để chống hỏng ổ cứng toàn phần.

@@ -1,56 +1,52 @@
 # TÀI LIỆU 5: CẨM NANG QUẢN TRỊ VIÊN CẤP CAO (ADMIN USER GUIDE)
 
-Tài liệu này hướng dẫn chi tiết cách Super Admin thiết lập Cơ cấu tổ chức (Active Directory) và phân quyền bảo mật (RBAC) trên phần mềm **HURC1 CRM**.
+Tài liệu này là "Sách gối đầu giường" dành cho Super Admin (hoặc Trưởng phòng Kỹ thuật An toàn), hướng dẫn cách tổ chức cơ cấu nhân sự, gán quyền và bảo vệ an toàn dữ liệu trên **HURC1 CRM**.
 
 ---
 
-## 1. THIẾT LẬP CÂY TỔ CHỨC ĐỆ QUY (AD TREE HIERARCHY)
+## 1. THIẾT LẬP CÂY TỔ CHỨC ĐỆ QUY (AD TREE)
 
-Hệ thống đã loại bỏ các khái niệm phức tạp (Forest, Tree, Domain) và chỉ sử dụng mô hình **Đơn vị Tổ chức (Organizational Unit - OU)** lồng nhau đệ quy không giới hạn độ sâu.
+Hệ thống đã dẹp bỏ cấu trúc cồng kềnh cũ (Forest, Tree, ChildDomain) để sử dụng một mô hình duy nhất và cực kỳ linh hoạt: **Đơn vị Tổ chức (Organizational Unit - OU)** lồng nhau đệ quy.
 
-### 1.1 Tạo Đơn Vị Tổ Chức Mới
-1. Vào mục **Cơ cấu Tổ chức AD**.
-2. Bấm nút **Thêm đối tượng AD** ở góc phải trên.
-3. Trong hộp thoại, cấu hình các trường:
-   - **Đơn vị OU Cha (Parent):** Mặc định là Trống (Root OU). Chọn một OU hiện có nếu muốn OU này là cấp con.
-   - **Mã ID:** Không chứa khoảng trắng (VD: `ou-infra`).
-   - **Tên hiển thị:** (VD: `Phân xưởng Bảo trì Hạ tầng`).
+### Kịch bản thực tế 1: Xây dựng Tổ chức từ con số 0
+Bạn cần lập sơ đồ: `Phân xưởng Hạ tầng -> Đội Đường ray -> Tổ Tuần tra Cát Linh`.
+1. **Tạo cấp 1:** Vào **Hệ thống AD & RBAC** -> Tab **Cơ cấu Tổ chức AD**. Bấm nút "Thêm đối tượng AD".
+   - *Parent OU:* Bỏ trống (Đây là root).
+   - *Mã ID:* `ou-infra`.
+   - *Tên:* `Phân xưởng Bảo trì Hạ tầng`.
+2. **Tạo cấp 2:** Bấm tạo mới. Lần này ở ô *Parent OU*, bạn chọn `Phân xưởng Bảo trì Hạ tầng`. Mã ID: `ou-track`.
+3. **Tạo cấp 3:** Bấm tạo mới. Ở ô *Parent OU*, chọn `Đội Đường ray`. Mã ID: `ou-l1-patrol`.
 
-### 1.2 Đơn vị Ảo (Virtual OUs) & Chỉ báo Trực quan
-Để tránh trùng lặp dữ liệu, hệ thống hỗ trợ khái niệm **Virtual OUs**. Khi bạn tạo một "Nhà ga" trong tab *Danh mục Nghiệp vụ*, hệ thống tự động sinh ra một OU Ảo tương ứng trên cây AD Tree.
-
-- **Chỉ báo Giao diện (Visual Indicator):** Các OU Ảo luôn được bao quanh bởi **đường viền xanh Cyan phát sáng** và icon **Layers nhấp nháy**.
-- **Cơ chế Khóa (Lock Mechanism):** Khi click vào một OU Ảo, nút *Sửa* và *Xóa* sẽ tự động bị khóa, kèm một Alert cảnh báo người dùng qua tab Danh mục để chỉnh sửa thay vì thao tác trên cây AD.
+### Kịch bản thực tế 2: Tự động hóa với Đơn vị Ảo (Virtual OUs)
+Hệ thống đường sắt có 12 nhà ga, bạn KHÔNG CẦN tạo thủ công 12 OU.
+1. Chuyển sang Tab **Danh mục Nghiệp vụ**.
+2. Thêm một Danh mục Vị trí mới: `LOC-004` - `Ga Cát Linh`.
+3. Quay lại Tab **Cơ cấu Tổ chức AD**, bạn sẽ thấy một OU Ảo tên là `Virtual: Ga Cát Linh` tự động xuất hiện làm con của `Đội Vận hành Ga`. Nó sẽ có **đường viền xanh Cyan phát sáng** để dễ phân biệt. Nút Sửa/Xóa của OU này bị khóa cứng.
 
 ---
 
 ## 2. QUẢN LÝ VAI TRÒ VÀ MA TRẬN PHÂN QUYỀN (GRADED ROLES)
 
-### 2.1 Cấu trúc 5 Vai trò Mặc định
-1. **Super Admin:** Có toàn bộ quyền hạn (ký hiệu `*`).
-2. **Admin (P.KTAT):** Quản lý kỹ thuật an toàn, duyệt phiếu đại tu, giám sát chất lượng.
-3. **Chuyên viên (L3):** Lập kế hoạch, giao tác vụ cho cấp dưới trong phạm vi OU.
-4. **Kỹ thuật viên (L2):** Trực tiếp thi công, bảo dưỡng chuyên sâu, xử lý DNF tại hiện trường.
-5. **Nhân viên (L1):** Tuần tra hằng ngày, báo cáo mối nguy (Hazards) và DNF sơ cấp.
+### 2.1 Hiểu rõ 5 Vai trò Mặc định
+- **Super Admin (`SUPER_ADMIN`):** Chúa tể hệ thống (`*`). Có thể làm mọi thứ.
+- **Admin P.KTAT (`ADMIN_PKTAT`):** Cấp Quản lý. Duyệt lệnh đại tu, xuất báo cáo, lập kế hoạch.
+- **Chuyên viên L3 (`L3_SPECIALIST`):** Điều phối viên phân xưởng. Phân công công việc (Tasks) cho anh em thợ cấp dưới.
+- **Kỹ thuật viên L2 (`L2_TECHNICIAN`):** Thợ chuyên sâu. Cầm cờ lê đi sửa máy, chụp ảnh nghiệm thu úp lên phần mềm.
+- **Nhân viên L1 (`L1_OPERATOR`):** Mắt thần hiện trường. Đi dạo quanh nhà ga, thấy gì bất thường (nước rỉ, mùi khét) thì báo cáo Hazard.
 
-### 2.2 Quy trình Cấp Quyền
-1. Vào tab **Vai trò & Phân quyền**.
-2. Lựa chọn một vai trò.
-3. Tích/Bỏ tích các hộp quyền (Permissions) cụ thể. Hệ thống sẽ ngay lập tức lưu lại thông tin một cách an toàn.
-
-> [!WARNING]
-> Tuyệt đối hạn chế cấp các quyền như `inspections:delete` hoặc `dnf:delete` cho nhóm L1 và L2 để phòng tránh hiện tượng tẩy xóa dữ liệu sự cố.
+### 2.2 Kịch bản thực tế 3: Ngăn chặn xóa dữ liệu bậy bạ
+- Bạn phát hiện nhân viên L1 thỉnh thoảng xóa nhầm các báo cáo DNF của người khác.
+- Cách xử lý: Vào Tab **Vai trò & Phân quyền**, chọn vai trò `L1_OPERATOR`. Ở ma trận quyền hạn bên phải, **bỏ tích** ô `dnf:delete` và `dnf:update`. L1 giờ đây chỉ có quyền `dnf:create` và `dnf:read`.
 
 ---
 
-## 3. GÁN NHÂN SỰ VÀ BỘ LỌC ĐỘNG (SCOPED RBAC)
+## 3. GÁN NHÂN SỰ VÀ BẢO MẬT PHẠM VI (SCOPED RBAC)
 
-Hệ thống kết hợp quyền hạn của Vai Trò với Phạm vi (Scope) của Đơn vị. 
+Đỉnh cao bảo mật của hệ thống nằm ở chỗ: **Quyền hạn của bạn bị giới hạn bởi không gian (Scope) mà bạn thuộc về.**
 
-### 3.1 Tìm kiếm OU thông minh khi tạo tài khoản
-1. Truy cập trang **Quản lý Người dùng**.
-2. Khi thêm hoặc chỉnh sửa người dùng, trường **Đơn vị tổ chức (OU)** sử dụng một *Combobox thông minh*. 
-3. Admin có thể gõ từ khóa (VD: "Depot", "Cát Linh") thay vì cuộn tìm kiếm. Khi chọn xong OU, trường Phòng ban (Department) sẽ tự động điền đồng bộ.
+### Kịch bản thực tế 4: Gán quyền Tách biệt (Data Isolation)
+Bạn có Nguyễn Văn A (Thợ Điện L2) và Trần Văn B (Thợ Đường Ray L2). Làm sao để A không nhìn thấy các báo cáo của B, dù cả 2 cùng là chức danh L2?
 
-### 3.2 Tích hợp Phân hệ kỹ thuật (Subsystems)
-Đối với kỹ thuật viên L2, bạn cần gán bổ sung các **Phân hệ kỹ thuật (Assigned Subsystems)** mà họ phụ trách (VD: "Điện", "Ray", "Tín hiệu"). Lớp bộ lọc này đảm bảo một thợ điện không thể tự ý phê duyệt biên bản lỗi của mảng cơ khí toa xe.
+1. **Bước 1 (Gán OU):** Vào trang **Quản lý Người dùng**, chỉnh sửa Nguyễn Văn A, chọn OU là `Tổ Điện Cao Thế`. Tương tự, gán B vào `Tổ Duy tu Ray`.
+2. **Bước 2 (Gán Phân hệ - Subsystems):** Ở màn hình chỉnh sửa user A, kéo xuống mục "Phân hệ Kỹ thuật". Tích chọn `Cấp Điện`. Đối với user B, tích chọn `Đường Ray`.
+3. **Kết quả kỳ diệu:** Khi Nguyễn Văn A đăng nhập vào hệ thống, bộ đệm thông minh của Next.js sẽ tự động lọc (Filter) cơ sở dữ liệu. Mọi sự cố, task, dnf không thuộc thẻ "Cấp Điện" sẽ **tàng hình** hoàn toàn trước mắt A.

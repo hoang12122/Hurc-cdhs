@@ -1,58 +1,90 @@
 # TÀI LIỆU 2: QUY TẮC THIẾT KẾ VÀ VIẾT MÃ (DESIGN & CODING RULES)
 
-Tài liệu này định hình tiêu chuẩn thiết kế kiến trúc và phát triển phần mềm, áp dụng cho mọi lập trình viên và các AI Agent tham gia sinh mã (Vibe Code) cho dự án HURC1 CRM.
+Tài liệu này không chỉ là lý thuyết, nó chứa các giới hạn vật lý (Hard limits) và tiêu chuẩn Vibe Code buộc tất cả lập trình viên và các AI Agent phải tuân thủ nghiêm ngặt để giữ cho **HURC1 CRM** nhẹ, đẹp và không bị "phình to" (Bloated).
 
 ---
 
-## 1. NGUYÊN TẮC KIẾN TRÚC MICRO-FRONTEND (MFE)
+## 1. QUY TẮC VÀNG VỀ COMPONENT (COMPONENT ISOLATION)
 
-Hệ thống được tổ chức theo cấu trúc Next.js App Router, chia tách thành các Module độc lập (MFE).
+### 1.1 Giới hạn độ dài tuyệt đối (The 300-Line Limit)
+- **Quy tắc:** Bất kỳ file `.tsx` hoặc `.ts` nào vượt quá **300 dòng mã** đều được coi là một "Mùi mã xấu" (Code Smell) và PR (Pull Request) sẽ bị reject tự động.
+- **Cách giải quyết:** Chia nhỏ (Split) giao diện thành các Sub-components, và tách toàn bộ logic xử lý ra một file Custom Hook riêng biệt.
 
-### 1.1 Ranh Giới Kỹ Thuật (Module Boundaries)
-- **Thư mục Cố định:** Mỗi module giao diện nằm trong thư mục cô lập `src/app/(app)/[module-name]` (ví dụ: `dnf`, `hazards`, `inspections`).
-- **Nghiêm cấm Khớp nối:** Tuyệt đối KHÔNG import trực tiếp các file Page/Component nội bộ của module này sang module khác.
-- **Shared Components:** Chỉ các thành phần thuộc UI Kit (`src/components/ui/`) mới được dùng chung.
+### 1.2 Thực hành Vibe Code chuẩn mực
+Dưới đây là một ví dụ minh họa cách viết Form tạo DNF tuân thủ 100% Vibe Code:
 
-### 1.2 Giao Tiếp Không Khớp Nối (Decoupled Communication)
-Tuyệt đối cấm chia sẻ State (Zustand/Redux) trực tiếp qua lại giữa 2 module khác nhau.
-- **Tầng Client:** Sử dụng **Event Bus (CustomEvent)**:
-  ```typescript
-  // Trình phát sự kiện (MFE 1)
-  window.dispatchEvent(new CustomEvent('hurc:dnf-created', { detail: { id: 'DNF-001' } }));
+**❌ Sai (Bad Practice - Trộn lẫn UI và Logic):**
+```tsx
+// Không nên viết như thế này: Dài dòng, khó test, khó đọc.
+export default function DnfForm() {
+  const [loading, setLoading] = useState(false);
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    await fetch('/api/dnf', { method: 'POST', body: ... }); // Vi phạm: Gọi trực tiếp API trong Component
+    setLoading(false);
+  }
+  return <form onSubmit={handleSubmit}>...</form>
+}
+```
+
+**✅ Đúng (Best Practice - Tách biệt UI và Logic qua Custom Hook):**
+```tsx
+// File: useDnfForm.ts (Chỉ chứa Logic)
+export const useDnfForm = () => {
+  const [isPending, startTransition] = useTransition();
+  const form = useForm<z.infer<typeof DnfSchema>>({ ... });
+
+  const onSubmit = (data) => {
+    startTransition(async () => {
+      const res = await createDnfAction(data); // Phải dùng Server Actions
+      if (res.success) toast.success("Đã tạo DNF!");
+    });
+  };
+  return { form, isPending, onSubmit };
+};
+
+// File: dnf-form.tsx (Chỉ chứa UI)
+export function DnfForm() {
+  const { form, isPending, onSubmit } = useDnfForm();
+  
+  return (
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+        {/* Chỉ code UI ở đây */}
+      </form>
+    </Form>
+  );
+}
+```
+
+---
+
+## 2. QUY TẮC MỸ THUẬT VÀ UI TOKENS (LOOK & FEEL)
+
+Hệ thống yêu cầu một giao diện **Cao cấp (Premium), Hiện đại (Futuristic)** mang hơi hướng công nghiệp đường sắt nhưng không khô khan.
+
+### 2.1 Cấm Hardcode Màu sắc (No Random Hex Codes)
+Tuyệt đối KHÔNG dùng các mã màu inline như `style={{ backgroundColor: '#29ABE2' }}` hay Tailwind tùy tiện như `bg-[#29ABE2]`. Bạn bắt buộc phải dùng biến màu (Tokens) đã khai báo sẵn trong `tailwind.config.ts`.
+
+**Bảng mã màu chuẩn:**
+- `bg-primary` (Lam Cyan): Dùng cho nút Submit chính, thanh điều hướng. Trọng tâm của nhận diện thương hiệu HURC.
+- `bg-accent` / `text-orange-500` (Cam nhạt): Dùng cho các con số KPIs cần nổi bật, cảnh báo Mối nguy (Hazards) mức Medium.
+- `bg-destructive` (Đỏ sậm): Dùng cho nút Xóa, Mối nguy Critical.
+- `bg-muted` (Xám trong suốt): Dùng làm nền thẻ (Card) trong giao diện Dark Mode (Glassmorphism).
+
+### 2.2 Hiệu ứng Thị giác (Micro-Animations & Visual Cues)
+Giao diện không được "chết đứng" (Static). Nó phải phản hồi mọi tương tác của người dùng.
+- **Hover Effects:** Mọi Button, Card, Row trong Table đều phải đổi màu nền nhẹ hoặc nhô lên khi trỏ chuột: `hover:bg-accent hover:shadow-md transition-all duration-200`.
+- **Glowing Borders (Viền phát sáng):** Được sử dụng để nhấn mạnh các yếu tố Ảo (Virtual).
+  *Ví dụ: Code tạo một thẻ OU Ảo (Virtual OU) trên sơ đồ AD:*
+  ```tsx
+  <div className="relative border border-cyan-500/50 bg-cyan-950/20 shadow-[0_0_15px_rgba(6,182,212,0.1)] rounded-lg p-4 animate-pulse">
+    <Layers className="text-cyan-400 absolute top-2 right-2 h-4 w-4" />
+    <p>Virtual Station OU</p>
+  </div>
   ```
-- **Tầng Server:** Sử dụng Server Actions cô lập tại `src/lib/actions/[module-name].ts`.
 
----
-
-## 2. QUY TẮC VIẾT MÃ CHO AI AGENT (VIBE CODE GUIDELINES)
-
-Trong bối cảnh AI (Vibe Code) tham gia sâu vào việc sinh mã, cần áp đặt các giới hạn cứng để hệ thống không phình to (bloated):
-
-### 2.1 Quy Tắc Cô Lập Trạng Thái (Component Isolation)
-- **Độ Dài File:** Bất kỳ Component nào vượt quá **300 dòng mã** đều phải được tái cấu trúc (Refactor). Chia nhỏ thành các Component con hoặc đẩy logic ra ngoài.
-- **Custom Hooks:** Mọi logic fetch API, validate dữ liệu (Zod), và quản lý state phức tạp bắt buộc phải nằm trong Custom Hooks (ví dụ `useDnfForm.ts`), tách biệt hoàn toàn khỏi mã JSX.
-
-### 2.2 Quy Tắc Giao Diện Nhất Quán (Design Token Integrity)
-Để duy trì tính thẩm mỹ và dễ bảo trì:
-- **Cấm Hardcode màu sắc:** Tuyệt đối không dùng các mã HEX ngẫu nhiên (như `bg-[#29ABE2]`). Bắt buộc dùng Token từ `tailwind.config.ts`.
-- **Hệ màu chuẩn:**
-  - *Màu chính (Primary):* Sắc xanh Cyan/Lam truyền tải công nghệ, tin cậy.
-  - *Màu nhấn (Accent):* Sắc cam cảnh báo (#F26419) dùng cho các nút Hành động quan trọng hoặc Cảnh báo rủi ro (Hazards).
-  - *Màu nền (Background):* Tông xám đậm/trong suốt (Glassmorphism) trên giao diện Dark Mode.
-- **Typography:** Phông chữ `Inter` (sans-serif) được sử dụng nhất quán toàn hệ thống.
-
----
-
-## 3. UI/UX GUIDELINES VÀ CẢM QUAN (LOOK & FEEL)
-
-### 3.1 Bố cục và Thẩm mỹ
-- **Lưới (Grid Layout):** Sử dụng thiết kế Responsive Grid cho mọi Dashboard, đảm bảo không xô lệch trên các kích thước màn hình.
-- **Viền sáng (Glowing Borders) & Nhấp nháy:** Sử dụng các hiệu ứng thị giác thông minh để làm nổi bật dữ liệu. *Ví dụ: Các Đơn vị ảo (Virtual OUs) trên sơ đồ AD phải có viền sáng Cyan Futuristic kèm icon nhấp nháy đa tầng (Layers) để dễ phân biệt.*
-- **Chuyển động (Micro-animations):** Tích hợp Transition mượt mà khi di chuột (Hover), mở Modal/Dialog, hoặc chuyển trang, giúp ứng dụng không bị cứng nhắc.
-
-### 3.2 Hướng dẫn người dùng (UX)
-- Mọi nút bấm hủy diệt (Xóa dữ liệu) bắt buộc phải có Prompt cảnh báo kép.
-- **Alert Banners:** Dùng các khối Banner (Info, Warning) để nhắc nhở người dùng khi họ tương tác với dữ liệu nhạy cảm (như cố chỉnh sửa Virtual OU sẽ bị khóa nút và hiện cảnh báo).
-
-> [!CAUTION]
-> AI Agent phải tuân thủ nghiêm ngặt chuẩn mực UI này. Nếu giao diện trông giống một bảng dữ liệu Excel nhàm chán và thiếu các thành phần cảnh báo tinh tế, PR sẽ bị từ chối tự động.
+### 2.3 Bảo vệ Người dùng (User Protections)
+- **Double-Check Destructive Actions:** Bất kỳ thao tác xóa/hủy nào cũng phải được bọc trong một `AlertDialog` của Radix UI (Yêu cầu confirm 2 bước).
+- **Banner Cảnh báo (Alerts):** Khi người dùng xem một DNF đã bị đóng (Closed), phải có một khối Alert (Vàng/Xanh) ở đầu trang nhắc nhở: *"Sự cố này đã được khắc phục. Chế độ xem chỉ đọc."*
