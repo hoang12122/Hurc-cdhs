@@ -26,6 +26,7 @@ import { updateMockDnf, deleteMockDnf, getDnfById } from "@/lib/actions/dnf.acti
 import { hasPermission } from "@/lib/auth";
 import { useRouter } from "next/navigation";
 import { useLanguage } from "@/contexts/language-context";
+import { useAuth } from "@/contexts/auth-context";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
@@ -226,6 +227,7 @@ export function DnfDetailClient({ initialDnf, allDnfs, initialSubsystems, initia
   const t = translations[locale];
   const { toast } = useToast();
   const { isOnline } = useNetwork();
+  const { user: authUser } = useAuth();
   const [dnf, setDnf] = React.useState<DnfDocument>(initialDnf);
   const [subsystems, setSubsystems] = React.useState<Subsystem[]>(initialSubsystems);
   const [locations, setLocations] = React.useState<PatrolLocation[]>(initialLocations);
@@ -272,7 +274,7 @@ export function DnfDetailClient({ initialDnf, allDnfs, initialSubsystems, initia
     setIsMounted(true);
     const checkPermissions = async () => {
       if (!dnf) return;
-      const currentUser = MOCK_CURRENT_USER;
+      const currentUser = authUser || MOCK_CURRENT_USER;
       const editAll = await hasPermission('dnf:edit_all');
       const deletePerm = await hasPermission('dnf:delete');
       const manageStatus = await hasPermission("dnf:manage_status");
@@ -302,7 +304,7 @@ export function DnfDetailClient({ initialDnf, allDnfs, initialSubsystems, initia
     if (dnf) {
       checkPermissions();
     }
-  }, [dnf]);
+  }, [dnf, authUser]);
 
   const userCanEditCurrentDnf = permissions.canEdit;
   const userCanDeleteCurrentDnf = permissions.canDelete;
@@ -318,7 +320,8 @@ export function DnfDetailClient({ initialDnf, allDnfs, initialSubsystems, initia
   const handleStatusUpdate = async (newStatus: DnfStatus) => {
     if (!dnf) return;
 
-    const canPerformTransition = canTransitionToStatus(dnf.status, newStatus, MOCK_CURRENT_USER.role);
+    const currentUser = authUser || MOCK_CURRENT_USER;
+    const canPerformTransition = canTransitionToStatus(dnf.status, newStatus, currentUser.role);
 
     if (!canPerformTransition) {
         toast({ variant: "destructive", title: "Lỗi", description: t.statusUpdateFailed });

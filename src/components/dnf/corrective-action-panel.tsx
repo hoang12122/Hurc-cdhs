@@ -19,7 +19,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
-import { DnfDocument, MOCK_CURRENT_USER, type User, type CorrectiveAction, CORRECTIVE_ACTION_STATUSES, type CorrectiveActionStatus } from "@/lib/constants";
+import { DnfDocument, type User, type CorrectiveAction, CORRECTIVE_ACTION_STATUSES, type CorrectiveActionStatus } from "@/lib/constants";
+import { useAuth } from "@/contexts/auth-context";
 import { addCorrectiveAction, updateCorrectiveAction, deleteCorrectiveAction } from "@/lib/actions/dnf.actions";
 import { getUsers } from "@/lib/actions/user.actions";
 import { useLanguage } from "@/contexts/language-context";

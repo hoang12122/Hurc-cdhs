@@ -25,7 +25,6 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Search, Filter, Edit, FilePlus, RefreshCw, Trash2, Undo2, Lightbulb } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import {
-    MOCK_CURRENT_USER,
     IMPROVEMENT_STATUSES,
     IMPROVEMENT_CATEGORIES,
 } from "@/lib/constants";

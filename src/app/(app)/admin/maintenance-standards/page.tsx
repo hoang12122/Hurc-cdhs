@@ -18,7 +18,7 @@ import {
     getMaintenanceStandardItems,
 } from "@/lib/actions/maintenance.actions";
 import { undoLastChange } from "@/lib/actions/system.actions";
-import { type MaintenanceStandard, type MaintenanceStandardItem, type PatrolLocation, type ToleranceOperator, MOCK_CURRENT_USER, ROLE_ADMIN_PKTAT, TOLERANCE_OPERATORS, type MaintenanceFrequency, MAINTENANCE_FREQUENCIES, type Subsystem, ROLE_L3_SPECIALIST, type User } from "@/lib/constants";
+import { type MaintenanceStandard, type MaintenanceStandardItem, type PatrolLocation, type ToleranceOperator, ROLE_ADMIN_PKTAT, TOLERANCE_OPERATORS, type MaintenanceFrequency, MAINTENANCE_FREQUENCIES, type Subsystem, ROLE_L3_SPECIALIST, type User } from "@/lib/constants";
 import { hasPermission } from "@/lib/auth";
 import {
   Table,
@@ -298,6 +298,7 @@ export default function MaintenanceStandardsPage() {
   const [users, setUsers] = React.useState<User[]>([]);
   const [selectedStandardId, setSelectedStandardId] = React.useState<string | null>(null);
   const [searchTerm, setSearchTerm] = React.useState("");
+  const [locationSearchTerm, setLocationSearchTerm] = React.useState("");
 
   const [isStandardDialogOpen, setIsStandardDialogOpen] = React.useState(false);
   const [editingStandard, setEditingStandard] = React.useState<MaintenanceStandard | null>(null);
@@ -637,7 +638,7 @@ export default function MaintenanceStandardsPage() {
                   render={({ field }) => (
                     <FormItem className="flex flex-col">
                       <FormLabel>{t.locationLabel}</FormLabel>
-                       <DropdownMenu>
+                       <DropdownMenu onOpenChange={(open) => { if (!open) setLocationSearchTerm(""); }}>
                           <DropdownMenuTrigger asChild>
                               <FormControl>
                                   <Button variant="outline" className="w-full justify-between text-left font-normal h-10">
@@ -649,8 +650,20 @@ export default function MaintenanceStandardsPage() {
                                   </Button>
                               </FormControl>
                           </DropdownMenuTrigger>
-                          <DropdownMenuContent className="w-[--radix-dropdown-menu-trigger-width] max-h-60 overflow-y-auto">
-                              {locations.map((location) => (
+                          <DropdownMenuContent className="w-[--radix-dropdown-menu-trigger-width] max-h-72 overflow-y-auto">
+                              <div className="px-2 py-1.5 sticky top-0 bg-popover z-10">
+                                <Input
+                                  placeholder={locale === 'vi' ? 'Tìm kiếm ga...' : 'Search station...'}
+                                  value={locationSearchTerm}
+                                  onChange={(e) => setLocationSearchTerm(e.target.value)}
+                                  className="h-8 text-sm"
+                                  autoFocus
+                                  onKeyDown={(e) => e.stopPropagation()}
+                                />
+                              </div>
+                              {locations
+                                .filter((loc) => loc.label.toLowerCase().includes(locationSearchTerm.toLowerCase()))
+                                .map((location) => (
                                   <DropdownMenuCheckboxItem
                                       key={location.id}
                                       checked={field.value?.includes(location.id)}
@@ -664,6 +677,11 @@ export default function MaintenanceStandardsPage() {
                                       {location.label}
                                   </DropdownMenuCheckboxItem>
                               ))}
+                              {locations.filter((loc) => loc.label.toLowerCase().includes(locationSearchTerm.toLowerCase())).length === 0 && (
+                                <div className="px-2 py-4 text-center text-sm text-muted-foreground">
+                                  {locale === 'vi' ? 'Không tìm thấy ga nào.' : 'No station found.'}
+                                </div>
+                              )}
                           </DropdownMenuContent>
                       </DropdownMenu>
                       <FormMessage />

@@ -7,6 +7,7 @@ import { useLanguage } from "@/contexts/language-context";
 import * as React from "react";
 import { useSearchParams } from "next/navigation";
 import { type HazardRecord, MOCK_CURRENT_USER } from "@/lib/constants";
+import { useAuth } from "@/contexts/auth-context";
 
 const pageTranslations = {
   vi: { 
@@ -22,6 +23,7 @@ const pageTranslations = {
 export default function NewHazardPage() {
   const { locale } = useLanguage();
   const searchParams = useSearchParams();
+  const { user: authUser } = useAuth();
 
   const currentTitle = pageTranslations[locale].title;
 
@@ -46,13 +48,13 @@ export default function NewHazardPage() {
             description: searchParams.get('suggestedDescription') || '',
             // If it comes from an AI report, set the source and identifiedBy to the approver (current user).
             source: sourceReportId ? pageTranslations[locale].sourceFromAi(sourceReportId) : 'Thủ công',
-            identifiedBy: sourceReportId ? MOCK_CURRENT_USER.name : undefined,
+            identifiedBy: sourceReportId ? (authUser?.name || MOCK_CURRENT_USER.name) : undefined,
             severityId: searchParams.get('suggestedSeverityId') || undefined,
             likelihoodId: searchParams.get('suggestedLikelihoodId') || undefined,
             locationIds: locationOfFailure ? [locationOfFailure] : [],
         });
     }
-  }, [searchParams, locale]);
+  }, [searchParams, locale, authUser]);
 
   return (
     <div className="container mx-auto py-8">

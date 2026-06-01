@@ -57,6 +57,7 @@ import { updateHazardRecord, deleteHazardRecord } from "@/lib/actions/hazard.act
 import { hasPermission } from "@/lib/auth";
 import { useRouter } from "next/navigation";
 import { useLanguage } from "@/contexts/language-context";
+import { useAuth } from "@/contexts/auth-context";
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
@@ -213,6 +214,7 @@ export function HazardDetailClient({ initialHazard, allHazards, subsystems, resp
   const t = translations[locale];
   const { toast } = useToast();
   const { isOnline } = useNetwork();
+  const { user: authUser } = useAuth();
 
   const [hazard, setHazard] = React.useState<HazardRecord>(initialHazard);
   
@@ -248,7 +250,8 @@ export function HazardDetailClient({ initialHazard, allHazards, subsystems, resp
   const handleStatusUpdate = async (newStatus: HazardStatus) => {
     if (!hazard) return;
 
-    const canPerformTransition = canTransitionToStatus(hazard.status, newStatus, MOCK_CURRENT_USER.role);
+    const currentUser = authUser || MOCK_CURRENT_USER;
+    const canPerformTransition = canTransitionToStatus(hazard.status, newStatus, currentUser.role);
 
     if (!canPerformTransition) {
         toast({ variant: "destructive", title: "Lỗi", description: t.statusUpdateFailed });
@@ -283,9 +286,10 @@ export function HazardDetailClient({ initialHazard, allHazards, subsystems, resp
       const manageStatus = await hasPermission("hazard:manage_status");
       const viewAll = await hasPermission("hazard:view_all");
 
+      const currentUser = authUser || MOCK_CURRENT_USER;
       let canEdit = false;
       if (editAll) canEdit = true;
-      else if (MOCK_CURRENT_USER.role === ROLE_L3_SPECIALIST || MOCK_CURRENT_USER.role === 'MANAGER') {
+      else if (currentUser.role === ROLE_L3_SPECIALIST || currentUser.role === 'MANAGER') {
         canEdit = hazard.status !== "Đóng";
       }
 
@@ -299,7 +303,7 @@ export function HazardDetailClient({ initialHazard, allHazards, subsystems, resp
     if (hazard) {
         checkPermissions();
     }
-  }, [hazard]);
+  }, [hazard, authUser]);
 
   const userCanEditCurrentHazard = permissions.canEdit;
   const userCanDeleteCurrentHazard = permissions.canDelete;

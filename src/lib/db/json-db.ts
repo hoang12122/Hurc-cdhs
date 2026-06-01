@@ -17,6 +17,10 @@ let _dbSnapshot: JsonDbData | null = null;
 const DB_FILE_NAME = process.env.DATABASE_JSON_PATH || 'db.json';
 const DB_PATH = path.join(process.cwd(), DB_FILE_NAME);
 
+// Task 17.5: Debounced Write timer for async disk persistence
+let _debouncedWriteTimer: ReturnType<typeof setTimeout> | null = null;
+const DEBOUNCE_WRITE_MS = 500;
+
 export interface JsonDbData {
   [key: string]: any[];
 }
@@ -147,6 +151,45 @@ export async function writeJsonDb(data: JsonDbData): Promise<void> {
 
 // Alias for backward compatibility if needed within this file
 export const writeRawDb = writeJsonDb;
+
+/**
+ * Task 17.5: Debounced Flush — Update RAM instantly, persist to disk after DEBOUNCE_WRITE_MS idle.
+ * 
+ * Use this for high-frequency mutations (e.g., bulk checklist updates) where
+ * immediate disk persistence isn't critical. The in-memory snapshot is always
+ * up-to-date, so reads return fresh data instantly.
+ */
+export function scheduleDebouncedFlush(data: JsonDbData): void {
+  // 1. Update in-memory snapshot immediately (reads always get fresh data)
+  _dbSnapshot = data;
+
+  // 2. Clear any pending timer and schedule a new one
+  if (_debouncedWriteTimer) {
+    clearTimeout(_debouncedWriteTimer);
+  }
+
+  _debouncedWriteTimer = setTimeout(async () => {
+    try {
+      await writeJsonDb(data);
+    } catch (err) {
+      console.error('[JSON-DB] Debounced flush to disk failed:', err);
+    }
+  }, DEBOUNCE_WRITE_MS);
+}
+
+/**
+ * Force flush any pending debounced writes to disk immediately.
+ * Useful before process shutdown or critical checkpoints.
+ */
+export async function flushDbToDisk(): Promise<void> {
+  if (_debouncedWriteTimer) {
+    clearTimeout(_debouncedWriteTimer);
+    _debouncedWriteTimer = null;
+  }
+  if (_dbSnapshot) {
+    await writeJsonDb(_dbSnapshot);
+  }
+}
 
 /**
  * High-level Helper for common operations

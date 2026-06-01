@@ -838,12 +838,15 @@ export function InspectionForm({ initialData, isEditMode = false }: InspectionFo
                                         if (tolerance != null) {
                                         const diff = Math.abs(actualQty - standard);
                                         if (standard === 0) {
-                                            if (actualQty > tolerance) {
+                                            // When standard is 0, treat tolerance as absolute value
+                                            if (diff > tolerance + 0.00001) {
                                             isFail = true;
                                             autoDescription = t.autoFailDescriptionPercentage(actualQty, unit, standard, tolerance);
                                             }
                                         } else {
-                                            if ((diff / standard) * 100 > tolerance) {
+                                            // Use epsilon to avoid floating-point precision errors (e.g. 0.1+0.2 !== 0.3)
+                                            const percentDiff = (diff / Math.abs(standard)) * 100;
+                                            if (percentDiff > tolerance + 0.00001) {
                                             isFail = true;
                                             autoDescription = t.autoFailDescriptionPercentage(actualQty, unit, standard, tolerance);
                                             }
@@ -852,9 +855,9 @@ export function InspectionForm({ initialData, isEditMode = false }: InspectionFo
                                         break;
                                     case '>': if (!(actualQty > standard)) isFail = true; break;
                                     case '<': if (!(actualQty < standard)) isFail = true; break;
-                                    case '>=': if (!(actualQty >= standard)) isFail = true; break;
-                                    case '<=': if (!(actualQty <= standard)) isFail = true; break;
-                                    case '==': if (actualQty !== standard) isFail = true; break;
+                                    case '>=': if (!(actualQty >= standard - 0.00001)) isFail = true; break;
+                                    case '<=': if (!(actualQty <= standard + 0.00001)) isFail = true; break;
+                                    case '==': if (Math.abs(actualQty - standard) > 0.00001) isFail = true; break;
                                     }
 
                                     if (isFail && (operator !== '±')) {
