@@ -6,7 +6,7 @@ import { usePathname } from "next/navigation";
 import { 
   Users, ShieldCheck, Database, FileText, Settings, 
   Activity, ShieldAlert, LayoutDashboard, Undo2, AlertTriangle, Network,
-  Layers
+  Layers, ListChecks
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -29,6 +29,11 @@ const adminNavItems = [
     icon: Layers,
     label: { vi: "Cơ cấu & Phân quyền", en: "AD Console & RBAC" },
     path: "/admin/organization",
+  },
+  {
+    icon: ListChecks,
+    label: { vi: "Định mức Bảo trì", en: "Maint. Standards" },
+    path: "/admin/maintenance-standards",
   },
   {
     icon: Activity,
