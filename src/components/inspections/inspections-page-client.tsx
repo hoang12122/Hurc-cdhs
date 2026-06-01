@@ -36,6 +36,7 @@ import { getInspectionsPaginated, deleteInspection } from "@/lib/actions/inspect
 import { getMaintenanceStandards } from "@/lib/actions/maintenance.actions";
 import { getSubsystems } from "@/lib/actions/category.actions";
 import { ExportInspectionsButton } from "@/components/inspections/export-inspections-button";
+import { runSystemScheduler } from "@/lib/actions/system.actions";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
@@ -52,6 +53,8 @@ const clientComponentTranslations = {
     pageTitle: "Danh sách Kiểm Tra",
     pageDescription: "Quản lý và theo dõi tất cả các đợt kiểm tra.",
     newInspectionButton: "Tạo Kiểm Tra Mới",
+    syncSchedulerButton: "Đồng bộ Lịch trình",
+    syncingProgress: "Đang đồng bộ...",
     searchPlaceholder: "Tìm kiếm kiểm tra...",
     filterLabel: "Lọc",
     filterByStatus: "Lọc theo Trạng thái",
@@ -109,6 +112,8 @@ const clientComponentTranslations = {
     pageTitle: "Inspections List",
     pageDescription: "Manage and track all inspections.",
     newInspectionButton: "Create New Inspection",
+    syncSchedulerButton: "Sync Schedule",
+    syncingProgress: "Syncing...",
     searchPlaceholder: "Search inspections...",
     filterLabel: "Filter",
     filterByStatus: "Filter by Status",
@@ -199,6 +204,28 @@ export function InspectionsPageClient({ initialInspections, initialTotalPages = 
   const [currentPage, setCurrentPage] = React.useState(1);
   const [totalPages, setTotalPages] = React.useState(initialTotalPages);
   const [isLoading, setIsLoading] = React.useState(false);
+  const [isSyncing, setIsSyncing] = React.useState(false);
+
+  const handleSyncScheduler = async () => {
+    setIsSyncing(true);
+    try {
+      const res = await runSystemScheduler();
+      toast({
+        title: locale === 'vi' ? "Đồng bộ thành công" : "Sync Successful",
+        description: res.message,
+      });
+      fetchPaginatedData(1);
+    } catch (error: any) {
+      console.error("[InspectionsPageClient] Scheduler execution failed:", error);
+      toast({
+        variant: "destructive",
+        title: locale === 'vi' ? "Lỗi đồng bộ" : "Sync Error",
+        description: error.message || (locale === 'vi' ? "Đã xảy ra lỗi khi chạy scheduler." : "An error occurred while running the scheduler."),
+      });
+    } finally {
+      setIsSyncing(false);
+    }
+  };
 
   // We will declare a memoized fetch function later
   const refreshData = React.useCallback(async () => {
@@ -325,6 +352,15 @@ export function InspectionsPageClient({ initialInspections, initialTotalPages = 
             <p className="text-muted-foreground">{t.pageDescription}</p>
             </div>
             <div className="flex items-center gap-2">
+            <Button 
+                onClick={handleSyncScheduler} 
+                variant="outline" 
+                className="bg-emerald-950/20 hover:bg-emerald-950/40 text-emerald-400 border-emerald-800/40 hover:border-emerald-700/60 font-medium h-10"
+                disabled={isSyncing}
+            >
+                <RefreshCw className={cn("mr-2 h-4 w-4", isSyncing && "animate-spin")} />
+                {isSyncing ? t.syncingProgress : t.syncSchedulerButton}
+            </Button>
             {canCreate && (
             <Button asChild>
                 <Link href="/inspections/new">
