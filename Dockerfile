@@ -14,6 +14,7 @@ ENV NEXT_TELEMETRY_DISABLED 1
 ENV SKIP_ENV_VALIDATION true
 ENV NODE_ENV production
 ENV SKIP_PREFLIGHT true
+ENV NODE_OPTIONS="--max-old-space-size=4096"
 RUN npx prisma generate --schema=prisma/ai/schema.prisma
 RUN npx prisma generate --schema=prisma/auth/schema.prisma
 RUN npx prisma generate --schema=prisma/metro/schema.prisma
