@@ -219,6 +219,7 @@ export default function IntegratedADConsolePage() {
 
   React.useEffect(() => {
     loadAllData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Collapse/Expand toggle

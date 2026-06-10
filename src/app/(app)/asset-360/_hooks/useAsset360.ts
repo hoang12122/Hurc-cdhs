@@ -23,6 +23,7 @@ export const useAsset360 = () => {
 
     useEffect(() => {
         loadEquipments();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const handleSelectEquipment = async (id: string) => {
