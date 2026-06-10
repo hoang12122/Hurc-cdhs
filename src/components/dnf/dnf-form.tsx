@@ -58,6 +58,7 @@ import { BarcodeScannerDialog } from "@/components/common/barcode-scanner-dialog
 import { useAuth } from "@/contexts/auth-context";
 import { useNetwork } from "@/components/providers/network-provider";
 import { offlineSync } from "@/lib/services/offline-sync";
+import { VoiceReporter } from "@/app/(app)/dnf/_components/voice-reporter";
 
 const NO_HAZARD_LEVEL_VALUE = "__NO_HAZARD_LEVEL__";
 const NO_LINKED_DNF_VALUE = "__NO_LINKED_DNF__";
@@ -425,6 +426,17 @@ export function DnfForm({ initialData, isEditMode = false }: DnfFormProps) {
             <CardDescription>{t.formDescription}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
+            {!isEditMode && (
+                <VoiceReporter onTranscriptionComplete={(data) => {
+                    if (data.locationOfFailure) {
+                        const loc = locations.find(l => l.label.toLowerCase().includes(data.locationOfFailure.toLowerCase()));
+                        if (loc) form.setValue('locationOfFailureIds', [loc.id]);
+                    }
+                    if (data.descriptionOfFailure) form.setValue('descriptionOfFailure', data.descriptionOfFailure);
+                    if (data.priority) form.setValue('priority', data.priority === 'HIGH' ? 'Cao' : data.priority === 'MEDIUM' ? 'Trung bình' : 'Thấp');
+                    if (data.hazardLevelId) form.setValue('hazardLevelId', data.hazardLevelId.toLowerCase());
+                }} />
+            )}
             <FormField
               control={form.control}
               name="failureReportNo"

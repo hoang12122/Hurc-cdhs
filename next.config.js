@@ -1,5 +1,11 @@
 /** @type {import('next').NextConfig} */
 const path = require('path');
+const withPWA = require('@ducanh2912/next-pwa').default({
+  dest: 'public',
+  disable: process.env.NODE_ENV === 'development',
+  register: true,
+  skipWaiting: true,
+});
 
 // Force-redirect home directory to project root to stop EPERM scans on Windows system junctions.
 process.env.HOME = process.cwd();
@@ -128,4 +134,4 @@ const nextConfig = {
   }
 };
 
-module.exports = nextConfig;
+module.exports = withPWA(nextConfig);

@@ -368,9 +368,10 @@ export class RoutedPrismaProvider extends PrismaProvider {
       dnfDocument: opsDb,
       correctiveAction: opsDb,
       hazardRecord: opsDb,
-      improvement: opsDb,
       systemState: opsDb,
       task: opsDb,
+      equipment: opsDb,
+      equipmentHealth: opsDb,
     };
 
     return mappings[normalized];

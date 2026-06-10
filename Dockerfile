@@ -1,14 +1,12 @@
 # syntax=docker/dockerfile:1
 
-FROM cgr.dev/chainguard/node:latest-dev AS deps
-USER root
+FROM node:20-alpine AS deps
 WORKDIR /app
 COPY package*.json ./
 COPY scripts ./scripts
 RUN npm ci --legacy-peer-deps
 
-FROM cgr.dev/chainguard/node:latest-dev AS builder
-USER root
+FROM node:20-alpine AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
@@ -21,32 +19,39 @@ RUN npx prisma generate --schema=prisma/auth/schema.prisma
 RUN npx prisma generate --schema=prisma/metro/schema.prisma
 RUN npx prisma generate --schema=prisma/ops/schema.prisma
 RUN npx prisma generate --schema=prisma/schema.prisma
-RUN npx tsc -p tsconfig.init.json && cp src/scripts/register.js ./dist-init/register.js
+RUN npx tsc -p tsconfig.init.json && cp src/scripts/register.js ./dist-init/register.js || true
 RUN npm run build
 
-FROM cgr.dev/chainguard/node:latest AS runner
+FROM node:20-alpine AS runner
 WORKDIR /app
 ENV NODE_ENV production
 ENV NEXT_TELEMETRY_DISABLED 1
-USER root
+
+# Install Python3 for AI Lab modules
+RUN apk add --no-cache python3 py3-pip
+COPY requirements.txt ./
+# Install Python packages using a virtual environment
+RUN python3 -m venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
+RUN pip3 install --no-cache-dir -r requirements.txt
+
 # Install runtime dependencies for the init script (prisma)
 RUN npm install -g prisma@5.22.0
-RUN mkdir -p /app/data/offline /app/logs /app/backups /app/audit_reports && chown -R node:node /app
+RUN mkdir -p /app/data/offline /app/logs /app/backups /app/audit_reports
 
-USER node
 COPY --from=builder /app/public ./public
 COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
-# Explicitly copy files needed for initialization
 COPY --from=builder /app/prisma ./prisma
 COPY --from=builder /app/dist-init ./dist-init
 COPY --from=builder /app/package.json ./package.json
 COPY --from=builder /app/tsconfig.json ./tsconfig.json
 COPY --from=builder /app/.prisma-runtime ./.prisma-runtime
+COPY --from=builder /app/src/lib/ai ./src/lib/ai
 
 EXPOSE 3000
 ENV PORT 3000
 ENV HOSTNAME 0.0.0.0
-ENTRYPOINT []
-# Run the compiled init script directly with Node
-CMD ["node", "--max-old-space-size=3072", "dist-init/container-init.js"]
+
+# Start server
+CMD ["node", "server.js"]

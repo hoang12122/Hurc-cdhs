@@ -1,6 +1,11 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
+import { exec } from 'child_process';
+import path from 'path';
+import util from 'util';
+
+const execPromise = util.promisify(exec);
 import { askAI, askWithRAG, agentChat, askPersonalized, analyzeWithGraph } from '@/lib/services/ai/manager';
 // @ts-ignore
 import { askVisionAI, askHuggingFace, detectObjectsHF } from '@/lib/services/ai/manager';
@@ -117,6 +122,30 @@ export async function predictiveInsights(category?: string) {
         return { insights: result.response, source: result.source, error: null };
     } catch (e: any) {
         return { insights: [], error: "Không thể tạo dự báo lúc này." };
+    }
+}
+
+// ============ LSTM PREDICTIVE MAINTENANCE (Decoupled) ============
+
+export async function predictEquipmentHealthLSTM(equipmentData: { age_days: number, dnf_count: number, criticality: string }) {
+    await requirePermission('ai:use');
+    try {
+        const scriptPath = path.join(process.cwd(), 'src', 'lib', 'ai', 'lstm_advanced.py');
+        const inputStr = JSON.stringify(equipmentData).replace(/"/g, '\\"');
+        // Ensure UTF-8 encoding is used
+        const cmd = `python "${scriptPath}" "${inputStr}"`;
+        
+        const { stdout, stderr } = await execPromise(cmd);
+        
+        if (stderr) {
+            console.error("LSTM Script Stderr:", stderr);
+        }
+        
+        const result = JSON.parse(stdout);
+        return { ...result, error: null };
+    } catch (e: any) {
+        console.error("LSTM Execution Error:", e);
+        return { error: "Không thể chạy mô hình LSTM lúc này.", failure_probability: 0, health_score: 100, predicted_days_to_failure: 365 };
     }
 }
 
@@ -304,3 +333,40 @@ export async function logAiAction(action: string, details: string, level: any = 
         console.error("[AI-LOG-ERROR]", e);
     }
 }
+
+export async function askCopilot(query: string) {
+    await requirePermission('ai:use');
+    try {
+        const scriptPath = path.join(process.cwd(), 'src', 'lib', 'ai', 'rag_engine.py');
+        const inputStr = JSON.stringify({ query }).replace(/"/g, '\\"');
+        const cmd = \python "\" "\"\;
+        
+        const { stdout, stderr } = await execPromise(cmd);
+        if (stderr && !stdout) {
+            throw new Error(stderr);
+        }
+        
+        try {
+            return JSON.parse(stdout);
+        } catch (e) {
+            console.error('Failed to parse RAG engine output:', stdout);
+            return { answer: 'System Error: Failed to parse RAG engine output.', error: stdout };
+        }
+    } catch (error: any) {
+        console.error('askCopilot failed:', error);
+        return { answer: 'AI Engine Offline.', error: error.message };
+    }
+}
+
+
+export async function readNotebookFile(filename: string) {
+    try {
+        const filePath = path.join(process.cwd(), 'src', 'lib', 'ai', 'notebooks', filename);
+        const fileData = await fs.readFile(filePath, 'utf-8');
+        return JSON.parse(fileData);
+    } catch (error) {
+        console.error('Failed to read notebook', error);
+        return null;
+    }
+}
+

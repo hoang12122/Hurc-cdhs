@@ -153,6 +153,8 @@ model DnfDocument {
   rectificationParty                     String?
   attachments                            String?  // JSON
   statusHistory                          String?  // JSON
+  equipmentId                            String?
+  equipment                              Equipment? @relation(fields: [equipmentId], references: [id], onDelete: SetNull)
   correctiveActions                      CorrectiveAction[]
 }
 
@@ -202,6 +204,8 @@ model HazardRecord {
   isArchived              Boolean  @default(false)
   attachments             String?  // JSON
   statusHistory           String?  // JSON
+  equipmentId             String?
+  equipment               Equipment? @relation(fields: [equipmentId], references: [id], onDelete: SetNull)
 }
 
 model Improvement {
@@ -267,6 +271,36 @@ model PatrolLocation {
   label       String
   deletedAt   DateTime?
 }
+
+model Equipment {
+  id              String   @id @default(uuid())
+  code            String   @unique
+  name            String
+  category        String?
+  locationId      String?
+  subsystemId     String?
+  installDate     DateTime?
+  status          String   @default("ACTIVE")
+  specs           String?  // JSON
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  deletedAt       DateTime?
+
+  health          EquipmentHealth?
+  dnfs            DnfDocument[]
+  hazards         HazardRecord[]
+}
+
+model EquipmentHealth {
+  id              String   @id @default(uuid())
+  equipmentId     String   @unique
+  score           Float    @default(100)
+  lastCalculatedAt DateTime @default(now())
+  details         String?  // JSON
+  
+  equipment       Equipment @relation(fields: [equipmentId], references: [id], onDelete: Cascade)
+}
+
 model System {
   id   String @id @default(uuid())
   name String
@@ -279,7 +313,61 @@ model Agent {
   description String?
   systemId    String
   system      System   @relation(fields: [systemId], references: [id])
-  history     Json     @default("[]")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model PredictionAlert {
+  id                  String   @id @default(uuid())
+  equipmentId         String
+  predictedFailureDate DateTime?
+  confidenceScore     Float
+  reason              String?  // JSON
+  status              String   @default("NEW")
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+}
+
+model NotificationLog {
+  id          String   @id @default(uuid())
+  channel     String   // "TELEGRAM", "ZALO", "APP"
+  chatId      String?
+  message     String
+  status      String   // "SENT", "FAILED"
+  createdAt   DateTime @default(now())
+}
+
+model WorkflowTemplate {
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  nodes       WorkflowNode[]
+}
+
+model WorkflowNode {
+  id          String   @id @default(uuid())
+  templateId  String
+  name        String
+  type        String   // "APPROVAL", "ACTION", "CONDITION"
+  positionX   Float?
+  positionY   Float?
+  config      String?  // JSON config for node specifics
+  template    WorkflowTemplate @relation(fields: [templateId], references: [id], onDelete: Cascade)
+}
+
+model InventoryItem {
+  id          String   @id @default(uuid())
+  code        String   @unique
+  name        String
+  category    String?
+  quantity    Int      @default(0)
+  minQuantity Int      @default(5)
+  unit        String   @default("pcs")
+  location    String?
+  lastRestock DateTime?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }

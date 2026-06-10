@@ -8,6 +8,7 @@ import { RealtimeProvider } from "@/components/providers/realtime-provider";
 import { useAuth } from "@/contexts/auth-context";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
+import { MaintenanceCopilot } from "@/app/(app)/asset-360/_components/maintenance-copilot";
 
 export default function AppLayout({
   children,
@@ -32,6 +33,7 @@ export default function AppLayout({
           <React.Suspense fallback={<div>Loading page...</div>}>
             <RealtimeProvider>
               {children}
+              <MaintenanceCopilot />
             </RealtimeProvider>
           </React.Suspense>
         </div>
