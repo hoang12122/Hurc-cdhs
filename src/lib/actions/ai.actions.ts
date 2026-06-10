@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache';
 import { exec } from 'child_process';
 import path from 'path';
+import fs from 'fs/promises';
 import util from 'util';
 
 const execPromise = util.promisify(exec);
@@ -339,7 +340,7 @@ export async function askCopilot(query: string) {
     try {
         const scriptPath = path.join(process.cwd(), 'src', 'lib', 'ai', 'rag_engine.py');
         const inputStr = JSON.stringify({ query }).replace(/"/g, '\\"');
-        const cmd = \python "\" "\"\;
+        const cmd = `python "${scriptPath}" "${inputStr}"`;
         
         const { stdout, stderr } = await execPromise(cmd);
         if (stderr && !stdout) {

@@ -109,7 +109,6 @@ export const Equipment360Card = React.memo(function Equipment360Card({ equipment
                     </div>
                 </CardContent>
             </Card>
-            </motion.div>
 
             {/* IoT Telemetry Real-time Dashboard */}
             <motion.div whileHover={{ scale: 1.01 }} transition={{ type: "spring", stiffness: 300 }} className="w-full">
@@ -152,7 +151,6 @@ export const Equipment360Card = React.memo(function Equipment360Card({ equipment
                         )}
                     </CardContent>
                 </Card>
-                </motion.div>
             </div>
 
             {/* AI PREDICTION CARD */}
@@ -205,7 +203,6 @@ export const Equipment360Card = React.memo(function Equipment360Card({ equipment
                         </div>
                     </CardHeader>
                 </Card>
-                </motion.div>
             )}
         </div>
     );
