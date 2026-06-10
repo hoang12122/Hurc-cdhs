@@ -1,12 +1,12 @@
 # syntax=docker/dockerfile:1
 
-FROM node:20-alpine AS deps
+FROM node:20-slim AS deps
 WORKDIR /app
 COPY package*.json ./
 COPY scripts ./scripts
 RUN npm ci --legacy-peer-deps
 
-FROM node:20-alpine AS builder
+FROM node:20-slim AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
@@ -22,13 +22,13 @@ RUN npx prisma generate --schema=prisma/schema.prisma
 RUN npx tsc -p tsconfig.init.json && cp src/scripts/register.js ./dist-init/register.js || true
 RUN npm run build
 
-FROM node:20-alpine AS runner
+FROM node:20-slim AS runner
 WORKDIR /app
 ENV NODE_ENV production
 ENV NEXT_TELEMETRY_DISABLED 1
 
 # Install Python3 for AI Lab modules
-RUN apk add --no-cache python3 py3-pip
+RUN apt-get update && apt-get install -y python3 python3-pip python3-venv && rm -rf /var/lib/apt/lists/*
 COPY requirements.txt ./
 # Install Python packages using a virtual environment
 RUN python3 -m venv /opt/venv
