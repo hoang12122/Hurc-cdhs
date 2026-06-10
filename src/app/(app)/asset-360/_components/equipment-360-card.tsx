@@ -18,20 +18,6 @@ interface Equipment360CardProps {
 import React from 'react';
 
 export const Equipment360Card = React.memo(function Equipment360Card({ equipment, onDelete }: Equipment360CardProps) {
-    if (!equipment) {
-        return (
-            <div className="h-full flex flex-col items-center justify-center text-center space-y-4 bg-white/50 rounded-3xl border-2 border-dashed border-slate-200">
-                <div className="p-6 bg-slate-100 rounded-full">
-                    <Activity className="h-12 w-12 text-slate-300" />
-                </div>
-                <div>
-                    <h3 className="text-xl font-bold text-slate-600">Chọn một Tài sản</h3>
-                    <p className="text-slate-400 max-w-xs mx-auto">Chọn thiết bị bên trái để xem Hồ sơ 360 độ (Digital Twin).</p>
-                </div>
-            </div>
-        );
-    }
-
     const [prediction, setPrediction] = useState<any>(null);
     const [isPredicting, setIsPredicting] = useState(false);
 
@@ -50,6 +36,20 @@ export const Equipment360Card = React.memo(function Equipment360Card({ equipment
         };
         fetchPrediction();
     }, [equipment]);
+
+    if (!equipment) {
+        return (
+            <div className="h-full flex flex-col items-center justify-center text-center space-y-4 bg-white/50 rounded-3xl border-2 border-dashed border-slate-200">
+                <div className="p-6 bg-slate-100 rounded-full">
+                    <Activity className="h-12 w-12 text-slate-300" />
+                </div>
+                <div>
+                    <h3 className="text-xl font-bold text-slate-600">Chọn một Tài sản</h3>
+                    <p className="text-slate-400 max-w-xs mx-auto">Chọn thiết bị bên trái để xem Hồ sơ 360 độ (Digital Twin).</p>
+                </div>
+            </div>
+        );
+    }
 
     const healthScore = prediction?.health_score || equipment.health?.score || 0;
     const isHealthy = healthScore > 70;
