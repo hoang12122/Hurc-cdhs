@@ -21,7 +21,9 @@ export const AI_CONFIG = {
     // Cấu hình module Xử lý ngôn ngữ (Gemma-4 / Orthrus Local - BẢO MẬT TUYỆT ĐỐI)
     LLM: {
         // Sử dụng phiên bản cao nhất của Gemma-4 làm model ổn định
-        STABLE_MODEL: 'google/gemma-4-E4B-it', 
+        STABLE_MODEL: 'nemotron-3-ultra', // Updated to Nemotron-3-Ultra for core AI brain
+        // New model for Retrieval Augmented Generation (RAG) and code assistance
+        GRANITE_DENSE: 'granite3-dense:8b',
         // Sử dụng Orthrus Qwen3 làm model thử nghiệm tăng tốc (đáp ứng nhanh mà không giảm chất lượng)
         EXPERIMENTAL_MODEL: process.env.NEXT_PUBLIC_LLM_EXPERIMENTAL_MODEL || 'chiennv/Orthrus-Qwen3-8B', 
         ENDPOINT: process.env.LLM_ENDPOINT || 'http://ollama:11434/v1/chat/completions',

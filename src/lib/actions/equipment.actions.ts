@@ -31,7 +31,7 @@ export async function getEquipmentById(id: string) {
 
 export async function createEquipment(data: any) {
   try {
-    const newEquipment = await dbProvider.create('equipment', {
+    const newEquipment = await dbProvider.create<{ id: string; [key: string]: any }>('equipment', {
       id: uuidv4(),
       code: data.code,
       name: data.name,

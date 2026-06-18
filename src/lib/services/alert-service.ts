@@ -1,4 +1,4 @@
-import { prisma } from '@/lib/db';
+import { dbProvider } from './db-wrapper';
 import { internalLogSystemEvent } from './log-service';
 
 /**
@@ -41,25 +41,21 @@ const processQueue = async () => {
             console.log(`[ALERT] Sent to ${payload.channel}: ${payload.message}`);
             
             // Ghi log vào Database
-            await prisma.notificationLog.create({
-                data: {
-                    channel: payload.channel,
-                    chatId: payload.chatId,
-                    message: payload.message,
-                    status: 'SENT'
-                }
+            await dbProvider.create('notificationLog', {
+                channel: payload.channel,
+                chatId: payload.chatId,
+                message: payload.message,
+                status: 'SENT'
             });
             
         } catch (error: any) {
             console.error(`[ALERT ERROR] Failed to send to ${payload.channel}:`, error);
             
-            await prisma.notificationLog.create({
-                data: {
-                    channel: payload.channel,
-                    chatId: payload.chatId,
-                    message: payload.message,
-                    status: 'FAILED'
-                }
+            await dbProvider.create('notificationLog', {
+                channel: payload.channel,
+                chatId: payload.chatId,
+                message: payload.message,
+                status: 'FAILED'
             });
             await internalLogSystemEvent('ALERT_FAILED', 'ERROR', error.message);
         }
