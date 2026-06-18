@@ -23,8 +23,8 @@ export interface NavItem {
 }
 
 export interface ImageAttachment {
-  id: string;
-  url: string;
+  id?: string;
+  url?: string;
   name: string;
   size?: number;
   type?: string; // 'image' | 'pdf' | 'doc' | etc.
@@ -309,20 +309,20 @@ export interface InspectionDetail {
 export type CorrectiveActionStatus = 'Mới' | 'Đang thực hiện' | 'Hoàn thành' | 'Đã xác minh';
 
 export interface CorrectiveAction {
-    id: string;
-    dnfId: string;
-    description: string;
-    responsiblePersonOrUnit: string;
-    createdAt: string;
-    updatedAt?: string;
-    completedAt?: string;
-    status: CorrectiveActionStatus;
-    dateTimeNotified?: string;
-    dateTimeArrival?: string;
-    diagnosisTime?: number;
-    repairTime?: number;
-    verificationTime?: number;
-    totalDownTime?: number;
+    id?: string;
+  dnfId: string;
+  description?: string;
+  responsiblePersonOrUnit?: string;
+  createdAt: string;
+  updatedAt?: string;
+  completedAt?: string;
+  status?: CorrectiveActionStatus;
+  dateTimeNotified?: string;
+  dateTimeArrival?: string;
+  diagnosisTime?: number;
+  repairTime?: number;
+  verificationTime?: number;
+  totalDownTime?: number;
 }
 
 
@@ -334,13 +334,13 @@ export interface DnfDocument {
   locationOfFailure: string;
   failedComponentEquipmentLRUTrainNumber?: string;
   subsystemIds?: string[];
-  descriptionOfFailure: string;
+  descriptionOfFailure?: string;
   impactAssessment?: string;
   staffWhoIdentifiedFailure: string;
   dateTimeOfFailureOccurrence: string;
   methodOfFailureDetection: string;
   hazardLevelId?: 'high' | 'medium' | 'low';
-  status: DnfStatus;
+  status?: DnfStatus;
   attachments?: ImageAttachment[];
   createdById: string;
   createdAt: string;
@@ -372,7 +372,7 @@ export type HazardStatus = "Mới" | "Đánh giá" | "Xử lý" | "Phản hồi"
 
 export interface HazardRecord {
   id: string;
-  description: string;
+  description?: string;
   systemGroup?: string;
   locationIds: string[];
   source?: string;
@@ -406,10 +406,10 @@ export type ImprovementStatus = "Mới" | "Đang xem xét" | "Đã duyệt" | "�
 
 export interface Improvement {
   id: string;
-  title: string;
+  title?: string;
   description: string;
   category: string;
-  status: ImprovementStatus;
+  status?: ImprovementStatus;
   submittedBy: string;
   createdById: string;
   submissionDate: string; // ISO string

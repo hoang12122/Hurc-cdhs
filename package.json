@@ -117,8 +117,8 @@
     "typescript": "^5.9.3"
   },
   "engines": {
-    "node": "20.12.2",
-    "npm": ">=10 <11"
+    "node": ">=20",
+    "npm": ">=10 <12"
   },
   "overrides": {
     "eslint-visitor-keys": "3.4.3",
