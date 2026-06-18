@@ -1,0 +1,26 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: hurc-ingress
+  namespace: hurc
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    # Uncomment below to enable TLS via cert-manager
+    # cert-manager.io/cluster-issuer: letsencrypt-prod
+spec:
+  rules:
+    - host: hurc.example.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: hurc-svc
+                port:
+                  number: 80
+  # Uncomment and configure TLS section if TLS is required
+  # tls:
+  #   - hosts:
+  #       - hurc.example.com
+  #     secretName: hurc-tls

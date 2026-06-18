@@ -1,0 +1,64 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hurc-api
+  namespace: hurc
+  labels:
+    app: hurc
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: hurc
+  template:
+    metadata:
+      labels:
+        app: hurc
+    spec:
+      containers:
+        - name: hurc
+          image: your-registry.io/hurc:latest # replace with actual image tag
+          ports:
+            - containerPort: 3000
+          env:
+            - name: NODE_ENV
+              value: "production"
+          resources:
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
+            requests:
+              cpu: "250m"
+              memory: "256Mi"
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 3000
+            initialDelaySeconds: 10
+            periodSeconds: 30
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 3000
+            initialDelaySeconds: 5
+            periodSeconds: 15
+          # Prometheus annotations for scraping
+          # (optional, uncomment if Prometheus is used)
+          # annotations:
+          #   prometheus.io/scrape: "true"
+          #   prometheus.io/port: "3000"
+          #   prometheus.io/path: "/metrics"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: hurc-svc
+  namespace: hurc
+spec:
+  selector:
+    app: hurc
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 3000
+  type: ClusterIP
