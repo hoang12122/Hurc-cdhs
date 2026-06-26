@@ -22,7 +22,7 @@ export async function getEquipmentById(id: string) {
     const healthList = await dbProvider.findMany('equipmentHealth', { equipmentId: id });
     const health = healthList.length > 0 ? healthList[0] : null;
     
-    return { ...equipment, health };
+    return { ...(equipment as Record<string, any>), health };
   } catch (error) {
     console.error(`Failed to fetch equipment ${id}:`, error);
     return null;
