@@ -2,12 +2,13 @@
 
 import * as React from 'react';
 import { HCMC_METRO_LINES, LINE_STATUS_LABELS, getUniqueStations, type RailStationNode } from '@/lib/rail-network/rail-network-data';
+import { createGoogleMapsDirectionsUrl, createGoogleMapsSearchUrl } from '@/lib/rail-network/google-maps';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { cn } from '@/lib/utils';
-import { Info, MapPin, Network, TrainFront, Waypoints } from 'lucide-react';
+import { ExternalLink, Info, MapPin, Navigation, Network, TrainFront, Waypoints } from 'lucide-react';
 
 function buildPolyline(stations: RailStationNode[]) {
   return stations.map((station) => `${station.x},${station.y}`).join(' ');
@@ -22,6 +23,7 @@ function getStationRadius(station: RailStationNode) {
 function StationNode({ station, active }: { station: RailStationNode; active: boolean }) {
   return (
     <g className={cn('transition-opacity duration-300', active ? 'opacity-100' : 'opacity-45')}>
+      <title>{station.name}</title>
       <circle
         cx={station.x}
         cy={station.y}
@@ -86,7 +88,7 @@ export function MetroLineMap() {
   }
 
   return (
-    <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_380px]">
+    <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_420px]">
       <Card className="overflow-hidden border-none shadow-xl shadow-slate-200/70 dark:shadow-none">
         <CardHeader className="border-b bg-white/90 dark:bg-slate-950/80">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
@@ -96,7 +98,7 @@ export function MetroLineMap() {
                 Mô hình tuyến đường sắt đô thị
               </CardTitle>
               <CardDescription>
-                Các nút tròn màu trắng thể hiện vị trí nhà ga; nút viền đen là ga trung chuyển/điểm giao tuyến.
+                Các nút tròn màu trắng thể hiện vị trí nhà ga; danh sách bên phải có liên kết mở Google Maps và chỉ đường.
               </CardDescription>
             </div>
             <div className="flex flex-wrap gap-2">
@@ -234,23 +236,51 @@ export function MetroLineMap() {
               <Waypoints className="h-4 w-4 text-slate-600" />
               Danh sách nhà ga tuyến {selectedLine.code}
             </CardTitle>
-            <CardDescription>Thứ tự hiển thị theo chiều từ ga đầu đến ga cuối.</CardDescription>
+            <CardDescription>Mỗi nhà ga có liên kết mở Google Maps và chỉ đường theo tên ga.</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="max-h-[420px] space-y-2 overflow-auto pr-1">
-              {selectedLine.stations.map((station, index) => (
-                <div key={`${selectedLine.id}-${station.id}-${index}`} className="flex items-center gap-3 rounded-xl border bg-white p-3 text-sm dark:bg-slate-950">
-                  <div className="flex h-7 w-7 items-center justify-center rounded-full text-xs font-black text-white" style={{ backgroundColor: selectedLine.color }}>
-                    {index + 1}
+            <div className="max-h-[460px] space-y-2 overflow-auto pr-1">
+              {selectedLine.stations.map((station, index) => {
+                const googleMapsUrl = createGoogleMapsSearchUrl(station, selectedLine);
+                const directionsUrl = createGoogleMapsDirectionsUrl(station, selectedLine);
+                return (
+                  <div key={`${selectedLine.id}-${station.id}-${index}`} className="flex items-center gap-3 rounded-xl border bg-white p-3 text-sm dark:bg-slate-950">
+                    <div className="flex h-7 w-7 items-center justify-center rounded-full text-xs font-black text-white" style={{ backgroundColor: selectedLine.color }}>
+                      {index + 1}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="truncate font-bold text-slate-800 dark:text-slate-100">{station.name}</div>
+                      <div className="truncate text-xs text-muted-foreground">{station.code}</div>
+                      <div className="mt-2 flex flex-wrap gap-1.5">
+                        {station.type === 'interchange' && <Badge variant="outline">Trung chuyển</Badge>}
+                        {station.type === 'terminal' && <Badge variant="secondary">Ga đầu/cuối</Badge>}
+                      </div>
+                    </div>
+                    <div className="flex shrink-0 flex-col gap-1.5">
+                      <a
+                        href={googleMapsUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex h-8 items-center justify-center gap-1.5 rounded-full border border-slate-200 bg-white px-3 text-xs font-bold text-slate-700 transition-colors hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-200"
+                        title={`Mở ${station.name} trên Google Maps`}
+                      >
+                        <ExternalLink className="h-3.5 w-3.5" />
+                        Google Maps
+                      </a>
+                      <a
+                        href={directionsUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex h-8 items-center justify-center gap-1.5 rounded-full bg-sky-600 px-3 text-xs font-bold text-white transition-colors hover:bg-sky-700"
+                        title={`Chỉ đường đến ${station.name}`}
+                      >
+                        <Navigation className="h-3.5 w-3.5" />
+                        Chỉ đường
+                      </a>
+                    </div>
                   </div>
-                  <div className="min-w-0 flex-1">
-                    <div className="truncate font-bold text-slate-800 dark:text-slate-100">{station.name}</div>
-                    <div className="truncate text-xs text-muted-foreground">{station.code}</div>
-                  </div>
-                  {station.type === 'interchange' && <Badge variant="outline">Trung chuyển</Badge>}
-                  {station.type === 'terminal' && <Badge variant="secondary">Ga đầu/cuối</Badge>}
-                </div>
-              ))}
+                );
+              })}
             </div>
           </CardContent>
         </Card>
@@ -263,11 +293,11 @@ export function MetroLineMap() {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3 text-sm leading-6 text-amber-900/90 dark:text-amber-100/90">
-            <p>Các nút trắng trên sơ đồ được chuẩn hóa là vị trí nhà ga. Dữ liệu hiện được đặt ở lớp cấu hình để hiển thị nhanh, đồng thời schema database đã bổ sung bảng tuyến, ga và phân công trách nhiệm.</p>
+            <p>Các nút trắng trên sơ đồ được chuẩn hóa là vị trí nhà ga. Liên kết Google Maps hiện dùng truy vấn theo tên ga, mã tuyến và Thành phố Hồ Chí Minh để mở nhanh vị trí tham khảo.</p>
             <Separator className="bg-amber-200/70 dark:bg-amber-900" />
             <div className="flex items-start gap-2">
               <MapPin className="mt-0.5 h-4 w-4 shrink-0" />
-              <span>Khi có tọa độ GIS/BIM chính thức, chỉ cần thay tọa độ `mapX/mapY` để bản đồ chuyển sang dữ liệu thật.</span>
+              <span>Khi có tọa độ GIS/Google Place ID chính thức, nên thay query Google Maps bằng tọa độ hoặc Place ID để tăng độ chính xác.</span>
             </div>
           </CardContent>
         </Card>
