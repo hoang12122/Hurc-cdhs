@@ -17,9 +17,9 @@ env:
 
 jobs:
   docker-acceptance:
-    name: Docker Compose and Image Build
+    name: Docker Compose, Image Build and Runtime Smoke Test
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 55
 
     steps:
       - name: Checkout source
@@ -30,3 +30,32 @@ jobs:
 
       - name: Build application image
         run: docker image build --file Dockerfile --tag hurc-cdhs:ci .
+
+      - name: Run application container
+        run: |
+          docker run -d --name hurc-cdhs-ci -p 3000:3000 \
+            -e NEXT_PUBLIC_SETUP_COMPLETE=true \
+            -e SESSION_SECRET=docker_ci_placeholder_secret \
+            -e AUTH_DATABASE_URL=postgresql://docker:placeholder@localhost:5432/auth \
+            -e AI_DATABASE_URL=postgresql://docker:placeholder@localhost:5432/ai \
+            -e METRO_DATABASE_URL=postgresql://docker:placeholder@localhost:5432/metro \
+            -e OPS_DATABASE_URL=postgresql://docker:placeholder@localhost:5432/ops \
+            -e DATABASE_URL=postgresql://docker:placeholder@localhost:5432/main \
+            hurc-cdhs:ci
+
+      - name: Docker runtime health smoke test
+        run: |
+          for i in $(seq 1 60); do
+            if node -e "fetch('http://127.0.0.1:3000/api/health').then(async r => { const j = await r.json(); process.exit(r.ok && j.status === 'healthy' ? 0 : 1); }).catch(() => process.exit(1));"; then
+              echo "Container health check passed"
+              exit 0
+            fi
+            docker logs --tail 30 hurc-cdhs-ci || true
+            sleep 2
+          done
+          docker logs hurc-cdhs-ci || true
+          exit 1
+
+      - name: Cleanup container
+        if: always()
+        run: docker rm -f hurc-cdhs-ci || true
