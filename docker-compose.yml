@@ -102,7 +102,7 @@ services:
     container_name: hurc_gis_bim_import_dry_run
     profiles: ["tools"]
     working_dir: /workspace
-    command: sh -c "npm ci --legacy-peer-deps && npm run import:gis-bim:dry-run"
+    command: sh -c "npm ci --legacy-peer-deps --ignore-scripts && npm run import:gis-bim:dry-run"
     volumes:
       - ./:/workspace
     networks:
@@ -113,7 +113,7 @@ services:
     container_name: hurc_gis_bim_import_commit
     profiles: ["tools"]
     working_dir: /workspace
-    command: sh -c "npm ci --legacy-peer-deps && npm run import:gis-bim:commit"
+    command: sh -c "npm ci --legacy-peer-deps --ignore-scripts && npm run import:gis-bim:commit"
     environment:
       METRO_DATABASE_URL: ${METRO_DATABASE_URL:-postgresql://postgres:hurc123@postgres:5432/hurc_metro}
     volumes:
