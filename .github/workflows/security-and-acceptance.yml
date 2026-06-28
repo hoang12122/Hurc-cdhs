@@ -1,0 +1,79 @@
+name: Security and Acceptance Gate
+
+on:
+  pull_request:
+    branches:
+      - master
+  push:
+    branches:
+      - master
+      - feature/**
+
+permissions:
+  contents: read
+  security-events: write
+  actions: read
+
+jobs:
+  build-quality-gate:
+    name: Build, Typecheck and Dependency Audit
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+
+      - name: Install dependencies from lockfile
+        run: npm ci --include=dev
+
+      - name: Static type check
+        run: npm run typecheck
+
+      - name: Next.js lint
+        run: npm run lint
+
+      - name: Production build
+        run: npm run build
+        env:
+          NEXT_PUBLIC_SETUP_COMPLETE: 'true'
+          SESSION_SECRET: ci_placeholder_secret_for_acceptance_gate
+          AUTH_DATABASE_URL: postgresql://build:placeholder@localhost:5432/auth
+          AI_DATABASE_URL: postgresql://build:placeholder@localhost:5432/ai
+          METRO_DATABASE_URL: postgresql://build:placeholder@localhost:5432/metro
+          OPS_DATABASE_URL: postgresql://build:placeholder@localhost:5432/ops
+          DATABASE_URL: postgresql://build:placeholder@localhost:5432/main
+
+      - name: Production dependency audit
+        run: npm audit --audit-level=high --omit=dev
+
+  codeql-analysis:
+    name: CodeQL Static Security Analysis
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    strategy:
+      fail-fast: false
+      matrix:
+        language: ['javascript-typescript']
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: ${{ matrix.language }}
+
+      - name: Autobuild
+        uses: github/codeql-action/autobuild@v3
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
