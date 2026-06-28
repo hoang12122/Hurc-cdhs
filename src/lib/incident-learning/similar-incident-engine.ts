@@ -12,6 +12,10 @@ export interface IncidentResolutionCase {
   safetyNotes: string[];
   evidenceTags: string[];
   confidence: number;
+  sourceType?: 'DNF' | 'Hazard' | 'Task' | 'Inspection' | 'Sample';
+  sourceId?: string;
+  referenceLabel?: string;
+  updatedAt?: string;
 }
 
 export interface SimilarIncidentMatch {
@@ -26,9 +30,11 @@ export interface IncidentLearningResult {
   recommendedPlan: string[];
   confidenceLabel: 'low' | 'medium' | 'high';
   warning: string;
+  dataSource: 'ops-database' | 'fallback-sample' | 'mixed';
+  caseCount: number;
 }
 
-const INCIDENT_CASES: IncidentResolutionCase[] = [
+export const FALLBACK_INCIDENT_CASES: IncidentResolutionCase[] = [
   {
     id: 'AFC-PG-FREEZE-001',
     title: 'PG treo, dữ liệu giao dịch chưa đẩy hết sau End of Day',
@@ -46,6 +52,8 @@ const INCIDENT_CASES: IncidentResolutionCase[] = [
     safetyNotes: ['Không thao tác trong thời điểm đang có giao dịch cuối gần nhất.', 'Không kết luận mất doanh thu nếu chưa đối chiếu dữ liệu kết toán.'],
     evidenceTags: ['afc', 'pg', 'freeze', 'treo', 'eod', 'end of day', 'reboot', 'transaction', 'giao dịch', 'kết toán'],
     confidence: 82,
+    sourceType: 'Sample',
+    referenceLabel: 'Sample AFC-PG-FREEZE-001',
   },
   {
     id: 'PSD-BELT-TENSION-001',
@@ -64,6 +72,8 @@ const INCIDENT_CASES: IncidentResolutionCase[] = [
     safetyNotes: ['Không chỉ thay dây đai mà bỏ qua kiểm tra căn chỉnh.', 'Không dùng kết quả đo nếu thiết bị đo không đặt đúng vị trí.'],
     evidenceTags: ['psd', 'belt', 'dây đai', 'tension', 'lực căng', 'tdn', 'pulley', 'mòn', 'nứt', 'alignment'],
     confidence: 86,
+    sourceType: 'Sample',
+    referenceLabel: 'Sample PSD-BELT-TENSION-001',
   },
   {
     id: 'PSD-GHD-RAIN-001',
@@ -81,6 +91,8 @@ const INCIDENT_CASES: IncidentResolutionCase[] = [
     safetyNotes: ['Không bỏ qua yếu tố môi trường khi lỗi lặp lại theo thời tiết.', 'Không kết luận lỗi linh kiện nếu chưa kiểm tra điều kiện ẩm/nước.'],
     evidenceTags: ['psd', 'ghd', 'rain', 'mưa', 'ẩm', 'nước', 'sensor', 'connector', 'environment'],
     confidence: 74,
+    sourceType: 'Sample',
+    referenceLabel: 'Sample PSD-GHD-RAIN-001',
   },
   {
     id: 'PSD-TRAIN-VOLTAGE-001',
@@ -98,6 +110,8 @@ const INCIDENT_CASES: IncidentResolutionCase[] = [
     safetyNotes: ['Không tự ý thao tác điện khi chưa có biện pháp an toàn được phê duyệt.', 'Luôn ưu tiên cô lập nguy cơ và yêu cầu đơn vị chuyên môn xác nhận.'],
     evidenceTags: ['voltage', 'điện áp', 'shock', 'eed', 'psd', 'train', 'cách điện', 'insulation', 'safety'],
     confidence: 80,
+    sourceType: 'Sample',
+    referenceLabel: 'Sample PSD-TRAIN-VOLTAGE-001',
   },
   {
     id: 'PSD-PASSENGER-TRAP-001',
@@ -115,6 +129,8 @@ const INCIDENT_CASES: IncidentResolutionCase[] = [
     safetyNotes: ['Không quy trách nhiệm khi chưa đủ playback và trình tự sự kiện.', 'Ưu tiên biện pháp phòng ngừa đối với trẻ em, người lớn tuổi và khu vực đông khách.'],
     evidenceTags: ['passenger', 'kẹt', 'cửa', 'psd', 'train door', 'camera', 'playback', 'platform', 'hành khách'],
     confidence: 78,
+    sourceType: 'Sample',
+    referenceLabel: 'Sample PSD-PASSENGER-TRAP-001',
   },
 ];
 
@@ -137,14 +153,16 @@ function tokenize(value: string) {
 
 function scoreCase(query: string, incidentCase: IncidentResolutionCase): SimilarIncidentMatch {
   const queryTokens = new Set(tokenize(query));
+  const normalizedQuery = normalizeText(query);
   const tagTokens = incidentCase.evidenceTags.flatMap((tag) => tokenize(tag));
   const symptomTokens = incidentCase.symptoms.flatMap((symptom) => tokenize(symptom));
   const titleTokens = tokenize(incidentCase.title);
-  const allCaseTokens = new Set([...tagTokens, ...symptomTokens, ...titleTokens]);
+  const sourceTokens = tokenize(`${incidentCase.sourceType || ''} ${incidentCase.referenceLabel || ''} ${incidentCase.station || ''}`);
+  const allCaseTokens = new Set([...tagTokens, ...symptomTokens, ...titleTokens, ...sourceTokens]);
 
   const matchedTags = incidentCase.evidenceTags.filter((tag) => {
     const normalizedTag = normalizeText(tag);
-    return normalizeText(query).includes(normalizedTag) || tokenize(tag).some((token) => queryTokens.has(token));
+    return normalizedQuery.includes(normalizedTag) || tokenize(tag).some((token) => queryTokens.has(token));
   });
 
   let score = 0;
@@ -153,6 +171,7 @@ function scoreCase(query: string, incidentCase: IncidentResolutionCase): Similar
     if (tagTokens.includes(token)) score += 7;
     if (symptomTokens.includes(token)) score += 5;
     if (titleTokens.includes(token)) score += 4;
+    if (sourceTokens.includes(token)) score += 2;
   });
 
   if (matchedTags.length > 0) score += matchedTags.length * 10;
@@ -192,8 +211,17 @@ function confidenceLabel(matches: SimilarIncidentMatch[]): IncidentLearningResul
   return 'low';
 }
 
-export function analyzeSimilarIncidents(query: string): IncidentLearningResult {
-  const matches = INCIDENT_CASES
+function inferDataSource(cases: IncidentResolutionCase[]): IncidentLearningResult['dataSource'] {
+  const hasOps = cases.some((incidentCase) => incidentCase.sourceType && incidentCase.sourceType !== 'Sample');
+  const hasSample = cases.some((incidentCase) => incidentCase.sourceType === 'Sample');
+  if (hasOps && hasSample) return 'mixed';
+  if (hasOps) return 'ops-database';
+  return 'fallback-sample';
+}
+
+export function analyzeSimilarIncidents(query: string, runtimeCases?: IncidentResolutionCase[]): IncidentLearningResult {
+  const candidateCases = runtimeCases && runtimeCases.length > 0 ? runtimeCases : FALLBACK_INCIDENT_CASES;
+  const matches = candidateCases
     .map((incidentCase) => scoreCase(query, incidentCase))
     .filter((match) => match.score >= 18)
     .sort((a, b) => b.score - a.score)
@@ -205,6 +233,8 @@ export function analyzeSimilarIncidents(query: string): IncidentLearningResult {
     recommendedPlan: buildRecommendedPlan(matches),
     confidenceLabel: confidenceLabel(matches),
     warning: 'Kết quả học từ sự cố tương tự chỉ là gợi ý kỹ thuật tham khảo. Cần kiểm tra hiện trường, log, tài liệu O&M và phê duyệt an toàn trước khi áp dụng.',
+    dataSource: inferDataSource(candidateCases),
+    caseCount: candidateCases.length,
   };
 }
 
@@ -215,14 +245,22 @@ export function formatIncidentLearningResult(result: IncidentLearningResult) {
     low: 'Thấp',
   }[result.confidenceLabel];
 
+  const dataSourceText = {
+    'ops-database': 'OPS database - DNF/Hazard/Task/Inspection',
+    'fallback-sample': 'Kho mẫu fallback',
+    mixed: 'OPS database + kho mẫu fallback',
+  }[result.dataSource];
+
   const matchText = result.matches.length > 0
     ? result.matches.map((match, index) => {
         const matched = match.matchedTags.length > 0 ? `\n   Từ khóa trùng: ${match.matchedTags.join(', ')}` : '';
-        return `${index + 1}. ${match.case.title} [${match.case.subsystem}] - điểm tương đồng ${match.score}/100\n   Giả thuyết: ${match.case.rootCauseHypothesis}\n   Kết quả từng áp dụng: ${match.case.resolutionOutcome}${matched}`;
+        const source = match.case.referenceLabel ? `\n   Nguồn: ${match.case.referenceLabel}` : '';
+        const station = match.case.station ? `\n   Vị trí/ga: ${match.case.station}` : '';
+        return `${index + 1}. ${match.case.title} [${match.case.subsystem}] - điểm tương đồng ${match.score}/100\n   Giả thuyết: ${match.case.rootCauseHypothesis}\n   Kết quả từng áp dụng: ${match.case.resolutionOutcome}${source}${station}${matched}`;
       }).join('\n')
-    : 'Chưa tìm thấy sự cố tương tự đủ mạnh trong kho mẫu. Cần bổ sung thêm DNF/log/biên bản để hệ thống học tốt hơn.';
+    : 'Chưa tìm thấy sự cố tương tự đủ mạnh trong kho dữ liệu hiện có. Cần bổ sung thêm DNF/log/biên bản để hệ thống học tốt hơn.';
 
   const planText = result.recommendedPlan.map((item, index) => `${index + 1}. ${item}`).join('\n');
 
-  return `PHÂN TÍCH SỰ CỐ TƯƠNG TỰ\n\nMức tin cậy tham khảo: ${confidenceText}\n\nCác sự cố tương tự:\n${matchText}\n\nPhương án xử lý đề xuất theo kinh nghiệm:\n${planText}\n\nLưu ý: ${result.warning}`;
+  return `PHÂN TÍCH SỰ CỐ TƯƠNG TỰ\n\nNguồn dữ liệu: ${dataSourceText} (${result.caseCount} hồ sơ)\nMức tin cậy tham khảo: ${confidenceText}\n\nCác sự cố tương tự:\n${matchText}\n\nPhương án xử lý đề xuất theo kinh nghiệm:\n${planText}\n\nLưu ý: ${result.warning}`;
 }
