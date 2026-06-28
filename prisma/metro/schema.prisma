@@ -26,6 +26,8 @@ model Asset {
   updatedAt    DateTime @updatedAt
 
   @@index([subsystem])
+  @@index([stationId])
+  @@index([systemId])
   @@index([parentId])
   @@index([criticality])
   @@map("metro_assets")
@@ -55,4 +57,94 @@ model SnmpConfig {
   lastPolled DateTime?
 
   @@map("metro_snmp_configs")
+}
+
+model RailLine {
+  id          String   @id @default(uuid())
+  code        String   @unique // M1, M2, M3...
+  name        String
+  color       String
+  status      String   @default("planned") // operating | construction | planned | proposed
+  terminalA   String?  @map("terminal_a")
+  terminalB   String?  @map("terminal_b")
+  description String?
+  sortOrder   Int      @default(0) @map("sort_order")
+  stations    RailLineStation[]
+  responsibilities ResponsibilityAssignment[]
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+  deletedAt   DateTime? @map("deleted_at")
+
+  @@index([status])
+  @@index([sortOrder])
+  @@map("metro_rail_lines")
+}
+
+model RailStation {
+  id                  String   @id @default(uuid())
+  code                String   @unique
+  name                String
+  stationType          String   @default("standard") @map("station_type") // standard | interchange | terminal | depot | future
+  district             String?
+  locationDescription  String?  @map("location_description")
+  mapX                 Float?   @map("map_x")
+  mapY                 Float?   @map("map_y")
+  isInterchange        Boolean  @default(false) @map("is_interchange")
+  status               String   @default("planned") // operating | construction | planned | proposed
+  lines                RailLineStation[]
+  responsibilities     ResponsibilityAssignment[]
+  createdAt            DateTime @default(now()) @map("created_at")
+  updatedAt            DateTime @updatedAt @map("updated_at")
+  deletedAt            DateTime? @map("deleted_at")
+
+  @@index([stationType])
+  @@index([isInterchange])
+  @@index([status])
+  @@map("metro_rail_stations")
+}
+
+model RailLineStation {
+  id                  String   @id @default(uuid())
+  lineId              String   @map("line_id")
+  stationId           String   @map("station_id")
+  sequence            Int
+  distanceFromStartKm Float?   @map("distance_from_start_km")
+  isTerminal          Boolean  @default(false) @map("is_terminal")
+  isTransferPoint     Boolean  @default(false) @map("is_transfer_point")
+  line                RailLine @relation(fields: [lineId], references: [id], onDelete: Cascade)
+  station             RailStation @relation(fields: [stationId], references: [id], onDelete: Cascade)
+
+  @@unique([lineId, stationId])
+  @@index([lineId, sequence])
+  @@index([stationId])
+  @@map("metro_rail_line_stations")
+}
+
+model ResponsibilityAssignment {
+  id                 String   @id @default(uuid())
+  userId             String   @map("user_id") // auth.users.id; kept as string because auth DB is separated
+  userNameSnapshot   String?  @map("user_name_snapshot")
+  responsibilityType String   @default("owner") @map("responsibility_type") // owner | maintainer | reviewer | approver | viewer
+  lineId             String?  @map("line_id")
+  stationId          String?  @map("station_id")
+  systemId           String?  @map("system_id")
+  subsystem          String?
+  assetId            String?  @map("asset_id")
+  validFrom          DateTime @default(now()) @map("valid_from")
+  validTo            DateTime? @map("valid_to")
+  active             Boolean  @default(true)
+  note               String?
+  line               RailLine? @relation(fields: [lineId], references: [id], onDelete: SetNull)
+  station            RailStation? @relation(fields: [stationId], references: [id], onDelete: SetNull)
+  createdAt          DateTime @default(now()) @map("created_at")
+  updatedAt          DateTime @updatedAt @map("updated_at")
+
+  @@index([userId])
+  @@index([lineId])
+  @@index([stationId])
+  @@index([systemId])
+  @@index([subsystem])
+  @@index([assetId])
+  @@index([active])
+  @@map("metro_responsibility_assignments")
 }
