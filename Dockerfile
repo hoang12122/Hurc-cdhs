@@ -4,7 +4,7 @@ FROM node:20-slim AS deps
 WORKDIR /app
 COPY package*.json ./
 COPY scripts ./scripts
-RUN npm ci --legacy-peer-deps
+RUN npm ci --legacy-peer-deps --ignore-scripts
 
 FROM node:20-slim AS builder
 WORKDIR /app
