@@ -16,9 +16,9 @@ permissions:
 
 jobs:
   build-quality-gate:
-    name: Build, Typecheck and Dependency Audit
+    name: Build, Typecheck, Spatial Import and Dependency Audit
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    timeout-minutes: 30
 
     steps:
       - name: Checkout source
@@ -32,6 +32,27 @@ jobs:
 
       - name: Install dependencies from lockfile
         run: npm ci --include=dev
+
+      - name: Validate Prisma schemas
+        run: npm run db:validate:all
+        env:
+          AUTH_DATABASE_URL: postgresql://build:placeholder@localhost:5432/auth
+          AI_DATABASE_URL: postgresql://build:placeholder@localhost:5432/ai
+          METRO_DATABASE_URL: postgresql://build:placeholder@localhost:5432/metro
+          OPS_DATABASE_URL: postgresql://build:placeholder@localhost:5432/ops
+          DATABASE_URL: postgresql://build:placeholder@localhost:5432/main
+
+      - name: Generate Prisma clients
+        run: npm run db:generate:all
+        env:
+          AUTH_DATABASE_URL: postgresql://build:placeholder@localhost:5432/auth
+          AI_DATABASE_URL: postgresql://build:placeholder@localhost:5432/ai
+          METRO_DATABASE_URL: postgresql://build:placeholder@localhost:5432/metro
+          OPS_DATABASE_URL: postgresql://build:placeholder@localhost:5432/ops
+          DATABASE_URL: postgresql://build:placeholder@localhost:5432/main
+
+      - name: GIS/BIM import dry-run validation
+        run: npm run import:gis-bim:dry-run
 
       - name: Static type check
         run: npm run typecheck
