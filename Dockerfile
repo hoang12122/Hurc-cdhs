@@ -33,7 +33,7 @@ ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 
 # Install Python3 for AI Lab modules
-RUN apt-get update && apt-get install -y python3 python3-pip python3-venv && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y --no-install-recommends python3 python3-pip python3-venv ca-certificates && rm -rf /var/lib/apt/lists/*
 COPY requirements.txt ./
 # Install Python packages using a virtual environment
 RUN python3 -m venv /opt/venv
@@ -58,6 +58,9 @@ COPY --from=builder /app/data/import ./data/import
 EXPOSE 3000
 ENV PORT=3000
 ENV HOSTNAME=0.0.0.0
+
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
+  CMD node -e "fetch('http://127.0.0.1:3000/api/health').then(async r => { const j = await r.json(); process.exit(r.ok && j.status === 'healthy' ? 0 : 1); }).catch(() => process.exit(1))"
 
 # Start server
 CMD ["node", "server.js"]
