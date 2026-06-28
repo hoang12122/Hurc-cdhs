@@ -1,7 +1,9 @@
+import Link from 'next/link';
 import { GisBimViewer } from './_components/gis-bim-viewer';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Box, Database, MapPinned, Network } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Box, Database, MapPinned, Network, UploadCloud } from 'lucide-react';
 import { BIM_MODEL_REGISTRY, GIS_INTEGRATION_LAYERS, SAMPLE_SPATIAL_FEATURES } from '@/lib/spatial-integration/spatial-data';
 
 export default function SpatialTwinPage() {
@@ -20,6 +22,11 @@ export default function SpatialTwinPage() {
             <p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground">
               Lớp tích hợp GIS/BIM giúp liên kết tuyến, nhà ga, tài sản, mô hình không gian, DNF, Hazard và dữ liệu telemetry vào cùng một bối cảnh vận hành.
             </p>
+            <Button asChild className="mt-4 gap-2 rounded-full">
+              <Link href="/spatial-twin/import">
+                <UploadCloud className="h-4 w-4" /> Mở GIS/BIM Import Center
+              </Link>
+            </Button>
           </div>
         </div>
 
