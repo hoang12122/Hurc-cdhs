@@ -1,0 +1,70 @@
+{
+  "type": "FeatureCollection",
+  "name": "stations-m1-demo",
+  "features": [
+    {
+      "type": "Feature",
+      "id": "station-ben-thanh",
+      "properties": {
+        "name": "Ga Bến Thành",
+        "lineCode": "M1",
+        "stationCode": "M1-BT",
+        "assetCode": "STN-BT",
+        "stationType": "interchange",
+        "source": "demo"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [106.70098, 10.7722]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "station-ba-son",
+      "properties": {
+        "name": "Ga Ba Son",
+        "lineCode": "M1",
+        "stationCode": "M1-BS",
+        "assetCode": "STN-BS",
+        "stationType": "underground",
+        "source": "demo"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [106.7077, 10.7769]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "station-tan-cang",
+      "properties": {
+        "name": "Ga Tân Cảng",
+        "lineCode": "M1",
+        "stationCode": "M1-TC",
+        "assetCode": "STN-TC",
+        "stationType": "elevated",
+        "source": "demo"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [106.7164, 10.7892]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "station-cong-nghe-cao",
+      "properties": {
+        "name": "Ga Công nghệ cao",
+        "lineCode": "M1",
+        "stationCode": "M1-CNC",
+        "assetCode": "STN-CNC",
+        "stationType": "elevated",
+        "source": "demo"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [106.7798, 10.8433]
+      }
+    }
+  ]
+}
