@@ -10,7 +10,9 @@ interface ModelProps {
     category?: string | null;
 }
 
-function statusMaterial(status: ModelProps['status']) {
+type TwinStatus = ModelProps['status'];
+
+function statusMaterial(status: TwinStatus) {
     return {
         color: status === 'healthy' ? '#3b82f6' : status === 'warning' ? '#f59e0b' : '#ef4444',
         emissive: status === 'critical' ? '#ef4444' : '#000000',
@@ -41,21 +43,19 @@ function DigitalTwinMesh({ status, category }: ModelProps) {
         }
     });
 
-    if (assetKind === 'psd') {
-        return <PsdTwin ref={groupRef} status={status} />;
-    }
-
-    if (assetKind === 'afc') {
-        return <AfcTwin ref={groupRef} status={status} />;
-    }
-
-    return <GenericTwin ref={groupRef} status={status} />;
+    return (
+        <group ref={groupRef}>
+            {assetKind === 'psd' && <PsdTwin status={status} />}
+            {assetKind === 'afc' && <AfcTwin status={status} />}
+            {assetKind === 'generic' && <GenericTwin status={status} />}
+        </group>
+    );
 }
 
-const PsdTwin = React.forwardRef<THREE.Group, { status: ModelProps['status'] }>(function PsdTwin({ status }, ref) {
+function PsdTwin({ status }: { status: TwinStatus }) {
     const material = statusMaterial(status);
     return (
-        <group ref={ref}>
+        <>
             <mesh position={[0, -1.2, 0]} receiveShadow>
                 <boxGeometry args={[4.6, 0.18, 1.3]} />
                 <meshStandardMaterial color="#64748b" roughness={0.65} metalness={0.2} />
@@ -80,14 +80,14 @@ const PsdTwin = React.forwardRef<THREE.Group, { status: ModelProps['status'] }>(
                 <boxGeometry args={[0.34, 0.34, 0.34]} />
                 <meshStandardMaterial color={status === 'critical' ? '#ef4444' : status === 'warning' ? '#f59e0b' : '#22c55e'} emissive={status === 'critical' ? '#ef4444' : '#000000'} emissiveIntensity={status === 'critical' ? 0.7 : 0.15} />
             </mesh>
-        </group>
+        </>
     );
-});
+}
 
-const AfcTwin = React.forwardRef<THREE.Group, { status: ModelProps['status'] }>(function AfcTwin({ status }, ref) {
+function AfcTwin({ status }: { status: TwinStatus }) {
     const material = statusMaterial(status);
     return (
-        <group ref={ref}>
+        <>
             <mesh position={[0, -1.15, 0]} receiveShadow>
                 <boxGeometry args={[4.2, 0.18, 1.4]} />
                 <meshStandardMaterial color="#64748b" roughness={0.65} metalness={0.2} />
@@ -110,14 +110,14 @@ const AfcTwin = React.forwardRef<THREE.Group, { status: ModelProps['status'] }>(
                 <boxGeometry args={[0.45, 0.14, 0.28]} />
                 <meshStandardMaterial color={status === 'critical' ? '#ef4444' : '#38bdf8'} emissive={status === 'critical' ? '#ef4444' : '#38bdf8'} emissiveIntensity={0.18} />
             </mesh>
-        </group>
+        </>
     );
-});
+}
 
-const GenericTwin = React.forwardRef<THREE.Group, { status: ModelProps['status'] }>(function GenericTwin({ status }, ref) {
+function GenericTwin({ status }: { status: TwinStatus }) {
     const material = statusMaterial(status);
     return (
-        <group ref={ref}>
+        <>
             <mesh position={[0, -1.2, 0]} receiveShadow>
                 <boxGeometry args={[3.5, 0.18, 1.6]} />
                 <meshStandardMaterial color="#64748b" roughness={0.65} metalness={0.2} />
@@ -136,9 +136,9 @@ const GenericTwin = React.forwardRef<THREE.Group, { status: ModelProps['status']
                 <boxGeometry args={[1.4, 0.12, 1.4]} />
                 <meshStandardMaterial color="#e2e8f0" roughness={0.35} metalness={0.35} />
             </mesh>
-        </group>
+        </>
     );
-});
+}
 
 export function Equipment3DModel({ status, category }: ModelProps) {
     return (
@@ -157,7 +157,7 @@ export function Equipment3DModel({ status, category }: ModelProps) {
                     <DigitalTwinMesh status={status} category={category} />
 
                     <ContactShadows position={[0, -1.35, 0]} opacity={0.45} scale={10} blur={2} far={4} />
-                    <OrbitControls enableZoom={true} enablePan={false} autoRotate={status === 'healthy'} autoRotateSpeed={0.45} />
+                    <OrbitControls enableZoom enablePan={false} autoRotate={status === 'healthy'} autoRotateSpeed={0.45} />
                     <Environment preset="city" />
                     <BakeShadows />
                     <Preload all />
