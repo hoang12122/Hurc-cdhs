@@ -75,8 +75,6 @@ services:
       DATABASE_URL: ${DATABASE_URL:-postgresql://postgres:hurc123@postgres:5432/hurc_db}
       MONGODB_URI: ${MONGODB_URI:-mongodb://admin:hurc123@mongo:27017/hurc?authSource=admin}
       REDIS_URL: ${REDIS_URL:-redis://redis:6379}
-    env_file:
-      - .env
     depends_on:
       postgres:
         condition: service_healthy
