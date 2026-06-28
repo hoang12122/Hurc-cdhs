@@ -16,9 +16,9 @@ permissions:
 
 jobs:
   build-quality-gate:
-    name: Build, Typecheck, Spatial Import and Dependency Audit
+    name: Build, Typecheck, Spatial Import, Smoke Test and Dependency Audit
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 35
 
     steps:
       - name: Checkout source
@@ -70,6 +70,17 @@ jobs:
           METRO_DATABASE_URL: postgresql://build:placeholder@localhost:5432/metro
           OPS_DATABASE_URL: postgresql://build:placeholder@localhost:5432/ops
           DATABASE_URL: postgresql://build:placeholder@localhost:5432/main
+
+      - name: Production route smoke test
+        run: node scripts/production-smoke-test.js
+        env:
+          NEXT_PUBLIC_SETUP_COMPLETE: 'true'
+          SESSION_SECRET: ci_placeholder_secret_for_smoke_test
+          AUTH_DATABASE_URL: postgresql://smoke:placeholder@localhost:5432/auth
+          AI_DATABASE_URL: postgresql://smoke:placeholder@localhost:5432/ai
+          METRO_DATABASE_URL: postgresql://smoke:placeholder@localhost:5432/metro
+          OPS_DATABASE_URL: postgresql://smoke:placeholder@localhost:5432/ops
+          DATABASE_URL: postgresql://smoke:placeholder@localhost:5432/main
 
       - name: Production dependency audit
         run: npm audit --audit-level=high --omit=dev
