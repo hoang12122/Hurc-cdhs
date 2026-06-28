@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { HCMC_METRO_LINES, LINE_STATUS_LABELS, getUniqueStations, type RailLineModel, type RailStationNode } from '@/lib/rail-network/rail-network-data';
+import { HCMC_METRO_LINES, LINE_STATUS_LABELS, getUniqueStations, type RailStationNode } from '@/lib/rail-network/rail-network-data';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -50,7 +50,7 @@ function StationLabel({ station, selectedLineCode }: { station: RailStationNode;
   if (!shouldShow) return null;
 
   const dx = station.x > 80 ? -1.5 : 1.5;
-  const anchor = station.x > 80 ? 'end' : 'start';
+  const anchor: 'start' | 'end' = station.x > 80 ? 'end' : 'start';
 
   return (
     <text
@@ -66,12 +66,24 @@ function StationLabel({ station, selectedLineCode }: { station: RailStationNode;
 }
 
 export function MetroLineMap() {
-  const [selectedLineId, setSelectedLineId] = React.useState(HCMC_METRO_LINES[0]?.id || 'm1');
+  const fallbackLine = HCMC_METRO_LINES[0];
+  const [selectedLineId, setSelectedLineId] = React.useState(fallbackLine?.id || 'm1');
   const selectedLine = React.useMemo(
-    () => HCMC_METRO_LINES.find((line) => line.id === selectedLineId) || HCMC_METRO_LINES[0],
-    [selectedLineId],
+    () => HCMC_METRO_LINES.find((line) => line.id === selectedLineId) || fallbackLine,
+    [fallbackLine, selectedLineId],
   );
   const stations = React.useMemo(() => getUniqueStations(), []);
+
+  if (!selectedLine) {
+    return (
+      <Card className="border-none shadow-xl shadow-slate-200/70 dark:shadow-none">
+        <CardHeader>
+          <CardTitle>Không có dữ liệu tuyến</CardTitle>
+          <CardDescription>Vui lòng kiểm tra cấu hình `HCMC_METRO_LINES`.</CardDescription>
+        </CardHeader>
+      </Card>
+    );
+  }
 
   return (
     <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_380px]">
@@ -154,12 +166,11 @@ export function MetroLineMap() {
               </g>
 
               {HCMC_METRO_LINES.map((line) => {
-                const first = line.stations[0];
-                const last = line.stations[line.stations.length - 1];
+                const terminalStations = [line.stations[0], line.stations[line.stations.length - 1]].filter(Boolean) as RailStationNode[];
                 const active = line.id === selectedLine.id;
                 return (
                   <g key={`${line.id}-terminal-labels`} opacity={active ? 1 : 0.45}>
-                    {[first, last].map((station) => (
+                    {terminalStations.map((station) => (
                       <g key={`${line.id}-${station.id}`}>
                         <rect
                           x={station.x - 3.2}
