@@ -2,12 +2,13 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Button } from '@/components/ui/button';
-import { Activity, ShieldCheck, AlertTriangle, Settings2, Trash2, Calendar, FileWarning, LucideIcon, BrainCircuit, RefreshCw } from 'lucide-react';
+import { Activity, ShieldCheck, AlertTriangle, Settings2, Trash2, FileWarning, LucideIcon, BrainCircuit, RefreshCw } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useState, useEffect } from 'react';
 import { predictEquipmentHealthLSTM } from '@/lib/actions/ai.actions';
 import { IoTTelemetryChart } from './iot-telemetry-chart';
 import { Equipment3DModel } from './3d-equipment-model';
+import { DigitalTwinControlCenter } from './digital-twin-control-center';
 import { motion } from 'framer-motion';
 
 interface Equipment360CardProps {
@@ -51,7 +52,7 @@ export const Equipment360Card = React.memo(function Equipment360Card({ equipment
         );
     }
 
-    const healthScore = prediction?.health_score || equipment.health?.score || 0;
+    const healthScore = prediction?.health_score ?? equipment.health?.score ?? 0;
     const isHealthy = healthScore > 70;
     const isWarning = healthScore > 40 && healthScore <= 70;
     const isCritical = healthScore <= 40;
@@ -115,6 +116,11 @@ export const Equipment360Card = React.memo(function Equipment360Card({ equipment
                 <IoTTelemetryChart equipmentId={equipment.id} />
             </motion.div>
 
+            {/* Digital Twin Control Center */}
+            <motion.div whileHover={{ scale: 1.005 }} transition={{ type: "spring", stiffness: 260 }} className="tour-digital-twin-center w-full">
+                <DigitalTwinControlCenter equipment={equipment} prediction={prediction} />
+            </motion.div>
+
             {/* Timeline / Digital Twin Data */}
             <div className="grid grid-cols-2 gap-6">
                 <Card className="border-none shadow-lg bg-white p-6 flex flex-col">
@@ -124,7 +130,7 @@ export const Equipment360Card = React.memo(function Equipment360Card({ equipment
                         </CardTitle>
                     </CardHeader>
                     <CardContent className="p-0 flex-1 relative">
-                        <Equipment3DModel status={isCritical ? 'critical' : isWarning ? 'warning' : 'healthy'} />
+                        <Equipment3DModel status={isCritical ? 'critical' : isWarning ? 'warning' : 'healthy'} category={equipment.category} />
                     </CardContent>
                 </Card>
                 <Card className="border-none shadow-lg bg-white p-6">
