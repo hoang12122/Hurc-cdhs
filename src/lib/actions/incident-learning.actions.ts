@@ -1,7 +1,7 @@
 'use server';
 
 import { requirePermission } from '@/lib/auth-enforcer';
-import { analyzeIncidentLearningFromOperations } from '@/lib/services/incident-learning-service';
+import { analyzeIncidentLearningFromOperations, syncIncidentMemoryFromOperations } from '@/lib/services/incident-learning-service';
 
 export async function incidentLearningQuery(query: string) {
   await requirePermission('ai:use');
@@ -18,4 +18,9 @@ export async function incidentLearningQuery(query: string) {
   }
 
   return analyzeIncidentLearningFromOperations(safeQuery);
+}
+
+export async function syncIncidentMemory() {
+  await requirePermission('ai:use');
+  return syncIncidentMemoryFromOperations();
 }
