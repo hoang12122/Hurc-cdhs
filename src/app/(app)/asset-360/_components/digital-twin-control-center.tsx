@@ -1,20 +1,20 @@
 "use client";
 
 import { useMemo } from 'react';
-import { Activity, AlertTriangle, BrainCircuit, Cable, CheckCircle2, DatabaseZap, Gauge, Layers3, ListChecks, Radar, RefreshCw, ShieldCheck, Wrench } from 'lucide-react';
+import { Activity, AlertTriangle, BrainCircuit, Cable, CheckCircle2, DatabaseZap, Gauge, Layers3, ListChecks, Radar, ShieldCheck, Wrench, type LucideIcon } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Separator } from '@/components/ui/separator';
 import { cn } from '@/lib/utils';
-import { createDigitalTwinSnapshot, DigitalTwinSeverity } from '@/lib/digital-twin/digital-twin-engine';
+import { createDigitalTwinSnapshot, type DigitalTwinSeverity } from '@/lib/digital-twin/digital-twin-engine';
 
 interface DigitalTwinControlCenterProps {
-  equipment: any;
-  prediction?: any;
+  equipment: unknown;
+  prediction?: unknown;
 }
 
-const severityMeta: Record<DigitalTwinSeverity, { label: string; className: string; icon: any }> = {
+const severityMeta: Record<DigitalTwinSeverity, { label: string; className: string; icon: LucideIcon }> = {
   normal: { label: 'Ổn định', className: 'bg-emerald-50 text-emerald-700 border-emerald-200', icon: CheckCircle2 },
   watch: { label: 'Theo dõi', className: 'bg-sky-50 text-sky-700 border-sky-200', icon: Radar },
   warning: { label: 'Cảnh báo', className: 'bg-amber-50 text-amber-700 border-amber-200', icon: AlertTriangle },
@@ -167,7 +167,7 @@ export function DigitalTwinControlCenter({ equipment, prediction }: DigitalTwinC
   );
 }
 
-function TwinMetric({ title, value, helper, icon: Icon }: { title: string; value: string; helper: string; icon: any }) {
+function TwinMetric({ title, value, helper, icon: Icon }: { title: string; value: string; helper: string; icon: LucideIcon }) {
   return (
     <div className="rounded-2xl bg-white/10 border border-white/10 p-4 backdrop-blur">
       <div className="flex items-center gap-2 text-slate-300 text-xs font-bold uppercase tracking-wider">
