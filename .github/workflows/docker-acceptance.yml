@@ -1,0 +1,32 @@
+name: Docker Acceptance Gate
+
+on:
+  pull_request:
+    branches:
+      - master
+  push:
+    branches:
+      - master
+      - feature/**
+
+permissions:
+  contents: read
+
+env:
+  DOCKER_BUILDKIT: '1'
+
+jobs:
+  docker-acceptance:
+    name: Docker Compose and Image Build
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Validate Docker Compose configuration
+        run: docker compose --profile core --profile tools config
+
+      - name: Build application image
+        run: docker image build --file Dockerfile --tag hurc-cdhs:ci .
