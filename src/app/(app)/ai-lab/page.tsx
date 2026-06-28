@@ -7,10 +7,10 @@ import { AiGraphExplorer } from '@/components/ai/ai-graph-explorer';
 import { AiInsightsPanel } from '@/components/ai/ai-insights-panel';
 import { AiVisionLab } from '@/components/ai/ai-vision-lab';
 import { McpConsole } from '@/components/ai/mcp-console';
-import { Sparkles, Info, BookOpen, Lightbulb, Network, TrendingUp, MessageSquare, Settings2, Eye, Bug, History } from 'lucide-react';
+import { Sparkles, Info, BookOpen, Network, TrendingUp, MessageSquare, Eye, Bug, History } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
- type TabId = 'chat' | 'graph' | 'vision' | 'insights' | 'debug';
+type TabId = 'chat' | 'graph' | 'vision' | 'insights' | 'debug';
 
 const TABS = [
     { id: 'chat' as TabId, label: 'Chat, RAG & Incident Learning', icon: <MessageSquare className="h-4 w-4" />, description: 'Knowledge Terminal' },
@@ -43,7 +43,6 @@ export default function AiLabPage() {
                     Trợ lý RAG cho kỹ sư: hỏi đáp PDF/DOCX nội bộ, phân tích GraphRAG và học từ các sự cố tương tự để đề xuất phương án xử lý có căn cứ hơn.
                 </p>
 
-                {/* Tab Navigation */}
                 <div className="flex items-center gap-1 p-1 bg-slate-100 dark:bg-slate-900 rounded-xl w-fit">
                     {TABS.map(tab => (
                         <button
@@ -62,16 +61,13 @@ export default function AiLabPage() {
                 </div>
             </header>
 
-            {/* Tab Content */}
             <div className="flex-grow">
                 {activeTab === 'chat' && (
                     <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 min-h-[600px]">
-                        {/* Left Panel: Sources */}
                         <div className="lg:col-span-4 min-h-[500px]">
                             <SourceSelector onSelectionChange={handleSelectionChange} />
                         </div>
 
-                        {/* Right Panel: Chat Terminal */}
                         <div className="lg:col-span-8 min-h-[500px] bg-white dark:bg-slate-950/40 rounded-3xl p-6 border border-indigo-100 dark:border-indigo-900/30 flex flex-col">
                             {selectedIds.length === 0 && (
                                 <div className="mb-4">
@@ -120,7 +116,6 @@ export default function AiLabPage() {
                 )}
             </div>
 
-            {/* Quick Tips Footer */}
             <footer className="grid grid-cols-1 md:grid-cols-4 gap-4 shrink-0">
                 <TipCard
                     icon={<BookOpen className="h-4 w-4 text-indigo-600" />}
