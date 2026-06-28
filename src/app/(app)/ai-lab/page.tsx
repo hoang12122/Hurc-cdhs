@@ -7,13 +7,13 @@ import { AiGraphExplorer } from '@/components/ai/ai-graph-explorer';
 import { AiInsightsPanel } from '@/components/ai/ai-insights-panel';
 import { AiVisionLab } from '@/components/ai/ai-vision-lab';
 import { McpConsole } from '@/components/ai/mcp-console';
-import { Sparkles, Info, BookOpen, Lightbulb, Network, TrendingUp, MessageSquare, Settings2, Eye, Bug } from 'lucide-react';
+import { Sparkles, Info, BookOpen, Lightbulb, Network, TrendingUp, MessageSquare, Settings2, Eye, Bug, History } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
-type TabId = 'chat' | 'graph' | 'vision' | 'insights' | 'debug';
+ type TabId = 'chat' | 'graph' | 'vision' | 'insights' | 'debug';
 
 const TABS = [
-    { id: 'chat' as TabId, label: 'Chat & RAG', icon: <MessageSquare className="h-4 w-4" />, description: 'Knowledge Terminal' },
+    { id: 'chat' as TabId, label: 'Chat, RAG & Incident Learning', icon: <MessageSquare className="h-4 w-4" />, description: 'Knowledge Terminal' },
     { id: 'graph' as TabId, label: 'Graph Explorer', icon: <Network className="h-4 w-4" />, description: 'GraphRAG Analysis' },
     { id: 'vision' as TabId, label: 'Vision (YOLO)', icon: <Eye className="h-4 w-4" />, description: 'Object Detection' },
     { id: 'debug' as TabId, label: 'Debug Flow (MCP)', icon: <Bug className="h-4 w-4" />, description: 'Remote Tools Debugging' },
@@ -40,7 +40,7 @@ export default function AiLabPage() {
                     </div>
                 </div>
                 <p className="text-muted-foreground italic">
-                    Nâng cấp tri thức bảo trì với TrustGraph — GraphRAG, DocumentRAG, Multi-Agent & Semantic Retrieval.
+                    Trợ lý RAG cho kỹ sư: hỏi đáp PDF/DOCX nội bộ, phân tích GraphRAG và học từ các sự cố tương tự để đề xuất phương án xử lý có căn cứ hơn.
                 </p>
 
                 {/* Tab Navigation */}
@@ -79,7 +79,7 @@ export default function AiLabPage() {
                                         <Info className="h-4 w-4" />
                                         <AlertTitle>Hành động yêu cầu</AlertTitle>
                                         <AlertDescription>
-                                            Chọn nguồn dữ liệu bên trái, hoặc chuyển sang mode <strong>Agent</strong> để chat trực tiếp mà không cần chọn nguồn.
+                                            Chọn nguồn dữ liệu bên trái để hỏi đáp theo tài liệu, hoặc chuyển sang mode <strong>Agent/NemoClaw/IncidentLearning</strong> để hỏi trực tiếp theo tình huống kỹ thuật.
                                         </AlertDescription>
                                     </Alert>
                                 </div>
@@ -124,27 +124,27 @@ export default function AiLabPage() {
             <footer className="grid grid-cols-1 md:grid-cols-4 gap-4 shrink-0">
                 <TipCard
                     icon={<BookOpen className="h-4 w-4 text-indigo-600" />}
-                    title="Grounding (Đặt gốc)"
-                    description="AI trả lời dựa trên dữ liệu đã chọn, tránh 'ảo giác'."
+                    title="DocumentRAG"
+                    description="Hỏi đáp theo PDF/DOCX nội bộ, có grounding theo nguồn đã chọn."
                     color="indigo"
                 />
                 <TipCard
                     icon={<Network className="h-4 w-4 text-violet-600" />}
                     title="GraphRAG"
-                    description="Phân tích mối quan hệ giữa entities qua Knowledge Graph."
+                    description="Phân tích mối quan hệ giữa thiết bị, ga, lỗi và tài liệu."
                     color="violet"
                 />
                 <TipCard
-                    icon={<Lightbulb className="h-4 w-4 text-purple-600" />}
-                    title="Smart Router"
-                    description="AI tự chọn mode tối ưu: GraphRAG, DocumentRAG, hoặc Agent."
-                    color="purple"
+                    icon={<History className="h-4 w-4 text-emerald-600" />}
+                    title="Incident Learning"
+                    description="Tìm sự cố tương tự, rút kinh nghiệm và gợi ý phương án xử lý."
+                    color="emerald"
                 />
                 <TipCard
-                    icon={<Sparkles className="h-4 w-4 text-emerald-600" />}
-                    title="TrustGraph"
-                    description="Semantic retrieval, context cores, và multi-agent reasoning."
-                    color="emerald"
+                    icon={<Sparkles className="h-4 w-4 text-purple-600" />}
+                    title="Smart Router"
+                    description="AI tự chọn mode tối ưu: tài liệu, graph, agent hoặc sự cố tương tự."
+                    color="purple"
                 />
             </footer>
         </div>
