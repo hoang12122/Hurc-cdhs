@@ -7,7 +7,6 @@ import {
     FileWarning, 
     ShieldAlert, 
     Lightbulb, 
-    ListTodo,
     Users, 
     ShieldCheck, 
     ListChecks, 
@@ -18,7 +17,8 @@ import {
     LayoutDashboard,
     ShieldAlert as SecurityIcon,
     BrainCircuit,
-    TrainFront as MetroIcon
+    TrainFront as MetroIcon,
+    Network
 } from 'lucide-react';
 
 export const MAIN_NAV_ITEMS: NavItem[] = [
@@ -29,6 +29,7 @@ export const MAIN_NAV_ITEMS: NavItem[] = [
   { path: '/hazards', label: { en: 'Hazard Management', vi: 'Quản lý Mối nguy' }, icon: ShieldAlert, exact: false },
   { path: '/improvements', label: { en: 'Improvements', vi: 'Quản lý Cải tiến' }, icon: Lightbulb, exact: false },
   { path: '/asset-360', label: { en: 'Asset 360', vi: 'Tài sản 360 (Digital Twin)' }, icon: LayoutDashboard, exact: false },
+  { path: '/rail-network', label: { en: 'Rail Network', vi: 'Mạng tuyến Metro' }, icon: Network, exact: true },
   { path: '/ai-lab', label: { en: 'AI Knowledge Lab', vi: 'AI Knowledge Lab' }, icon: BrainCircuit, exact: true },
   { path: '/metro/assets', label: { en: 'Metro Expert', vi: 'Chuyên gia Metro' }, icon: MetroIcon, exact: false },
 ];
