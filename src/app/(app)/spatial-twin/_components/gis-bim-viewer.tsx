@@ -1,13 +1,12 @@
 'use client';
 
 import * as React from 'react';
-import { BIM_MODEL_REGISTRY, GIS_INTEGRATION_LAYERS, SAMPLE_SPATIAL_FEATURES, SPATIAL_INTEGRATION_FLOW, projectGeoToCanvas } from '@/lib/spatial-integration/spatial-data';
+import { BIM_MODEL_REGISTRY, GIS_INTEGRATION_LAYERS, SAMPLE_SPATIAL_FEATURES, SPATIAL_INTEGRATION_FLOW, projectGeoToCanvas, type SpatialCoordinate } from '@/lib/spatial-integration/spatial-data';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
-import { cn } from '@/lib/utils';
-import { Box, Database, Layers, Link2, MapPinned, Radar, Route, ShieldAlert } from 'lucide-react';
+import { Box, Database, Layers, Link2, MapPinned, Radar, ShieldAlert } from 'lucide-react';
 
 function featurePath(featureId: string) {
   const feature = SAMPLE_SPATIAL_FEATURES.find((item) => item.id === featureId);
@@ -33,15 +32,32 @@ function getLayerBadge(layerType: string) {
   }
 }
 
+const FALLBACK_COORDINATE: SpatialCoordinate = { longitude: 106.70098, latitude: 10.7722 };
+
 export function GisBimViewer() {
+  const fallbackModel = BIM_MODEL_REGISTRY[0];
   const [activeLayer, setActiveLayer] = React.useState('all');
-  const [activeModelId, setActiveModelId] = React.useState(BIM_MODEL_REGISTRY[0]?.id || '');
-  const activeModel = BIM_MODEL_REGISTRY.find((model) => model.id === activeModelId) || BIM_MODEL_REGISTRY[0];
+  const [activeModelId, setActiveModelId] = React.useState(fallbackModel?.id || '');
+  const activeModel = React.useMemo(
+    () => BIM_MODEL_REGISTRY.find((model) => model.id === activeModelId) || fallbackModel,
+    [activeModelId, fallbackModel],
+  );
 
   const visibleFeatures = React.useMemo(() => {
     if (activeLayer === 'all') return SAMPLE_SPATIAL_FEATURES;
     return SAMPLE_SPATIAL_FEATURES.filter((feature) => feature.layerType === activeLayer);
   }, [activeLayer]);
+
+  if (!activeModel) {
+    return (
+      <Card className="border-none shadow-xl shadow-slate-200/70 dark:shadow-none">
+        <CardHeader>
+          <CardTitle>Không có dữ liệu BIM</CardTitle>
+          <CardDescription>Vui lòng kiểm tra cấu hình `BIM_MODEL_REGISTRY`.</CardDescription>
+        </CardHeader>
+      </Card>
+    );
+  }
 
   return (
     <div className="grid gap-6 2xl:grid-cols-[minmax(0,1fr)_420px]">
@@ -93,7 +109,8 @@ export function GisBimViewer() {
               ))}
 
               {visibleFeatures.filter((feature) => feature.layerType === 'station').map((feature) => {
-                const point = projectGeoToCanvas(feature.coordinates[0]);
+                const coordinate = feature.coordinates[0] || FALLBACK_COORDINATE;
+                const point = projectGeoToCanvas(coordinate);
                 return (
                   <g key={feature.id}>
                     <circle cx={point.x} cy={point.y} r="2.2" fill="white" stroke="#0f172a" strokeWidth="0.55" />
@@ -148,7 +165,7 @@ export function GisBimViewer() {
                   <div className="relative h-32 w-40">
                     <div className="absolute inset-x-6 bottom-0 h-20 rounded-md border border-sky-300/70 bg-sky-400/10 shadow-lg shadow-sky-500/10" />
                     <div className="absolute left-12 top-3 h-24 w-28 skew-x-[-18deg] rounded-md border border-indigo-200/70 bg-indigo-400/10" />
-                    <div className="absolute bottom-8 left-3 h-7 w-34 rounded-full border border-emerald-200/70 bg-emerald-400/10" />
+                    <div className="absolute bottom-8 left-3 h-7 w-32 rounded-full border border-emerald-200/70 bg-emerald-400/10" />
                     <Radar className="absolute left-16 top-20 h-8 w-8 text-emerald-200" />
                   </div>
                 </div>
