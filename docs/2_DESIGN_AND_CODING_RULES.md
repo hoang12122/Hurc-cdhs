@@ -6,13 +6,13 @@ Tài liệu này quy định cách thiết kế và viết mã để giữ HURC1
 
 | Nội dung đối soát | Trạng thái phần mềm | Cải thiện đã thực hiện |
 |---|---|---|
-| Giới hạn 300 dòng cho file .ts/.tsx | Một số file legacy còn nguy cơ vượt chuẩn | Đã thêm script kiểm tra kích thước file |
+| Giới hạn 300 dòng cho file .ts/.tsx | Một số file legacy còn nguy cơ vượt chuẩn | Có audit toàn repo và gate nghiêm ngặt cho file vừa thay đổi |
 | Tách UI và logic | Một số component legacy còn trộn workflow logic | Đã tách workflow Inspection sang custom hook |
 | Giao tiếp xuyên module | Đã có Service Bus và App Shell Bridge | Inspection tạo DNF đã có nút dùng Service Bus |
 | Server Actions và Service Layer | Đã có nền kiến trúc phù hợp | Tiếp tục yêu cầu mọi nghiệp vụ ghi dữ liệu đi qua actions/services |
-| UI token và dữ liệu demo | Đã có nhiều component dùng token, nhưng cần kiểm soát thêm | Bổ sung quy tắc ghi nhãn demo/needs-review/official |
-| CI kiểm soát quy tắc | Trước đây chưa có | Đã thêm bước kiểm tra Design rules file-size boundary ở warning mode |
-| Vibe Code audit | Trước đây chưa có phụ lục đối soát riêng | Đã bổ sung docs/2_DESIGN_AND_CODING_RULES_AUDIT.md |
+| UI token và dữ liệu demo | Đã có nhiều component dùng token, nhưng cần kiểm soát thêm | Có Vibe Code audit cảnh báo màu hardcode và event rời rạc |
+| CI kiểm soát quy tắc | Trước đây mới cảnh báo một phần | Đã thêm changed-file boundary gate và module-boundary audit |
+| Incident Memory approval | Trước đây mới có service/action | Đã bổ sung giao diện phê duyệt tại /ai-lab/incident-memory |
 | Traceability tài liệu -> phần mềm | Trước đây chưa có ma trận truy vết | Đã bổ sung docs/2_DESIGN_RULES_DOC_TO_CODE_TRACEABILITY.md |
 
 ## 1. Quy tắc 300 dòng
@@ -27,19 +27,12 @@ Cách xử lý:
 - Tách schema, constants, mapper và helper ra file riêng.
 - Không gom form, bảng, modal, submit handler và mapping dữ liệu vào cùng một component lớn.
 
-Đã bổ sung công cụ kiểm tra:
+Công cụ hiện có:
 
-- scripts/check-file-size-boundaries.js
+- scripts/check-file-size-boundaries.js: audit toàn repo ở warning mode.
+- scripts/check-changed-file-size-boundaries.js: kiểm tra nghiêm ngặt file vừa thay đổi.
 
-Cách chạy kiểm tra nghiêm ngặt:
-
-- node scripts/check-file-size-boundaries.js
-
-Cách chạy kiểm tra cảnh báo trong giai đoạn còn legacy:
-
-- node scripts/check-file-size-boundaries.js --warn
-
-CI hiện chạy ở warning mode để không làm gãy master do các file cũ. Sau khi dọn xong legacy, chuyển CI sang chế độ nghiêm ngặt.
+CI hiện vừa cảnh báo nợ kỹ thuật legacy, vừa chặn file mới hoặc file vừa refactor nếu vượt giới hạn thiết kế.
 
 ## 2. Quy tắc tách UI và logic
 
@@ -71,9 +64,14 @@ Bắt buộc đi qua:
 
 Server Action chịu trách nhiệm kiểm tra quyền, chuẩn hóa input và gọi service. Service Layer chịu trách nhiệm nghiệp vụ, truy cập database và tái sử dụng cho UI, script hoặc job.
 
-## 4. Quy tắc UI token và dữ liệu
+## 4. Quy tắc UI token, Service Bus và module boundary
 
 Không hardcode màu tùy tiện. Ưu tiên dùng các token và class đã chuẩn hóa như bg-primary, bg-accent, bg-destructive, bg-muted, text-muted-foreground và border-border.
+
+Giao tiếp xuyên module phải đi qua Service Bus, App Shell Bridge hoặc public service contract. Đã bổ sung:
+
+- scripts/check-vibe-code-rules.js;
+- scripts/audit-module-boundaries.js.
 
 Các dữ liệu GIS/BIM, Google Maps, Digital Twin và Incident Learning phải phân biệt rõ trạng thái:
 
@@ -93,19 +91,20 @@ Không trình bày dữ liệu demo như dữ liệu vận hành chính thức.
 
 1. Đã có Server Actions và Service Layer.
 2. Đã có Service Bus để giảm phụ thuộc giữa Inspection, DNF, Asset 360 và AI Lab.
-3. Đã có Incident Memory, sync service và approval service.
+3. Đã có Incident Memory, sync service, approval service và UI phê duyệt.
 4. Đã có Docker/CI acceptance gate, Prisma validate/generate, CodeQL và smoke test.
-5. Đã bắt đầu refactor component lớn bằng custom hook và component con.
+5. Đã có audit 300 dòng, gate file vừa thay đổi, Vibe Code audit và module-boundary audit.
+6. Đã bắt đầu refactor component lớn bằng custom hook và component con.
 
-## 7. Điểm yếu còn lại
+## 7. Điểm yếu còn lại sau cải thiện
 
-1. Một số file legacy có thể vẫn vượt 300 dòng.
-2. CI mới chạy file-size audit ở warning mode.
-3. Chưa có import-boundary checker để kiểm soát module import trực tiếp lẫn nhau.
-4. Chưa có UI đầy đủ cho Incident Memory approval.
-5. Một số màn hình cần tiếp tục tách hook/UI để tuân thủ Vibe Code triệt để hơn.
-6. Các kiểm tra Vibe Code mới đang ở phụ lục audit và warning mode.
-7. Ma trận traceability đã có nhưng chưa có script hard-check tự động vì cần tránh làm gãy master trong giai đoạn legacy.
+1. Một số file legacy vẫn có thể vượt 300 dòng, nhưng không cho phép file mới hoặc file vừa sửa tiếp tục vượt chuẩn.
+2. File-size audit toàn repo còn ở warning mode; changed-file boundary gate đã chạy nghiêm ngặt.
+3. Module-boundary audit đã có nhưng đang ở mức cảnh báo để tránh false positive với legacy.
+4. Incident Memory đã có UI phê duyệt cơ bản; cần bổ sung phân quyền riêng và audit log khi đổi trạng thái.
+5. Một số màn hình legacy vẫn cần tiếp tục tách hook/UI.
+6. Vibe Code audit còn ở warning mode để gom danh sách nợ kỹ thuật trước khi bật strict mode.
+7. Ma trận traceability đã có; script hard-check traceability vẫn để ở giai đoạn sau vì cần ổn định bằng chứng và tránh false positive.
 
 ## 8. Lộ trình cải thiện
 
@@ -114,23 +113,25 @@ P0 - Không tăng nợ kỹ thuật:
 - File mới hoặc file đang refactor không vượt 300 dòng.
 - Không thêm logic backend trực tiếp vào component UI.
 - Không thêm màu hardcode.
+- Không thêm import chéo module nếu chưa có public contract.
 
 P1 - Dọn legacy:
 
-- Chạy node scripts/check-file-size-boundaries.js --warn để lấy danh sách file vượt chuẩn.
-- Chạy node scripts/check-vibe-code-rules.js --warn để lấy danh sách cảnh báo Vibe Code.
+- Chạy node scripts/check-file-size-boundaries.js --warn.
+- Chạy node scripts/check-vibe-code-rules.js --warn.
+- Chạy node scripts/audit-module-boundaries.js.
 - Ưu tiên refactor các file UI lớn trong src/components và src/app.
-- Mỗi lần refactor phải tách hook/service trước, UI sau.
 
-P2 - Chuyển CI sang kiểm tra nghiêm ngặt:
+P2 - Chuyển CI sang kiểm tra nghiêm ngặt hơn:
 
-- Sau khi xử lý legacy, đổi CI từ warning mode sang chế độ nghiêm ngặt.
+- Sau khi xử lý legacy, đổi file-size audit toàn repo và Vibe Code audit từ warning mode sang strict mode.
+- Bổ sung import-boundary checker có whitelist chính thức.
 
-P3 - Boundary test:
+P3 - Hoàn thiện quản trị thiết kế:
 
-- Bổ sung checker để kiểm soát import giữa các module.
-- Giao tiếp xuyên module phải đi qua Service Bus hoặc public API.
-- Nghiệp vụ backend phải đi qua Server Action và Service Layer.
+- Bổ sung quyền riêng cho Incident Memory approval.
+- Bổ sung audit log khi verify/reject Incident Memory.
+- Bổ sung traceability hard-check khi ma trận bằng chứng đã ổn định.
 
 ## 9. Checklist review PR
 
