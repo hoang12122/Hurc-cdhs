@@ -23,6 +23,8 @@ jobs:
     steps:
       - name: Checkout source
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -36,8 +38,14 @@ jobs:
       - name: Design rules file-size boundary
         run: node scripts/check-file-size-boundaries.js --warn
 
+      - name: Changed-file design boundary gate
+        run: node scripts/check-changed-file-size-boundaries.js
+
       - name: Vibe Code rules audit
         run: node scripts/check-vibe-code-rules.js --warn
+
+      - name: Module import boundary audit
+        run: node scripts/audit-module-boundaries.js
 
       - name: Validate Prisma schemas
         run: npm run db:validate:all
