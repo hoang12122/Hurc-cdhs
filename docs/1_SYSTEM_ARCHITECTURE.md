@@ -1,54 +1,71 @@
 # TÀI LIỆU 1: KIẾN TRÚC HỆ THỐNG CHI TIẾT
 
-## 0. Tóm tắt điều chỉnh kiến trúc
+## 0. Kết quả đối soát với mã nguồn hiện tại
 
-Tài liệu cũ mô tả hệ thống theo hướng **Micro-Frontend (MFE)**. Qua rà soát mã nguồn, cách gọi này chưa thật chính xác ở trạng thái hiện tại vì các module vẫn chạy trong cùng một ứng dụng Next.js, cùng một repository, cùng một runtime và chưa có cơ chế module federation/deployment độc lập.
-
-Mô hình chính xác hơn hiện nay là:
+Tài liệu này đã được rà soát lại với mã nguồn trên nhánh `master`. Kết luận quan trọng nhất là hệ thống hiện **chưa phải Micro-Frontend (MFE) hoàn chỉnh** theo nghĩa có thể build, deploy và version độc lập từng module. Cách mô tả chính xác hơn là:
 
 ```text
 Modular Monolith theo hướng Micro-Frontend-ready
 ```
 
-Điều này có nghĩa là phần mềm đã được phân rã theo module chức năng, có ranh giới thư mục rõ, có tầng Server Action/Service/Database tách biệt; tuy nhiên chưa phải MFE hoàn chỉnh. Để giảm phụ thuộc chéo giữa các module, hệ thống bổ sung **Typed Cross-Module Service Bus** để các module phát sự kiện và lắng nghe sự kiện thay vì gọi trực tiếp component của nhau.
+Ứng dụng vẫn chạy trong cùng một Next.js runtime, cùng repository và cùng app shell. Tuy nhiên, phần mềm đã có ranh giới module rõ hơn, có Server Action, Service Layer, nhiều database/schema logic, và đã bổ sung Typed Cross-Module Service Bus để giảm phụ thuộc chéo giữa các module.
 
-Các điểm đã cải thiện sau rà soát:
+Bảng đối soát nhanh:
 
-- Bổ sung `src/lib/mfe/service-bus.ts` làm Service Bus typed event.
-- Bổ sung `src/components/mfe/cross-module-service-bus-bridge.tsx` để điều phối event cấp app shell.
-- Tích hợp Service Bus Bridge vào `src/app/(app)/layout.tsx`.
-- Cập nhật `/dnf/new` để nhận dữ liệu khởi tạo từ event Inspection tạo DNF.
-- Cập nhật tài liệu để phân biệt rõ phần đã có, điểm yếu còn lại và hướng nâng cấp lên MFE thật.
+| Nội dung | Trạng thái thực tế | Kết luận cập nhật |
+|---|---|---|
+| MFE hoàn chỉnh | Chưa có module federation/deployment độc lập | Gọi là Modular Monolith, Micro-Frontend-ready |
+| 12+ module trong `src/app/(app)` | Có nhiều module chức năng trong app shell | Đúng về tổ chức module, chưa đúng nếu hiểu là MFE độc lập |
+| Service Bus | Đã có `src/lib/mfe/service-bus.ts` | Đúng, nhưng hiện mới là client event bus |
+| Luồng Inspection tạo DNF | Đã có Bridge lắng nghe `inspection:create-dnf` và mở `/dnf/new` | Đúng ở mức điều phối UI |
+| Ghi DNF vào DB | Qua DNF form, Server Action/Service và OPS database | Đúng về nguyên tắc backend, cần test theo quyền và dữ liệu thật |
+| Incident Learning production | Có model `IncidentMemory`, server action và sync service | Đã có nền production, còn cần migration và quy trình xác nhận bài học |
+| Offline/fallback | Có hướng fallback ở một số service | Không được mô tả là bất tử/đảm bảo uptime nếu thiếu HA, backup, monitoring |
 
 ---
 
-## 1. Mô hình module và luồng dữ liệu xuyên mô-đun
+## 1. Mô hình module hiện tại
 
-### 1.1. Mô hình hiện tại
-
-Ứng dụng được phân rã thành nhiều module tại:
+Ứng dụng được tổ chức theo module tại:
 
 ```text
 src/app/(app)/[module]
 ```
 
-Các module chính gồm: Dashboard, DNF, Hazard, Inspection, Task, Asset 360, AI Lab, Rail Network, GIS/BIM Twin, Spatial Import, Admin, Reports và các phân hệ hỗ trợ khác.
+Các module trọng yếu gồm:
 
-Mỗi module có trách nhiệm riêng về giao diện, form, danh sách, detail page và workflow nghiệp vụ. Dữ liệu không nên truyền trực tiếp bằng cách import component nội bộ giữa các module. Thay vào đó, các module phải đi qua một trong ba lớp sau:
+- Dashboard;
+- DNF;
+- Hazard;
+- Inspection;
+- Task;
+- Asset 360;
+- AI Lab;
+- Rail Network;
+- GIS/BIM Twin;
+- Spatial Import;
+- Admin;
+- Reports và các phân hệ hỗ trợ.
 
-1. **Client Event Bus**: dùng cho điều phối giao diện xuyên module trong cùng phiên làm việc.
-2. **Server Action**: dùng cho thao tác có ghi dữ liệu hoặc yêu cầu kiểm tra quyền.
-3. **Service Layer**: dùng cho nghiệp vụ backend và truy cập database.
+Mỗi module chịu trách nhiệm về giao diện, form, danh sách, detail page và workflow nghiệp vụ của chính nó. Các module không nên import trực tiếp component nội bộ của nhau để điều khiển hành vi. Khi cần trao đổi dữ liệu hoặc mở luồng nghiệp vụ giữa module, hệ thống sử dụng một trong ba lớp sau:
 
-### 1.2. Service Bus xuyên module
+1. **Client Event Bus**: điều phối giao diện xuyên module trong cùng phiên người dùng.
+2. **Server Action**: xử lý thao tác có ghi dữ liệu, kiểm tra quyền hoặc gọi service backend.
+3. **Service Layer**: xử lý nghiệp vụ, chuẩn hóa dữ liệu và truy cập database.
 
-Service Bus được đặt tại:
+---
+
+## 2. Typed Cross-Module Service Bus
+
+### 2.1. Hiện trạng mã nguồn
+
+Service Bus được triển khai tại:
 
 ```text
 src/lib/mfe/service-bus.ts
 ```
 
-Service Bus hiện hỗ trợ các event có kiểu rõ ràng:
+File này định nghĩa danh sách event xuyên module:
 
 ```text
 inspection:create-dnf
@@ -58,132 +75,165 @@ asset:open-360
 ai-lab:open-incident-learning
 ```
 
-Điểm quan trọng là các module không tự ý dùng `window.dispatchEvent` rời rạc. Thay vào đó, phải dùng helper typed event như:
+Các payload được chuẩn hóa trong `CrossModuleEventMap`. Ví dụ event tạo DNF từ Inspection có payload:
 
 ```text
-publishCreateDnfFromInspection(payload)
-subscribeCreateDnfFromInspection(handler)
+originatingInspectionId
+originatingFindingId
+description
+locationOfFailure
+staffWhoIdentifiedFailure
+equipmentCode
+subsystemId
 ```
 
-Cách này giúp:
+Service Bus sử dụng `CustomEvent` trong trình duyệt với prefix:
 
-- Giảm lỗi sai tên event.
-- Chuẩn hóa payload.
-- Dễ bổ sung logging/traceId sau này.
-- Giảm phụ thuộc trực tiếp giữa Inspection, DNF, Asset 360 và AI Lab.
+```text
+hurc:mfe:
+```
 
-### 1.3. Service Bus Bridge
+và gắn thêm envelope gồm:
 
-Bridge điều phối event cấp app shell được đặt tại:
+```text
+name
+payload
+emittedAt
+traceId
+```
+
+Ý nghĩa: thay vì mỗi module tự gọi `window.dispatchEvent` bằng chuỗi rời rạc, các module phải dùng helper typed event như:
+
+```text
+publishCrossModuleEvent(...)
+subscribeCrossModuleEvent(...)
+publishCreateDnfFromInspection(...)
+subscribeCreateDnfFromInspection(...)
+```
+
+### 2.2. Giới hạn cần hiểu đúng
+
+Service Bus hiện là **client runtime event bus**, phù hợp cho điều phối giao diện trong một phiên làm việc của người dùng. Nó không thay thế:
+
+- database transaction;
+- backend message broker;
+- audit log nghiệp vụ;
+- queue/retry/dead-letter;
+- luồng xử lý đa người dùng theo thời gian thực.
+
+Nếu sau này cần Service Bus ở mức backend, nên bổ sung outbox pattern hoặc message broker như Redis Streams, RabbitMQ hoặc Kafka.
+
+---
+
+## 3. App Shell Bridge và luồng tạo DNF từ Inspection
+
+### 3.1. Bridge hiện có
+
+Bridge điều phối xuyên module được triển khai tại:
 
 ```text
 src/components/mfe/cross-module-service-bus-bridge.tsx
 ```
 
-Bridge hiện lắng nghe event:
+Bridge đang lắng nghe event:
 
 ```text
 inspection:create-dnf
 ```
 
-Khi nhận event, Bridge chuyển hướng sang:
+Khi nhận event, Bridge tạo query string và điều hướng đến:
 
 ```text
 /dnf/new
 ```
 
-và gắn các tham số cần thiết:
+Các tham số được truyền gồm:
 
-- `originatingInspectionId`
-- `originatingFindingId`
-- `description`
-- `locationOfFailure`
-- `staffWhoIdentifiedFailure`
-- `equipmentCode`
-- `subsystemId`
+```text
+originatingInspectionId
+originatingFindingId
+description
+locationOfFailure
+staffWhoIdentifiedFailure
+equipmentCode
+subsystemId
+```
 
-Trang `/dnf/new` sẽ đọc các tham số này để tự động điền trước form DNF.
+Bridge đã được gắn vào app shell tại:
 
----
+```text
+src/app/(app)/layout.tsx
+```
 
-## 2. Luồng dữ liệu mẫu: tạo DNF từ Inspection
+### 3.2. Trang tạo DNF
 
-Luồng chuẩn sau khi cải thiện:
+Trang tạo DNF tại:
+
+```text
+src/app/(app)/dnf/new/page.tsx
+```
+
+Trang này đọc các tham số từ URL và hydrate `initialData` cho `DnfForm`, bao gồm:
+
+```text
+originatingInspectionId
+originatingFindingId
+descriptionOfFailure
+locationOfFailure
+staffWhoIdentifiedFailure
+failedComponentEquipmentLRUTrainNumber
+subsystemIds
+```
+
+Như vậy, luồng `Inspection -> Service Bus -> Bridge -> DNF Form` đã có nền code thật. Tuy nhiên, để luồng chạy đầy đủ, module Inspection cần gọi đúng helper:
+
+```text
+publishCreateDnfFromInspection(payload)
+```
+
+### 3.3. Sơ đồ luồng dữ liệu đã đối soát
 
 ```mermaid
 sequenceDiagram
     participant Inspection as Module Inspection
     participant Bus as Typed Service Bus
     participant Bridge as App Shell Bridge
-    participant DNF as Module DNF
-    participant Action as Next.js Server Action
+    participant DNFPage as /dnf/new
+    participant DNFForm as DNF Form
+    participant Action as DNF Server Action
     participant Service as DNF Service
     participant DB as OPS Database
 
-    Inspection->>Bus: publish inspection:create-dnf(payload)
-    Bus->>Bridge: emit typed CustomEvent
-    Bridge->>DNF: router.push('/dnf/new?...')
-    DNF->>DNF: hydrate initialData from URL params
-    DNF->>Action: submit DNF form
-    Action->>Service: validate permission + business rules
-    Service->>DB: Prisma write to ops_dnf_documents
+    Inspection->>Bus: publishCreateDnfFromInspection(payload)
+    Bus->>Bridge: CustomEvent hurc:mfe:inspection:create-dnf
+    Bridge->>DNFPage: router.push('/dnf/new?...')
+    DNFPage->>DNFForm: initialData
+    DNFForm->>Action: submit form
+    Action->>Service: validate + business logic
+    Service->>DB: write ops_dnf_documents
     DB-->>Service: persisted record
     Service-->>Action: result
-    Action-->>DNF: success/error response
+    Action-->>DNFForm: success/error
 ```
 
-Ý nghĩa nghiệp vụ:
+### 3.4. Điểm cần kiểm thử
 
-1. Kỹ sư phát hiện lỗi trong quá trình Inspection.
-2. Module Inspection phát event `inspection:create-dnf` với dữ liệu phát hiện.
-3. App Shell Bridge nhận event và mở màn hình tạo DNF.
-4. Form DNF tự điền dữ liệu từ Inspection.
-5. Khi người dùng gửi form, dữ liệu đi qua Server Action và Service Layer.
-6. Dữ liệu được lưu vào OPS database.
+Khi test server, cần kiểm tra tối thiểu:
 
----
-
-## 3. Điểm yếu đã phát hiện
-
-### 3.1. Gọi là Micro-Frontend nhưng chưa đủ điều kiện MFE thật
-
-Điểm yếu: tài liệu cũ dùng thuật ngữ MFE nhưng hệ thống chưa có deployment độc lập từng module, chưa có module federation, chưa có version contract giữa module và chưa có runtime isolation.
-
-Cải thiện: tài liệu hiện đổi cách mô tả thành **Modular Monolith theo hướng Micro-Frontend-ready**. Đây là cách gọi chính xác và an toàn hơn cho nghiệm thu kỹ thuật.
-
-### 3.2. Service Bus được mô tả nhưng chưa có hiện thực rõ ràng
-
-Điểm yếu: tài liệu cũ nói có `CustomEvent create-dnf-from-inspection`, nhưng mã nguồn chưa có Service Bus typed event chính thức.
-
-Cải thiện: đã bổ sung Service Bus tại `src/lib/mfe/service-bus.ts` và Bridge tại `src/components/mfe/cross-module-service-bus-bridge.tsx`.
-
-### 3.3. Event name và payload có nguy cơ bị sai lệch
-
-Điểm yếu: nếu từng module tự dùng chuỗi event riêng, dễ phát sinh lỗi sai tên event, thiếu trường dữ liệu hoặc payload không đồng nhất.
-
-Cải thiện: event name và payload đã được định nghĩa bằng TypeScript trong `CrossModuleEventMap`.
-
-### 3.4. Module DNF trước đây chủ yếu nhận dữ liệu qua query string
-
-Điểm yếu: cách truyền query string vẫn chạy được nhưng chưa thể hiện rõ vai trò điều phối xuyên module.
-
-Cải thiện: Service Bus Bridge hiện chuyển event Inspection thành route `/dnf/new` có query params chuẩn; DNF page đọc thêm `equipmentCode` và `subsystemId` để điền form tốt hơn.
-
-### 3.5. Client Event Bus không thay thế backend transaction
-
-Điểm yếu: nếu hiểu nhầm Service Bus frontend là transaction bus backend thì có thể dẫn đến sai thiết kế.
-
-Cải thiện: tài liệu hiện phân định rõ:
-
-- Client Event Bus chỉ dùng cho điều phối UI trong phiên người dùng.
-- Server Action và Service Layer mới là nơi xử lý quyền, validate và ghi database.
-- Các nghiệp vụ quan trọng không được chỉ dựa vào event frontend.
+1. Từ Inspection bấm tạo DNF hoặc gọi event đúng helper.
+2. Ứng dụng tự mở `/dnf/new`.
+3. Form DNF tự điền mô tả, vị trí, người phát hiện, mã thiết bị và subsystem nếu có.
+4. Submit form không lỗi quyền.
+5. DNF được lưu vào OPS database.
+6. DNF giữ được `originatingInspectionId` và `originatingFindingId` để truy vết.
 
 ---
 
 ## 4. Tầng Server Action và Service Layer
 
-Các thao tác có ghi dữ liệu hoặc yêu cầu phân quyền phải đi qua Server Action. Ví dụ:
+Các thao tác có ghi dữ liệu hoặc yêu cầu quyền không được xử lý chỉ bằng Client Event Bus. Phần mềm sử dụng Server Action và Service Layer cho nghiệp vụ backend.
+
+Ví dụ Server Action:
 
 ```text
 src/lib/actions/dnf.actions.ts
@@ -199,7 +249,7 @@ Server Action chịu trách nhiệm:
 - gọi service nghiệp vụ;
 - trả kết quả an toàn cho client.
 
-Service Layer chịu trách nhiệm nghiệp vụ sâu hơn, ví dụ:
+Ví dụ Service Layer:
 
 ```text
 src/lib/services/dnf-service.ts
@@ -207,36 +257,30 @@ src/lib/services/task-service.ts
 src/lib/services/incident-learning-service.ts
 ```
 
-Service Layer không nên phụ thuộc vào component UI. Đây là lớp phù hợp để tái sử dụng giữa UI, script CLI, job đồng bộ và API nội bộ.
+Service Layer chịu trách nhiệm:
+
+- nghiệp vụ chuyên sâu;
+- chuẩn hóa dữ liệu;
+- truy cập Prisma/DB;
+- tái sử dụng cho UI, script CLI, job đồng bộ hoặc API nội bộ.
 
 ---
 
-## 5. Kiến trúc AI Core Layer
+## 5. AI Lab và Incident Learning
 
-AI Lab hiện gồm các nhóm chức năng:
+### 5.1. Các năng lực AI Lab hiện có
 
-1. DocumentRAG: hỏi đáp theo tài liệu PDF/DOCX nội bộ.
-2. GraphRAG: phân tích quan hệ giữa thiết bị, DNF, Hazard, Task và tri thức liên quan.
-3. IncidentLearning: học từ sự cố tương tự.
-4. AI Vision: phân tích hình ảnh khi hạ tầng AI được cấu hình.
-5. Agent/NemoClaw: trợ lý hội thoại và cá nhân hóa theo vai trò.
+AI Lab hiện được tổ chức theo các nhóm chức năng:
 
-### 5.1. Incident Learning production flow
+1. **DocumentRAG**: hỏi đáp theo PDF/DOCX nội bộ và nguồn tri thức đã chọn.
+2. **GraphRAG**: phân tích quan hệ giữa thiết bị, sự cố, mối nguy và tri thức liên quan.
+3. **IncidentLearning**: học từ sự cố tương tự để gợi ý phương án xử lý.
+4. **AI Vision**: phân tích hình ảnh khi hạ tầng AI được cấu hình.
+5. **Agent/NemoClaw**: trợ lý hội thoại và cá nhân hóa theo vai trò.
 
-Incident Learning hiện có kiến trúc production hơn trước:
+### 5.2. Incident Learning đã đối soát
 
-```mermaid
-flowchart LR
-    DNF[DNF + Corrective Action] --> Sync[Incident Memory Sync]
-    Hazard[Hazard] --> Sync
-    Task[Task] --> Sync
-    Inspection[Inspection] --> Sync
-    Sync --> Memory[(ops_incident_memories)]
-    Memory --> AI[AI Lab IncidentLearning]
-    AI --> Engineer[Kỹ sư bảo trì]
-```
-
-Các thành phần chính:
+Incident Learning hiện có các thành phần:
 
 ```text
 prisma/ops/schema.prisma                    -> model IncidentMemory
@@ -246,15 +290,48 @@ src/lib/actions/incident-learning.actions.ts
 src/scripts/sync-incident-memory.ts
 ```
 
+Server action hiện có:
+
+```text
+incidentLearningQuery(query)
+syncIncidentMemory()
+```
+
+Luồng production dự kiến:
+
+```mermaid
+flowchart LR
+    DNF[DNF + Corrective Action] --> Sync[Incident Memory Sync]
+    Hazard[Hazard] --> Sync
+    Task[Task] --> Sync
+    Inspection[Inspection] --> Sync
+    Sync --> Memory[(ops_incident_memories)]
+    Memory --> Action[incidentLearningQuery]
+    Action --> AILab[AI Lab IncidentLearning]
+    AILab --> Engineer[Kỹ sư bảo trì]
+```
+
 Nguyên tắc an toàn:
 
 - AI chỉ đưa ra gợi ý kỹ thuật tham khảo.
 - Kết quả phải được đối chiếu với hiện trường, log, tài liệu O&M và phê duyệt an toàn.
-- Bài học kinh nghiệm chính thức nên được xác nhận qua trạng thái `verified` trong Incident Memory.
+- Bài học kinh nghiệm chính thức nên được xác nhận qua `verificationState = verified` trong Incident Memory.
+
+### 5.3. Điều kiện vận hành Incident Memory
+
+Trước khi dùng Incident Learning ở mức production, cần thực hiện:
+
+```bash
+npx prisma migrate deploy --schema=prisma/ops/schema.prisma
+npx prisma generate --schema=prisma/ops/schema.prisma
+npx tsx src/scripts/sync-incident-memory.ts
+```
+
+Sau đó kiểm tra `/ai-lab`, chọn mode `IncidentLearning` và nhập tình huống sự cố để xác nhận nguồn dữ liệu trả về là Incident Memory/OPS database, không chỉ fallback sample.
 
 ---
 
-## 6. Kiến trúc cơ sở dữ liệu lai
+## 6. Kiến trúc dữ liệu
 
 Hệ thống sử dụng nhiều schema/database logic để tách vùng trách nhiệm:
 
@@ -263,57 +340,68 @@ Hệ thống sử dụng nhiều schema/database logic để tách vùng trách 
 3. `metroDb`: tuyến, ga, thiết bị, GIS/BIM, Asset Spatial Link.
 4. `aiDb`: AI agent, knowledge metadata, TrustGraph hoặc metadata liên quan AI.
 
-Cơ chế fallback/offline cần được hiểu đúng: đây là lớp tăng khả năng phục hồi trong một số tình huống mất kết nối hoặc môi trường test, không phải cam kết hệ thống “bất tử” hoặc luôn đạt 99.9% nếu thiếu hạ tầng HA, backup, monitoring và quy trình khôi phục.
+Cách chia này giúp giảm rủi ro khi một nhóm dữ liệu có tần suất ghi cao hoặc nhạy cảm hơn các nhóm còn lại. Tuy nhiên, đây không tự động bảo đảm tính sẵn sàng cao. Muốn đạt mức production ổn định cần thêm:
+
+- backup/restore drill;
+- migration rollback plan;
+- monitoring và alerting;
+- log tập trung;
+- healthcheck/readiness endpoint;
+- quy trình seed dữ liệu chính thức.
 
 ---
 
-## 7. Các giới hạn còn lại
+## 7. Các điểm yếu còn lại sau đối soát
 
 ### 7.1. Chưa phải MFE deployment độc lập
 
-Các module chưa thể build/deploy/version độc lập. Muốn trở thành MFE thật cần bổ sung:
+Các module chưa thể build, deploy hoặc rollback độc lập. Để trở thành MFE thật cần:
 
-- module federation hoặc cơ chế remote module;
+- module federation hoặc remote module;
 - contract version giữa shell và module;
 - boundary test cho từng module;
 - observability theo module;
 - rollback theo module.
 
-### 7.2. Service Bus mới ở mức client runtime
+### 7.2. Service Bus mới điều phối một luồng thật
 
-Service Bus hiện dùng `CustomEvent` trong trình duyệt. Cơ chế này phù hợp cho điều phối UI, nhưng không thay thế message broker backend.
+Service Bus đã định nghĩa nhiều event, nhưng hiện mới xác nhận có Bridge xử lý luồng `inspection:create-dnf`. Các event như `dnf:created`, `hazard:created`, `asset:open-360`, `ai-lab:open-incident-learning` là contract nền, cần tiếp tục nối vào UI/Bridge tương ứng.
 
-Nếu cần workflow liên phòng/đa người dùng/thời gian thực, cần bổ sung:
+### 7.3. Luồng Inspection phát event cần kiểm thử thực tế
 
-- database event/outbox pattern;
-- queue/broker như Redis Streams, RabbitMQ hoặc Kafka;
-- audit log cho event nghiệp vụ;
-- retry và dead-letter queue.
+Bridge và DNF page đã sẵn sàng, nhưng cần kiểm tra module Inspection có gọi `publishCreateDnfFromInspection(payload)` đúng chỗ hay chưa. Nếu chưa, cần thay các nút tạo DNF từ Inspection sang helper này để thống nhất kiến trúc.
 
-### 7.3. Incident Memory cần quy trình phê duyệt
+### 7.4. Incident Memory cần quy trình phê duyệt
 
-Incident Memory đã có model và sync service, nhưng cần bổ sung UI/quy trình xác nhận để chuyển trạng thái từ `draft` hoặc `reviewed` sang `verified`.
+Đã có model, migration, service sync và server action. Tuy nhiên, cần bổ sung UI/quy trình để kỹ sư hoặc người phụ trách xác nhận bài học kinh nghiệm trước khi chuyển sang `verified`.
 
-### 7.4. GIS/BIM và Google Maps cần dữ liệu chính thức
+### 7.5. GIS/BIM và Google Maps cần dữ liệu chính thức
 
 Dữ liệu tuyến/ga/GIS/BIM/Google Maps hiện phục vụ kiểm chứng kiến trúc. Trước khi dùng vận hành chính thức cần thay bằng dữ liệu GIS/BIM/As-built/Place ID được phê duyệt.
 
+### 7.6. Không mô tả quá mức về uptime/offline
+
+Cơ chế fallback/offline chỉ là lớp hỗ trợ trong một số tình huống. Không được mô tả hệ thống là “bất tử” hoặc bảo đảm 99.9% nếu chưa có hạ tầng HA, backup, monitoring và quy trình khôi phục.
+
 ---
 
-## 8. Tiêu chí nghiệm thu kiến trúc
+## 8. Checklist nghiệm thu kiến trúc
 
 Có thể nghiệm thu kỹ thuật nội bộ khi:
 
 - `Security and Acceptance Gate` pass.
 - `Docker Acceptance Gate` pass.
-- `/dnf/new` nhận dữ liệu từ Inspection thông qua Service Bus Bridge.
+- Build production chạy được.
+- Docker container healthy.
+- `/dnf/new` nhận dữ liệu khởi tạo từ luồng Inspection.
 - AI Lab IncidentLearning đọc được Incident Memory hoặc OPS database.
-- Docker build và production smoke test pass.
-- Tài liệu kiến trúc không mô tả quá mức năng lực thực tế.
+- Migration `ops_incident_memories` chạy thành công.
+- Tài liệu kiến trúc phản ánh đúng mã nguồn và không mô tả quá mức năng lực thực tế.
 
 Chưa nghiệm thu production nếu:
 
 - chưa chạy migration chính thức;
-- chưa có seed dữ liệu tuyến/ga/GIS/BIM chính thức;
-- Incident Memory chưa có quy trình xác nhận bài học kinh nghiệm;
-- chưa có monitoring, backup/restore drill và rollback plan.
+- chưa seed dữ liệu tuyến/ga/GIS/BIM chính thức;
+- chưa có quy trình xác nhận Incident Memory;
+- chưa có monitoring, backup/restore drill và rollback plan;
+- CI/Docker Acceptance còn fail.
