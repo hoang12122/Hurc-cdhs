@@ -33,6 +33,9 @@ jobs:
       - name: Install dependencies from lockfile
         run: npm ci --include=dev --ignore-scripts
 
+      - name: Design rules file-size boundary
+        run: node scripts/check-file-size-boundaries.js
+
       - name: Validate Prisma schemas
         run: npm run db:validate:all
         env:
