@@ -1,90 +1,141 @@
-# TÀI LIỆU 2: QUY TẮC THIẾT KẾ VÀ VIẾT MÃ (DESIGN & CODING RULES)
+# TÀI LIỆU 2: QUY TẮC THIẾT KẾ VÀ VIẾT MÃ
 
-Tài liệu này không chỉ là lý thuyết, nó chứa các giới hạn vật lý (Hard limits) và tiêu chuẩn Vibe Code buộc tất cả lập trình viên và các AI Agent phải tuân thủ nghiêm ngặt để giữ cho **HURC1 CRM** nhẹ, đẹp và không bị "phình to" (Bloated).
+## 0. Kết quả đối soát với phần mềm
 
----
+Tài liệu này quy định cách thiết kế và viết mã để giữ HURC1 CRM nhẹ, rõ ràng, dễ bảo trì và hạn chế phình to. Sau khi đối soát với mã nguồn hiện tại, kết quả như sau:
 
-## 1. QUY TẮC VÀNG VỀ COMPONENT (COMPONENT ISOLATION)
+| Nội dung đối soát | Trạng thái phần mềm | Cải thiện đã thực hiện |
+|---|---|---|
+| Giới hạn 300 dòng cho file .ts/.tsx | Một số file legacy còn nguy cơ vượt chuẩn | Đã thêm script kiểm tra kích thước file |
+| Tách UI và logic | Một số component legacy còn trộn workflow logic | Đã tách workflow Inspection sang custom hook |
+| Giao tiếp xuyên module | Đã có Service Bus và App Shell Bridge | Inspection tạo DNF đã có nút dùng Service Bus |
+| Server Actions và Service Layer | Đã có nền kiến trúc phù hợp | Tiếp tục yêu cầu mọi nghiệp vụ ghi dữ liệu đi qua actions/services |
+| UI token và dữ liệu demo | Đã có nhiều component dùng token, nhưng cần kiểm soát thêm | Bổ sung quy tắc ghi nhãn demo/needs-review/official |
+| CI kiểm soát quy tắc | Trước đây chưa có | Đã thêm bước kiểm tra Design rules file-size boundary ở warning mode |
 
-### 1.1 Giới hạn độ dài tuyệt đối (The 300-Line Limit)
-- **Quy tắc:** Bất kỳ file `.tsx` hoặc `.ts` nào vượt quá **300 dòng mã** đều được coi là một "Mùi mã xấu" (Code Smell) và PR (Pull Request) sẽ bị reject tự động.
-- **Cách giải quyết:** Chia nhỏ (Split) giao diện thành các Sub-components, và tách toàn bộ logic xử lý ra một file Custom Hook riêng biệt.
+## 1. Quy tắc 300 dòng
 
-### 1.2 Thực hành Vibe Code chuẩn mực
-Dưới đây là một ví dụ minh họa cách viết Form tạo DNF tuân thủ 100% Vibe Code:
+Bất kỳ file .ts hoặc .tsx nào vượt 300 dòng đều được xem là code smell. Với code mới hoặc file đang refactor, lập trình viên phải tách nhỏ trước khi merge.
 
-**❌ Sai (Bad Practice - Trộn lẫn UI và Logic):**
-```tsx
-// Không nên viết như thế này: Dài dòng, khó test, khó đọc.
-export default function DnfForm() {
-  const [loading, setLoading] = useState(false);
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    await fetch('/api/dnf', { method: 'POST', body: ... }); // Vi phạm: Gọi trực tiếp API trong Component
-    setLoading(false);
-  }
-  return <form onSubmit={handleSubmit}>...</form>
-}
-```
+Cách xử lý:
 
-**✅ Đúng (Best Practice - Tách biệt UI và Logic qua Custom Hook):**
-```tsx
-// File: useDnfForm.ts (Chỉ chứa Logic)
-export const useDnfForm = () => {
-  const [isPending, startTransition] = useTransition();
-  const form = useForm<z.infer<typeof DnfSchema>>({ ... });
+- Tách UI thành component con.
+- Tách state, submit, workflow và side effect sang custom hook.
+- Tách nghiệp vụ backend sang service layer.
+- Tách schema, constants, mapper và helper ra file riêng.
+- Không gom form, bảng, modal, submit handler và mapping dữ liệu vào cùng một component lớn.
 
-  const onSubmit = (data) => {
-    startTransition(async () => {
-      const res = await createDnfAction(data); // Phải dùng Server Actions
-      if (res.success) toast.success("Đã tạo DNF!");
-    });
-  };
-  return { form, isPending, onSubmit };
-};
+Đã bổ sung công cụ kiểm tra:
 
-// File: dnf-form.tsx (Chỉ chứa UI)
-export function DnfForm() {
-  const { form, isPending, onSubmit } = useDnfForm();
-  
-  return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-        {/* Chỉ code UI ở đây */}
-      </form>
-    </Form>
-  );
-}
-```
+- scripts/check-file-size-boundaries.js
 
----
+Cách chạy kiểm tra nghiêm ngặt:
 
-## 2. QUY TẮC MỸ THUẬT VÀ UI TOKENS (LOOK & FEEL)
+- node scripts/check-file-size-boundaries.js
 
-Hệ thống yêu cầu một giao diện **Cao cấp (Premium), Hiện đại (Futuristic)** mang hơi hướng công nghiệp đường sắt nhưng không khô khan.
+Cách chạy kiểm tra cảnh báo trong giai đoạn còn legacy:
 
-### 2.1 Cấm Hardcode Màu sắc (No Random Hex Codes)
-Tuyệt đối KHÔNG dùng các mã màu inline như `style={{ backgroundColor: '#29ABE2' }}` hay Tailwind tùy tiện như `bg-[#29ABE2]`. Bạn bắt buộc phải dùng biến màu (Tokens) đã khai báo sẵn trong `tailwind.config.ts`.
+- node scripts/check-file-size-boundaries.js --warn
 
-**Bảng mã màu chuẩn:**
-- `bg-primary` (Lam Cyan): Dùng cho nút Submit chính, thanh điều hướng. Trọng tâm của nhận diện thương hiệu HURC.
-- `bg-accent` / `text-orange-500` (Cam nhạt): Dùng cho các con số KPIs cần nổi bật, cảnh báo Mối nguy (Hazards) mức Medium.
-- `bg-destructive` (Đỏ sậm): Dùng cho nút Xóa, Mối nguy Critical.
-- `bg-muted` (Xám trong suốt): Dùng làm nền thẻ (Card) trong giao diện Dark Mode (Glassmorphism).
+CI hiện chạy ở warning mode để không làm gãy master do các file cũ. Sau khi dọn xong legacy, chuyển CI sang chế độ nghiêm ngặt.
 
-### 2.2 Hiệu ứng Thị giác (Micro-Animations & Visual Cues)
-Giao diện không được "chết đứng" (Static). Nó phải phản hồi mọi tương tác của người dùng.
-- **Hover Effects:** Mọi Button, Card, Row trong Table đều phải đổi màu nền nhẹ hoặc nhô lên khi trỏ chuột: `hover:bg-accent hover:shadow-md transition-all duration-200`.
-- **Glowing Borders (Viền phát sáng):** Được sử dụng để nhấn mạnh các yếu tố Ảo (Virtual).
-  *Ví dụ: Code tạo một thẻ OU Ảo (Virtual OU) trên sơ đồ AD:*
-  ```tsx
-  <div className="relative border border-cyan-500/50 bg-cyan-950/20 shadow-[0_0_15px_rgba(6,182,212,0.1)] rounded-lg p-4 animate-pulse">
-    <Layers className="text-cyan-400 absolute top-2 right-2 h-4 w-4" />
-    <p>Virtual Station OU</p>
-  </div>
-  ```
+## 2. Quy tắc tách UI và logic
 
-### 2.3 Bảo vệ Người dùng (User Protections)
-- **Double-Check Destructive Actions:** Bất kỳ thao tác xóa/hủy nào cũng phải được bọc trong một `AlertDialog` của Radix UI (Yêu cầu confirm 2 bước).
-- **Banner Cảnh báo (Alerts):** Khi người dùng xem một DNF đã bị đóng (Closed), phải có một khối Alert (Vàng/Xanh) ở đầu trang nhắc nhở: *"Sự cố này đã được khắc phục. Chế độ xem chỉ đọc."*
+Component UI chỉ nên hiển thị giao diện và gọi handler đã được chuẩn hóa. Không đặt toàn bộ workflow nghiệp vụ trong component.
+
+Luồng chuẩn:
+
+- UI Component
+- Custom Hook
+- Server Action
+- Service Layer
+- Database
+
+Đã cải thiện thực tế:
+
+- Logic workflow của màn hình chi tiết Inspection đã được tách sang src/components/inspections/use-inspection-detail-workflow.ts.
+- UI chính nằm tại src/components/inspections/inspection-detail-client.tsx.
+- Nút tạo DNF từ phát hiện dùng src/components/inspections/create-dnf-from-finding-event-button.tsx.
+- Luồng tạo DNF từ Inspection hiện đi qua Service Bus thay vì link thủ công.
+
+## 3. Quy tắc Server Actions và Service Layer
+
+Các thao tác ghi dữ liệu, đổi trạng thái, đồng bộ hoặc phê duyệt không được xử lý trực tiếp trong component UI.
+
+Bắt buộc đi qua:
+
+- src/lib/actions/*.actions.ts
+- src/lib/services/*.ts
+
+Server Action chịu trách nhiệm kiểm tra quyền, chuẩn hóa input và gọi service. Service Layer chịu trách nhiệm nghiệp vụ, truy cập database và tái sử dụng cho UI, script hoặc job.
+
+## 4. Quy tắc UI token và dữ liệu
+
+Không hardcode màu tùy tiện. Ưu tiên dùng các token và class đã chuẩn hóa như bg-primary, bg-accent, bg-destructive, bg-muted, text-muted-foreground và border-border.
+
+Các dữ liệu GIS/BIM, Google Maps, Digital Twin và Incident Learning phải phân biệt rõ trạng thái:
+
+- demo
+- needs-review
+- official
+
+Không trình bày dữ liệu demo như dữ liệu vận hành chính thức.
+
+## 5. Quy tắc bảo vệ người dùng
+
+- Thao tác xóa, hủy, reject, archive hoặc chuyển trạng thái quan trọng phải có xác nhận.
+- Màn hình chỉ đọc cần có cảnh báo trạng thái rõ ràng.
+- AI Lab, Incident Learning và Digital Twin chỉ đưa ra gợi ý tham khảo, không thay thế kiểm tra hiện trường, log, tài liệu O&M và phê duyệt an toàn.
+
+## 6. Điểm mạnh hiện tại
+
+1. Đã có Server Actions và Service Layer.
+2. Đã có Service Bus để giảm phụ thuộc giữa Inspection, DNF, Asset 360 và AI Lab.
+3. Đã có Incident Memory, sync service và approval service.
+4. Đã có Docker/CI acceptance gate, Prisma validate/generate, CodeQL và smoke test.
+5. Đã bắt đầu refactor component lớn bằng custom hook và component con.
+
+## 7. Điểm yếu còn lại
+
+1. Một số file legacy có thể vẫn vượt 300 dòng.
+2. CI mới chạy file-size audit ở warning mode.
+3. Chưa có import-boundary checker để kiểm soát module import trực tiếp lẫn nhau.
+4. Chưa có UI đầy đủ cho Incident Memory approval.
+5. Một số màn hình cần tiếp tục tách hook/UI để tuân thủ Vibe Code triệt để hơn.
+
+## 8. Lộ trình cải thiện
+
+P0 - Không tăng nợ kỹ thuật:
+
+- File mới hoặc file đang refactor không vượt 300 dòng.
+- Không thêm logic backend trực tiếp vào component UI.
+- Không thêm màu hardcode.
+
+P1 - Dọn legacy:
+
+- Chạy node scripts/check-file-size-boundaries.js --warn để lấy danh sách file vượt chuẩn.
+- Ưu tiên refactor các file UI lớn trong src/components và src/app.
+- Mỗi lần refactor phải tách hook/service trước, UI sau.
+
+P2 - Chuyển CI sang kiểm tra nghiêm ngặt:
+
+- Sau khi xử lý legacy, đổi CI từ warning mode sang chế độ nghiêm ngặt.
+
+P3 - Boundary test:
+
+- Bổ sung checker để kiểm soát import giữa các module.
+- Giao tiếp xuyên module phải đi qua Service Bus hoặc public API.
+- Nghiệp vụ backend phải đi qua Server Action và Service Layer.
+
+## 9. Checklist review PR
+
+Trước khi merge, cần kiểm tra:
+
+- File .ts/.tsx mới có dưới 300 dòng không.
+- Component UI có xử lý backend trực tiếp không.
+- Logic form đã tách sang custom hook chưa.
+- Nghiệp vụ ghi dữ liệu có đi qua Server Action không.
+- Có hardcode màu tùy tiện không.
+- Thao tác xóa/hủy có confirm dialog không.
+- Dữ liệu demo đã được gắn nhãn rõ chưa.
+- AI output có cảnh báo không thay thế phê duyệt kỹ thuật chưa.
