@@ -36,6 +36,9 @@ jobs:
       - name: Design rules file-size boundary
         run: node scripts/check-file-size-boundaries.js --warn
 
+      - name: Vibe Code rules audit
+        run: node scripts/check-vibe-code-rules.js --warn
+
       - name: Validate Prisma schemas
         run: npm run db:validate:all
         env:
