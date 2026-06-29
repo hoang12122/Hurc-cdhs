@@ -12,6 +12,7 @@ Tài liệu này quy định cách thiết kế và viết mã để giữ HURC1
 | Server Actions và Service Layer | Đã có nền kiến trúc phù hợp | Tiếp tục yêu cầu mọi nghiệp vụ ghi dữ liệu đi qua actions/services |
 | UI token và dữ liệu demo | Đã có nhiều component dùng token, nhưng cần kiểm soát thêm | Bổ sung quy tắc ghi nhãn demo/needs-review/official |
 | CI kiểm soát quy tắc | Trước đây chưa có | Đã thêm bước kiểm tra Design rules file-size boundary ở warning mode |
+| Vibe Code audit | Trước đây chưa có phụ lục đối soát riêng | Đã bổ sung docs/2_DESIGN_AND_CODING_RULES_AUDIT.md |
 
 ## 1. Quy tắc 300 dòng
 
@@ -102,6 +103,7 @@ Không trình bày dữ liệu demo như dữ liệu vận hành chính thức.
 3. Chưa có import-boundary checker để kiểm soát module import trực tiếp lẫn nhau.
 4. Chưa có UI đầy đủ cho Incident Memory approval.
 5. Một số màn hình cần tiếp tục tách hook/UI để tuân thủ Vibe Code triệt để hơn.
+6. Các kiểm tra Vibe Code mới đang ở phụ lục audit và warning mode.
 
 ## 8. Lộ trình cải thiện
 
@@ -114,6 +116,7 @@ P0 - Không tăng nợ kỹ thuật:
 P1 - Dọn legacy:
 
 - Chạy node scripts/check-file-size-boundaries.js --warn để lấy danh sách file vượt chuẩn.
+- Chạy node scripts/check-vibe-code-rules.js --warn để lấy danh sách cảnh báo Vibe Code.
 - Ưu tiên refactor các file UI lớn trong src/components và src/app.
 - Mỗi lần refactor phải tách hook/service trước, UI sau.
 
