@@ -2,6 +2,7 @@
 
 import { requirePermission } from '@/lib/auth-enforcer';
 import { analyzeIncidentLearningFromOperations, syncIncidentMemoryFromOperations } from '@/lib/services/incident-learning-service';
+import { listIncidentMemoriesForApproval, updateIncidentMemoryApproval, type IncidentMemoryVerificationState } from '@/lib/services/incident-memory-approval-service';
 
 export async function incidentLearningQuery(query: string) {
   await requirePermission('ai:use');
@@ -23,4 +24,18 @@ export async function incidentLearningQuery(query: string) {
 export async function syncIncidentMemory() {
   await requirePermission('ai:use');
   return syncIncidentMemoryFromOperations();
+}
+
+export async function getIncidentMemoryApprovalQueue(limit = 80) {
+  await requirePermission('ai:use');
+  return listIncidentMemoriesForApproval(limit);
+}
+
+export async function setIncidentMemoryVerificationState(
+  memoryId: string,
+  verificationState: IncidentMemoryVerificationState,
+  verifiedBy?: string,
+) {
+  await requirePermission('ai:use');
+  return updateIncidentMemoryApproval({ memoryId, verificationState, verifiedBy });
 }
