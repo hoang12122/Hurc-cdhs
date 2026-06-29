@@ -5,6 +5,7 @@ const path = require('path');
 
 const ROOT = process.cwd();
 const MAX_LINES = Number(process.env.MAX_TS_LINES || 300);
+const WARN_ONLY = process.argv.includes('--warn') || process.env.DESIGN_RULES_WARN_ONLY === 'true';
 const TARGET_EXTENSIONS = new Set(['.ts', '.tsx']);
 const IGNORE_DIRS = new Set([
   '.git',
@@ -58,13 +59,16 @@ const violations = files
   .sort((a, b) => b.lines - a.lines);
 
 if (violations.length > 0) {
-  console.error(`\n[design-rules] Found ${violations.length} TypeScript files over ${MAX_LINES} lines.`);
-  console.error('[design-rules] Split UI into sub-components and move logic into custom hooks/services.');
+  const logger = WARN_ONLY ? console.warn : console.error;
+  logger(`\n[design-rules] Found ${violations.length} TypeScript files over ${MAX_LINES} lines.`);
+  logger('[design-rules] Split UI into sub-components and move logic into custom hooks/services.');
   for (const violation of violations.slice(0, 80)) {
-    console.error(`- ${violation.file}: ${violation.lines} lines`);
+    logger(`- ${violation.file}: ${violation.lines} lines`);
   }
-  console.error('\n[design-rules] This is a hard limit for new or refactored code.');
-  process.exit(1);
+  logger('\n[design-rules] New and refactored files must comply with the 300-line boundary.');
+
+  if (!WARN_ONLY) process.exit(1);
+  process.exit(0);
 }
 
 console.log(`[design-rules] OK: ${files.length} TypeScript files checked. All files are <= ${MAX_LINES} lines.`);
