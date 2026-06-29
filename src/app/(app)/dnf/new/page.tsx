@@ -1,9 +1,6 @@
-
-
 "use client";
 
 import { DnfForm } from "@/components/dnf/dnf-form";
-import type { Metadata } from 'next';
 import { FilePlus } from "lucide-react";
 import * as React from "react";
 import { useSearchParams } from 'next/navigation';
@@ -23,6 +20,8 @@ export default function NewDnfPage() {
     const descriptionParam = searchParams.get('description');
     const locationOfFailure = searchParams.get('locationOfFailure');
     const staffWhoIdentifiedFailure = searchParams.get('staffWhoIdentifiedFailure');
+    const equipmentCode = searchParams.get('equipmentCode');
+    const subsystemId = searchParams.get('subsystemId');
 
     let title = locale === 'vi' ? "Tạo Khiếm khuyết (Defect) Mới" : "Create New Defect (DNF)";
     let initialDescription = descriptionParam || '';
@@ -31,18 +30,20 @@ export default function NewDnfPage() {
         title = locale === 'vi' 
             ? `Tạo DNF từ Kiểm tra #${originatingInspectionId}` 
             : `Create DNF from Inspection #${originatingInspectionId}`;
-        initialDescription = `Từ Kiểm tra #${originatingInspectionId}, Phát hiện #${originatingFindingId}:\n\n${descriptionParam || ''}`;
+        initialDescription = `Từ Kiểm tra #${originatingInspectionId}${originatingFindingId ? `, Phát hiện #${originatingFindingId}` : ''}:\n\n${descriptionParam || ''}`;
     }
+
     setPageTitle(title);
-    
     document.title = `${title} - HURC CDHS`;
 
     setInitialData({
       originatingInspectionId: originatingInspectionId || undefined,
       originatingFindingId: originatingFindingId || undefined,
       descriptionOfFailure: initialDescription,
-      locationOfFailure: locationOfFailure ? locationOfFailure.split(',')[0] : '', // Use first location if multiple
+      locationOfFailure: locationOfFailure ? locationOfFailure.split(',')[0] : '',
       staffWhoIdentifiedFailure: staffWhoIdentifiedFailure || '',
+      failedComponentEquipmentLRUTrainNumber: equipmentCode || undefined,
+      subsystemIds: subsystemId ? [subsystemId] : [],
     });
 
   }, [searchParams, locale]);

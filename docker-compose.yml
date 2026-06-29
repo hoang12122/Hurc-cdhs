@@ -12,17 +12,17 @@ services:
       POSTGRES_DB: ${DATABASE_NAME:-hurc_db}
     volumes:
       - ./data/postgres:/var/lib/postgresql/data
-      - ./init-db.sh:/docker-entrypoint-initdb.d/init-db.sh
+      - ./init-db.sh:/docker-entrypoint-initdb.d/init-db.sh:ro
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
       interval: 10s
       timeout: 5s
-      retries: 5
+      retries: 10
     networks:
       - backend-net
 
   mongo:
-    image: mongo:latest
+    image: mongo:7
     container_name: hurc_mongo
     ports:
       - "27017:27017"
@@ -37,7 +37,7 @@ services:
       test: ["CMD-SHELL", "mongosh --eval 'db.runCommand({ping:1})' --quiet"]
       interval: 10s
       timeout: 5s
-      retries: 5
+      retries: 10
     networks:
       - backend-net
 
@@ -50,7 +50,7 @@ services:
       test: ["CMD", "redis-cli", "ping"]
       interval: 10s
       timeout: 5s
-      retries: 5
+      retries: 10
     networks:
       - backend-net
 
@@ -64,16 +64,24 @@ services:
     restart: unless-stopped
     profiles: ["core"]
     environment:
-      - HOSTNAME=0.0.0.0
-    env_file:
-      - .env
+      HOSTNAME: 0.0.0.0
+      PORT: 3000
+      NEXT_PUBLIC_SETUP_COMPLETE: ${NEXT_PUBLIC_SETUP_COMPLETE:-true}
+      SESSION_SECRET: ${SESSION_SECRET:-change-this-local-dev-secret}
+      AUTH_DATABASE_URL: ${AUTH_DATABASE_URL:-postgresql://postgres:hurc123@postgres:5432/hurc_auth}
+      AI_DATABASE_URL: ${AI_DATABASE_URL:-postgresql://postgres:hurc123@postgres:5432/hurc_ai}
+      METRO_DATABASE_URL: ${METRO_DATABASE_URL:-postgresql://postgres:hurc123@postgres:5432/hurc_metro}
+      OPS_DATABASE_URL: ${OPS_DATABASE_URL:-postgresql://postgres:hurc123@postgres:5432/hurc_ops}
+      DATABASE_URL: ${DATABASE_URL:-postgresql://postgres:hurc123@postgres:5432/hurc_db}
+      MONGODB_URI: ${MONGODB_URI:-mongodb://admin:hurc123@mongo:27017/hurc?authSource=admin}
+      REDIS_URL: ${REDIS_URL:-redis://redis:6379}
     depends_on:
       postgres:
-        condition: service_started
+        condition: service_healthy
       mongo:
-        condition: service_started
+        condition: service_healthy
       redis:
-        condition: service_started
+        condition: service_healthy
     volumes:
       - ./data:/app/data
       - ./logs:/app/logs
@@ -86,8 +94,35 @@ services:
       test: ["CMD", "node", "-e", "fetch('http://localhost:3000/api/health').then(r => r.ok ? process.exit(0) : process.exit(1)).catch(() => process.exit(1))"]
       interval: 30s
       timeout: 10s
-      retries: 3
-      start_period: 60s
+      retries: 5
+      start_period: 90s
+
+  gis-bim-import-dry-run:
+    image: node:20-slim
+    container_name: hurc_gis_bim_import_dry_run
+    profiles: ["tools"]
+    working_dir: /workspace
+    command: sh -c "npm ci --legacy-peer-deps --ignore-scripts && npm run import:gis-bim:dry-run"
+    volumes:
+      - ./:/workspace
+    networks:
+      - backend-net
+
+  gis-bim-import-commit:
+    image: node:20-slim
+    container_name: hurc_gis_bim_import_commit
+    profiles: ["tools"]
+    working_dir: /workspace
+    command: sh -c "npm ci --legacy-peer-deps --ignore-scripts && npm run import:gis-bim:commit"
+    environment:
+      METRO_DATABASE_URL: ${METRO_DATABASE_URL:-postgresql://postgres:hurc123@postgres:5432/hurc_metro}
+    volumes:
+      - ./:/workspace
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - backend-net
 
   nginx:
     image: nginx:alpine
@@ -98,10 +133,11 @@ services:
       - "80:80"
       - "443:443"
     volumes:
-      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
-      - ./nginx/certs:/etc/nginx/certs
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/certs:/etc/nginx/certs:ro
     depends_on:
-      - app
+      app:
+        condition: service_healthy
     networks:
       - frontend-net
 
@@ -154,7 +190,6 @@ services:
     command: -c "ollama pull gemma:2b"
     networks:
       - backend-net
-
 
   loki:
     image: grafana/loki:latest

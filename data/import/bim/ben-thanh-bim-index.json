@@ -1,0 +1,57 @@
+{
+  "model": {
+    "name": "BIM Ga Bến Thành - As-built Demo",
+    "modelType": "ifc",
+    "sourceUrl": "/bim/ben-thanh/as-built.ifc",
+    "version": "as-built-2026-01-demo",
+    "discipline": "architecture_structure_mep_railway_system",
+    "stationCode": "M1-BT",
+    "lineCode": "M1",
+    "status": "as_built"
+  },
+  "elements": [
+    {
+      "globalId": "IFC-PSD-BT-P01-DEMO",
+      "name": "PSD Platform Door P01",
+      "elementType": "platform_screen_door",
+      "assetCode": "PSD-BT-P01",
+      "stationCode": "M1-BT",
+      "properties": {
+        "manufacturer": "demo",
+        "maintainable": true,
+        "criticality": "High"
+      },
+      "boundingBox": {
+        "min": [0, 0, 0],
+        "max": [1.2, 0.3, 2.2]
+      }
+    },
+    {
+      "globalId": "IFC-AFC-BT-G01-DEMO",
+      "name": "AFC Gate G01",
+      "elementType": "afc_gate",
+      "assetCode": "AFC-BT-G01",
+      "stationCode": "M1-BT",
+      "properties": {
+        "manufacturer": "demo",
+        "maintainable": true,
+        "criticality": "Medium"
+      },
+      "boundingBox": {
+        "min": [2, 0, 0],
+        "max": [3, 0.8, 1.2]
+      }
+    },
+    {
+      "globalId": "IFC-ROOM-BT-SIGNAL-DEMO",
+      "name": "Phòng thiết bị tín hiệu",
+      "elementType": "technical_room",
+      "stationCode": "M1-BT",
+      "properties": {
+        "discipline": "signaling",
+        "maintainable": false,
+        "criticality": "High"
+      }
+    }
+  ]
+}

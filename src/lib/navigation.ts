@@ -7,28 +7,24 @@ import {
     FileWarning, 
     ShieldAlert, 
     Lightbulb, 
-    ListTodo,
-    Users, 
-    ShieldCheck, 
-    ListChecks, 
-    SlidersHorizontal, 
-    History, 
-    Settings,
     UserCircle,
     LayoutDashboard,
-    ShieldAlert as SecurityIcon,
     BrainCircuit,
-    TrainFront as MetroIcon
+    TrainFront as MetroIcon,
+    Network,
+    MapPinned
 } from 'lucide-react';
 
 export const MAIN_NAV_ITEMS: NavItem[] = [
   { path: '/dashboard', label: { en: 'Dashboard', vi: 'Bảng điều khiển' }, icon: LayoutGrid, exact: true },
-  { path: '/tasks', label: { en: 'Tasks / Projects', vi: 'Công việc & Dự án' }, icon: ShieldCheck, exact: false },
+  { path: '/tasks', label: { en: 'Tasks / Projects', vi: 'Công việc & Dự án' }, icon: LayoutDashboard, exact: false },
   { path: '/inspections', label: { en: 'Inspections', vi: 'Danh sách Kiểm Tra' }, icon: ClipboardList, exact: false },
   { path: '/dnf', label: { en: 'Incidents (DNF)', vi: 'Quản lý Sự cố (DNF)' }, icon: FileWarning, exact: false },
   { path: '/hazards', label: { en: 'Hazard Management', vi: 'Quản lý Mối nguy' }, icon: ShieldAlert, exact: false },
   { path: '/improvements', label: { en: 'Improvements', vi: 'Quản lý Cải tiến' }, icon: Lightbulb, exact: false },
   { path: '/asset-360', label: { en: 'Asset 360', vi: 'Tài sản 360 (Digital Twin)' }, icon: LayoutDashboard, exact: false },
+  { path: '/rail-network', label: { en: 'Rail Network', vi: 'Mạng tuyến Metro' }, icon: Network, exact: true },
+  { path: '/spatial-twin', label: { en: 'GIS/BIM Twin', vi: 'GIS/BIM Twin' }, icon: MapPinned, exact: true },
   { path: '/ai-lab', label: { en: 'AI Knowledge Lab', vi: 'AI Knowledge Lab' }, icon: BrainCircuit, exact: true },
   { path: '/metro/assets', label: { en: 'Metro Expert', vi: 'Chuyên gia Metro' }, icon: MetroIcon, exact: false },
 ];

@@ -1,83 +1,319 @@
-# TÀI LIỆU 1: KIẾN TRÚC HỆ THỐNG CHI TIẾT (SYSTEM ARCHITECTURE DEEP DIVE)
+# TÀI LIỆU 1: KIẾN TRÚC HỆ THỐNG CHI TIẾT
 
-**HURC1 CRM (Metro Inspect Pro)** không chỉ là một phần mềm CRUD (Create-Read-Update-Delete) thông thường. Nó là một cỗ máy xử lý dữ liệu lai (Hybrid Data Engine) kết hợp cùng Trí tuệ nhân tạo (AI) và Kiến trúc Độc lập (Micro-Frontend).
+## 0. Tóm tắt điều chỉnh kiến trúc
 
----
+Tài liệu cũ mô tả hệ thống theo hướng **Micro-Frontend (MFE)**. Qua rà soát mã nguồn, cách gọi này chưa thật chính xác ở trạng thái hiện tại vì các module vẫn chạy trong cùng một ứng dụng Next.js, cùng một repository, cùng một runtime và chưa có cơ chế module federation/deployment độc lập.
 
-## 1. MÔ HÌNH MICRO-FRONTEND (MFE) VÀ LUỒNG DỮ LIỆU (DATA FLOW)
+Mô hình chính xác hơn hiện nay là:
 
-Thay vì đóng gói toàn bộ tính năng vào một khối khổng lồ (Monolith), chúng tôi phân rã ứng dụng thành 12+ Module tại `src/app/(app)/[module]`. 
+```text
+Modular Monolith theo hướng Micro-Frontend-ready
+```
 
-### 1.1 Sơ đồ Luồng dữ liệu Xuyên Module (Cross-Module Data Flow)
-Để duy trì tính độc lập, các Module không nói chuyện trực tiếp với nhau mà thông qua tầng **Dịch vụ Giao dịch (Service Bus)**.
+Điều này có nghĩa là phần mềm đã được phân rã theo module chức năng, có ranh giới thư mục rõ, có tầng Server Action/Service/Database tách biệt; tuy nhiên chưa phải MFE hoàn chỉnh. Để giảm phụ thuộc chéo giữa các module, hệ thống bổ sung **Typed Cross-Module Service Bus** để các module phát sự kiện và lắng nghe sự kiện thay vì gọi trực tiếp component của nhau.
 
-**Ví dụ một luồng xử lý DNF:**
-1. **[Module Inspections]:** User phát hiện lỗi khi đang làm bảng kiểm tra định kỳ. Ấn nút "Báo cáo DNF".
-2. Hệ thống phát một *CustomEvent* `create-dnf-from-inspection`.
-3. **[Module DNF]:** Lắng nghe Event, bật Form tạo DNF, tự động điền sẵn các dữ liệu thiết bị từ Inspection cũ.
-4. User ấn Submit. Dữ liệu chạy xuống Next.js Server Action (`dnf.actions.ts`).
-5. Server Action gọi tới Prisma ORM, lưu vào CSDL. 
+Các điểm đã cải thiện sau rà soát:
 
-### 1.2 Ưu điểm cốt lõi của kiến trúc này
-- **Lỗi không lây lan:** Nếu Module AI Vision bị sập, Module báo cáo Sự cố DNF vẫn hoạt động bình thường.
-- **Tách biệt State:** State quản lý bằng React Context / Zustand được khoanh vùng chặt chẽ bên trong thư mục của từng module.
+- Bổ sung `src/lib/mfe/service-bus.ts` làm Service Bus typed event.
+- Bổ sung `src/components/mfe/cross-module-service-bus-bridge.tsx` để điều phối event cấp app shell.
+- Tích hợp Service Bus Bridge vào `src/app/(app)/layout.tsx`.
+- Cập nhật `/dnf/new` để nhận dữ liệu khởi tạo từ event Inspection tạo DNF.
+- Cập nhật tài liệu để phân biệt rõ phần đã có, điểm yếu còn lại và hướng nâng cấp lên MFE thật.
 
 ---
 
-## 2. GIẢI PHẪU TẦNG TRÍ TUỆ NHÂN TẠO (AI CORE LAYER)
+## 1. Mô hình module và luồng dữ liệu xuyên mô-đun
 
-Tầng AI của HURC1 CRM bao gồm 3 lõi công nghệ chạy hoàn toàn **OFFLINE (Air-Gapped)** để bảo vệ tuyệt đối bí mật hạ tầng kỹ thuật quốc gia.
+### 1.1. Mô hình hiện tại
 
-### 2.1 Lõi Tầm nhìn (Computer Vision - YOLOv8)
-Được triển khai bằng Python FastAPI, chạy dưới dạng một container độc lập trong Docker.
-- Khi kỹ thuật viên chụp một bức ảnh đường ray bị nứt, file ảnh sẽ được gửi luồng (stream) tới server YOLO.
-- Trọng số mô hình (Weights) đã được train riêng cho đường sắt (nhận diện ray nứt, ốc vít lỏng, rỉ sét).
-- Trả về tọa độ Bounding Box và Confidence Score. Nếu Confidence > 85%, phần mềm tự cắm cờ (Flag) "Nghi ngờ nghiêm trọng".
+Ứng dụng được phân rã thành nhiều module tại:
 
-### 2.2 Lõi Đọc Hiểu RAG (Retrieval-Augmented Generation)
-Sử dụng LLM nội bộ (Ollama) kết hợp Cơ sở dữ liệu Vector (ChromaDB).
-- **Vấn đề:** Các sổ tay bảo trì (Maintenance Manuals) là những file PDF dài hàng ngàn trang.
-- **Giải pháp:** Khi user tải file PDF lên, hệ thống xé nhỏ (Chunking) thành từng đoạn 500 từ, nhúng (Embed) thành vector, và lưu vào ChromaDB.
-- Khi user hỏi: *"Quy trình xử lý cháy tủ điện ga Cát Linh?"*, hệ thống dò vector tìm 3 đoạn PDF liên quan nhất, ném cho Llama3 để tổng hợp thành một đoạn văn ngắn gọn, dễ hiểu kèm trích dẫn trang tài liệu gốc.
+```text
+src/app/(app)/[module]
+```
 
-### 2.3 Mạng Lưới Niềm Tin (TrustGraph)
-Cơ sở dữ liệu biểu đồ (Graph Database) giúp AI hiểu mối quan hệ nhân-quả trong hệ thống Metro.
-- Các Node bao gồm: Thiết bị, Sự cố (DNF), Hành động khắc phục.
-- Các Edge bao gồm: `CAUSED_BY`, `LOCATED_AT`, `FIXED_BY`.
-- **Ví dụ thực tiễn:** Nếu Motor Bơm Nước bị hỏng 5 lần trong tháng. TrustGraph phân tích và tìm ra một điểm chung (Node ẩn): Cả 5 lần đều do Tủ Điện X bị rò điện. Từ đó, AI cảnh báo Lãnh đạo thay vì thay Motor, hãy đại tu Tủ Điện X.
+Các module chính gồm: Dashboard, DNF, Hazard, Inspection, Task, Asset 360, AI Lab, Rail Network, GIS/BIM Twin, Spatial Import, Admin, Reports và các phân hệ hỗ trợ khác.
+
+Mỗi module có trách nhiệm riêng về giao diện, form, danh sách, detail page và workflow nghiệp vụ. Dữ liệu không nên truyền trực tiếp bằng cách import component nội bộ giữa các module. Thay vào đó, các module phải đi qua một trong ba lớp sau:
+
+1. **Client Event Bus**: dùng cho điều phối giao diện xuyên module trong cùng phiên làm việc.
+2. **Server Action**: dùng cho thao tác có ghi dữ liệu hoặc yêu cầu kiểm tra quyền.
+3. **Service Layer**: dùng cho nghiệp vụ backend và truy cập database.
+
+### 1.2. Service Bus xuyên module
+
+Service Bus được đặt tại:
+
+```text
+src/lib/mfe/service-bus.ts
+```
+
+Service Bus hiện hỗ trợ các event có kiểu rõ ràng:
+
+```text
+inspection:create-dnf
+dnf:created
+hazard:created
+asset:open-360
+ai-lab:open-incident-learning
+```
+
+Điểm quan trọng là các module không tự ý dùng `window.dispatchEvent` rời rạc. Thay vào đó, phải dùng helper typed event như:
+
+```text
+publishCreateDnfFromInspection(payload)
+subscribeCreateDnfFromInspection(handler)
+```
+
+Cách này giúp:
+
+- Giảm lỗi sai tên event.
+- Chuẩn hóa payload.
+- Dễ bổ sung logging/traceId sau này.
+- Giảm phụ thuộc trực tiếp giữa Inspection, DNF, Asset 360 và AI Lab.
+
+### 1.3. Service Bus Bridge
+
+Bridge điều phối event cấp app shell được đặt tại:
+
+```text
+src/components/mfe/cross-module-service-bus-bridge.tsx
+```
+
+Bridge hiện lắng nghe event:
+
+```text
+inspection:create-dnf
+```
+
+Khi nhận event, Bridge chuyển hướng sang:
+
+```text
+/dnf/new
+```
+
+và gắn các tham số cần thiết:
+
+- `originatingInspectionId`
+- `originatingFindingId`
+- `description`
+- `locationOfFailure`
+- `staffWhoIdentifiedFailure`
+- `equipmentCode`
+- `subsystemId`
+
+Trang `/dnf/new` sẽ đọc các tham số này để tự động điền trước form DNF.
 
 ---
 
-## 3. KIẾN TRÚC CƠ SỞ DỮ LIỆU LAI (HYBRID DATABASE ARCHITECTURE) TỐI THƯỢNG
+## 2. Luồng dữ liệu mẫu: tạo DNF từ Inspection
 
-Bảo đảm hệ thống sống sót 99.9% ngay cả khi Server SQL chết.
+Luồng chuẩn sau khi cải thiện:
 
-### 3.1 Thiết kế 4 CSDL Trực tuyến (PostgreSQL)
-Thay vì nhồi nhét vào 1 DB, chúng tôi chia thành 4 DB logic, cô lập vùng rủi ro:
-1. `authDb`: Lưu Account, Hash Password, Roles. Cực kỳ bảo mật.
-2. `opsDb`: Lưu DNF, Inspections, Hazards, Tasks. Tần suất ghi/xóa cực cao.
-3. `metroDb`: Lưu cấu trúc Trạm Ga, Thiết bị vật lý, Định mức. Tần suất Đọc cao, Ghi thấp.
-4. `aiDb`: Lưu Node/Edge của TrustGraph, Vector DB Metadata.
-
-### 3.2 Lõi Dự phòng Kép (The Fallback Engine)
-Thuật toán thần kinh của `src/lib/services/db-wrapper.ts`:
 ```mermaid
 sequenceDiagram
-    participant App as Frontend MFE
-    participant Server as Next.js API
-    participant PG as PostgreSQL
-    participant File as db.json (Offline)
-    
-    App->>Server: Tạo Sự cố (DNF)
-    Server->>PG: INSERT INTO ops_dnfs...
-    alt Kết nối thành công
-        PG-->>Server: 200 OK
-        Server-->>App: Done
-    else Mạng cáp quang bị đứt / PG Timeout
-        PG--xServer: PrismaClientError (Connection Refused)
-        Server->>File: WriteFileSync (Lưu đệm vào db.json)
-        Server-->>App: 200 OK (Kèm cờ Offline Mode)
-    end
+    participant Inspection as Module Inspection
+    participant Bus as Typed Service Bus
+    participant Bridge as App Shell Bridge
+    participant DNF as Module DNF
+    participant Action as Next.js Server Action
+    participant Service as DNF Service
+    participant DB as OPS Database
+
+    Inspection->>Bus: publish inspection:create-dnf(payload)
+    Bus->>Bridge: emit typed CustomEvent
+    Bridge->>DNF: router.push('/dnf/new?...')
+    DNF->>DNF: hydrate initialData from URL params
+    DNF->>Action: submit DNF form
+    Action->>Service: validate permission + business rules
+    Service->>DB: Prisma write to ops_dnf_documents
+    DB-->>Service: persisted record
+    Service-->>Action: result
+    Action-->>DNF: success/error response
 ```
-- Cơ chế này biến môi trường của user thành bất tử (Immortal). Họ không bao giờ nhìn thấy lỗi `500 Internal Server Error`.
-- Khi mạng có lại, Admin chạy script `npm run migrate`, thuật toán sẽ đối chiếu Timestamp và UUID v4 để bơm ngược dữ liệu từ `db.json` vào Postgres mà không gây trùng lặp (Conflict Resolution).
+
+Ý nghĩa nghiệp vụ:
+
+1. Kỹ sư phát hiện lỗi trong quá trình Inspection.
+2. Module Inspection phát event `inspection:create-dnf` với dữ liệu phát hiện.
+3. App Shell Bridge nhận event và mở màn hình tạo DNF.
+4. Form DNF tự điền dữ liệu từ Inspection.
+5. Khi người dùng gửi form, dữ liệu đi qua Server Action và Service Layer.
+6. Dữ liệu được lưu vào OPS database.
+
+---
+
+## 3. Điểm yếu đã phát hiện
+
+### 3.1. Gọi là Micro-Frontend nhưng chưa đủ điều kiện MFE thật
+
+Điểm yếu: tài liệu cũ dùng thuật ngữ MFE nhưng hệ thống chưa có deployment độc lập từng module, chưa có module federation, chưa có version contract giữa module và chưa có runtime isolation.
+
+Cải thiện: tài liệu hiện đổi cách mô tả thành **Modular Monolith theo hướng Micro-Frontend-ready**. Đây là cách gọi chính xác và an toàn hơn cho nghiệm thu kỹ thuật.
+
+### 3.2. Service Bus được mô tả nhưng chưa có hiện thực rõ ràng
+
+Điểm yếu: tài liệu cũ nói có `CustomEvent create-dnf-from-inspection`, nhưng mã nguồn chưa có Service Bus typed event chính thức.
+
+Cải thiện: đã bổ sung Service Bus tại `src/lib/mfe/service-bus.ts` và Bridge tại `src/components/mfe/cross-module-service-bus-bridge.tsx`.
+
+### 3.3. Event name và payload có nguy cơ bị sai lệch
+
+Điểm yếu: nếu từng module tự dùng chuỗi event riêng, dễ phát sinh lỗi sai tên event, thiếu trường dữ liệu hoặc payload không đồng nhất.
+
+Cải thiện: event name và payload đã được định nghĩa bằng TypeScript trong `CrossModuleEventMap`.
+
+### 3.4. Module DNF trước đây chủ yếu nhận dữ liệu qua query string
+
+Điểm yếu: cách truyền query string vẫn chạy được nhưng chưa thể hiện rõ vai trò điều phối xuyên module.
+
+Cải thiện: Service Bus Bridge hiện chuyển event Inspection thành route `/dnf/new` có query params chuẩn; DNF page đọc thêm `equipmentCode` và `subsystemId` để điền form tốt hơn.
+
+### 3.5. Client Event Bus không thay thế backend transaction
+
+Điểm yếu: nếu hiểu nhầm Service Bus frontend là transaction bus backend thì có thể dẫn đến sai thiết kế.
+
+Cải thiện: tài liệu hiện phân định rõ:
+
+- Client Event Bus chỉ dùng cho điều phối UI trong phiên người dùng.
+- Server Action và Service Layer mới là nơi xử lý quyền, validate và ghi database.
+- Các nghiệp vụ quan trọng không được chỉ dựa vào event frontend.
+
+---
+
+## 4. Tầng Server Action và Service Layer
+
+Các thao tác có ghi dữ liệu hoặc yêu cầu phân quyền phải đi qua Server Action. Ví dụ:
+
+```text
+src/lib/actions/dnf.actions.ts
+src/lib/actions/incident-learning.actions.ts
+src/lib/actions/ai.actions.ts
+```
+
+Server Action chịu trách nhiệm:
+
+- kiểm tra đăng nhập;
+- kiểm tra quyền;
+- chuẩn hóa input;
+- gọi service nghiệp vụ;
+- trả kết quả an toàn cho client.
+
+Service Layer chịu trách nhiệm nghiệp vụ sâu hơn, ví dụ:
+
+```text
+src/lib/services/dnf-service.ts
+src/lib/services/task-service.ts
+src/lib/services/incident-learning-service.ts
+```
+
+Service Layer không nên phụ thuộc vào component UI. Đây là lớp phù hợp để tái sử dụng giữa UI, script CLI, job đồng bộ và API nội bộ.
+
+---
+
+## 5. Kiến trúc AI Core Layer
+
+AI Lab hiện gồm các nhóm chức năng:
+
+1. DocumentRAG: hỏi đáp theo tài liệu PDF/DOCX nội bộ.
+2. GraphRAG: phân tích quan hệ giữa thiết bị, DNF, Hazard, Task và tri thức liên quan.
+3. IncidentLearning: học từ sự cố tương tự.
+4. AI Vision: phân tích hình ảnh khi hạ tầng AI được cấu hình.
+5. Agent/NemoClaw: trợ lý hội thoại và cá nhân hóa theo vai trò.
+
+### 5.1. Incident Learning production flow
+
+Incident Learning hiện có kiến trúc production hơn trước:
+
+```mermaid
+flowchart LR
+    DNF[DNF + Corrective Action] --> Sync[Incident Memory Sync]
+    Hazard[Hazard] --> Sync
+    Task[Task] --> Sync
+    Inspection[Inspection] --> Sync
+    Sync --> Memory[(ops_incident_memories)]
+    Memory --> AI[AI Lab IncidentLearning]
+    AI --> Engineer[Kỹ sư bảo trì]
+```
+
+Các thành phần chính:
+
+```text
+prisma/ops/schema.prisma                    -> model IncidentMemory
+prisma/ops/migrations/.../migration.sql     -> tạo bảng ops_incident_memories
+src/lib/services/incident-learning-service.ts
+src/lib/actions/incident-learning.actions.ts
+src/scripts/sync-incident-memory.ts
+```
+
+Nguyên tắc an toàn:
+
+- AI chỉ đưa ra gợi ý kỹ thuật tham khảo.
+- Kết quả phải được đối chiếu với hiện trường, log, tài liệu O&M và phê duyệt an toàn.
+- Bài học kinh nghiệm chính thức nên được xác nhận qua trạng thái `verified` trong Incident Memory.
+
+---
+
+## 6. Kiến trúc cơ sở dữ liệu lai
+
+Hệ thống sử dụng nhiều schema/database logic để tách vùng trách nhiệm:
+
+1. `authDb`: người dùng, vai trò, quyền, phiên đăng nhập.
+2. `opsDb`: DNF, Hazard, Inspection, Task, Incident Memory.
+3. `metroDb`: tuyến, ga, thiết bị, GIS/BIM, Asset Spatial Link.
+4. `aiDb`: AI agent, knowledge metadata, TrustGraph hoặc metadata liên quan AI.
+
+Cơ chế fallback/offline cần được hiểu đúng: đây là lớp tăng khả năng phục hồi trong một số tình huống mất kết nối hoặc môi trường test, không phải cam kết hệ thống “bất tử” hoặc luôn đạt 99.9% nếu thiếu hạ tầng HA, backup, monitoring và quy trình khôi phục.
+
+---
+
+## 7. Các giới hạn còn lại
+
+### 7.1. Chưa phải MFE deployment độc lập
+
+Các module chưa thể build/deploy/version độc lập. Muốn trở thành MFE thật cần bổ sung:
+
+- module federation hoặc cơ chế remote module;
+- contract version giữa shell và module;
+- boundary test cho từng module;
+- observability theo module;
+- rollback theo module.
+
+### 7.2. Service Bus mới ở mức client runtime
+
+Service Bus hiện dùng `CustomEvent` trong trình duyệt. Cơ chế này phù hợp cho điều phối UI, nhưng không thay thế message broker backend.
+
+Nếu cần workflow liên phòng/đa người dùng/thời gian thực, cần bổ sung:
+
+- database event/outbox pattern;
+- queue/broker như Redis Streams, RabbitMQ hoặc Kafka;
+- audit log cho event nghiệp vụ;
+- retry và dead-letter queue.
+
+### 7.3. Incident Memory cần quy trình phê duyệt
+
+Incident Memory đã có model và sync service, nhưng cần bổ sung UI/quy trình xác nhận để chuyển trạng thái từ `draft` hoặc `reviewed` sang `verified`.
+
+### 7.4. GIS/BIM và Google Maps cần dữ liệu chính thức
+
+Dữ liệu tuyến/ga/GIS/BIM/Google Maps hiện phục vụ kiểm chứng kiến trúc. Trước khi dùng vận hành chính thức cần thay bằng dữ liệu GIS/BIM/As-built/Place ID được phê duyệt.
+
+---
+
+## 8. Tiêu chí nghiệm thu kiến trúc
+
+Có thể nghiệm thu kỹ thuật nội bộ khi:
+
+- `Security and Acceptance Gate` pass.
+- `Docker Acceptance Gate` pass.
+- `/dnf/new` nhận dữ liệu từ Inspection thông qua Service Bus Bridge.
+- AI Lab IncidentLearning đọc được Incident Memory hoặc OPS database.
+- Docker build và production smoke test pass.
+- Tài liệu kiến trúc không mô tả quá mức năng lực thực tế.
+
+Chưa nghiệm thu production nếu:
+
+- chưa chạy migration chính thức;
+- chưa có seed dữ liệu tuyến/ga/GIS/BIM chính thức;
+- Incident Memory chưa có quy trình xác nhận bài học kinh nghiệm;
+- chưa có monitoring, backup/restore drill và rollback plan.

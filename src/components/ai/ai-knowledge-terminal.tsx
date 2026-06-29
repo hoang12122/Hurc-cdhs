@@ -1,13 +1,14 @@
 'use client';
 
 import * as React from 'react';
-import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
-import { Sparkles, Send, Loader2, BrainCircuit, BookOpen, Quote, ShieldCheck, ChevronDown, Plus, Network, FileText, Bot, Zap, User } from 'lucide-react';
+import { Sparkles, Send, Loader2, BrainCircuit, BookOpen, Quote, ShieldCheck, ChevronDown, Plus, Network, FileText, Bot, Zap, User, History, ListChecks } from 'lucide-react';
 import { groundedQuery, generateSynthesis, getAgents, createAgent, aiAgentChat, personalizedQuery } from '@/lib/actions/ai.actions';
+import { incidentLearningQuery } from '@/lib/actions/incident-learning.actions';
 import { pushKnowledgeSnippet, processFileKnowledge } from '@/lib/actions/knowledge.actions';
 import { useToast } from '@/hooks/use-toast';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
@@ -22,7 +23,7 @@ interface Message {
     intent?: string;
 }
 
-type RagMode = 'auto' | 'nemoclaw' | 'document_rag' | 'graph_rag' | 'agent';
+type RagMode = 'auto' | 'nemoclaw' | 'document_rag' | 'graph_rag' | 'agent' | 'incident_learning';
 
 interface AiKnowledgeTerminalProps {
     selectedIds: string[];
@@ -34,8 +35,21 @@ const RAG_MODES: { value: RagMode; label: string; icon: React.ReactNode; descrip
     { value: 'nemoclaw', label: 'NemoClaw', icon: <User className="h-3.5 w-3.5 text-amber-500" />, description: 'Cá nhân hóa theo roles' },
     { value: 'document_rag', label: 'DocumentRAG', icon: <FileText className="h-3.5 w-3.5" />, description: 'Tìm kiếm trong tài liệu' },
     { value: 'graph_rag', label: 'GraphRAG', icon: <Network className="h-3.5 w-3.5" />, description: 'Phân tích mối quan hệ' },
+    { value: 'incident_learning', label: 'IncidentLearning', icon: <History className="h-3.5 w-3.5 text-emerald-500" />, description: 'Đọc DNF/Hazard/Task/Inspection thật để tìm sự cố tương tự' },
     { value: 'agent', label: 'Agent', icon: <Bot className="h-3.5 w-3.5" />, description: 'Suy luận phức tạp' },
 ];
+
+const ALLOW_CHAT_WITHOUT_SOURCES: RagMode[] = ['agent', 'nemoclaw', 'incident_learning'];
+
+function canChatWithoutSources(mode: RagMode) {
+    return ALLOW_CHAT_WITHOUT_SOURCES.includes(mode);
+}
+
+function sourceLabelForIncidentLearning(dataSource?: string) {
+    if (dataSource === 'ops-database') return 'incident-learning:ops-db';
+    if (dataSource === 'mixed') return 'incident-learning:mixed';
+    return 'incident-learning:fallback';
+}
 
 export function AiKnowledgeTerminal({ selectedIds, selectedTypes }: AiKnowledgeTerminalProps) {
     const [messages, setMessages] = React.useState<Message[]>([]);
@@ -44,17 +58,14 @@ export function AiKnowledgeTerminal({ selectedIds, selectedTypes }: AiKnowledgeT
     const [isSynthesizing, setIsSynthesizing] = React.useState(false);
     const [ragMode, setRagMode] = React.useState<RagMode>('auto');
     
-    // Agent State (for multi-turn)
     const [agents, setAgents] = React.useState<any[]>([]);
     const [selectedAgentId, setSelectedAgentId] = React.useState<string | undefined>();
     const [isCreatingAgent, setIsCreatingAgent] = React.useState(false);
     const [newAgent, setNewAgent] = React.useState({ name: '', subsystem: '', prompt: '' });
     
-    // Agent conversation state
     const [agentState, setAgentState] = React.useState<any>(null);
     const [agentHistory, setAgentHistory] = React.useState<any[]>([]);
     
-    // Knowledge Push State
     const [isPushing, setIsPushing] = React.useState(false);
     const [pushContent, setPushContent] = React.useState('');
     const [selectedFile, setSelectedFile] = React.useState<File | null>(null);
@@ -90,11 +101,10 @@ export function AiKnowledgeTerminal({ selectedIds, selectedTypes }: AiKnowledgeT
     const handleSend = async () => {
         if (!input.trim() || isTyping) return;
         
-        // Allow agent or nemoclaw mode even without selected sources
-        if (selectedIds.length === 0 && ragMode !== 'agent' && ragMode !== 'nemoclaw') {
+        if (selectedIds.length === 0 && !canChatWithoutSources(ragMode)) {
             toast({
                 title: "Chưa chọn nguồn",
-                description: "Vui lòng chọn ít nhất một báo cáo/nguồn dữ liệu, hoặc chuyển sang mode Agent/NemoClaw.",
+                description: "Vui lòng chọn ít nhất một báo cáo/nguồn dữ liệu, hoặc chuyển sang mode Agent/NemoClaw/IncidentLearning.",
                 variant: "destructive"
             });
             return;
@@ -110,22 +120,29 @@ export function AiKnowledgeTerminal({ selectedIds, selectedTypes }: AiKnowledgeT
             let source: string = 'unknown';
 
             if (ragMode === 'agent') {
-                // Multi-turn agent chat
                 const result = await aiAgentChat(userMsg, agentState, agentHistory);
                 response = result.answer;
                 source = (result as any).source || 'agent';
                 setAgentState(result.state);
                 setAgentHistory(result.history);
             } else if (ragMode === 'nemoclaw') {
-                // Personalized NemoClaw chat
                 const result = await personalizedQuery(userMsg, agentHistory);
                 response = result.content;
                 source = (result as any).source || 'nemoclaw';
                 setAgentHistory(prev => [...prev, { role: 'user', content: userMsg }, { role: 'assistant', content: response }]);
+            } else if (ragMode === 'incident_learning') {
+                const incidentLearning = await incidentLearningQuery(userMsg);
+                response = incidentLearning.answer;
+                source = sourceLabelForIncidentLearning(incidentLearning.dataSource);
+                setAgentHistory(prev => [...prev, { role: 'user', content: userMsg }, { role: 'assistant', content: response }]);
             } else {
-                // Grounded query with selected sources
-                response = await groundedQuery(selectedIds, selectedTypes, userMsg, selectedAgentId);
-                source = 'grounded';
+                const groundedResponse = await groundedQuery(selectedIds, selectedTypes, userMsg, selectedAgentId);
+                const incidentLearning = await incidentLearningQuery(userMsg);
+                const shouldAppendIncidentLearning = incidentLearning.matchCount > 0 && incidentLearning.confidenceLabel !== 'low';
+                response = shouldAppendIncidentLearning
+                    ? `${groundedResponse}\n\n---\n\n${incidentLearning.answer}`
+                    : groundedResponse;
+                source = shouldAppendIncidentLearning ? `grounded + ${sourceLabelForIncidentLearning(incidentLearning.dataSource)}` : 'grounded';
             }
 
             setMessages(prev => [...prev, { role: 'assistant', content: response, source }]);
@@ -204,19 +221,19 @@ export function AiKnowledgeTerminal({ selectedIds, selectedTypes }: AiKnowledgeT
 
     const currentAgentName = agents.find(a => a.id === selectedAgentId)?.name || "Chọn Agent";
     const currentMode = RAG_MODES.find(m => m.value === ragMode) || RAG_MODES[0];
+    const inputDisabled = (selectedIds.length === 0 && !canChatWithoutSources(ragMode)) || isTyping;
 
     return (
         <Card className="h-full border-none shadow-none bg-transparent flex flex-col">
             <CardHeader className="pb-4 px-0">
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between gap-4">
                     <div className="flex items-center gap-2">
                         <div className="p-2 bg-indigo-600 rounded-lg shadow-lg shadow-indigo-500/20">
                             <BrainCircuit className="h-5 w-5 text-white" />
                         </div>
                         <div>
                             <CardTitle className="text-xl font-extrabold tracking-tight">Knowledge Terminal</CardTitle>
-                            <div className="flex items-center gap-2 mt-0.5">
-                                {/* Agent Selector */}
+                            <div className="flex flex-wrap items-center gap-2 mt-0.5">
                                 <DropdownMenu>
                                     <DropdownMenuTrigger asChild>
                                         <Button variant="ghost" size="sm" className="h-6 px-1.5 text-[10px] font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/30 hover:bg-indigo-100 border border-indigo-100 flex items-center gap-1">
@@ -266,7 +283,6 @@ export function AiKnowledgeTerminal({ selectedIds, selectedTypes }: AiKnowledgeT
                                     </DropdownMenuContent>
                                 </DropdownMenu>
 
-                                {/* RAG Mode Selector */}
                                 <DropdownMenu>
                                     <DropdownMenuTrigger asChild>
                                         <Button variant="ghost" size="sm" className="h-6 px-1.5 text-[10px] font-bold uppercase tracking-wider text-violet-600 dark:text-violet-400 bg-violet-50 dark:bg-violet-900/30 hover:bg-violet-100 border border-violet-100 flex items-center gap-1">
@@ -292,6 +308,12 @@ export function AiKnowledgeTerminal({ selectedIds, selectedTypes }: AiKnowledgeT
                                         ))}
                                     </DropdownMenuContent>
                                 </DropdownMenu>
+
+                                {ragMode === 'incident_learning' && (
+                                    <Badge variant="outline" className="gap-1 border-emerald-200 bg-emerald-50 text-[10px] font-bold text-emerald-700 dark:border-emerald-900 dark:bg-emerald-950/30 dark:text-emerald-300">
+                                        <ListChecks className="h-3 w-3" /> DNF/Hazard/Task/Inspection thật
+                                    </Badge>
+                                )}
                             </div>
                         </div>
                     </div>
@@ -377,16 +399,18 @@ export function AiKnowledgeTerminal({ selectedIds, selectedTypes }: AiKnowledgeT
                         {messages.length === 0 ? (
                             <div className="h-full flex flex-col items-center justify-center text-center space-y-4 pt-20">
                                 <div className="p-4 bg-white dark:bg-slate-950 rounded-full shadow-sm border border-slate-100 dark:border-slate-900">
-                                    <Sparkles className="h-8 w-8 text-indigo-500 animate-pulse" />
+                                    {ragMode === 'incident_learning' ? <History className="h-8 w-8 text-emerald-500 animate-pulse" /> : <Sparkles className="h-8 w-8 text-indigo-500 animate-pulse" />}
                                 </div>
-                                <div className="max-w-[300px] space-y-2">
+                                <div className="max-w-[360px] space-y-2">
                                     <h3 className="font-semibold text-slate-900 dark:text-slate-100">Bắt đầu hành trình tri thức</h3>
                                     <p className="text-sm text-muted-foreground italic">
                                         {ragMode === 'agent' 
                                             ? "Mode Agent: Hỏi tôi bất cứ điều gì, tôi sẽ suy luận và tìm câu trả lời."
                                             : ragMode === 'nemoclaw'
                                                 ? "NemoClaw: Trợ lý AI cá nhân hóa theo vai trò của bạn tại HURC1."
-                                                : "Hãy chọn nguồn dữ liệu bên trái và hỏi tôi bất cứ điều gì về các sự cố này."
+                                                : ragMode === 'incident_learning'
+                                                    ? "IncidentLearning: đọc DNF/Hazard/Task/Inspection thật từ OPS database để tìm sự cố tương tự và đề xuất phương án xử lý."
+                                                    : "Hãy chọn nguồn dữ liệu bên trái và hỏi tôi bất cứ điều gì về các sự cố này."
                                         }
                                     </p>
                                 </div>
@@ -423,7 +447,7 @@ export function AiKnowledgeTerminal({ selectedIds, selectedTypes }: AiKnowledgeT
                                         <div className="bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl rounded-tl-none px-4 py-3 flex items-center gap-2">
                                             <Loader2 className="h-4 w-4 animate-spin text-indigo-500" />
                                             <span className="text-xs text-muted-foreground">
-                                                {ragMode === 'agent' ? 'Agent đang suy luận...' : 'AI đang phân tích...'}
+                                                {ragMode === 'agent' ? 'Agent đang suy luận...' : ragMode === 'incident_learning' ? 'AI đang đọc DNF/Hazard/Task/Inspection và đối chiếu sự cố tương tự...' : 'AI đang phân tích...'}
                                             </span>
                                         </div>
                                     </div>
@@ -433,6 +457,11 @@ export function AiKnowledgeTerminal({ selectedIds, selectedTypes }: AiKnowledgeT
                     </ScrollArea>
                     
                     <div className="p-4 bg-white/80 dark:bg-slate-950/80 backdrop-blur-sm border-t border-slate-200 dark:border-slate-800">
+                        {ragMode === 'incident_learning' && (
+                            <div className="mb-3 rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-xs leading-5 text-emerald-900 dark:border-emerald-900 dark:bg-emerald-950/20 dark:text-emerald-100">
+                                Production mode: hệ thống ưu tiên đọc dữ liệu DNF/Hazard/Task/Inspection trong OPS database. Nếu server chưa kết nối được database hoặc chưa có dữ liệu, AI sẽ fallback sang kho mẫu để không gián đoạn kiểm thử.
+                            </div>
+                        )}
                         <div className="flex gap-2">
                             <Input 
                                 placeholder={
@@ -440,27 +469,29 @@ export function AiKnowledgeTerminal({ selectedIds, selectedTypes }: AiKnowledgeT
                                         ? "Hỏi AI Agent bất cứ điều gì..."
                                         : ragMode === 'nemoclaw'
                                             ? "Hỏi AI cá nhân hóa (NemoClaw)..."
-                                            : selectedIds.length > 0 
-                                                ? "Đặt câu hỏi về các nguồn đã chọn..." 
-                                                : "Vui lòng chọn nguồn dữ liệu..."
+                                            : ragMode === 'incident_learning'
+                                                ? "Mô tả hiện tượng sự cố để tìm DNF/Hazard/Task/Inspection tương tự..."
+                                                : selectedIds.length > 0 
+                                                    ? "Đặt câu hỏi về các nguồn đã chọn..." 
+                                                    : "Vui lòng chọn nguồn dữ liệu..."
                                 }
                                 value={input}
                                 onChange={(e) => setInput(e.target.value)}
                                 onKeyDown={(e) => e.key === 'Enter' && handleSend()}
-                                disabled={(selectedIds.length === 0 && ragMode !== 'agent' && ragMode !== 'nemoclaw') || isTyping}
+                                disabled={inputDisabled}
                                 className="border-indigo-100 focus-visible:ring-indigo-500"
                             />
                             <Button 
                                 size="icon" 
                                 onClick={handleSend} 
-                                disabled={(selectedIds.length === 0 && ragMode !== 'agent' && ragMode !== 'nemoclaw') || isTyping || !input.trim()}
+                                disabled={inputDisabled || !input.trim()}
                                 className="bg-indigo-600 hover:bg-indigo-700 shadow-md shadow-indigo-500/20 shrink-0"
                             >
                                 <Send className="h-4 w-4" />
                             </Button>
                         </div>
                         <p className="text-[10px] text-center text-muted-foreground mt-2">
-                            Mode: {currentMode.label} • {ragMode === 'agent' ? 'Multi-turn conversation' : 'Grounded in selected sources'} • Mô hình có thể nhầm lẫn
+                            Mode: {currentMode.label} • {ragMode === 'agent' ? 'Multi-turn conversation' : ragMode === 'incident_learning' ? 'OPS DB incident memory + fallback sample memory' : 'Grounded in selected sources'} • Mô hình có thể nhầm lẫn
                         </p>
                     </div>
                 </div>

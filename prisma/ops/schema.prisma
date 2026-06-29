@@ -310,3 +310,34 @@ model Task {
   @@map("ops_tasks")
 }
 
+model IncidentMemory {
+  id                String   @id @default(cuid())
+  sourceType        String   @map("source_type") // DNF | Hazard | Task | Inspection | Manual
+  sourceId          String   @map("source_id")
+  referenceLabel    String?  @map("reference_label")
+  title             String
+  subsystem         String?
+  station           String?
+  symptomSummary    String   @map("symptom_summary")
+  rootCause         String?  @map("root_cause")
+  correctiveAction  String?  @map("corrective_action")
+  preventiveAction  String?  @map("preventive_action")
+  lessonLearned     String?  @map("lesson_learned")
+  evidenceTags      String[] @default([]) @map("evidence_tags")
+  confidence        Int      @default(50)
+  verificationState String   @default("draft") @map("verification_state") // draft | reviewed | verified | rejected
+  verifiedBy        String?  @map("verified_by")
+  verifiedAt        DateTime? @map("verified_at")
+  sourceUpdatedAt   DateTime? @map("source_updated_at")
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @updatedAt @map("updated_at")
+
+  @@unique([sourceType, sourceId])
+  @@index([sourceType])
+  @@index([subsystem])
+  @@index([station])
+  @@index([verificationState])
+  @@index([confidence])
+  @@index([updatedAt])
+  @@map("ops_incident_memories")
+}

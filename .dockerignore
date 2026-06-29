@@ -1,7 +1,32 @@
-Dockerfile
-.dockerignore
 node_modules
-npm-debug.log
-README.md
 .next
 .git
+.gitignore
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+.env
+.env.*
+!.env.example
+
+logs
+backups
+audit_reports
+coverage
+.tmp
+
+# Runtime data should not be sent into the build context.
+data/postgres
+data/mongo
+data/ollama
+data/offline
+
+# Keep GIS/BIM import samples in the Docker build context for dry-run validation.
+!data/import
+!data/import/**
+
+Dockerfile*
+docker-compose*.yml
+README.md
