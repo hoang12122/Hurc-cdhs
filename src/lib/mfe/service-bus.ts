@@ -95,3 +95,19 @@ export function subscribeCreateDnfFromInspection(
 ) {
   return subscribeCrossModuleEvent('inspection:create-dnf', handler);
 }
+
+export function publishDnfCreated(payload: CrossModuleEventMap['dnf:created']) {
+  return publishCrossModuleEvent('dnf:created', payload);
+}
+
+export function publishHazardCreated(payload: CrossModuleEventMap['hazard:created']) {
+  return publishCrossModuleEvent('hazard:created', payload);
+}
+
+export function publishOpenAsset360(payload: CrossModuleEventMap['asset:open-360']) {
+  return publishCrossModuleEvent('asset:open-360', payload);
+}
+
+export function publishOpenIncidentLearning(payload: CrossModuleEventMap['ai-lab:open-incident-learning']) {
+  return publishCrossModuleEvent('ai-lab:open-incident-learning', payload);
+}
