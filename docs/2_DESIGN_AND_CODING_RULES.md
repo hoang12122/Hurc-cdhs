@@ -13,6 +13,7 @@ Tài liệu này quy định cách thiết kế và viết mã để giữ HURC1
 | UI token và dữ liệu demo | Đã có nhiều component dùng token, nhưng cần kiểm soát thêm | Bổ sung quy tắc ghi nhãn demo/needs-review/official |
 | CI kiểm soát quy tắc | Trước đây chưa có | Đã thêm bước kiểm tra Design rules file-size boundary ở warning mode |
 | Vibe Code audit | Trước đây chưa có phụ lục đối soát riêng | Đã bổ sung docs/2_DESIGN_AND_CODING_RULES_AUDIT.md |
+| Traceability tài liệu -> phần mềm | Trước đây chưa có ma trận truy vết | Đã bổ sung docs/2_DESIGN_RULES_DOC_TO_CODE_TRACEABILITY.md |
 
 ## 1. Quy tắc 300 dòng
 
@@ -104,6 +105,7 @@ Không trình bày dữ liệu demo như dữ liệu vận hành chính thức.
 4. Chưa có UI đầy đủ cho Incident Memory approval.
 5. Một số màn hình cần tiếp tục tách hook/UI để tuân thủ Vibe Code triệt để hơn.
 6. Các kiểm tra Vibe Code mới đang ở phụ lục audit và warning mode.
+7. Ma trận traceability đã có nhưng chưa có script hard-check tự động vì cần tránh làm gãy master trong giai đoạn legacy.
 
 ## 8. Lộ trình cải thiện
 
