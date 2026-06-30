@@ -47,6 +47,9 @@ jobs:
       - name: Module import boundary audit
         run: node scripts/audit-module-boundaries.js
 
+      - name: Developer Guide traceability audit
+        run: node scripts/audit-developer-guide.js
+
       - name: Validate Prisma schemas
         run: npm run db:validate:all
         env:
