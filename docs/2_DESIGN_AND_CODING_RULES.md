@@ -1,21 +1,25 @@
 # TÀI LIỆU 2: QUY TẮC THIẾT KẾ VÀ VIẾT MÃ
 
-## 0. Kết quả đối soát với phần mềm
+## 0. Mục tiêu và phạm vi
 
-Tài liệu này quy định cách thiết kế và viết mã để giữ HURC1 CRM nhẹ, rõ ràng, dễ bảo trì và hạn chế phình to. Sau khi đối soát với mã nguồn hiện tại, kết quả như sau:
+Tài liệu này là bản hợp nhất duy nhất của Quy tắc thiết kế và viết mã cho HURC1 CRM. Nội dung đã gộp từ tài liệu chính, phụ lục audit và ma trận đối chiếu tài liệu sang phần mềm.
+
+Mục tiêu là giữ phần mềm nhẹ, rõ ràng, dễ bảo trì, hạn chế phình to và bảo đảm các AI Agent/lập trình viên không tạo thêm nợ kỹ thuật khi phát triển tính năng mới.
+
+## 1. Kết quả đối soát với phần mềm hiện tại
 
 | Nội dung đối soát | Trạng thái phần mềm | Cải thiện đã thực hiện |
 |---|---|---|
 | Giới hạn 300 dòng cho file .ts/.tsx | Một số file legacy còn nguy cơ vượt chuẩn | Có audit toàn repo và gate nghiêm ngặt cho file vừa thay đổi |
 | Tách UI và logic | Một số component legacy còn trộn workflow logic | Đã tách workflow Inspection sang custom hook |
 | Giao tiếp xuyên module | Đã có Service Bus và App Shell Bridge | Inspection tạo DNF đã có nút dùng Service Bus |
-| Server Actions và Service Layer | Đã có nền kiến trúc phù hợp | Tiếp tục yêu cầu mọi nghiệp vụ ghi dữ liệu đi qua actions/services |
+| Server Actions và Service Layer | Đã có nền kiến trúc phù hợp | Mọi nghiệp vụ ghi dữ liệu phải đi qua actions/services |
 | UI token và dữ liệu demo | Đã có nhiều component dùng token, nhưng cần kiểm soát thêm | Có Vibe Code audit cảnh báo màu hardcode và event rời rạc |
 | CI kiểm soát quy tắc | Trước đây mới cảnh báo một phần | Đã thêm changed-file boundary gate và module-boundary audit |
 | Incident Memory approval | Trước đây mới có service/action | Đã bổ sung giao diện phê duyệt tại /ai-lab/incident-memory |
-| Traceability tài liệu -> phần mềm | Trước đây chưa có ma trận truy vết | Đã bổ sung docs/2_DESIGN_RULES_DOC_TO_CODE_TRACEABILITY.md |
+| Traceability tài liệu -> phần mềm | Trước đây tách rời ở phụ lục | Đã gộp ma trận đối chiếu vào tài liệu này |
 
-## 1. Quy tắc 300 dòng
+## 2. Quy tắc 300 dòng
 
 Bất kỳ file .ts hoặc .tsx nào vượt 300 dòng đều được xem là code smell. Với code mới hoặc file đang refactor, lập trình viên phải tách nhỏ trước khi merge.
 
@@ -29,65 +33,79 @@ Cách xử lý:
 
 Công cụ hiện có:
 
-- scripts/check-file-size-boundaries.js: audit toàn repo ở warning mode.
-- scripts/check-changed-file-size-boundaries.js: kiểm tra nghiêm ngặt file vừa thay đổi.
+- `scripts/check-file-size-boundaries.js`: audit toàn repo ở warning mode.
+- `scripts/check-changed-file-size-boundaries.js`: kiểm tra nghiêm ngặt file vừa thay đổi.
 
 CI hiện vừa cảnh báo nợ kỹ thuật legacy, vừa chặn file mới hoặc file vừa refactor nếu vượt giới hạn thiết kế.
 
-## 2. Quy tắc tách UI và logic
+## 3. Quy tắc tách UI và logic
 
 Component UI chỉ nên hiển thị giao diện và gọi handler đã được chuẩn hóa. Không đặt toàn bộ workflow nghiệp vụ trong component.
 
 Luồng chuẩn:
 
-- UI Component
-- Custom Hook
-- Server Action
-- Service Layer
-- Database
+```text
+UI Component -> Custom Hook -> Server Action -> Service Layer -> Database
+```
 
 Đã cải thiện thực tế:
 
-- Logic workflow của màn hình chi tiết Inspection đã được tách sang src/components/inspections/use-inspection-detail-workflow.ts.
-- UI chính nằm tại src/components/inspections/inspection-detail-client.tsx.
-- Nút tạo DNF từ phát hiện dùng src/components/inspections/create-dnf-from-finding-event-button.tsx.
+- Logic workflow của màn hình chi tiết Inspection đã được tách sang `src/components/inspections/use-inspection-detail-workflow.ts`.
+- UI chính nằm tại `src/components/inspections/inspection-detail-client.tsx`.
+- Nút tạo DNF từ phát hiện dùng `src/components/inspections/create-dnf-from-finding-event-button.tsx`.
 - Luồng tạo DNF từ Inspection hiện đi qua Service Bus thay vì link thủ công.
 
-## 3. Quy tắc Server Actions và Service Layer
+## 4. Quy tắc Server Actions và Service Layer
 
 Các thao tác ghi dữ liệu, đổi trạng thái, đồng bộ hoặc phê duyệt không được xử lý trực tiếp trong component UI.
 
 Bắt buộc đi qua:
 
-- src/lib/actions/*.actions.ts
-- src/lib/services/*.ts
+- `src/lib/actions/*.actions.ts`
+- `src/lib/services/*.ts`
 
 Server Action chịu trách nhiệm kiểm tra quyền, chuẩn hóa input và gọi service. Service Layer chịu trách nhiệm nghiệp vụ, truy cập database và tái sử dụng cho UI, script hoặc job.
 
-## 4. Quy tắc UI token, Service Bus và module boundary
+## 5. Quy tắc UI token, Service Bus và module boundary
 
-Không hardcode màu tùy tiện. Ưu tiên dùng các token và class đã chuẩn hóa như bg-primary, bg-accent, bg-destructive, bg-muted, text-muted-foreground và border-border.
+Không hardcode màu tùy tiện. Ưu tiên dùng các token và class đã chuẩn hóa như `bg-primary`, `bg-accent`, `bg-destructive`, `bg-muted`, `text-muted-foreground` và `border-border`.
 
 Giao tiếp xuyên module phải đi qua Service Bus, App Shell Bridge hoặc public service contract. Đã bổ sung:
 
-- scripts/check-vibe-code-rules.js;
-- scripts/audit-module-boundaries.js.
+- `scripts/check-vibe-code-rules.js`
+- `scripts/audit-module-boundaries.js`
 
 Các dữ liệu GIS/BIM, Google Maps, Digital Twin và Incident Learning phải phân biệt rõ trạng thái:
 
-- demo
-- needs-review
-- official
+- `demo`
+- `needs-review`
+- `official`
 
 Không trình bày dữ liệu demo như dữ liệu vận hành chính thức.
 
-## 5. Quy tắc bảo vệ người dùng
+## 6. Quy tắc bảo vệ người dùng
 
 - Thao tác xóa, hủy, reject, archive hoặc chuyển trạng thái quan trọng phải có xác nhận.
 - Màn hình chỉ đọc cần có cảnh báo trạng thái rõ ràng.
 - AI Lab, Incident Learning và Digital Twin chỉ đưa ra gợi ý tham khảo, không thay thế kiểm tra hiện trường, log, tài liệu O&M và phê duyệt an toàn.
 
-## 6. Điểm mạnh hiện tại
+## 7. Ma trận đối chiếu từ tài liệu sang phần mềm
+
+| Quy tắc trong Tài liệu 2 | Bằng chứng trong phần mềm | Mức đáp ứng | Việc còn lại |
+|---|---|---|---|
+| File .ts/.tsx không vượt 300 dòng | `scripts/check-file-size-boundaries.js`; `scripts/check-changed-file-size-boundaries.js`; CI có bước kiểm tra | Đáp ứng một phần | Audit toàn repo còn warning mode |
+| Tách UI và logic qua custom hook | `use-inspection-detail-workflow.ts`; `inspection-detail-client.tsx` đã gọn hơn | Đáp ứng một phần | Cần tiếp tục áp dụng cho màn hình legacy khác |
+| Không xử lý backend trực tiếp trong UI | `scripts/check-vibe-code-rules.js` cảnh báo UI/client gọi fetch trực tiếp | Đáp ứng một phần | Cần chuyển cảnh báo thành strict mode sau khi xử lý legacy |
+| Nghiệp vụ ghi dữ liệu đi qua Server Action và Service Layer | `src/lib/actions/*`; `src/lib/services/*`; Incident Learning và Incident Memory đã đi qua action/service | Đáp ứng tốt | Cần tiếp tục kiểm tra module cũ |
+| Giao tiếp xuyên module đi qua Service Bus | `src/lib/mfe/service-bus.ts`; `cross-module-service-bus-bridge.tsx`; `CreateDnfFromFindingEventButton` | Đáp ứng tốt cho các luồng đã nối | Cần nối tiếp event khi UI phát sinh nhu cầu |
+| Không dùng browser event rời rạc | `scripts/check-vibe-code-rules.js` cảnh báo event không đi qua Service Bus | Đáp ứng một phần | CI còn warning mode |
+| Không hardcode màu tùy tiện | `scripts/check-vibe-code-rules.js` cảnh báo hex/arbitrary color | Đáp ứng một phần | Cần kiểm soát dần legacy UI |
+| Dữ liệu demo phải gắn nhãn | `docs/official_gis_google_maps_data_governance.md`; `location-governance.ts` | Đáp ứng ở mức nền | Cần nối nhãn vào toàn bộ UI GIS/BIM/Google Maps |
+| Thao tác quan trọng phải xác nhận | Quy tắc đã có trong tài liệu | Chưa đủ guard tự động | Cần bổ sung checker hoặc checklist riêng |
+| AI không thay thế phê duyệt kỹ thuật | AI Lab/Incident Learning có cảnh báo trong tài liệu và UI liên quan | Đáp ứng một phần | Cần kiểm thử UI để bảo đảm cảnh báo luôn hiển thị |
+| Import boundary giữa module | `module-registry.ts`; `audit-module-boundaries.js` | Đáp ứng một phần | Cần whitelist chính thức và strict mode sau khi dọn legacy |
+
+## 8. Điểm mạnh hiện tại
 
 1. Đã có Server Actions và Service Layer.
 2. Đã có Service Bus để giảm phụ thuộc giữa Inspection, DNF, Asset 360 và AI Lab.
@@ -96,7 +114,7 @@ Không trình bày dữ liệu demo như dữ liệu vận hành chính thức.
 5. Đã có audit 300 dòng, gate file vừa thay đổi, Vibe Code audit và module-boundary audit.
 6. Đã bắt đầu refactor component lớn bằng custom hook và component con.
 
-## 7. Điểm yếu còn lại sau cải thiện
+## 9. Điểm yếu còn lại sau cải thiện
 
 1. Một số file legacy vẫn có thể vượt 300 dòng, nhưng không cho phép file mới hoặc file vừa sửa tiếp tục vượt chuẩn.
 2. File-size audit toàn repo còn ở warning mode; changed-file boundary gate đã chạy nghiêm ngặt.
@@ -104,9 +122,9 @@ Không trình bày dữ liệu demo như dữ liệu vận hành chính thức.
 4. Incident Memory đã có UI phê duyệt cơ bản; cần bổ sung phân quyền riêng và audit log khi đổi trạng thái.
 5. Một số màn hình legacy vẫn cần tiếp tục tách hook/UI.
 6. Vibe Code audit còn ở warning mode để gom danh sách nợ kỹ thuật trước khi bật strict mode.
-7. Ma trận traceability đã có; script hard-check traceability vẫn để ở giai đoạn sau vì cần ổn định bằng chứng và tránh false positive.
+7. Ma trận traceability đã được gộp vào tài liệu này; script hard-check traceability vẫn để ở giai đoạn sau vì cần ổn định bằng chứng và tránh false positive.
 
-## 8. Lộ trình cải thiện
+## 10. Lộ trình cải thiện
 
 P0 - Không tăng nợ kỹ thuật:
 
@@ -117,10 +135,10 @@ P0 - Không tăng nợ kỹ thuật:
 
 P1 - Dọn legacy:
 
-- Chạy node scripts/check-file-size-boundaries.js --warn.
-- Chạy node scripts/check-vibe-code-rules.js --warn.
-- Chạy node scripts/audit-module-boundaries.js.
-- Ưu tiên refactor các file UI lớn trong src/components và src/app.
+- Chạy `node scripts/check-file-size-boundaries.js --warn`.
+- Chạy `node scripts/check-vibe-code-rules.js --warn`.
+- Chạy `node scripts/audit-module-boundaries.js`.
+- Ưu tiên refactor các file UI lớn trong `src/components` và `src/app`.
 
 P2 - Chuyển CI sang kiểm tra nghiêm ngặt hơn:
 
@@ -133,7 +151,7 @@ P3 - Hoàn thiện quản trị thiết kế:
 - Bổ sung audit log khi verify/reject Incident Memory.
 - Bổ sung traceability hard-check khi ma trận bằng chứng đã ổn định.
 
-## 9. Checklist review PR
+## 11. Checklist review PR
 
 Trước khi merge, cần kiểm tra:
 
