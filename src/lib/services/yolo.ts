@@ -1,61 +1,64 @@
+import { applyYoloQualityGate, type YoloQualityOptions, type YoloQualityResult } from './yolo-quality-gate';
 
 export interface YoloDetection {
-    box: [number, number, number, number]; // [x1, y1, x2, y2]
-    label: string;
-    confidence: number;
-    class_id: number;
+  box: [number, number, number, number];
+  label: string;
+  confidence: number;
+  class_id: number;
 }
 
 export interface YoloResponse {
-    detections: YoloDetection[];
-    count: number;
-    image_size: {
-        width: number;
-        height: number;
-    };
+  detections: YoloDetection[];
+  count: number;
+  image_size: {
+    width: number;
+    height: number;
+  };
 }
 
-/**
- * Communicates with the 'yolo-service' Docker container to perform object detection.
- */
-export async function detectObjects(imageBuffer: Buffer): Promise<YoloResponse | null> {
-    const YOLO_SERVICE_URL = process.env.YOLO_SERVICE_URL || 'http://yolo-service:5005/detect';
+export interface YoloClientOptions extends YoloQualityOptions {
+  timeoutMs?: number;
+}
 
-    try {
-        const formData = new FormData();
-        const blob = new Blob([new Uint8Array(imageBuffer)], { type: 'image/jpeg' });
-        formData.append('file', blob, 'image.jpg');
+const DEFAULT_YOLO_URL = 'http://yolo-service:5005/detect';
+const DEFAULT_TIMEOUT_MS = 12000;
 
-        const response = await fetch(YOLO_SERVICE_URL, {
-            method: 'POST',
-            body: formData,
-        });
+function buildYoloUrl(options: YoloClientOptions) {
+  const rawUrl = process.env.YOLO_SERVICE_URL || DEFAULT_YOLO_URL;
+  const url = new URL(rawUrl);
 
-        if (!response.ok) {
-            throw new Error(`YOLO Service responded with ${response.status}: ${response.statusText}`);
-        }
+  if (options.minConfidence !== undefined) url.searchParams.set('conf', String(options.minConfidence));
+  if (options.iouThreshold !== undefined) url.searchParams.set('iou', String(options.iouThreshold));
+  if (options.maxDetections !== undefined) url.searchParams.set('max_det', String(options.maxDetections));
 
-        return await response.json();
-    } catch (error) {
-        console.error('Error calling YOLO Service:', error);
-        return null;
+  return url.toString();
+}
+
+export async function detectObjects(imageBuffer: Buffer, options: YoloClientOptions = {}): Promise<YoloQualityResult | null> {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), options.timeoutMs ?? DEFAULT_TIMEOUT_MS);
+
+  try {
+    const formData = new FormData();
+    const blob = new Blob([new Uint8Array(imageBuffer)], { type: 'image/jpeg' });
+    formData.append('file', blob, 'image.jpg');
+
+    const response = await fetch(buildYoloUrl(options), {
+      method: 'POST',
+      body: formData,
+      signal: controller.signal,
+    });
+
+    if (!response.ok) {
+      throw new Error(`YOLO service responded with ${response.status}: ${response.statusText}`);
     }
-}
 
-/**
- * Calculates Intersection Over Union (IoU) for two bounding boxes.
- * Requested as part of the Yolo AI upgrade plan.
- */
-export function calculateIoU(boxA: number[], boxB: number[]): number {
-    const xA = Math.max(boxA[0], boxB[0]);
-    const yA = Math.max(boxA[1], boxB[1]);
-    const xB = Math.min(boxA[2], boxB[2]);
-    const yB = Math.min(boxA[3], boxB[3]);
-
-    const interArea = Math.max(0, xB - xA + 1) * Math.max(0, yB - yA + 1);
-    const boxAArea = (boxA[2] - boxA[0] + 1) * (boxA[3] - boxA[1] + 1);
-    const boxBArea = (boxB[2] - boxB[0] + 1) * (boxB[3] - boxB[1] + 1);
-
-    const iou = interArea / (boxAArea + boxBArea - interArea);
-    return iou;
+    const raw = (await response.json()) as YoloResponse;
+    return applyYoloQualityGate(raw, options);
+  } catch (error) {
+    console.error('Error calling YOLO Service:', error);
+    return null;
+  } finally {
+    clearTimeout(timeout);
+  }
 }
