@@ -47,6 +47,9 @@ jobs:
       - name: Module import boundary audit
         run: node scripts/audit-module-boundaries.js
 
+      - name: Module registry audit
+        run: node scripts/audit-module-registry.js
+
       - name: Developer Guide traceability audit
         run: node scripts/audit-developer-guide.js
 
