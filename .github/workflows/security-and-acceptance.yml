@@ -56,6 +56,9 @@ jobs:
       - name: Deployment and Ops evidence audit
         run: node scripts/audit-doc4.js
 
+      - name: Secure integration evidence audit
+        run: node scripts/audit-secure-integrations.js
+
       - name: Validate Prisma schemas
         run: npm run db:validate:all
         env:
