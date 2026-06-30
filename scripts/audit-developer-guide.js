@@ -15,8 +15,15 @@ const expectedFiles = [
   'src/lib/mfe/service-bus.ts',
   'src/components/mfe/cross-module-service-bus-bridge.tsx',
   'src/lib/services/offline-sync.ts',
+  'src/lib/services/offline-entity-sync.ts',
+  'src/app/(app)/example-module/page.tsx',
+  'src/components/example-module/example-module-panel.tsx',
+  'src/components/example-module/use-example-module-workflow.ts',
+  'src/lib/actions/example-module.actions.ts',
+  'src/lib/services/example-module-service.ts',
   'src/scripts/local-preflight.ts',
   'src/scripts/build-env-guard.ts',
+  'scripts/audit-module-registry.js',
   'package.json',
 ];
 
@@ -25,6 +32,10 @@ const expectedGuideSnippets = [
   'MAIN_NAV_ITEMS',
   'ADMIN_NAV_ITEMS',
   'IndexedDB',
+  'offline-entity-sync.ts',
+  'src/app/(app)/example-module',
+  'audit-module-registry.js',
+  'incident-memory:approve',
   'build-env-guard',
   'db:validate:all',
   'db:generate:all',
@@ -36,6 +47,8 @@ const expectedGuideSnippets = [
 const expectedWorkflowSnippets = [
   'Developer Guide traceability audit',
   'node scripts/audit-developer-guide.js',
+  'Module registry audit',
+  'node scripts/audit-module-registry.js',
 ];
 
 const expectedNavigationSnippets = [
