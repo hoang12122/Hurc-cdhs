@@ -26,6 +26,7 @@ export const MAIN_NAV_ITEMS: NavItem[] = [
   { path: '/rail-network', label: { en: 'Rail Network', vi: 'Mạng tuyến Metro' }, icon: Network, exact: true },
   { path: '/spatial-twin', label: { en: 'GIS/BIM Twin', vi: 'GIS/BIM Twin' }, icon: MapPinned, exact: true },
   { path: '/ai-lab', label: { en: 'AI Knowledge Lab', vi: 'AI Knowledge Lab' }, icon: BrainCircuit, exact: true },
+  { path: '/ai-lab/incident-memory', label: { en: 'Incident Memory Approval', vi: 'Phê duyệt Incident Memory' }, icon: BrainCircuit, exact: true },
   { path: '/metro/assets', label: { en: 'Metro Expert', vi: 'Chuyên gia Metro' }, icon: MetroIcon, exact: false },
 ];
 
