@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { detectObjects } from '@/lib/services/ai/manager';
+import { detectObjects } from '@/lib/services/yolo';
 
 export const dynamic = 'force-dynamic';
 
@@ -33,7 +33,6 @@ export async function POST(req: NextRequest) {
 
     const buffer = Buffer.from(await file.arrayBuffer());
     const result = await detectObjects(buffer, {
-      useLocal: true,
       minConfidence: readNumberParam(req, 'conf', 0.35, 0.05, 0.95),
       iouThreshold: readNumberParam(req, 'iou', 0.45, 0.1, 0.9),
       maxDetections: readNumberParam(req, 'max_det', 50, 1, 200),
