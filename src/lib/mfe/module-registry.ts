@@ -111,6 +111,18 @@ export const APP_MODULE_REGISTRY: AppModuleContract[] = [
     allowedOutboundEvents: ['asset:open-360'],
     productionReadiness: 'needs-data',
   },
+  {
+    id: 'example-module',
+    name: 'Example Module Scaffold',
+    routePrefix: '/example-module',
+    owner: 'Developer Guide',
+    runtimeMode: 'in-app',
+    criticality: 'experimental',
+    dataBoundary: 'none',
+    allowedInboundEvents: [],
+    allowedOutboundEvents: [],
+    productionReadiness: 'ready',
+  },
 ];
 
 export function getModuleByRoute(pathname: string) {
