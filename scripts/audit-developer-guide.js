@@ -6,6 +6,7 @@ const path = require('path');
 const root = process.cwd();
 const guidePath = path.join(root, 'docs/3_DEVELOPER_GUIDE.md');
 const workflowPath = path.join(root, '.github/workflows/security-and-acceptance.yml');
+const navigationPath = path.join(root, 'src/lib/navigation.ts');
 
 const expectedFiles = [
   'docs/3_DEVELOPER_GUIDE.md',
@@ -27,32 +28,66 @@ const expectedGuideSnippets = [
   'build-env-guard',
   'db:validate:all',
   'db:generate:all',
+  'node scripts/audit-developer-guide.js',
+  'Không dùng browser event rời rạc',
+  'Incident Memory Approval',
+];
+
+const expectedWorkflowSnippets = [
+  'Developer Guide traceability audit',
+  'node scripts/audit-developer-guide.js',
+];
+
+const expectedNavigationSnippets = [
+  '/ai-lab/incident-memory',
+  'Incident Memory Approval',
+  'Phê duyệt Incident Memory',
 ];
 
 function exists(relativePath) {
   return fs.existsSync(path.join(root, relativePath));
 }
 
+function readIfExists(filePath) {
+  return fs.existsSync(filePath) ? fs.readFileSync(filePath, 'utf8') : '';
+}
+
+let failures = 0;
+
 const missingFiles = expectedFiles.filter((file) => !exists(file));
 if (missingFiles.length > 0) {
-  console.warn('[developer-guide-audit] Missing expected evidence files:');
-  for (const file of missingFiles) console.warn(`- ${file}`);
+  failures += missingFiles.length;
+  console.error('[developer-guide-audit] Missing expected evidence files:');
+  for (const file of missingFiles) console.error(`- ${file}`);
 }
 
-if (fs.existsSync(guidePath)) {
-  const guide = fs.readFileSync(guidePath, 'utf8');
-  const missingSnippets = expectedGuideSnippets.filter((snippet) => !guide.includes(snippet));
-  if (missingSnippets.length > 0) {
-    console.warn('[developer-guide-audit] Developer Guide may be missing current implementation references:');
-    for (const snippet of missingSnippets) console.warn(`- ${snippet}`);
-  } else {
-    console.log('[developer-guide-audit] OK: Developer Guide references current implementation contracts.');
-  }
+const guide = readIfExists(guidePath);
+const missingGuideSnippets = expectedGuideSnippets.filter((snippet) => !guide.includes(snippet));
+if (missingGuideSnippets.length > 0) {
+  failures += missingGuideSnippets.length;
+  console.error('[developer-guide-audit] Developer Guide is missing current implementation references:');
+  for (const snippet of missingGuideSnippets) console.error(`- ${snippet}`);
 }
 
-if (fs.existsSync(workflowPath)) {
-  const workflow = fs.readFileSync(workflowPath, 'utf8');
-  if (!workflow.includes('Developer Guide traceability audit')) {
-    console.warn('[developer-guide-audit] CI does not include Developer Guide traceability audit yet.');
-  }
+const workflow = readIfExists(workflowPath);
+const missingWorkflowSnippets = expectedWorkflowSnippets.filter((snippet) => !workflow.includes(snippet));
+if (missingWorkflowSnippets.length > 0) {
+  failures += missingWorkflowSnippets.length;
+  console.error('[developer-guide-audit] CI is missing Developer Guide audit wiring:');
+  for (const snippet of missingWorkflowSnippets) console.error(`- ${snippet}`);
 }
+
+const navigation = readIfExists(navigationPath);
+const missingNavigationSnippets = expectedNavigationSnippets.filter((snippet) => !navigation.includes(snippet));
+if (missingNavigationSnippets.length > 0) {
+  failures += missingNavigationSnippets.length;
+  console.error('[developer-guide-audit] Navigation is missing Developer Guide referenced routes:');
+  for (const snippet of missingNavigationSnippets) console.error(`- ${snippet}`);
+}
+
+if (failures > 0) {
+  console.error(`[developer-guide-audit] FAILED with ${failures} missing evidence item(s).`);
+  process.exit(1);
+}
+
+console.log('[developer-guide-audit] OK: Developer Guide matches current implementation contracts.');
