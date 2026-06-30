@@ -59,6 +59,9 @@ jobs:
       - name: Secure integration evidence audit
         run: node scripts/audit-secure-integrations.js
 
+      - name: Lifecycle documentation audit
+        run: node scripts/audit-lifecycle-docs.js
+
       - name: Validate Prisma schemas
         run: npm run db:validate:all
         env:
