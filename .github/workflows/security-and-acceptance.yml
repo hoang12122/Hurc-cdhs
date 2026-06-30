@@ -53,6 +53,9 @@ jobs:
       - name: Developer Guide traceability audit
         run: node scripts/audit-developer-guide.js
 
+      - name: Deployment and Ops evidence audit
+        run: node scripts/audit-doc4.js
+
       - name: Validate Prisma schemas
         run: npm run db:validate:all
         env:
@@ -117,7 +120,7 @@ jobs:
 
     steps:
       - name: Checkout source
-        uses: actions/checkout@v4
+        uses: github/actions/checkout@v4
 
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v3
