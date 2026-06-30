@@ -10,6 +10,7 @@ Tài liệu này đã được đối chiếu lại với mã nguồn trên `mas
 - Offline UI hiện dùng IndexedDB thông qua `src/lib/services/offline-sync.ts`; `db.json` vẫn tồn tại như lớp local/preflight hoặc dữ liệu dự phòng, nhưng không được mô tả là cơ chế đồng bộ duy nhất.
 - Build hiện dùng `src/scripts/build-env-guard.ts` để bổ sung placeholder env khi build, không còn khuyến nghị dùng `IS_DATABASE_OFFLINE=true npm run build` như hướng dẫn cũ.
 - Tài liệu này đã được đưa vào CI qua bước `Developer Guide traceability audit`.
+- Developer Guide audit hiện là strict gate: nếu thiếu bằng chứng quan trọng trong tài liệu, navigation hoặc CI, script sẽ trả lỗi để chặn drift.
 
 ## 1. Quy trình tạo module chức năng mới
 
@@ -279,18 +280,19 @@ Cách xử lý:
 - Có offline queue qua IndexedDB.
 - Có local preflight và build env guard.
 - Có CI audit cho design rules, Vibe Code, module boundary và Developer Guide traceability.
+- Developer Guide audit đã chuyển sang strict gate để hạn chế tài liệu bị lệch khỏi phần mềm.
 
 ## 7. Điểm yếu còn lại
 
 - Một số module legacy vẫn cần tiếp tục tách hook/UI.
 - Offline queue đã có service nền nhưng cần rà soát thêm luồng đồng bộ thực tế theo từng entity.
-- Developer Guide audit hiện là audit mềm, chưa chặn cứng PR.
 - Module registry cần được cập nhật đều khi thêm module mới.
 - Cần bổ sung ví dụ module mẫu hoàn chỉnh nếu đội phát triển mở rộng nhiều phân hệ mới.
+- Cần bổ sung quyền riêng cho các module quản trị như Incident Memory Approval.
 
 ## 8. Lộ trình cải thiện tiếp theo
 
 - Bổ sung template module mẫu cho `src/app/(app)/example-module` hoặc tài liệu scaffold.
-- Bật strict mode cho Developer Guide audit khi các bằng chứng ổn định.
 - Bổ sung checklist đồng bộ offline cho từng entity.
 - Bổ sung quyền riêng cho các module quản trị như Incident Memory Approval.
+- Bổ sung audit log cho các thao tác phê duyệt quan trọng.
