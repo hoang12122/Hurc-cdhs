@@ -37,7 +37,7 @@ export async function analyzeWithGraph(query: string, options: any = {}) {
 
 export async function detectObjects(imageBuffer: Buffer, options: any = {}) {
     const { detectObjects: baseDetect } = await import('../ai');
-    return baseDetect(imageBuffer);
+    return baseDetect(imageBuffer, options);
 }
 
 export async function askVisionAI(prompt: string, image: { data: string, mimeType: string }, options: any = {}) {
