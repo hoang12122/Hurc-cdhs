@@ -1,4 +1,4 @@
-import { createHmac, timingSafeEqual } from 'crypto';
+import { createHmac, randomUUID, timingSafeEqual } from 'crypto';
 
 export type ExternalSystemKind = 'sap' | 'maximo' | 'scada' | 'gis' | 'bi' | 'cmms' | 'generic';
 export type IntegrationDirection = 'inbound' | 'outbound' | 'bidirectional';
@@ -40,7 +40,7 @@ const SENSITIVE_KEYS = new Set([
 export function createIntegrationEnvelope<TPayload>(input: Omit<IntegrationEnvelope<TPayload>, 'id' | 'occurredAt' | 'schemaVersion'>): IntegrationEnvelope<TPayload> {
   return {
     ...input,
-    id: crypto.randomUUID(),
+    id: randomUUID(),
     occurredAt: new Date().toISOString(),
     schemaVersion: '1.0',
   };
