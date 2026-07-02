@@ -83,11 +83,25 @@ const requiredLinks = [
     ],
   },
   {
+    file: 'src/app/(app)/fracas-risk-management/shamma-benchmark/page.tsx',
+    checks: [
+      'Shamma Metro Benchmark',
+      'Bảng so sánh tổng quan',
+      'Điểm mạnh HURC CDHS',
+      'Điểm yếu / khoảng cách',
+      'Cập nhật đề xuất cho phần mềm',
+      'href="/fracas-risk-management"',
+    ],
+  },
+  {
     file: 'src/lib/navigation.ts',
     checks: [
       '/fracas-risk-management',
+      '/fracas-risk-management/shamma-benchmark',
       'FRACAS / Risk Management',
       'FRACAS / Quản lý rủi ro',
+      'Shamma Benchmark',
+      'Đối chiếu Shamma',
     ],
   },
   {
@@ -123,6 +137,15 @@ const requiredLinks = [
       'Phase 1',
       'Phase 5',
       'Hướng ứng dụng AI',
+    ],
+  },
+  {
+    file: 'docs/shamma_metro_comparison_gap_assessment.md',
+    checks: [
+      'So sánh HURC CDHS với Shamma Consultancy Metro Systems',
+      'Điểm mạnh của HURC CDHS',
+      'Điểm yếu / khoảng cách của HURC CDHS',
+      'Đề xuất cập nhật phần mềm',
     ],
   },
 ];
