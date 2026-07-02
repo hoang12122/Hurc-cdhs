@@ -1,5 +1,11 @@
 import opsDb from '@/lib/db/ops-db';
-import { FALLBACK_INCIDENT_CASES, analyzeSimilarIncidents, formatIncidentLearningResult, type IncidentResolutionCase, type IncidentSubsystem } from '@/lib/incident-learning/similar-incident-engine';
+import {
+  FALLBACK_INCIDENT_CASES,
+  analyzeSimilarIncidents,
+  formatIncidentLearningResult,
+  type IncidentResolutionCase,
+  type IncidentSubsystem,
+} from '@/lib/incident-learning/similar-incident-engine';
 
 type IncidentLearningResponse = {
   answer: string;
@@ -20,7 +26,7 @@ const MAX_MEMORY_SEARCH_RECORDS = 300;
 
 function compactText(...parts: Array<unknown>) {
   return parts
-    .flatMap((part) => Array.isArray(part) ? part : [part])
+    .flatMap((part) => (Array.isArray(part) ? part : [part]))
     .filter((part) => part !== null && part !== undefined && String(part).trim().length > 0)
     .map((part) => String(part).replace(/\s+/g, ' ').trim())
     .join(' | ');
@@ -28,7 +34,7 @@ function compactText(...parts: Array<unknown>) {
 
 function compactList(...parts: Array<unknown>) {
   return parts
-    .flatMap((part) => Array.isArray(part) ? part : [part])
+    .flatMap((part) => (Array.isArray(part) ? part : [part]))
     .filter((part) => part !== null && part !== undefined && String(part).trim().length > 0)
     .map((part) => String(part).replace(/\s+/g, ' ').trim())
     .filter(Boolean)
@@ -77,7 +83,7 @@ function resolveSubsystem(...values: Array<unknown>): IncidentSubsystem {
 }
 
 function confidenceFromRecord(base: number, ...signals: Array<unknown>) {
-  const score = base + signals.reduce((total, signal) => {
+  const score = base + signals.reduce<number>((total, signal) => {
     if (Array.isArray(signal)) return total + (signal.length > 0 ? 4 : 0);
     return total + (signal ? 4 : 0);
   }, 0);
@@ -93,17 +99,7 @@ function toDate(value: unknown) {
 function dnfToIncidentCase(dnf: any): IncidentResolutionCase {
   const correctiveActions = Array.isArray(dnf.correctiveActions) ? dnf.correctiveActions : [];
   const actionTexts = correctiveActions.map((action: any) => compactText(action.description, action.status, action.responsiblePersonOrUnit));
-  const baseText = compactText(
-    dnf.failureReportNo,
-    dnf.locationOfFailure,
-    dnf.failedComponentEquipmentLRUTrainNumber,
-    dnf.descriptionOfFailure,
-    dnf.impactAssessment,
-    dnf.methodOfFailureDetection,
-    dnf.resolutionDetails,
-    dnf.immediateAction,
-    actionTexts,
-  );
+  const baseText = compactText(dnf.failureReportNo, dnf.locationOfFailure, dnf.failedComponentEquipmentLRUTrainNumber, dnf.descriptionOfFailure, dnf.impactAssessment, dnf.methodOfFailureDetection, dnf.resolutionDetails, dnf.immediateAction, actionTexts);
 
   return {
     id: `DNF-${dnf.id}`,
@@ -129,18 +125,7 @@ function dnfToIncidentCase(dnf: any): IncidentResolutionCase {
 }
 
 function hazardToIncidentCase(hazard: any): IncidentResolutionCase {
-  const baseText = compactText(
-    hazard.description,
-    hazard.systemGroup,
-    hazard.locationIds,
-    hazard.source,
-    hazard.potentialConsequence,
-    hazard.currentControls,
-    hazard.proposedActions,
-    hazard.suggestedActions,
-    hazard.closureDetails,
-    hazard.verificationDetails,
-  );
+  const baseText = compactText(hazard.description, hazard.systemGroup, hazard.locationIds, hazard.source, hazard.potentialConsequence, hazard.currentControls, hazard.proposedActions, hazard.suggestedActions, hazard.closureDetails, hazard.verificationDetails);
 
   return {
     id: `HAZARD-${hazard.id}`,
@@ -249,27 +234,10 @@ export async function getIncidentLearningCasesFromOpsDb(): Promise<IncidentResol
   if (!opsDb) return [];
 
   const [dnfs, hazards, tasks, inspections] = await Promise.all([
-    opsDb.dnfDocument.findMany({
-      where: { deletedAt: null, isArchived: false },
-      orderBy: [{ updatedAt: 'desc' }, { createdAt: 'desc' }],
-      take: MAX_RECORDS_PER_SOURCE,
-      include: { correctiveActions: true },
-    }),
-    opsDb.hazardRecord.findMany({
-      where: { deletedAt: null, isArchived: false },
-      orderBy: [{ updatedAt: 'desc' }, { createdAt: 'desc' }],
-      take: MAX_RECORDS_PER_SOURCE,
-    }),
-    opsDb.task.findMany({
-      where: { deletedAt: null },
-      orderBy: [{ updatedAt: 'desc' }, { createdAt: 'desc' }],
-      take: MAX_RECORDS_PER_SOURCE,
-    }),
-    opsDb.inspectionDetail.findMany({
-      where: { deletedAt: null, isArchived: false },
-      orderBy: [{ lastStatusUpdateAt: 'desc' }, { date: 'desc' }],
-      take: MAX_RECORDS_PER_SOURCE,
-    }),
+    opsDb.dnfDocument.findMany({ where: { deletedAt: null, isArchived: false }, orderBy: [{ updatedAt: 'desc' }, { createdAt: 'desc' }], take: MAX_RECORDS_PER_SOURCE, include: { correctiveActions: true } }),
+    opsDb.hazardRecord.findMany({ where: { deletedAt: null, isArchived: false }, orderBy: [{ updatedAt: 'desc' }, { createdAt: 'desc' }], take: MAX_RECORDS_PER_SOURCE }),
+    opsDb.task.findMany({ where: { deletedAt: null }, orderBy: [{ updatedAt: 'desc' }, { createdAt: 'desc' }], take: MAX_RECORDS_PER_SOURCE }),
+    opsDb.inspectionDetail.findMany({ where: { deletedAt: null, isArchived: false }, orderBy: [{ lastStatusUpdateAt: 'desc' }, { date: 'desc' }], take: MAX_RECORDS_PER_SOURCE }),
   ]);
 
   return [
