@@ -1,13 +1,14 @@
 import type { ReactNode } from 'react';
 import { RamsOccDashboardPanel } from '@/components/rams/rams-occ-dashboard-panel';
 import { getDnfRecords } from '@/lib/actions/dnf.actions';
+import type { DnfDocument } from '@/lib/types';
 
 interface DashboardLayoutProps {
   children: ReactNode;
 }
 
 export default async function DashboardLayout({ children }: DashboardLayoutProps) {
-  let records = [];
+  let records: DnfDocument[] = [];
 
   try {
     records = await getDnfRecords();
