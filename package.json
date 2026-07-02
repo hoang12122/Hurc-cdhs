@@ -13,6 +13,7 @@
     "start": "next start",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
+    "audit:linkage": "node scripts/audit-software-linkage.js",
     "check-updates": "ncu",
     "migrate": "npx tsx src/scripts/migrate-json-to-pg.ts",
     "db:ops:migrate": "npx tsx src/scripts/safe-migrate.ts ops",
