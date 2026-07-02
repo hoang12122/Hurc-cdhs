@@ -62,6 +62,9 @@ jobs:
       - name: Lifecycle documentation audit
         run: node scripts/audit-lifecycle-docs.js
 
+      - name: openMAINT benchmark evidence audit
+        run: node scripts/audit-openmaint-benchmark.js
+
       - name: Validate Prisma schemas
         run: npm run db:validate:all
         env:
