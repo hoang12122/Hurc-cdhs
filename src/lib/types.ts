@@ -1,5 +1,3 @@
-
-
 import type { LucideIcon } from 'lucide-react';
 
 export type Locale = 'en' | 'vi';
@@ -25,9 +23,9 @@ export interface NavItem {
 export interface ImageAttachment {
   id?: string;
   url?: string;
-  name: string;
+  name?: string;
   size?: number;
-  type?: string; // 'image' | 'pdf' | 'doc' | etc.
+  type?: string;
   'data-ai-hint'?: string;
   isAnalyzing?: boolean;
   aiAnalysisResult?: string;
@@ -42,16 +40,16 @@ export interface StatusHistory {
 }
 
 export interface GeoLocation {
-    latitude: number;
-    longitude: number;
+  latitude: number;
+  longitude: number;
 }
 
 export type UserRole = "SUPER_ADMIN" | "MANAGER" | "TECHNICIAN" | "Admin (P.KTAT)" | "Chuyên viên (L3)" | "Kỹ thuật viên (L2)" | "Nhân viên (L1)" | "Client";
 
 export interface SystemPermission {
-    id: string;
-    label: NavItemLabel;
-    group: NavItemLabel;
+  id: string;
+  label: NavItemLabel;
+  group: NavItemLabel;
 }
 
 export interface User {
@@ -80,7 +78,6 @@ export interface User {
   ouId?: string | null;
 }
 
-
 export interface Role {
   id: string;
   name: string;
@@ -92,14 +89,14 @@ export type LogLevel = 'INFO' | 'WARNING' | 'ERROR' | 'CRITICAL';
 export type SystemLogCategory = 'data' | 'network' | 'security' | 'system' | 'maintenance' | 'ai';
 
 export interface SystemLog {
-    id: string;
-    timestamp: string;
-    userId: string;
-    userName: string;
-    action: string;
-    level: LogLevel;
-    details: string;
-    category: SystemLogCategory;
+  id: string;
+  timestamp: string;
+  userId: string;
+  userName: string;
+  action: string;
+  level: LogLevel;
+  details: string;
+  category: SystemLogCategory;
 }
 
 export interface Notification {
@@ -112,8 +109,8 @@ export interface Notification {
 }
 
 export interface SystemState {
-    lastSchedulerRun?: string;
-    aiModelConfig?: string;
+  lastSchedulerRun?: string;
+  aiModelConfig?: string;
 }
 
 export interface PasswordResetRequest {
@@ -145,8 +142,6 @@ export interface DbData {
   todos: TodoTask[];
 }
 
-// ============== TODO & WORK PROGRESS TYPES =================
-
 export type TodoStatus = 'New' | 'To Do' | 'In Progress' | 'In Review' | 'Done' | 'On Hold' | 'Cancelled';
 export type TodoPriority = 'High' | 'Medium' | 'Low';
 export type TodoVisibility = 'private' | 'public';
@@ -168,12 +163,12 @@ export interface TodoTask {
   description?: string;
   status: TodoStatus;
   priority: TodoPriority;
-  dueDate: string; // ISO
-  deadline?: string; // ISO, optional deadline for conflict resolution
-  progress: number; // 0-100
+  dueDate: string;
+  deadline?: string;
+  progress: number;
   createdById: string;
   createdByName: string;
-  assignedToId?: string; // If public, can be assigned
+  assignedToId?: string;
   assignedToName?: string;
   visibility: TodoVisibility;
   createdAt: string;
@@ -181,18 +176,15 @@ export interface TodoTask {
   isNotified24h?: boolean;
   comments?: Comment[];
   attachments?: ImageAttachment[];
-  /** Hierarchical fields */
   parentId?: string;
   todoType?: 'Task' | 'WorkPackage' | 'Milestone';
   department?: string;
-  startDate?: string; // ISO
+  startDate?: string;
   estimatedHours?: number;
   spentHours?: number;
-  watchers?: string[]; // Array of User IDs
+  watchers?: string[];
   activityHistory?: TaskActivity[];
 }
-
-// ============== CATEGORY TYPES =================
 
 export interface ResponsibleUnit {
   id: string;
@@ -209,23 +201,18 @@ export interface PatrolLocation {
   label: string;
 }
 
-// ============== COMMENT TYPE ===================
 export interface Comment {
-    id: string;
-    entityId: string; // ID of the DNF, Hazard, etc.
-    senderId: string;
-    senderName: string;
-    timestamp: string;
-    content: string;
-    isInternal?: boolean; // For secret level-to-level communication
+  id: string;
+  entityId: string;
+  senderId: string;
+  senderName: string;
+  timestamp: string;
+  content: string;
+  isInternal?: boolean;
 }
-
-
-// ============ MAINTENANCE STANDARDS ============
 
 export type MaintenanceFrequency = 'general' | 'daily' | 'weekly' | 'monthly' | 'quarterly' | 'yearly';
 export type ToleranceOperator = '±' | '>' | '<' | '>=' | '<=' | '==';
-
 
 export interface MaintenanceStandard {
   id: string;
@@ -233,27 +220,25 @@ export interface MaintenanceStandard {
   name_en?: string;
   description?: string;
   frequency?: MaintenanceFrequency;
-  scheduledTime?: string; // HH:mm
+  scheduledTime?: string;
   locationIds?: string[];
-  recipientId?: string; // User ID
+  recipientId?: string;
   abbreviation?: string;
   estimatedDurationHours?: number;
 }
 
 export interface MaintenanceStandardItem {
-    id: string;
-    standardId: string;
-    itemCode: string;
-    itemText: string;
-    criteria?: string;
-    unit?: string;
-    standardQuantity?: number;
-    toleranceOperator?: ToleranceOperator;
-    toleranceValue?: number;
-    requiredTools?: string;
+  id: string;
+  standardId: string;
+  itemCode: string;
+  itemText: string;
+  criteria?: string;
+  unit?: string;
+  standardQuantity?: number;
+  toleranceOperator?: ToleranceOperator;
+  toleranceValue?: number;
+  requiredTools?: string;
 }
-
-// ============ INSPECTION TYPES ============
 
 export type InspectionStatus = "Mới" | "Đánh giá" | "Xử lý" | "Phản hồi" | "Đóng" | "Hủy";
 
@@ -304,12 +289,10 @@ export interface InspectionDetail {
   isArchived?: boolean;
 }
 
-// ============ DNF & CORRECTIVE ACTION TYPES ============
-
 export type CorrectiveActionStatus = 'Mới' | 'Đang thực hiện' | 'Hoàn thành' | 'Đã xác minh';
 
 export interface CorrectiveAction {
-    id?: string;
+  id?: string;
   dnfId: string;
   description?: string;
   responsiblePersonOrUnit?: string;
@@ -324,7 +307,6 @@ export interface CorrectiveAction {
   verificationTime?: number;
   totalDownTime?: number;
 }
-
 
 export type DnfStatus = "Mới" | "Đánh giá" | "Xử lý" | "Phản hồi" | "Đóng" | "Hủy";
 
@@ -354,19 +336,15 @@ export interface DnfDocument {
   completedDate?: string;
   originatingInspectionId?: string;
   originatingFindingId?: string;
-
-  // New fields from form
   immediateAction?: string;
   problemResettable?: boolean;
   trainServiceAffected?: boolean;
   trainWithdrawn?: boolean;
   systemRestoredTime?: string;
-  disruptionDuration?: number; // in minutes
+  disruptionDuration?: number;
   trainKm?: number;
   rectificationParty?: string;
 }
-
-// ============ HAZARD TYPES ============
 
 export type HazardStatus = "Mới" | "Đánh giá" | "Xử lý" | "Phản hồi" | "Đóng" | "Hủy";
 
@@ -378,7 +356,7 @@ export interface HazardRecord {
   source?: string;
   potentialConsequence?: string;
   identifiedBy: string;
-  identificationDate: string; // ISO String
+  identificationDate: string;
   severityId?: string;
   likelihoodId?: string;
   riskLevelId?: string;
@@ -387,7 +365,7 @@ export interface HazardRecord {
   suggestedActions?: string;
   responsiblePersonOrUnit?: string;
   coordinatingUnits?: string[];
-  dueDate?: string; // ISO String
+  dueDate?: string;
   status: HazardStatus;
   closureDetails?: string;
   verificationDetails?: string;
@@ -400,27 +378,23 @@ export interface HazardRecord {
   statusHistory?: StatusHistory[];
 }
 
-// ============ IMPROVEMENT TYPES ============
-
 export type ImprovementStatus = "Mới" | "Đang xem xét" | "Đã duyệt" | "Đang thực hiện" | "Hoàn thành" | "Đã từ chối";
 
 export interface Improvement {
   id: string;
   title?: string;
-  description: string;
-  category: string;
+  description?: string;
+  category?: string;
   status?: ImprovementStatus;
   submittedBy: string;
   createdById: string;
-  submissionDate: string; // ISO string
-  updatedAt: string; // ISO string
+  submissionDate: string;
+  updatedAt: string;
   benefitAnalysis?: string;
   estimatedCost?: number;
   attachments?: ImageAttachment[];
 }
 
-
-// ============ UNIFIED TASK TYPE ============
 export interface UnifiedTask {
   id: string;
   title: string;
