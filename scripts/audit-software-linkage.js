@@ -70,6 +70,27 @@ const requiredLinks = [
     ],
   },
   {
+    file: 'src/app/(app)/fracas-risk-management/page.tsx',
+    checks: [
+      'Lộ trình FRACAS, Automation và AI',
+      '05 Phase triển khai FRACAS',
+      'Hướng tự động hóa',
+      'Hướng ứng dụng AI',
+      'Lộ trình kỹ thuật tiếp theo',
+      'href="/dnf"',
+      'href="/hazards"',
+      'href="/dashboard"',
+    ],
+  },
+  {
+    file: 'src/lib/navigation.ts',
+    checks: [
+      '/fracas-risk-management',
+      'FRACAS / Risk Management',
+      'FRACAS / Quản lý rủi ro',
+    ],
+  },
+  {
     file: 'src/lib/actions/dnf.actions.ts',
     checks: [
       'export async function getDnfRecords',
@@ -93,6 +114,15 @@ const requiredLinks = [
       '8 và 9',
       '16',
       'Đã thực hiện',
+    ],
+  },
+  {
+    file: 'docs/fracas_phase_automation_ai_roadmap.md',
+    checks: [
+      'Nghiên cứu triển khai FRACAS theo Phase, Automation và AI',
+      'Phase 1',
+      'Phase 5',
+      'Hướng ứng dụng AI',
     ],
   },
 ];
