@@ -1,4 +1,6 @@
 import type { ReactNode } from 'react';
+import { FracasPhaseTracker } from '@/components/fracas/fracas-phase-tracker';
+import { PredictiveRamsPanel } from '@/components/rams/predictive-rams-panel';
 import { RamsOccDashboardPanel } from '@/components/rams/rams-occ-dashboard-panel';
 import { getDnfRecords } from '@/lib/actions/dnf.actions';
 import type { DnfDocument } from '@/lib/types';
@@ -12,14 +14,16 @@ export default async function DashboardLayout({ children }: DashboardLayoutProps
 
   try {
     records = await getDnfRecords();
-  } catch (error) {
-    console.error('[dashboard-rams] Could not load DNF records for RAMS OCC panel:', error);
+  } catch {
+    records = [];
   }
 
   return (
     <div className="flex flex-col gap-6">
       {children}
+      <FracasPhaseTracker records={records} />
       <RamsOccDashboardPanel records={records} />
+      <PredictiveRamsPanel records={records} />
     </div>
   );
 }
