@@ -12,6 +12,8 @@
 
 # testing
 /coverage
+/playwright-report/
+/test-results/
 
 # next.js
 /.next/
@@ -23,6 +25,11 @@
 # misc
 .DS_Store
 *.pem
+*.key
+*.crt
+*.bak
+*.tmp
+*.temp
 
 # debug
 npm-debug.log*
@@ -45,14 +52,23 @@ firebase-debug.log
 firestore-debug.log
 /src/generated/prisma
 
-# Runtime logs
+# Runtime logs and reports
 /logs/
+/audit_reports/
+/reports/tmp/
 
-# Local database & AI model data
+# Local database and AI model data
 /data/postgres/
 /data/mongo/
 /data/ollama/
 /data/offline/
+/data/models/
+/models/checkpoints/
+
+# Local temporary workspace
+/tmp/
+/.cache/
+/cache/
 
 # Compiled files
 /dist/
@@ -60,5 +76,3 @@ firestore-debug.log
 
 # Backups
 /backups/
-
-
