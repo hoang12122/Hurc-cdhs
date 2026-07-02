@@ -66,6 +66,10 @@ function clampScore(value: number) {
   return Math.max(0, Math.min(100, Math.round(value)));
 }
 
+function compactReasons(values: Array<string | undefined | null | false>) {
+  return values.filter((value): value is string => Boolean(value));
+}
+
 function safeDate(value?: string) {
   if (!value) return undefined;
   const date = new Date(value);
@@ -202,12 +206,12 @@ function scoreRecord(record: DnfDocument, operatingMinutes: number): RamsQuickRe
     safetyPenalty * 0.15,
   );
 
-  const highlightReasons = [
+  const highlightReasons = compactReasons([
     ...serviceImpact.reasons,
-    mttrMinutes >= 60 ? `High MTTR ${mttrMinutes} min` : '',
-    availabilityPenalty >= 10 ? `Availability loss ${availabilityPenalty}` : '',
-    record.hazardLevelId ? `Hazard level ${record.hazardLevelId}` : '',
-  ].filter(Boolean);
+    mttrMinutes >= 60 ? `High MTTR ${mttrMinutes} min` : undefined,
+    availabilityPenalty >= 10 ? `Availability loss ${availabilityPenalty}` : undefined,
+    record.hazardLevelId ? `Hazard level ${record.hazardLevelId}` : undefined,
+  ]);
 
   return {
     id: record.id,
