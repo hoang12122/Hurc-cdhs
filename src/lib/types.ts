@@ -318,7 +318,7 @@ export interface DnfDocument {
   subsystemIds?: string[];
   descriptionOfFailure?: string;
   impactAssessment?: string;
-  staffWhoIdentifiedFailure: string;
+  staffWhoIdentifiedFailure?: string;
   dateTimeOfFailureOccurrence: string;
   methodOfFailureDetection: string;
   hazardLevelId?: 'high' | 'medium' | 'low';
@@ -355,7 +355,7 @@ export interface HazardRecord {
   locationIds: string[];
   source?: string;
   potentialConsequence?: string;
-  identifiedBy: string;
+  identifiedBy?: string;
   identificationDate: string;
   severityId?: string;
   likelihoodId?: string;
