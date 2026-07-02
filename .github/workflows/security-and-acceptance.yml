@@ -65,6 +65,9 @@ jobs:
       - name: openMAINT benchmark evidence audit
         run: node scripts/audit-openmaint-benchmark.js
 
+      - name: Software linkage audit
+        run: npm run audit:linkage
+
       - name: Validate Prisma schemas
         run: npm run db:validate:all
         env:
@@ -135,9 +138,6 @@ jobs:
         uses: github/codeql-action/init@v3
         with:
           languages: ${{ matrix.language }}
-
-      - name: Autobuild
-        uses: github/codeql-action/autobuild@v3
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v3
