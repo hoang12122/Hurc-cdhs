@@ -115,10 +115,18 @@ OCC có thể ưu tiên theo dõi các hotspot có riskLevel High/Critical, RAMS
 
 ## 5. Cấu phần đã bổ sung trong phần mềm
 
-File mới:
+File logic:
 
 ```text
 src/lib/rams/rams-risk-engine.ts
+src/lib/rams/index.ts
+```
+
+File giao diện:
+
+```text
+src/components/rams/rams-occ-dashboard-panel.tsx
+src/app/(app)/dashboard/layout.tsx
 ```
 
 Hàm chính:
@@ -160,12 +168,12 @@ occHighlights
 4. Các hotspot High/Critical cần được chuyển cho đơn vị phụ trách để rà soát nguyên nhân, biện pháp khắc phục và cập nhật hồ sơ rủi ro.
 5. Khi có dữ liệu chính thức từ hệ thống vận hành/bảo trì, cần hiệu chỉnh trọng số và ngưỡng phân loại phù hợp quy định nội bộ.
 
-## 7. Hướng tích hợp tiếp theo
+## 7. Tình trạng tích hợp
 
-| Giai đoạn | Nội dung |
-|---|---|
-| P1 | Gắn RAMS quick summary vào dashboard OCC. |
-| P2 | Tạo widget Trending RAMS theo ngày/tuần/tháng. |
-| P3 | Tạo widget Hotspot theo ga, hệ thống và thiết bị. |
-| P4 | Gắn link từ hotspot về DNF/Hazard Log liên quan. |
-| P5 | Hiệu chỉnh trọng số theo dữ liệu vận hành thật và quy định nội bộ. |
+| Giai đoạn | Nội dung | Trạng thái |
+|---|---|---|
+| P1 | Gắn RAMS quick summary vào dashboard OCC. | Đã thực hiện |
+| P2 | Tạo widget Trending RAMS theo ngày/tuần/tháng. | Đã thực hiện |
+| P3 | Tạo widget Hotspot theo ga, hệ thống và thiết bị. | Đã thực hiện |
+| P4 | Gắn link từ dashboard về DNF/Hazard Log liên quan. | Đã gắn link về DNF; Hazard Log sẽ tích hợp sâu ở bước sau |
+| P5 | Hiệu chỉnh trọng số theo dữ liệu vận hành thật và quy định nội bộ. | Chờ dữ liệu chính thức |
