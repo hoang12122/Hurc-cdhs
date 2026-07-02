@@ -1,8 +1,7 @@
-
-"use client"; 
+"use client";
 
 import { HazardForm } from "@/components/hazards/hazard-form";
-import { ShieldAlert } from "lucide-react"; 
+import { ShieldAlert } from "lucide-react";
 import { useLanguage } from "@/contexts/language-context";
 import * as React from "react";
 import { useSearchParams } from "next/navigation";
@@ -10,13 +9,15 @@ import { type HazardRecord, MOCK_CURRENT_USER } from "@/lib/constants";
 import { useAuth } from "@/contexts/auth-context";
 
 const pageTranslations = {
-  vi: { 
+  vi: {
       title: "Tạo Phiếu Ghi Mối Nguy Mới",
       sourceFromAi: (id: string) => `Phân tích AI từ báo cáo #${id}`,
+      sourceFromDnf: (id: string) => `Tạo từ báo cáo DNF #${id}`,
   },
-  en: { 
+  en: {
       title: "Create New Hazard Record",
       sourceFromAi: (id: string) => `AI Analysis from report #${id}`,
+      sourceFromDnf: (id: string) => `Created from DNF #${id}`,
   }
 };
 
@@ -26,10 +27,7 @@ export default function NewHazardPage() {
   const { user: authUser } = useAuth();
 
   const currentTitle = pageTranslations[locale].title;
-
   const [initialData, setInitialData] = React.useState<Partial<HazardRecord>>({});
-  
-  // Extract reportId to pass to the form for updating the suggestion status upon creation
   const reportId = searchParams.get('reportId') || undefined;
 
   React.useEffect(() => {
@@ -37,7 +35,6 @@ export default function NewHazardPage() {
   }, [currentTitle, locale]);
 
   React.useEffect(() => {
-    // Check for query params to pre-fill the form
     const originatingDnfId = searchParams.get('originatingDnfId');
     const sourceReportId = searchParams.get('reportId');
     const locationOfFailure = searchParams.get('locationOfFailure');
@@ -46,9 +43,12 @@ export default function NewHazardPage() {
         setInitialData({
             linkedDnfId: originatingDnfId,
             description: searchParams.get('suggestedDescription') || '',
-            // If it comes from an AI report, set the source and identifiedBy to the approver (current user).
-            source: sourceReportId ? pageTranslations[locale].sourceFromAi(sourceReportId) : 'Thủ công',
-            identifiedBy: sourceReportId ? (authUser?.name || MOCK_CURRENT_USER.name) : undefined,
+            potentialConsequence: searchParams.get('suggestedConsequence') || '',
+            currentControls: searchParams.get('suggestedControls') || '',
+            systemGroup: searchParams.get('suggestedSystemGroup') || '',
+            proposedActions: searchParams.get('suggestedProposedActions') || undefined,
+            source: sourceReportId ? pageTranslations[locale].sourceFromAi(sourceReportId) : pageTranslations[locale].sourceFromDnf(originatingDnfId),
+            identifiedBy: authUser?.name || MOCK_CURRENT_USER.name,
             severityId: searchParams.get('suggestedSeverityId') || undefined,
             likelihoodId: searchParams.get('suggestedLikelihoodId') || undefined,
             locationIds: locationOfFailure ? [locationOfFailure] : [],
@@ -59,7 +59,7 @@ export default function NewHazardPage() {
   return (
     <div className="container mx-auto py-8">
       <div className="flex items-center gap-3 mb-8">
-        <ShieldAlert className="h-8 w-8 text-primary" /> 
+        <ShieldAlert className="h-8 w-8 text-primary" />
         <h1 className="text-3xl font-bold font-headline text-primary">{currentTitle}</h1>
       </div>
       <HazardForm initialData={initialData} sourceReportId={reportId} />
