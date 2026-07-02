@@ -13,7 +13,8 @@ import {
     TrainFront as MetroIcon,
     Network,
     MapPinned,
-    Workflow
+    Workflow,
+    GitCompare
 } from 'lucide-react';
 
 export const MAIN_NAV_ITEMS: NavItem[] = [
@@ -23,6 +24,7 @@ export const MAIN_NAV_ITEMS: NavItem[] = [
   { path: '/dnf', label: { en: 'Incidents (DNF)', vi: 'Quản lý Sự cố (DNF)' }, icon: FileWarning, exact: false },
   { path: '/hazards', label: { en: 'Hazard Management', vi: 'Quản lý Mối nguy' }, icon: ShieldAlert, exact: false },
   { path: '/fracas-risk-management', label: { en: 'FRACAS / Risk Management', vi: 'FRACAS / Quản lý rủi ro' }, icon: Workflow, exact: true },
+  { path: '/fracas-risk-management/shamma-benchmark', label: { en: 'Shamma Benchmark', vi: 'Đối chiếu Shamma' }, icon: GitCompare, exact: true },
   { path: '/improvements', label: { en: 'Improvements', vi: 'Quản lý Cải tiến' }, icon: Lightbulb, exact: false },
   { path: '/asset-360', label: { en: 'Asset 360', vi: 'Tài sản 360 (Digital Twin)' }, icon: LayoutDashboard, exact: false },
   { path: '/rail-network', label: { en: 'Rail Network', vi: 'Mạng tuyến Metro' }, icon: Network, exact: true },
