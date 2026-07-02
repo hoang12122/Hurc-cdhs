@@ -1,4 +1,3 @@
-import { AI_CONFIG } from "../../config/ai-config";
 import { askAI as askBaseAI, askWithRAG as askBaseRAG, agentChat as baseAgentChat, askPersonalized as baseAskPersonalized } from "../ai";
 
 /**
@@ -35,9 +34,9 @@ export async function analyzeWithGraph(query: string, options: any = {}) {
     return baseGraph(query, options);
 }
 
-export async function detectObjects(imageBuffer: Buffer, options: any = {}) {
+export async function detectObjects(imageBuffer: Buffer, _options: any = {}) {
     const { detectObjects: baseDetect } = await import('../ai');
-    return baseDetect(imageBuffer, options);
+    return baseDetect(imageBuffer);
 }
 
 export async function askVisionAI(prompt: string, image: { data: string, mimeType: string }, options: any = {}) {
