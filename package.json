@@ -30,7 +30,6 @@
     "db:dashboard": "npx tsx src/scripts/generate-integrity-dashboard.ts"
   },
   "dependencies": {
-    "@ducanh2912/next-pwa": "^10.2.9",
     "@emnapi/core": "^1.10.0",
     "@emnapi/runtime": "^1.10.0",
     "@google/generative-ai": "^0.24.1",
@@ -73,9 +72,9 @@
     "mammoth": "^1.12.0",
     "mongodb": "^6.13.0",
     "net-snmp": "^3.7.1",
-    "next": "^14.2.35",
+    "next": "^16.2.10",
     "next-themes": "^0.4.6",
-    "nodemailer": "^8.0.6",
+    "nodemailer": "^9.0.3",
     "pdf-parse": "2.2.2",
     "pg": "^8.20.0",
     "qrcode": "^1.5.4",
