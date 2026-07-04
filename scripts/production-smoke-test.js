@@ -5,6 +5,7 @@ const START_COMMAND = process.env.SMOKE_START_COMMAND || 'npm';
 const START_ARGS = process.env.SMOKE_START_ARGS ? process.env.SMOKE_START_ARGS.split(' ') : ['run', 'start'];
 const TIMEOUT_MS = Number(process.env.SMOKE_TIMEOUT_MS || 120000);
 const POLL_INTERVAL_MS = Number(process.env.SMOKE_POLL_INTERVAL_MS || 2000);
+const SHUTDOWN_TIMEOUT_MS = Number(process.env.SMOKE_SHUTDOWN_TIMEOUT_MS || 5000);
 
 const routes = [
   { path: '/api/health', expectJsonStatus: 'healthy', maxStatus: 299 },
@@ -68,10 +69,51 @@ async function checkRoute(route) {
   console.log(`[SMOKE] PASS ${route.path} -> ${response.status}`);
 }
 
+function terminateProcess(child, signal) {
+  if (!child.pid) return;
+
+  try {
+    if (process.platform === 'win32') {
+      child.kill(signal);
+    } else {
+      process.kill(-child.pid, signal);
+    }
+  } catch (error) {
+    if (error && error.code !== 'ESRCH') {
+      console.warn(`[SMOKE] Failed to send ${signal}:`, error.message || error);
+    }
+  }
+}
+
+async function stopServer(child) {
+  if (!child || child.exitCode !== null) return;
+
+  await new Promise((resolve) => {
+    let resolved = false;
+
+    const finish = () => {
+      if (resolved) return;
+      resolved = true;
+      clearTimeout(forceTimer);
+      resolve();
+    };
+
+    const forceTimer = setTimeout(() => {
+      terminateProcess(child, 'SIGKILL');
+      finish();
+    }, SHUTDOWN_TIMEOUT_MS);
+
+    child.once('close', finish);
+    child.once('exit', finish);
+    terminateProcess(child, 'SIGTERM');
+  });
+}
+
 async function main() {
   console.log(`[SMOKE] Starting production server: ${START_COMMAND} ${START_ARGS.join(' ')}`);
   const child = spawn(START_COMMAND, START_ARGS, {
     stdio: ['ignore', 'pipe', 'pipe'],
+    detached: process.platform !== 'win32',
     env: {
       ...process.env,
       NODE_ENV: 'production',
@@ -95,9 +137,7 @@ async function main() {
     }
     console.log('[SMOKE] Production smoke test passed.');
   } finally {
-    child.kill('SIGTERM');
-    await sleep(1000);
-    if (!child.killed) child.kill('SIGKILL');
+    await stopServer(child);
   }
 }
 
