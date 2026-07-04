@@ -33,43 +33,46 @@ jobs:
           cache: npm
 
       - name: Install dependencies from lockfile
-        run: npm ci --include=dev --ignore-scripts
+        run: node scripts/run-build-phase.js "Install dependencies" -- npm ci --include=dev --ignore-scripts
 
       - name: Design rules file-size boundary
-        run: node scripts/check-file-size-boundaries.js --warn
+        run: node scripts/run-build-phase.js "Design rules file-size boundary" -- node scripts/check-file-size-boundaries.js --warn
 
       - name: Changed-file design boundary gate
-        run: node scripts/check-changed-file-size-boundaries.js
+        run: node scripts/run-build-phase.js "Changed-file design boundary gate" -- node scripts/check-changed-file-size-boundaries.js
 
       - name: Vibe Code rules audit
-        run: node scripts/check-vibe-code-rules.js --warn
+        run: node scripts/run-build-phase.js "Vibe Code rules audit" -- node scripts/check-vibe-code-rules.js --warn
 
       - name: Module import boundary audit
-        run: node scripts/audit-module-boundaries.js
+        run: node scripts/run-build-phase.js "Module import boundary audit" -- node scripts/audit-module-boundaries.js
 
       - name: Module registry audit
-        run: node scripts/audit-module-registry.js
+        run: node scripts/run-build-phase.js "Module registry audit" -- node scripts/audit-module-registry.js
 
       - name: Developer Guide traceability audit
-        run: node scripts/audit-developer-guide.js
+        run: node scripts/run-build-phase.js "Developer Guide traceability audit" -- node scripts/audit-developer-guide.js
 
       - name: Deployment and Ops evidence audit
-        run: node scripts/audit-doc4.js
+        run: node scripts/run-build-phase.js "Deployment and Ops evidence audit" -- node scripts/audit-doc4.js
 
       - name: Secure integration evidence audit
-        run: node scripts/audit-secure-integrations.js
+        run: node scripts/run-build-phase.js "Secure integration evidence audit" -- node scripts/audit-secure-integrations.js
 
       - name: Lifecycle documentation audit
-        run: node scripts/audit-lifecycle-docs.js
+        run: node scripts/run-build-phase.js "Lifecycle documentation audit" -- node scripts/audit-lifecycle-docs.js
 
       - name: openMAINT benchmark evidence audit
-        run: node scripts/audit-openmaint-benchmark.js
+        run: node scripts/run-build-phase.js "openMAINT benchmark evidence audit" -- node scripts/audit-openmaint-benchmark.js
 
       - name: Software linkage audit
-        run: npm run audit:linkage
+        run: node scripts/run-build-phase.js "Software linkage audit" -- npm run audit:linkage
+
+      - name: Six-step upgrade audit
+        run: node scripts/run-build-phase.js "Six-step upgrade audit" -- node scripts/audit-six-step-upgrades.js
 
       - name: Validate Prisma schemas
-        run: npm run db:validate:all
+        run: node scripts/run-build-phase.js "Validate Prisma schemas" -- npm run db:validate:all
         env:
           AUTH_DATABASE_URL: postgresql://build:placeholder@localhost:5432/auth
           AI_DATABASE_URL: postgresql://build:placeholder@localhost:5432/ai
@@ -78,7 +81,7 @@ jobs:
           DATABASE_URL: postgresql://build:placeholder@localhost:5432/main
 
       - name: Generate Prisma clients
-        run: npm run db:generate:all
+        run: node scripts/run-build-phase.js "Generate Prisma clients" -- npm run db:generate:all
         env:
           AUTH_DATABASE_URL: postgresql://build:placeholder@localhost:5432/auth
           AI_DATABASE_URL: postgresql://build:placeholder@localhost:5432/ai
@@ -87,16 +90,16 @@ jobs:
           DATABASE_URL: postgresql://build:placeholder@localhost:5432/main
 
       - name: GIS/BIM import dry-run validation
-        run: npm run import:gis-bim:dry-run
+        run: node scripts/run-build-phase.js "GIS/BIM import dry-run validation" -- npm run import:gis-bim:dry-run
 
       - name: Static type check
-        run: npm run typecheck
+        run: node scripts/run-build-phase.js "Static type check" -- npm run typecheck
 
       - name: Next.js lint
-        run: npm run lint
+        run: node scripts/run-build-phase.js "Next.js lint" -- npm run lint
 
       - name: Production build
-        run: npm run build
+        run: node scripts/run-build-phase.js "Production build" -- npm run build
         env:
           NEXT_PUBLIC_SETUP_COMPLETE: 'true'
           SESSION_SECRET: ci_placeholder_secret_for_acceptance_gate
@@ -107,7 +110,7 @@ jobs:
           DATABASE_URL: postgresql://build:placeholder@localhost:5432/main
 
       - name: Production route smoke test
-        run: node scripts/production-smoke-test.js
+        run: node scripts/run-build-phase.js "Production route smoke test" -- node scripts/production-smoke-test.js
         env:
           NEXT_PUBLIC_SETUP_COMPLETE: 'true'
           SESSION_SECRET: ci_placeholder_secret_for_smoke_test
@@ -118,7 +121,15 @@ jobs:
           DATABASE_URL: postgresql://smoke:placeholder@localhost:5432/main
 
       - name: Production dependency audit
-        run: npm audit --audit-level=high --omit=dev
+        run: node scripts/run-build-phase.js "Production dependency audit" -- npm audit --audit-level=high --omit=dev
+
+      - name: Upload build phase logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-phase-logs-${{ github.run_id }}
+          path: .build-logs/
+          if-no-files-found: ignore
 
   codeql-analysis:
     name: CodeQL Static Security Analysis
