@@ -16,9 +16,9 @@ permissions:
 
 jobs:
   build-quality-gate:
-    name: Security, Typecheck, Lint and Dependency Audit
+    name: Security, Typecheck, Lint, Build, Smoke Test and Dependency Audit
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 35
 
     steps:
       - name: Checkout source
@@ -78,6 +78,28 @@ jobs:
 
       - name: Next.js lint
         run: node scripts/run-build-phase.js "Next.js lint" -- npm run lint
+
+      - name: Production build
+        run: node scripts/run-build-phase.js "Production build" -- npm run build
+        env:
+          NEXT_PUBLIC_SETUP_COMPLETE: 'true'
+          SESSION_SECRET: ci_placeholder_session_value
+          AUTH_DATABASE_URL: postgresql://build:placeholder@localhost:5432/auth
+          AI_DATABASE_URL: postgresql://build:placeholder@localhost:5432/ai
+          METRO_DATABASE_URL: postgresql://build:placeholder@localhost:5432/metro
+          OPS_DATABASE_URL: postgresql://build:placeholder@localhost:5432/ops
+          DATABASE_URL: postgresql://build:placeholder@localhost:5432/main
+
+      - name: Production route smoke test
+        run: node scripts/run-build-phase.js "Production route smoke test" -- node scripts/production-smoke-test.js
+        env:
+          NEXT_PUBLIC_SETUP_COMPLETE: 'true'
+          SESSION_SECRET: ci_placeholder_session_value
+          AUTH_DATABASE_URL: postgresql://smoke:placeholder@localhost:5432/auth
+          AI_DATABASE_URL: postgresql://smoke:placeholder@localhost:5432/ai
+          METRO_DATABASE_URL: postgresql://smoke:placeholder@localhost:5432/metro
+          OPS_DATABASE_URL: postgresql://smoke:placeholder@localhost:5432/ops
+          DATABASE_URL: postgresql://smoke:placeholder@localhost:5432/main
 
       - name: Production dependency audit
         run: node scripts/run-build-phase.js "Production dependency audit" -- node scripts/production-dependency-audit.js
