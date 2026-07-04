@@ -1,0 +1,49 @@
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: daily
+      time: "02:00"
+      timezone: Asia/Ho_Chi_Minh
+    open-pull-requests-limit: 10
+    groups:
+      security-runtime:
+        applies-to: security-updates
+        patterns:
+          - "*"
+      radix-ui:
+        patterns:
+          - "@radix-ui/*"
+      react-next:
+        patterns:
+          - "react"
+          - "react-dom"
+          - "next"
+          - "eslint-config-next"
+      prisma:
+        patterns:
+          - "prisma"
+          - "@prisma/*"
+    ignore:
+      - dependency-name: xlsx
+        update-types:
+          - version-update:semver-patch
+          - version-update:semver-minor
+          - version-update:semver-major
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: "02:30"
+      timezone: Asia/Ho_Chi_Minh
+    groups:
+      actions-security:
+        applies-to: security-updates
+        patterns:
+          - "*"
+      actions-maintenance:
+        patterns:
+          - "*"
