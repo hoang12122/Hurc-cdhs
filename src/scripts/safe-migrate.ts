@@ -46,7 +46,8 @@ async function runSafeMigrate() {
   try {
     console.log('[SafeMigrate] Executing Prisma Migration...');
     const prismaArgs = ['prisma', 'migrate', isProduction ? 'deploy' : 'dev', '--schema', schemaPath];
-    const result = spawnSync('npx', prismaArgs, { stdio: 'inherit', shell: process.platform === 'win32' });
+    const npxCommand = process.platform === 'win32' ? 'npx.cmd' : 'npx';
+    const result = spawnSync(npxCommand, prismaArgs, { stdio: 'inherit', shell: false });
 
     if (result.status !== 0) {
       throw new Error(`Prisma migration exited with code ${result.status ?? 'unknown'}`);
