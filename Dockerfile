@@ -4,7 +4,11 @@ FROM node:20-slim AS deps
 WORKDIR /app
 COPY package*.json ./
 COPY scripts ./scripts
-RUN npm ci --legacy-peer-deps --ignore-scripts
+RUN if [ -f package-lock.json ] || [ -f npm-shrinkwrap.json ]; then \
+      npm ci --legacy-peer-deps --ignore-scripts; \
+    else \
+      npm install --legacy-peer-deps --ignore-scripts; \
+    fi
 
 FROM node:20-slim AS builder
 WORKDIR /app
