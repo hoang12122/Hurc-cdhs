@@ -1,12 +1,24 @@
-import { execSync } from 'child_process';
+import { spawnSync } from 'child_process';
 import readline from 'readline';
 
-/**
- * Safe Migration Wrapper (Task 6.3)
- * Prevents accidental migrations in production and enforces checks.
- */
+const ALLOWED_DB_TYPES = new Set(['ops', 'ai']);
+
+async function ask(question: string): Promise<string> {
+  const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
+  try {
+    return await new Promise((resolve) => rl.question(question, resolve));
+  } finally {
+    rl.close();
+  }
+}
+
 async function runSafeMigrate() {
-  const dbType = process.argv[2]; // 'ops' or 'ai'
+  const dbType = process.argv[2];
+  if (!ALLOWED_DB_TYPES.has(dbType)) {
+    console.error('❌ Invalid migration target. Allowed values: ops, ai.');
+    process.exit(1);
+  }
+
   const isProduction = process.env.NODE_ENV === 'production';
   const schemaPath = dbType === 'ai' ? 'prisma/ai/schema.prisma' : 'prisma/ops/schema.prisma';
   const dbName = dbType === 'ai' ? 'AI_DATABASE' : 'OPS_DATABASE';
@@ -17,49 +29,33 @@ async function runSafeMigrate() {
 
   if (isProduction) {
     console.warn('⚠️  WARNING: YOU ARE RUNNING MIGRATION IN PRODUCTION!');
-    
-    const rl = readline.createInterface({
-      input: process.stdin,
-      output: process.stdout
-    });
 
-    const answer = await new Promise(resolve => {
-      rl.question(`Confirm migration for ${dbName}? (type the database name to confirm): `, resolve);
-    });
-
+    const answer = await ask(`Confirm migration for ${dbName}? (type the database name to confirm): `);
     if (answer !== dbName) {
       console.error('❌ Confirmation failed. Aborting migration.');
       process.exit(1);
     }
 
-    const backupAnswer = await new Promise(resolve => {
-      rl.question(`Has the database been backed up? (y/n): `, resolve);
-    });
-
+    const backupAnswer = await ask('Has the database been backed up? (y/n): ');
     if (backupAnswer !== 'y') {
       console.error('❌ Please backup the database before running migration in production.');
       process.exit(1);
     }
-    
-    rl.close();
   }
 
   try {
-    console.log(`[SafeMigrate] Executing Prisma Migration...`);
-    // Note: In production, we should use 'migrate deploy', in dev 'migrate dev'
-    const command = isProduction 
-      ? `npx prisma migrate deploy --schema=${schemaPath}`
-      : `npx prisma migrate dev --schema=${schemaPath}`;
-    
-    execSync(command, { stdio: 'inherit' });
-    
+    console.log('[SafeMigrate] Executing Prisma Migration...');
+    const prismaArgs = ['prisma', 'migrate', isProduction ? 'deploy' : 'dev', '--schema', schemaPath];
+    const result = spawnSync('npx', prismaArgs, { stdio: 'inherit', shell: process.platform === 'win32' });
+
+    if (result.status !== 0) {
+      throw new Error(`Prisma migration exited with code ${result.status ?? 'unknown'}`);
+    }
+
     console.log(`\n✅ [SafeMigrate] Migration successful for ${dbName}.`);
-    
-    // Log migration event (Simplified console log, could be written to file)
     console.log(`LOG: [${new Date().toISOString()}] Migration executed on ${dbName} by system.`);
-    
   } catch (error) {
-    console.error(`\n❌ [SafeMigrate] Migration failed!`);
+    console.error('\n❌ [SafeMigrate] Migration failed!');
     process.exit(1);
   }
 }
