@@ -25,11 +25,18 @@ jobs:
       - name: Checkout source
         uses: actions/checkout@v4
 
+      - name: Show Docker build source
+        run: |
+          echo "GITHUB_SHA=${GITHUB_SHA}"
+          echo "--- Dockerfile dependency install policy ---"
+          sed -n '1,18p' Dockerfile
+          grep -q "No package-lock.json or npm-shrinkwrap.json -> npm install" Dockerfile
+
       - name: Validate Docker Compose configuration
         run: docker compose --profile core --profile tools config
 
       - name: Build application image
-        run: docker image build --file Dockerfile --tag hurc-cdhs:ci .
+        run: docker image build --pull --no-cache --file Dockerfile --tag hurc-cdhs:ci .
 
       - name: Run application container
         run: |
