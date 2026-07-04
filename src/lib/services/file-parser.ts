@@ -1,7 +1,5 @@
 const { PDFParse } = require('pdf-parse');
-const path = require('path');
 import mammoth from 'mammoth';
-import * as xlsx from 'xlsx';
 
 export async function parsePdf(buffer: Buffer): Promise<string> {
     try {
@@ -31,19 +29,9 @@ export async function parseDocx(buffer: Buffer): Promise<string> {
     }
 }
 
-export async function parseXlsx(buffer: Buffer): Promise<string> {
-    try {
-        const workbook = xlsx.read(buffer, { type: 'buffer' });
-        let text = "";
-        workbook.SheetNames.forEach(name => {
-            const sheet = workbook.Sheets[name];
-            text += `### Sheet: ${name}\n`;
-            text += xlsx.utils.sheet_to_csv(sheet);
-            text += "\n\n";
-        });
-        return text;
-    } catch (error) {
-        console.error("XLSX Parsing Error:", error);
-        throw new Error("Failed to parse Excel file.");
-    }
+export async function parseXlsx(_buffer: Buffer): Promise<string> {
+    throw new Error(
+        "XLSX parsing is temporarily disabled because the previous parser dependency has unresolved security advisories. " +
+        "Use CSV export or add a reviewed XLSX parser before enabling this path again."
+    );
 }
