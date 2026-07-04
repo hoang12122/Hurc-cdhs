@@ -1,12 +1,12 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
-import { exec } from 'child_process';
+import { execFile } from 'child_process';
 import path from 'path';
 import fs from 'fs/promises';
 import util from 'util';
 
-const execPromise = util.promisify(exec);
+const execPromise = util.promisify(execFile);
 import { askAI, askWithRAG, agentChat, askPersonalized, analyzeWithGraph } from '@/lib/services/ai/manager';
 // @ts-ignore
 import { askVisionAI, askHuggingFace, detectObjectsHF } from '@/lib/services/ai/manager';
@@ -339,10 +339,9 @@ export async function askCopilot(query: string) {
     await requirePermission('ai:use');
     try {
         const scriptPath = path.join(process.cwd(), 'src', 'lib', 'ai', 'rag_engine.py');
-        const inputStr = JSON.stringify({ query }).replace(/"/g, '\\"');
-        const cmd = `python "${scriptPath}" "${inputStr}"`;
+        const inputStr = JSON.stringify({ query });
         
-        const { stdout, stderr } = await execPromise(cmd);
+        const { stdout, stderr } = await execPromise('python', [scriptPath, inputStr]);
         if (stderr && !stdout) {
             throw new Error(stderr);
         }
