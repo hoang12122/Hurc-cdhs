@@ -54,6 +54,7 @@ firestore-debug.log
 
 # Runtime logs and reports
 /logs/
+/.build-logs/
 /audit_reports/
 /reports/tmp/
 
