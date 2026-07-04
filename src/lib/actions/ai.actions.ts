@@ -132,16 +132,14 @@ export async function predictEquipmentHealthLSTM(equipmentData: { age_days: numb
     await requirePermission('ai:use');
     try {
         const scriptPath = path.join(process.cwd(), 'src', 'lib', 'ai', 'lstm_advanced.py');
-        const inputStr = JSON.stringify(equipmentData).replace(/"/g, '\\"');
-        // Ensure UTF-8 encoding is used
-        const cmd = `python "${scriptPath}" "${inputStr}"`;
-        
-        const { stdout, stderr } = await execPromise(cmd);
-        
+        const inputStr = JSON.stringify(equipmentData);
+
+        const { stdout, stderr } = await execPromise('python', [scriptPath, inputStr]);
+
         if (stderr) {
             console.error("LSTM Script Stderr:", stderr);
         }
-        
+
         const result = JSON.parse(stdout);
         return { ...result, error: null };
     } catch (e: any) {
