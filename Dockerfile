@@ -5,8 +5,10 @@ WORKDIR /app
 COPY package*.json ./
 COPY scripts ./scripts
 RUN if [ -f package-lock.json ] || [ -f npm-shrinkwrap.json ]; then \
+      echo "Using lockfile -> npm ci"; \
       npm ci --legacy-peer-deps --ignore-scripts; \
     else \
+      echo "No package-lock.json or npm-shrinkwrap.json -> npm install"; \
       npm install --legacy-peer-deps --ignore-scripts; \
     fi
 
