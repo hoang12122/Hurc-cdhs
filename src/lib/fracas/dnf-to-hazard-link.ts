@@ -9,6 +9,7 @@ export function buildDnfToHazardUrl(dnf: DnfDocument) {
   const params = new URLSearchParams();
 
   appendParam(params, 'originatingDnfId', dnf.id);
+  appendParam(params, 'dnfHazardPrefill', 'normalized');
   appendParam(params, 'suggestedDescription', dnf.descriptionOfFailure);
   appendParam(params, 'locationOfFailure', dnf.locationOfFailure);
   appendParam(params, 'suggestedConsequence', dnf.impactAssessment);
