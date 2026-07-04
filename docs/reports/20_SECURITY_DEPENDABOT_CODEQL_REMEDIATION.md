@@ -18,6 +18,7 @@ Trọng tâm xử lý gồm:
 3. Sửa cách thực thi lệnh có rủi ro shell interpolation.
 4. Bật Dependabot theo lịch và nhóm cảnh báo.
 5. Siết lại workflow audit để chặn `high` và `critical` dependency vulnerabilities.
+6. Đồng bộ dependency stack sau khi nâng `next`, gồm `react`, `react-dom`, type React và `eslint-config-next`.
 
 ---
 
@@ -33,6 +34,8 @@ Trọng tâm xử lý gồm:
 | `disk-check.ts` | Đã chuyển từ `exec()` ghép chuỗi sang `execFile()` và validate drive name. | Giảm rủi ro command injection. |
 | `safe-migrate.ts` | Đã chuyển từ `execSync(command)` sang `spawnSync()` với mảng tham số. | Không dựng lệnh shell bằng chuỗi. |
 | GitHub Actions | Đã đổi cài dependency sang `npm install` và audit `high,critical`. | Không còn phụ thuộc lockfile cũ. |
+| Docker build | Đã bổ sung fallback `npm install` khi không có lockfile. | Tránh lỗi `npm ci` khi chưa có `package-lock.json`. |
+| Next/React stack | Đã đồng bộ `next`, `react`, `react-dom`, type React và `eslint-config-next`. | Tránh lệch major khi build Docker. |
 | Dependabot | Đã thêm `.github/dependabot.yml`. | Theo dõi npm và GitHub Actions. |
 
 ---
@@ -129,6 +132,32 @@ high
 critical
 ```
 
+### 3.7. Cập nhật Docker build
+
+Dockerfile đã được chỉnh để không chạy cứng `npm ci` khi chưa có lockfile. Cơ chế hiện tại:
+
+```text
+Có package-lock.json hoặc npm-shrinkwrap.json -> npm ci
+Không có lockfile -> npm install
+```
+
+Workflow Docker cũng in ra đoạn đầu Dockerfile và kiểm tra marker fallback trước khi build để tránh build nhầm Dockerfile cũ.
+
+### 3.8. Đồng bộ Next/React stack
+
+Sau khi nâng `next` để xử lý dependency audit, các dependency liên quan đã được đồng bộ theo cùng stack:
+
+```text
+next
+react
+react-dom
+@types/react
+@types/react-dom
+eslint-config-next
+```
+
+Đồng thời, lệnh lint đã chuyển từ `next lint` sang ESLint trực tiếp để tránh phụ thuộc CLI cũ của Next major mới.
+
 ---
 
 ## 4. Nội dung cần kiểm chứng sau khi GitHub Actions chạy lại
@@ -140,6 +169,7 @@ Các nội dung sau cần xem trên GitHub sau run mới:
 3. CodeQL còn báo command injection ở `safe-migrate.ts` hay không.
 4. Production dependency audit còn high/critical hay không.
 5. Typecheck/lint có phát sinh lỗi do tắt XLSX parser hoặc gỡ package lock hay không.
+6. Docker build có đi qua bước dependency install fallback và build app thành công hay không.
 
 ---
 
@@ -173,6 +203,6 @@ Chỉ commit `package-lock.json` mới nếu không còn high/critical vulnerabi
 
 ## 6. Kết luận
 
-Các thay đổi đã tập trung vào việc xử lý nguyên nhân gốc của Dependabot và CodeQL thay vì chỉ bỏ qua cảnh báo. Điểm quan trọng nhất là đã gỡ `xlsx`, loại bỏ lockfile cũ chứa transitive vulnerable packages, sửa command execution và bật lại audit gate ở mức `high,critical`.
+Các thay đổi đã tập trung vào việc xử lý nguyên nhân gốc của Dependabot và CodeQL thay vì chỉ bỏ qua cảnh báo. Điểm quan trọng nhất là đã gỡ `xlsx`, loại bỏ lockfile cũ chứa transitive vulnerable packages, sửa command execution, bật lại audit gate ở mức `high,critical`, bổ sung Docker fallback và đồng bộ Next/React stack.
 
 Sau khi GitHub Actions chạy lại, cần đối chiếu lại Security tab để xác nhận các alerts đã đóng hoặc còn cảnh báo mới phát sinh.
