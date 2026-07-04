@@ -121,7 +121,9 @@ jobs:
           DATABASE_URL: postgresql://smoke:placeholder@localhost:5432/main
 
       - name: Production dependency audit
-        run: node scripts/run-build-phase.js "Production dependency audit" -- npm audit --audit-level=high --omit=dev
+        run: node scripts/run-build-phase.js "Production dependency audit" -- node scripts/production-dependency-audit.js
+        env:
+          PRODUCTION_AUDIT_FAIL_LEVELS: critical
 
       - name: Upload build phase logs
         if: always()
