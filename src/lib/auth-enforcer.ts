@@ -24,7 +24,8 @@ export async function requirePermission(permission: string | null = null) {
     const user = await getSessionUser();
     
     if (!user) {
-        const hasCookie = cookies().has("hurc_crm_session");
+        const cookieStore = await cookies();
+        const hasCookie = cookieStore.has("hurc_crm_session");
         if (hasCookie) {
             redirect("/login?reason=concurrent_session");
         } else {
@@ -48,7 +49,8 @@ export async function requirePermission(permission: string | null = null) {
 export async function requireAuth() {
     const user = await getSessionUser();
     if (!user) {
-        const hasCookie = cookies().has("hurc_crm_session");
+        const cookieStore = await cookies();
+        const hasCookie = cookieStore.has("hurc_crm_session");
         if (hasCookie) {
             redirect("/login?reason=concurrent_session");
         } else {
