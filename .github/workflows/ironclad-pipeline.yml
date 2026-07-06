@@ -18,7 +18,6 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version-file: '.nvmrc'
-          cache: 'npm'
 
       - name: 🟢 Verify Node.js and npm versions (Strict Invariant Check)
         run: |
@@ -46,7 +45,7 @@ jobs:
           echo "✅ Node.js and npm versions verified successfully!"
 
       - name: 📦 Install Dependencies
-        run: npm ci --include=dev
+        run: npm install --include=dev --ignore-scripts
 
       - name: ⚙️ Generate Prisma Clients
         run: npm run db:generate:all
