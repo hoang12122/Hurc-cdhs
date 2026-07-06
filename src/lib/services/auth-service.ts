@@ -54,7 +54,7 @@ function verifySession(signedData: string): string | null {
 
 export async function getSessionUser(): Promise<User | null> {
     try {
-        const cookieStore = cookies();
+        const cookieStore = await cookies();
         const sessionCookie = cookieStore.get(SESSION_COOKIE_NAME);
 
         if (!sessionCookie?.value) {
