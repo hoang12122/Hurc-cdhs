@@ -34,7 +34,7 @@ jobs:
           node-version: '20.12.2'
 
       - name: Install dependencies
-        run: node scripts/run-build-phase.js "Install dependencies" -- npm install --include=dev --ignore-scripts --legacy-peer-deps
+        run: node scripts/run-build-phase.js "Install dependencies" -- npm install --include=dev --ignore-scripts
 
       - name: Design rules file-size boundary
         run: node scripts/run-build-phase.js "Design rules file-size boundary" -- node scripts/check-file-size-boundaries.js --warn
