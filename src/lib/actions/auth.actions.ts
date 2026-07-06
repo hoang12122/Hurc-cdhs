@@ -44,7 +44,8 @@ import { getInternalUserById, updateInternalUser } from '../services/user-servic
  * This is the ONLY entry point for authentication via Server Actions.
  */
 export async function login(email: string, password?: string, rememberMe: boolean = false): Promise<{ user?: User; error?: string; requires2FA?: boolean; userId?: string }> {
-    const ip = headers().get('x-forwarded-for') || 'unknown';
+    const reqHeaders = await headers();
+    const ip = reqHeaders.get('x-forwarded-for') || 'unknown';
     const identifier = `${ip}-${email}`;
     
     // Anti Brute-Force & DDoS
@@ -79,10 +80,10 @@ export async function login(email: string, password?: string, rememberMe: boolea
     // Cookie duration: 4 hours (session) or 30 days (remember me)
     const maxAge = rememberMe ? 30 * 24 * 60 * 60 : 4 * 60 * 60;
 
-    const reqHeaders = headers();
     const isHttps = reqHeaders.get('x-forwarded-proto') === 'https' || reqHeaders.get('referer')?.startsWith('https://');
+    const cookieStore = await cookies();
 
-    cookies().set(SESSION_COOKIE_NAME, signedValue, {
+    cookieStore.set(SESSION_COOKIE_NAME, signedValue, {
         httpOnly: true,
         secure: isHttps,
         sameSite: 'lax',
@@ -139,10 +140,11 @@ export async function login2FA(userId: string, code: string, rememberMe: boolean
     const signedValue = sign(`${userId}:${activeSessionId}`);
     const maxAge = rememberMe ? 30 * 24 * 60 * 60 : 4 * 60 * 60;
     
-    const reqHeaders = headers();
+    const reqHeaders = await headers();
     const isHttps = reqHeaders.get('x-forwarded-proto') === 'https' || reqHeaders.get('referer')?.startsWith('https://');
+    const cookieStore = await cookies();
 
-    cookies().set(SESSION_COOKIE_NAME, signedValue, {
+    cookieStore.set(SESSION_COOKIE_NAME, signedValue, {
         httpOnly: true,
         secure: isHttps,
         sameSite: 'lax',
@@ -180,5 +182,6 @@ export async function logoutUser(): Promise<void> {
         const newSessionId = require('crypto').randomUUID();
         await updateInternalUser(user.id, { activeSessionId: newSessionId });
     }
-    cookies().delete(SESSION_COOKIE_NAME);
+    const cookieStore = await cookies();
+    cookieStore.delete(SESSION_COOKIE_NAME);
 }
