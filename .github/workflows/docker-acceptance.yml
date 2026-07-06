@@ -3,9 +3,11 @@ name: Docker Acceptance Gate
 on:
   pull_request:
     branches:
+      - main
       - master
   push:
     branches:
+      - main
       - master
       - feature/**
 
