@@ -1,14 +1,13 @@
 name: Docker Acceptance Gate
 
 on:
+  workflow_dispatch:
   pull_request:
     branches:
       - main
-      - master
   push:
     branches:
       - main
-      - master
       - feature/**
 
 permissions:
