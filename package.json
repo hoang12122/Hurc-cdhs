@@ -11,7 +11,7 @@
     "import:gis-bim:dry-run": "npx tsx src/scripts/import-gis-bim.ts --dry-run",
     "import:gis-bim:commit": "npx tsx src/scripts/import-gis-bim.ts --commit",
     "start": "next start",
-    "lint": "eslint . --ext .js,.jsx,.ts,.tsx --max-warnings=0",
+    "lint": "node scripts/run-eslint.js . --ext .js,.jsx,.ts,.tsx --max-warnings=0",
     "typecheck": "tsc --noEmit",
     "audit:linkage": "node scripts/audit-software-linkage.js",
     "check-updates": "ncu",
@@ -106,7 +106,7 @@
     "@types/react": "^19.2.7",
     "@types/react-dom": "^19.2.3",
     "@types/uuid": "^10.0.0",
-    "eslint": "^8.57.0",
+    "eslint": "^9.0.0",
     "eslint-config-next": "^16.2.10",
     "eslint-plugin-jsx-a11y": "^6.10.2",
     "eslint-plugin-react": "^7.37.5",
@@ -124,8 +124,5 @@
   "engines": {
     "node": ">=20",
     "npm": ">=10 <12"
-  },
-  "overrides": {
-    "eslint-visitor-keys": "3.4.3"
   }
 }
