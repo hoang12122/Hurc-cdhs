@@ -3,6 +3,7 @@
 FROM node:20-slim AS deps
 WORKDIR /app
 COPY package*.json ./
+COPY .npmrc ./
 COPY scripts ./scripts
 RUN if [ -f package-lock.json ] || [ -f npm-shrinkwrap.json ]; then \
       echo "Using lockfile -> npm ci"; \
