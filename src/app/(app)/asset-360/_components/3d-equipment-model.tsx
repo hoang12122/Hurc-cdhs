@@ -5,6 +5,14 @@ import { Canvas, useFrame } from '@react-three/fiber';
 import { OrbitControls, ContactShadows, Environment, BakeShadows, Preload } from '@react-three/drei';
 import * as THREE from 'three';
 
+const R3FGroup = 'group' as any;
+const R3FMesh = 'mesh' as any;
+const R3FBoxGeometry = 'boxGeometry' as any;
+const R3FMeshStandardMaterial = 'meshStandardMaterial' as any;
+const R3FAmbientLight = 'ambientLight' as any;
+const R3FSpotLight = 'spotLight' as any;
+const R3FPointLight = 'pointLight' as any;
+
 interface ModelProps {
     status: 'healthy' | 'warning' | 'critical';
     category?: string | null;
@@ -44,11 +52,11 @@ function DigitalTwinMesh({ status, category }: ModelProps) {
     });
 
     return (
-        <group ref={groupRef}>
+        <R3FGroup ref={groupRef}>
             {assetKind === 'psd' && <PsdTwin status={status} />}
             {assetKind === 'afc' && <AfcTwin status={status} />}
             {assetKind === 'generic' && <GenericTwin status={status} />}
-        </group>
+        </R3FGroup>
     );
 }
 
@@ -56,30 +64,30 @@ function PsdTwin({ status }: { status: TwinStatus }) {
     const material = statusMaterial(status);
     return (
         <>
-            <mesh position={[0, -1.2, 0]} receiveShadow>
-                <boxGeometry args={[4.6, 0.18, 1.3]} />
-                <meshStandardMaterial color="#64748b" roughness={0.65} metalness={0.2} />
-            </mesh>
-            <mesh position={[0, 0.15, -0.15]} castShadow>
-                <boxGeometry args={[4.3, 2.2, 0.12]} />
-                <meshStandardMaterial color="#0f172a" roughness={0.35} metalness={0.65} />
-            </mesh>
-            <mesh position={[-0.65, 0.05, 0.02]} castShadow>
-                <boxGeometry args={[1.15, 1.65, 0.18]} />
-                <meshStandardMaterial color={material.color} roughness={0.22} metalness={0.8} emissive={material.emissive} emissiveIntensity={material.emissiveIntensity} />
-            </mesh>
-            <mesh position={[0.65, 0.05, 0.02]} castShadow>
-                <boxGeometry args={[1.15, 1.65, 0.18]} />
-                <meshStandardMaterial color={material.color} roughness={0.22} metalness={0.8} emissive={material.emissive} emissiveIntensity={material.emissiveIntensity} />
-            </mesh>
-            <mesh position={[0, 1.45, 0.02]} castShadow>
-                <boxGeometry args={[3.8, 0.22, 0.26]} />
-                <meshStandardMaterial color="#334155" roughness={0.3} metalness={0.75} />
-            </mesh>
-            <mesh position={[1.85, 1.55, 0.16]} castShadow>
-                <boxGeometry args={[0.34, 0.34, 0.34]} />
-                <meshStandardMaterial color={status === 'critical' ? '#ef4444' : status === 'warning' ? '#f59e0b' : '#22c55e'} emissive={status === 'critical' ? '#ef4444' : '#000000'} emissiveIntensity={status === 'critical' ? 0.7 : 0.15} />
-            </mesh>
+            <R3FMesh position={[0, -1.2, 0]} receiveShadow>
+                <R3FBoxGeometry args={[4.6, 0.18, 1.3]} />
+                <R3FMeshStandardMaterial color="#64748b" roughness={0.65} metalness={0.2} />
+            </R3FMesh>
+            <R3FMesh position={[0, 0.15, -0.15]} castShadow>
+                <R3FBoxGeometry args={[4.3, 2.2, 0.12]} />
+                <R3FMeshStandardMaterial color="#0f172a" roughness={0.35} metalness={0.65} />
+            </R3FMesh>
+            <R3FMesh position={[-0.65, 0.05, 0.02]} castShadow>
+                <R3FBoxGeometry args={[1.15, 1.65, 0.18]} />
+                <R3FMeshStandardMaterial color={material.color} roughness={0.22} metalness={0.8} emissive={material.emissive} emissiveIntensity={material.emissiveIntensity} />
+            </R3FMesh>
+            <R3FMesh position={[0.65, 0.05, 0.02]} castShadow>
+                <R3FBoxGeometry args={[1.15, 1.65, 0.18]} />
+                <R3FMeshStandardMaterial color={material.color} roughness={0.22} metalness={0.8} emissive={material.emissive} emissiveIntensity={material.emissiveIntensity} />
+            </R3FMesh>
+            <R3FMesh position={[0, 1.45, 0.02]} castShadow>
+                <R3FBoxGeometry args={[3.8, 0.22, 0.26]} />
+                <R3FMeshStandardMaterial color="#334155" roughness={0.3} metalness={0.75} />
+            </R3FMesh>
+            <R3FMesh position={[1.85, 1.55, 0.16]} castShadow>
+                <R3FBoxGeometry args={[0.34, 0.34, 0.34]} />
+                <R3FMeshStandardMaterial color={status === 'critical' ? '#ef4444' : status === 'warning' ? '#f59e0b' : '#22c55e'} emissive={status === 'critical' ? '#ef4444' : '#000000'} emissiveIntensity={status === 'critical' ? 0.7 : 0.15} />
+            </R3FMesh>
         </>
     );
 }
@@ -88,28 +96,28 @@ function AfcTwin({ status }: { status: TwinStatus }) {
     const material = statusMaterial(status);
     return (
         <>
-            <mesh position={[0, -1.15, 0]} receiveShadow>
-                <boxGeometry args={[4.2, 0.18, 1.4]} />
-                <meshStandardMaterial color="#64748b" roughness={0.65} metalness={0.2} />
-            </mesh>
+            <R3FMesh position={[0, -1.15, 0]} receiveShadow>
+                <R3FBoxGeometry args={[4.2, 0.18, 1.4]} />
+                <R3FMeshStandardMaterial color="#64748b" roughness={0.65} metalness={0.2} />
+            </R3FMesh>
             {[-1.2, 1.2].map((x) => (
-                <mesh key={x} position={[x, -0.2, 0]} castShadow>
-                    <boxGeometry args={[0.58, 1.75, 1.0]} />
-                    <meshStandardMaterial color="#1e293b" roughness={0.35} metalness={0.7} />
-                </mesh>
+                <R3FMesh key={x} position={[x, -0.2, 0]} castShadow>
+                    <R3FBoxGeometry args={[0.58, 1.75, 1.0]} />
+                    <R3FMeshStandardMaterial color="#1e293b" roughness={0.35} metalness={0.7} />
+                </R3FMesh>
             ))}
-            <mesh position={[0, -0.18, 0.05]} castShadow>
-                <boxGeometry args={[1.65, 0.12, 0.9]} />
-                <meshStandardMaterial color={material.color} roughness={0.25} metalness={0.75} emissive={material.emissive} emissiveIntensity={material.emissiveIntensity} />
-            </mesh>
-            <mesh position={[-1.2, 0.85, 0.42]} castShadow>
-                <boxGeometry args={[0.45, 0.14, 0.28]} />
-                <meshStandardMaterial color="#22c55e" emissive="#22c55e" emissiveIntensity={0.18} />
-            </mesh>
-            <mesh position={[1.2, 0.85, 0.42]} castShadow>
-                <boxGeometry args={[0.45, 0.14, 0.28]} />
-                <meshStandardMaterial color={status === 'critical' ? '#ef4444' : '#38bdf8'} emissive={status === 'critical' ? '#ef4444' : '#38bdf8'} emissiveIntensity={0.18} />
-            </mesh>
+            <R3FMesh position={[0, -0.18, 0.05]} castShadow>
+                <R3FBoxGeometry args={[1.65, 0.12, 0.9]} />
+                <R3FMeshStandardMaterial color={material.color} roughness={0.25} metalness={0.75} emissive={material.emissive} emissiveIntensity={material.emissiveIntensity} />
+            </R3FMesh>
+            <R3FMesh position={[-1.2, 0.85, 0.42]} castShadow>
+                <R3FBoxGeometry args={[0.45, 0.14, 0.28]} />
+                <R3FMeshStandardMaterial color="#22c55e" emissive="#22c55e" emissiveIntensity={0.18} />
+            </R3FMesh>
+            <R3FMesh position={[1.2, 0.85, 0.42]} castShadow>
+                <R3FBoxGeometry args={[0.45, 0.14, 0.28]} />
+                <R3FMeshStandardMaterial color={status === 'critical' ? '#ef4444' : '#38bdf8'} emissive={status === 'critical' ? '#ef4444' : '#38bdf8'} emissiveIntensity={0.18} />
+            </R3FMesh>
         </>
     );
 }
@@ -118,24 +126,24 @@ function GenericTwin({ status }: { status: TwinStatus }) {
     const material = statusMaterial(status);
     return (
         <>
-            <mesh position={[0, -1.2, 0]} receiveShadow>
-                <boxGeometry args={[3.5, 0.18, 1.6]} />
-                <meshStandardMaterial color="#64748b" roughness={0.65} metalness={0.2} />
-            </mesh>
-            <mesh position={[0, 0, 0]} castShadow receiveShadow>
-                <boxGeometry args={[2, 2, 2]} />
-                <meshStandardMaterial
+            <R3FMesh position={[0, -1.2, 0]} receiveShadow>
+                <R3FBoxGeometry args={[3.5, 0.18, 1.6]} />
+                <R3FMeshStandardMaterial color="#64748b" roughness={0.65} metalness={0.2} />
+            </R3FMesh>
+            <R3FMesh position={[0, 0, 0]} castShadow receiveShadow>
+                <R3FBoxGeometry args={[2, 2, 2]} />
+                <R3FMeshStandardMaterial
                     color={material.color}
                     roughness={0.22}
                     metalness={0.8}
                     emissive={material.emissive}
                     emissiveIntensity={material.emissiveIntensity}
                 />
-            </mesh>
-            <mesh position={[0, 1.25, 0]} castShadow>
-                <boxGeometry args={[1.4, 0.12, 1.4]} />
-                <meshStandardMaterial color="#e2e8f0" roughness={0.35} metalness={0.35} />
-            </mesh>
+            </R3FMesh>
+            <R3FMesh position={[0, 1.25, 0]} castShadow>
+                <R3FBoxGeometry args={[1.4, 0.12, 1.4]} />
+                <R3FMeshStandardMaterial color="#e2e8f0" roughness={0.35} metalness={0.35} />
+            </R3FMesh>
         </>
     );
 }
@@ -150,9 +158,9 @@ export function Equipment3DModel({ status, category }: ModelProps) {
                 </div>
             }>
                 <Canvas camera={{ position: [0, 0.6, 5.5], fov: 45 }} shadows>
-                    <ambientLight intensity={0.55} />
-                    <spotLight position={[10, 10, 10]} angle={0.18} penumbra={1} intensity={1.2} castShadow />
-                    <pointLight position={[-10, -10, -10]} intensity={0.45} />
+                    <R3FAmbientLight intensity={0.55} />
+                    <R3FSpotLight position={[10, 10, 10]} angle={0.18} penumbra={1} intensity={1.2} castShadow />
+                    <R3FPointLight position={[-10, -10, -10]} intensity={0.45} />
 
                     <DigitalTwinMesh status={status} category={category} />
 
