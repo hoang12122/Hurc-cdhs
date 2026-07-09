@@ -42,6 +42,9 @@ Lý do: các kiểu tên trên làm cây thư mục khó đọc, khó sắp xế
 |---|---|---|---|
 | 00 | `00_REPORTS_INDEX.md` | Mục lục, quy ước đặt tên và quy ước quản lý báo cáo trong `/docs/reports`. | Đã chuẩn hóa |
 | 01 | `01_DATABASE_ARCHITECTURE_REVIEW.md` | Rà soát database, Prisma schema, Prisma Client, phân tách dữ liệu và rủi ro production readiness. | Đã chuẩn hóa |
+| 31 | `31_VMMS_BENCHMARK_GAP_ASSESSMENT.md` | So sánh HURC1 CRM với VMMS mẫu; xác định khoảng cách nghiệp vụ, dữ liệu, AI, GIS/BIM, CCTV/RTSP và CI/CD. | Mới bổ sung |
+| 32 | `32_VMMS_MODULE_CHECKLIST.md` | Checklist phân hệ theo VMMS: Mobile Report, AI Triage, Asset Health, AI Agents, Email AI, Inventory, Maximo, CCTV/RTSP. | Mới bổ sung |
+| 90 | `90_PRODUCTION_READINESS_VMMS_BENCHMARK.md` | Bộ tiêu chí Production Readiness & VMMS Benchmark; quy định điều kiện kết luận development/staging/production. | Mới bổ sung |
 
 ---
 
@@ -53,9 +56,9 @@ Lý do: các kiểu tên trên làm cây thư mục khó đọc, khó sắp xế
 | `01` - `09` | Kiến trúc và database | Database, Prisma, module architecture, data boundary. |
 | `10` - `19` | CI/CD và triển khai | GitHub Actions, Docker, build logs, deployment, rollback. |
 | `20` - `29` | Bảo mật và AI governance | Dependency audit, CodeQL, AI Safety, audit logs. |
-| `30` - `39` | FRACAS/RAMS/OCC | DNF, Hazard, FRACAS, RAMS, Predictive RAMS, OCC Dashboard. |
+| `30` - `39` | FRACAS/RAMS/OCC/VMMS Benchmark | DNF, Hazard, FRACAS, RAMS, Predictive RAMS, OCC Dashboard, VMMS Gap. |
 | `40` - `49` | GIS/BIM/Digital Twin | Rail Network, GIS/BIM, Asset 360, Digital Twin. |
-| `90` - `99` | Tổng hợp/đóng hồ sơ | Báo cáo tổng kết, checklist nghiệm thu, biên bản rà soát cuối. |
+| `90` - `99` | Tổng hợp/đóng hồ sơ | Báo cáo tổng kết, checklist nghiệm thu, production readiness, biên bản rà soát cuối. |
 
 ---
 
@@ -84,9 +87,10 @@ Mỗi báo cáo trong thư mục này nên dùng cùng một cấu trúc:
 3. Khi phần mềm đã thay đổi, phải cập nhật lại kết luận, rủi ro và checklist.
 4. Mỗi báo cáo phải có nội dung kiểm tra được bằng file, module, lệnh hoặc điều kiện nghiệm thu cụ thể.
 5. Không dùng lẫn tiếng Việt không dấu, tiếng Việt có dấu và tiếng Anh tự do trong tên file. Tên file dùng tiếng Anh viết hoa, còn nội dung báo cáo viết tiếng Việt.
+6. Các báo cáo production readiness chỉ được kết luận theo bằng chứng CI/CD và kiểm thử thực tế trên nhánh `main`.
 
 ---
 
 ## 6. Kết luận
 
-Thư mục `/docs/reports` sử dụng chuẩn tên `NN_REPORT_TOPIC.md` để cây thư mục GitHub hiển thị rõ thứ tự, rõ nhóm nội dung và không còn lẫn nhiều kiểu đặt tên khác nhau. Các báo cáo mới phải tuân thủ chuẩn này trước khi đưa vào nhánh `master`.
+Thư mục `/docs/reports` sử dụng chuẩn tên `NN_REPORT_TOPIC.md` để cây thư mục GitHub hiển thị rõ thứ tự, rõ nhóm nội dung và không còn lẫn nhiều kiểu đặt tên khác nhau. Các báo cáo mới phải tuân thủ chuẩn này trước khi đưa vào nhánh `main`.
