@@ -5,6 +5,14 @@ const path = require('path');
 process.env.HOME = process.cwd();
 process.env.USERPROFILE = process.cwd();
 process.env.TEMP = path.join(process.cwd(), '.tmp');
+
+const prismaClientAliases = {
+  '@prisma/client/auth': path.join(__dirname, '.prisma-runtime/auth'),
+  '@prisma/client/ops': path.join(__dirname, '.prisma-runtime/ops'),
+  '@prisma/client/ai': path.join(__dirname, '.prisma-runtime/ai'),
+  '@prisma/client/metro': path.join(__dirname, '.prisma-runtime/metro'),
+};
+
 const securityHeaders = [
   {
     key: 'X-DNS-Prefetch-Control',
@@ -32,9 +40,7 @@ const securityHeaders = [
   }
 ];
 
-
 const nextConfig = {
-  /* config options here */
   // Standalone mode is required for efficient Docker builds on Linux
   output: 'standalone',
   images: {
@@ -50,16 +56,16 @@ const nextConfig = {
   experimental: {
     serverComponentsExternalPackages: ['winston-loki', 'snappy', 'pdf-parse', '@napi-rs/canvas'],
   },
-   async headers() {
+  async headers() {
     return [
       {
         // Apply these headers to all routes in your application.
         source: '/:path*',
         headers: securityHeaders,
       },
-    ]
+    ];
   },
-  webpack: (config, { isServer }) => {
+  webpack: (config) => {
     // Force the context to the current project directory to prevent cross-drive scanning on Windows.
     config.context = __dirname;
 
@@ -71,47 +77,44 @@ const nextConfig = {
     // This prevents the dev server from restarting when the local JSON database is modified
     // and explicitly ignores system folders outside the project root.
     if (config.watchOptions) {
-        config.watchOptions.ignored = [
-            '**/.next/**',
-            '**/node_modules/**',
-            '**/*.json',
-            'C:/Users/**',
-            'C:\\Users\\**',
-            '**/Application Data/**',
-            '**/Cookies/**',
-            '**/Local Settings/**',
-            '**/.git/**',
-        ];
+      config.watchOptions.ignored = [
+        '**/.next/**',
+        '**/node_modules/**',
+        '**/*.json',
+        'C:/Users/**',
+        'C:\\Users\\**',
+        '**/Application Data/**',
+        '**/Cookies/**',
+        '**/Local Settings/**',
+        '**/.git/**',
+      ];
     }
 
     // Strict resolution scoping for Windows stability
     if (config.resolve) {
-        config.resolve.symlinks = false;
-        config.resolve.modules = [path.resolve(__dirname, 'node_modules'), 'node_modules'];
-        
-        // Prevent scaling up the directory tree on Windows - force root to project directory
-        config.resolve.alias = {
-            ...config.resolve.alias,
-            '@prisma/client/auth': path.join(__dirname, '.prisma-runtime/auth'),
-            '@prisma/client/ops': path.join(__dirname, '.prisma-runtime/ops'),
-            '@prisma/client/ai': path.join(__dirname, '.prisma-runtime/ai'),
-            '@prisma/client/metro': path.join(__dirname, '.prisma-runtime/metro'),
-        };
+      config.resolve.symlinks = false;
+      config.resolve.modules = [path.resolve(__dirname, 'node_modules'), 'node_modules'];
+
+      // Prevent scaling up the directory tree on Windows - force root to project directory
+      config.resolve.alias = {
+        ...config.resolve.alias,
+        ...prismaClientAliases,
+      };
     }
 
     // Force Webpack to ignore any file system snapshots outside of the project root.
     // This is the definitive fix for EPERM on Windows system junctions.
     config.snapshot = {
-        ...(config.snapshot || {}),
-        managedPaths: [path.resolve(__dirname, 'node_modules')],
-        immutablePaths: [],
-        buildDependencies: {
-            hash: true,
-            timestamp: true,
-        },
-        module: { timestamp: true },
-        resolve: { timestamp: true },
-        resolveBuildDependencies: { timestamp: true },
+      ...(config.snapshot || {}),
+      managedPaths: [path.resolve(__dirname, 'node_modules')],
+      immutablePaths: [],
+      buildDependencies: {
+        hash: true,
+        timestamp: true,
+      },
+      module: { timestamp: true },
+      resolve: { timestamp: true },
+      resolveBuildDependencies: { timestamp: true },
     };
 
     // Extreme isolation: prevent Webpack from even knowing about other drives
@@ -123,9 +126,12 @@ const nextConfig = {
 
     return config;
   },
+  turbopack: {
+    resolveAlias: prismaClientAliases,
+  },
   env: {
     NEXT_PUBLIC_SETUP_COMPLETE: process.env.NEXT_PUBLIC_SETUP_COMPLETE === 'true' ? 'true' : 'false',
-  }
+  },
 };
 
 module.exports = nextConfig;
