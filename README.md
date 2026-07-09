@@ -27,6 +27,7 @@ Không mô tả hệ thống là Micro-Frontend triển khai độc lập hoặc
 
 | Tài liệu | Nội dung chính |
 |---|---|
+| [0. Documentation Structure and Writing Guide](docs/00_DOCUMENTATION_STRUCTURE_AND_WRITING_GUIDE.md) | Quy chuẩn sắp xếp thư mục, phân loại đối tượng đọc, loại tài liệu, cấu trúc và nguyên tắc biên soạn. |
 | [1. System Architecture](docs/1_SYSTEM_ARCHITECTURE.md) | Kiến trúc, module boundary, Service Bus và giới hạn hiện tại. |
 | [2. Design and Coding Rules](docs/2_DESIGN_AND_CODING_RULES.md) | Quy tắc thiết kế, Vibe Code, hook/UI và checklist review. |
 | [3. Developer Guide](docs/3_DEVELOPER_GUIDE.md) | Hướng dẫn tạo module, module mẫu, offline entity sync và audit. |
@@ -37,7 +38,7 @@ Không mô tả hệ thống là Micro-Frontend triển khai độc lập hoặc
 ## Kiểm tra nhanh
 
 ```bash
-npm ci --include=dev --ignore-scripts
+npm install --include=dev --ignore-scripts
 npm run db:validate:all
 npm run db:generate:all
 npm run typecheck
