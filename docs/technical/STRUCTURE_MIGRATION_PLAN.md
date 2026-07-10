@@ -4,7 +4,8 @@
 **Tên tài liệu:** Kế hoạch sắp xếp lại thư mục phần mềm theo commit b7ec63d9  
 **Commit nền:** `b7ec63d9ed57e4d9525bf34c433d4f73c77971d0`  
 **Nhánh thực hiện:** `refactor/project-structure-from-b7ec63`  
-**Trạng thái:** Tái cấu trúc an toàn theo từng đợt, không di chuyển hàng loạt khi chưa có CI xanh  
+**Merge commit:** `0317ec84cf54aff768f001ebb41252a1aedbef94`  
+**Trạng thái:** Đợt 1 đã merge vào `main`; chờ kiểm tra lại CI/CD trên commit cập nhật sau merge  
 
 ---
 
@@ -106,7 +107,7 @@ src/
 
 ### Đợt 1 - Tạo khung thư mục và tài liệu chỉ mục
 
-Trạng thái: đang thực hiện trong nhánh này.
+Trạng thái: đã merge vào `main` thông qua PR #29. Đợt này chỉ tạo khung thư mục và tài liệu chỉ mục, chưa di chuyển mã nguồn runtime hàng loạt.
 
 Mục tiêu:
 
@@ -152,10 +153,10 @@ Không đưa Go backend vào Next.js app nếu chưa có kiến trúc triển kh
 
 | STT | Nội dung kiểm tra | Trạng thái |
 |---|---|---|
-| 1 | Branch tạo từ đúng commit `b7ec63d9`. | Pending |
-| 2 | Có khung thư mục chuẩn. | Pending |
-| 3 | Có README mô tả trách nhiệm từng thư mục. | Pending |
-| 4 | Không di chuyển hàng loạt file runtime khi chưa test. | Pending |
+| 1 | Branch tạo từ đúng commit `b7ec63d9`. | Done |
+| 2 | Có khung thư mục chuẩn. | Done |
+| 3 | Có README mô tả trách nhiệm từng thư mục. | Done |
+| 4 | Không di chuyển hàng loạt file runtime khi chưa test. | Done |
 | 5 | `npm install --include=dev --ignore-scripts` PASS. | Pending |
 | 6 | `npm run typecheck` PASS. | Pending |
 | 7 | `npm run lint` PASS. | Pending |
@@ -167,4 +168,4 @@ Không đưa Go backend vào Next.js app nếu chưa có kiến trúc triển kh
 
 ## 7. Kết luận
 
-Việc sắp xếp lại thư mục phần mềm phải được thực hiện theo từng đợt, bắt đầu bằng khung thư mục và tài liệu chỉ mục. Chỉ di chuyển mã nguồn thực tế sau khi có danh sách file, import path và CI/CD bảo vệ. Đây là hướng an toàn để chuẩn hóa cấu trúc mà không làm hỏng build hiện tại.
+Đợt 1 đã hoàn tất việc tạo khung thư mục và tài liệu chỉ mục trên `main`. Việc di chuyển mã nguồn thực tế cần thực hiện theo các đợt tiếp theo, sau khi có danh sách file, cập nhật import path và CI/CD bảo vệ. Đây là hướng an toàn để chuẩn hóa cấu trúc mà không làm hỏng build hiện tại.
