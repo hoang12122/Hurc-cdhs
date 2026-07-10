@@ -28,6 +28,7 @@ Không mô tả hệ thống là Micro-Frontend triển khai độc lập hoặc
 | Tài liệu | Nội dung chính |
 |---|---|
 | [0. Documentation Structure and Writing Guide](docs/00_DOCUMENTATION_STRUCTURE_AND_WRITING_GUIDE.md) | Quy chuẩn sắp xếp thư mục, phân loại đối tượng đọc, loại tài liệu, cấu trúc và nguyên tắc biên soạn. |
+| [Project Structure Guide](docs/technical/PROJECT_STRUCTURE_GUIDE.md) | Quy chuẩn cấu trúc dự án Frontend React/Next.js và Backend Golang; nguyên tắc package-by-feature, `cmd/`, `internal/`, API và checklist tái cấu trúc. |
 | [1. System Architecture](docs/1_SYSTEM_ARCHITECTURE.md) | Kiến trúc, module boundary, Service Bus và giới hạn hiện tại. |
 | [2. Design and Coding Rules](docs/2_DESIGN_AND_CODING_RULES.md) | Quy tắc thiết kế, Vibe Code, hook/UI và checklist review. |
 | [3. Developer Guide](docs/3_DEVELOPER_GUIDE.md) | Hướng dẫn tạo module, module mẫu, offline entity sync và audit. |
