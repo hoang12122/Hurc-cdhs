@@ -89,6 +89,7 @@ Ví dụ:
 1_SYSTEM_ARCHITECTURE.md
 2_DESIGN_AND_CODING_RULES.md
 3_DEVELOPER_GUIDE.md
+technical/PROJECT_STRUCTURE_GUIDE.md
 API_INTEGRATION_GUIDE.md
 DATABASE_ARCHITECTURE_REVIEW.md
 ```
@@ -102,6 +103,7 @@ Nội dung chính:
 5. API hoặc integration.
 6. Lệnh build/test/deploy.
 7. Quy tắc bảo trì mã nguồn.
+8. Cấu trúc thư mục frontend/backend.
 
 ### 3.4. Tài liệu hướng dẫn sử dụng
 
@@ -196,6 +198,7 @@ docs/
 │   └── FAQ.md
 ├── technical/
 │   ├── README.md
+│   ├── PROJECT_STRUCTURE_GUIDE.md
 │   ├── API_INTEGRATION_GUIDE.md
 │   ├── DATABASE_GUIDE.md
 │   ├── MODULE_BOUNDARY_GUIDE.md
