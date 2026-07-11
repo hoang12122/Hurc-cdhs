@@ -5,7 +5,7 @@
 **Commit nền:** `b7ec63d9ed57e4d9525bf34c433d4f73c77971d0`  
 **Nhánh thực hiện:** `refactor/project-structure-from-b7ec63`  
 **Merge commit:** `0317ec84cf54aff768f001ebb41252a1aedbef94`  
-**Trạng thái:** Đợt 1 đã merge vào `main`; đã bổ sung bản vá ESLint v9 runner compatibility  
+**Trạng thái:** Đợt 1 đã merge vào `main`; đã ghi nhận bản vá ESLint v9 runner compatibility  
 
 ---
 
