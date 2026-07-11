@@ -11,7 +11,30 @@ process.env.ESLINT_USE_FLAT_CONFIG = process.env.ESLINT_USE_FLAT_CONFIG || 'fals
 const args = process.argv.slice(2);
 const eslintBin = require.resolve('eslint/bin/eslint.js');
 
-const result = spawnSync(process.execPath, [eslintBin, ...args], {
+const defaultIgnorePatterns = [
+  '.next/**',
+  'node_modules/**',
+  'coverage/**',
+  'dist/**',
+  'dist-init/**',
+  '.prisma-runtime/**',
+  '.build-logs/**',
+  'public/**',
+  'docs/**',
+];
+
+const hasIgnorePattern = args.includes('--ignore-pattern');
+const normalizedArgs = hasIgnorePattern
+  ? args
+  : args.flatMap((arg, index) => {
+      if (index !== args.length - 1) return [arg];
+      return [arg, ...defaultIgnorePatterns.flatMap((pattern) => ['--ignore-pattern', pattern])];
+    });
+
+console.log('[ESLINT] Using legacy .eslintrc mode for Next.js compatibility.');
+console.log(`[ESLINT] Command: node ${eslintBin} ${normalizedArgs.join(' ')}`);
+
+const result = spawnSync(process.execPath, [eslintBin, ...normalizedArgs], {
   stdio: 'inherit',
   env: process.env,
   shell: false,
@@ -20,6 +43,10 @@ const result = spawnSync(process.execPath, [eslintBin, ...args], {
 if (result.error) {
   console.error('[ESLINT] Failed to start ESLint:', result.error.message);
   process.exit(1);
+}
+
+if (result.status !== 0) {
+  console.error(`[ESLINT] ESLint failed with exit code ${result.status}.`);
 }
 
 process.exit(result.status ?? 1);
