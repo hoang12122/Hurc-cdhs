@@ -11,7 +11,7 @@
     "import:gis-bim:dry-run": "npx tsx src/scripts/import-gis-bim.ts --dry-run",
     "import:gis-bim:commit": "npx tsx src/scripts/import-gis-bim.ts --commit",
     "start": "next start",
-    "lint": "node scripts/run-eslint.js . --ext .js,.jsx,.ts,.tsx --max-warnings=0",
+    "lint": "node scripts/run-eslint.js . --max-warnings=0",
     "typecheck": "tsc --noEmit",
     "audit:linkage": "node scripts/audit-software-linkage.js",
     "check-updates": "ncu",
@@ -96,6 +96,8 @@
     "zod": "^3.23.8"
   },
   "devDependencies": {
+    "@eslint/eslintrc": "^3.3.1",
+    "@eslint/js": "^9.0.0",
     "@next/eslint-plugin-next": "^16.2.10",
     "@prisma/client": "^5.22.0",
     "@types/bcryptjs": "^2.4.6",
