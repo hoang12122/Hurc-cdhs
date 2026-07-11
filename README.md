@@ -47,6 +47,8 @@ npm run lint
 npm run build
 ```
 
+Ghi chú: `npm run lint` dùng `scripts/run-eslint.js` để giữ chế độ `.eslintrc.json` tương thích với ESLint v9 và Next.js.
+
 ## CI hiện có
 
 - Security and Acceptance Gate.
