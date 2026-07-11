@@ -4,12 +4,6 @@ const fs = require('node:fs');
 const path = require('node:path');
 const { spawnSync } = require('node:child_process');
 
-// ESLint 9 defaults to the new flat-config system. This project still uses
-// .eslintrc.json because eslint-config-next is already wired through
-// next/core-web-vitals. Keep the runner cross-platform instead of relying on
-// shell-specific environment syntax such as `ESLINT_USE_FLAT_CONFIG=false`.
-process.env.ESLINT_USE_FLAT_CONFIG = process.env.ESLINT_USE_FLAT_CONFIG || 'false';
-
 const args = process.argv.slice(2);
 const eslintExecutable = path.join(
   process.cwd(),
@@ -18,25 +12,9 @@ const eslintExecutable = path.join(
   process.platform === 'win32' ? 'eslint.cmd' : 'eslint',
 );
 
-const defaultIgnorePatterns = [
-  '.next/**',
-  'node_modules/**',
-  'coverage/**',
-  'dist/**',
-  'dist-init/**',
-  '.prisma-runtime/**',
-  '.build-logs/**',
-  'public/**',
-  'docs/**',
-];
-
-const hasIgnorePattern = args.includes('--ignore-pattern');
-const normalizedArgs = hasIgnorePattern
-  ? args
-  : args.flatMap((arg, index) => {
-      if (index !== args.length - 1) return [arg];
-      return [arg, ...defaultIgnorePatterns.flatMap((pattern) => ['--ignore-pattern', pattern])];
-    });
+// ESLint 9 uses flat config by default. Keep this runner only as a
+// cross-platform wrapper around the local CLI and avoid legacy eslintrc mode.
+delete process.env.ESLINT_USE_FLAT_CONFIG;
 
 if (!fs.existsSync(eslintExecutable)) {
   console.error(`[ESLINT] ESLint executable not found at ${eslintExecutable}.`);
@@ -44,10 +22,10 @@ if (!fs.existsSync(eslintExecutable)) {
   process.exit(1);
 }
 
-console.log('[ESLINT] Using legacy .eslintrc mode for Next.js compatibility.');
-console.log(`[ESLINT] Command: ${eslintExecutable} ${normalizedArgs.join(' ')}`);
+console.log('[ESLINT] Using ESLint flat config.');
+console.log(`[ESLINT] Command: ${eslintExecutable} ${args.join(' ')}`);
 
-const result = spawnSync(eslintExecutable, normalizedArgs, {
+const result = spawnSync(eslintExecutable, args, {
   stdio: 'inherit',
   env: process.env,
   shell: false,
