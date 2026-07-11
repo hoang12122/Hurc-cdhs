@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 
+const fs = require('node:fs');
+const path = require('node:path');
 const { spawnSync } = require('node:child_process');
 
 // ESLint 9 defaults to the new flat-config system. This project still uses
@@ -9,7 +11,12 @@ const { spawnSync } = require('node:child_process');
 process.env.ESLINT_USE_FLAT_CONFIG = process.env.ESLINT_USE_FLAT_CONFIG || 'false';
 
 const args = process.argv.slice(2);
-const eslintBin = require.resolve('eslint/bin/eslint.js');
+const eslintExecutable = path.join(
+  process.cwd(),
+  'node_modules',
+  '.bin',
+  process.platform === 'win32' ? 'eslint.cmd' : 'eslint',
+);
 
 const defaultIgnorePatterns = [
   '.next/**',
@@ -31,10 +38,16 @@ const normalizedArgs = hasIgnorePattern
       return [arg, ...defaultIgnorePatterns.flatMap((pattern) => ['--ignore-pattern', pattern])];
     });
 
-console.log('[ESLINT] Using legacy .eslintrc mode for Next.js compatibility.');
-console.log(`[ESLINT] Command: node ${eslintBin} ${normalizedArgs.join(' ')}`);
+if (!fs.existsSync(eslintExecutable)) {
+  console.error(`[ESLINT] ESLint executable not found at ${eslintExecutable}.`);
+  console.error('[ESLINT] Run npm install --include=dev --ignore-scripts before linting.');
+  process.exit(1);
+}
 
-const result = spawnSync(process.execPath, [eslintBin, ...normalizedArgs], {
+console.log('[ESLINT] Using legacy .eslintrc mode for Next.js compatibility.');
+console.log(`[ESLINT] Command: ${eslintExecutable} ${normalizedArgs.join(' ')}`);
+
+const result = spawnSync(eslintExecutable, normalizedArgs, {
   stdio: 'inherit',
   env: process.env,
   shell: false,
