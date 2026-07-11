@@ -48,7 +48,7 @@ npm run lint
 npm run build
 ```
 
-Ghi chú: `npm run lint` dùng `scripts/run-eslint.js` để giữ chế độ `.eslintrc.json` tương thích với ESLint v9 và Next.js.
+Ghi chú: `npm run lint` dùng `scripts/run-eslint.js` để giữ chế độ `.eslintrc.json` tương thích với ESLint v9 và Next.js; runner gọi executable trong `node_modules/.bin` thay vì gọi subpath nội bộ của package ESLint.
 
 ## CI hiện có
 
