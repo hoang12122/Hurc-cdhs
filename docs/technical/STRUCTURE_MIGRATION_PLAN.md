@@ -5,7 +5,7 @@
 **Commit nền:** `b7ec63d9ed57e4d9525bf34c433d4f73c77971d0`  
 **Nhánh thực hiện:** `refactor/project-structure-from-b7ec63`  
 **Merge commit:** `0317ec84cf54aff768f001ebb41252a1aedbef94`  
-**Trạng thái:** Đợt 1 đã merge vào `main`; chờ kiểm tra lại CI/CD trên commit cập nhật sau merge  
+**Trạng thái:** Đợt 1 đã merge vào `main`; đã bổ sung bản vá ESLint v9 runner compatibility  
 
 ---
 
@@ -149,7 +149,13 @@ Không đưa Go backend vào Next.js app nếu chưa có kiến trúc triển kh
 
 ---
 
-## 6. Checklist trước khi merge
+## 6. CI/CD follow-up
+
+Sau khi merge PR #29, Security Gate và Ironclad Pipeline đã từng dừng ở bước lint do runner gọi trực tiếp subpath `eslint/bin/eslint.js`, không còn được ESLint v9 export. Bản vá mới chuyển `scripts/run-eslint.js` sang gọi executable tại `node_modules/.bin/eslint`, đồng thời vẫn giữ `ESLINT_USE_FLAT_CONFIG=false` để tương thích `.eslintrc.json`.
+
+---
+
+## 7. Checklist trước khi merge
 
 | STT | Nội dung kiểm tra | Trạng thái |
 |---|---|---|
@@ -166,6 +172,6 @@ Không đưa Go backend vào Next.js app nếu chưa có kiến trúc triển kh
 
 ---
 
-## 7. Kết luận
+## 8. Kết luận
 
 Đợt 1 đã hoàn tất việc tạo khung thư mục và tài liệu chỉ mục trên `main`. Việc di chuyển mã nguồn thực tế cần thực hiện theo các đợt tiếp theo, sau khi có danh sách file, cập nhật import path và CI/CD bảo vệ. Đây là hướng an toàn để chuẩn hóa cấu trúc mà không làm hỏng build hiện tại.
