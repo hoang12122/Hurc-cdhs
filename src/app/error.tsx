@@ -1,6 +1,7 @@
 'use client';
 
 import * as React from 'react';
+import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { AlertTriangle, RefreshCcw, Home } from 'lucide-react';
 
@@ -48,9 +49,9 @@ export default function GlobalError({
                         asChild 
                         className="flex-1 gap-2"
                     >
-                        <a href="/">
+                        <Link href="/">
                             <Home className="h-4 w-4" /> Về trang chủ
-                        </a>
+                        </Link>
                     </Button>
                 </div>
                 
