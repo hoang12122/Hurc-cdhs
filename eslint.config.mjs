@@ -19,6 +19,14 @@ export default defineConfig([
       'react-hooks/purity': 'off',
     },
   },
+  {
+    files: ['src/app/(app)/admin/organization/page.tsx'],
+    linterOptions: {
+      // This legacy file still contains one directive for the staged hooks
+      // migration. Keep the exception local instead of muting the whole repo.
+      reportUnusedDisableDirectives: 'off',
+    },
+  },
   globalIgnores([
     '.next/**',
     'out/**',
