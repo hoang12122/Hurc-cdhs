@@ -1,53 +1,367 @@
 import { jsonDb } from '../db/json-db';
+import {
+    appendGovernanceAudit,
+    buildMemoryNamespace,
+    classifyAiDomain,
+    hasUnsafeLearningSignals,
+    sanitizeAiText,
+    sha256,
+    type AiDomain,
+    type AiExpertRole,
+} from './ai/control-plane';
 
 /**
- * TENCENTDB AGENT MEMORY (LOCAL EDITION)
- * Giúp AI không bị "quên" ngữ cảnh và học hỏi từ các tương tác trước.
+ * GOVERNED AGENT MEMORY FIREWALL
+ *
+ * AI output is never treated as authoritative by default. Memories are
+ * namespaced, deduplicated, time-bounded and either provisional, verified,
+ * quarantined or superseded.
  */
+
+export type MemoryVerificationStatus = 'provisional' | 'verified' | 'quarantined' | 'superseded';
+export type MemorySourceType = 'ai-output' | 'database' | 'document' | 'human-approved' | 'system-event';
 
 export interface AgentMemory {
     id: string;
     userId: string;
+    namespace: string;
+    domain: AiDomain;
+    agentRole: AiExpertRole;
     topic: string;
     context: string;
-    importance: number; // 1-10
+    importance: number;
+    confidence: number;
+    checksum: string;
+    sourceType: MemorySourceType;
+    sourceId?: string;
+    sourceVersion?: string;
+    provenanceIds: string[];
+    verificationStatus: MemoryVerificationStatus;
+    reinforcementCount: number;
     timestamp: string;
+    lastSeenAt: string;
+    expiresAt: string;
+    createdAt?: string;
+    updatedAt?: string;
 }
 
-export async function storeExperience(userId: string, topic: string, context: string, importance = 5): Promise<void> {
-    const memory: AgentMemory = {
-        id: `mem-${Date.now()}`,
-        userId,
-        topic,
-        context,
-        importance,
-        timestamp: new Date().toISOString()
+export interface StoreExperienceOptions {
+    role?: AiExpertRole;
+    domain?: AiDomain;
+    namespace?: string;
+    confidence?: number;
+    sourceType?: MemorySourceType;
+    sourceId?: string;
+    sourceVersion?: string;
+    provenanceIds?: string[];
+    humanApproved?: boolean;
+    ttlDays?: number;
+}
+
+export interface RetrieveMemoryOptions {
+    role?: AiExpertRole;
+    domain?: AiDomain;
+    namespace?: string;
+    minimumConfidence?: number;
+    includeProvisional?: boolean;
+}
+
+const ACTIVE_COLLECTION = 'ai_longterm_memory';
+const QUARANTINE_COLLECTION = 'ai_memory_quarantine';
+const DEFAULT_ROLE: AiExpertRole = 'TECHNICAL_ANALYST';
+
+function clamp(value: number, min: number, max: number): number {
+    return Math.min(max, Math.max(min, value));
+}
+
+function tokenize(value: string): Set<string> {
+    const tokens = sanitizeAiText(value, 20_000)
+        .toLocaleLowerCase('vi')
+        .split(/[^a-z0-9\u00c0-\u1ef9_-]+/i)
+        .map(token => token.trim())
+        .filter(token => token.length >= 3);
+    return new Set(tokens);
+}
+
+function lexicalSimilarity(query: string, memoryText: string): number {
+    const queryTokens = tokenize(query);
+    const memoryTokens = tokenize(memoryText);
+    if (queryTokens.size === 0 || memoryTokens.size === 0) return 0;
+
+    let intersection = 0;
+    for (const token of queryTokens) {
+        if (memoryTokens.has(token)) intersection += 1;
+    }
+    return intersection / Math.max(queryTokens.size, 1);
+}
+
+function extractEntityIds(value: string): Set<string> {
+    const matches = value.match(/(?:DNF|HAZ|INS|CA|EQ|AST)-[A-Z0-9_-]+/gi) ?? [];
+    return new Set(matches.map(item => item.toUpperCase()));
+}
+
+function entityOverlap(query: string, memoryText: string): number {
+    const queryIds = extractEntityIds(query);
+    if (queryIds.size === 0) return 0;
+    const memoryIds = extractEntityIds(memoryText);
+    let matches = 0;
+    for (const id of queryIds) {
+        if (memoryIds.has(id)) matches += 1;
+    }
+    return matches / queryIds.size;
+}
+
+function calculateExpiry(importance: number, confidence: number, ttlDays?: number): string {
+    const computedDays = ttlDays ?? Math.round(30 + importance * 18 + confidence * 120);
+    const expires = new Date();
+    expires.setUTCDate(expires.getUTCDate() + clamp(computedDays, 30, 365));
+    return expires.toISOString();
+}
+
+async function safeAudit(input: Parameters<typeof appendGovernanceAudit>[0]): Promise<void> {
+    try {
+        await appendGovernanceAudit(input);
+    } catch (error) {
+        console.warn('[AI MEMORY] Governance audit persistence unavailable:', error instanceof Error ? error.message : error);
+    }
+}
+
+export async function storeExperience(
+    userId: string,
+    topic: string,
+    context: string,
+    importance = 5,
+    options: StoreExperienceOptions = {},
+): Promise<void> {
+    const normalizedTopic = sanitizeAiText(topic, 500);
+    const normalizedContext = sanitizeAiText(context, 12_000);
+    if (!userId || !normalizedTopic || !normalizedContext) return;
+
+    const domain = options.domain ?? classifyAiDomain(`${normalizedTopic}\n${normalizedContext}`);
+    const role = options.role ?? DEFAULT_ROLE;
+    const namespace = options.namespace ?? buildMemoryNamespace(role, domain, userId);
+    const sourceType = options.sourceType ?? 'ai-output';
+    const confidence = clamp(
+        options.humanApproved ? Math.max(options.confidence ?? 0.95, 0.95) : (options.confidence ?? 0.68),
+        0,
+        1,
+    );
+    const unsafe = hasUnsafeLearningSignals(`${normalizedTopic}\n${normalizedContext}`);
+    const verificationStatus: MemoryVerificationStatus = unsafe
+        ? 'quarantined'
+        : options.humanApproved || sourceType === 'human-approved' || sourceType === 'database'
+          ? 'verified'
+          : confidence >= 0.65
+            ? 'provisional'
+            : 'quarantined';
+    const checksum = sha256(`${namespace}\n${normalizedTopic}\n${normalizedContext}`);
+    const now = new Date().toISOString();
+    const targetCollection = verificationStatus === 'quarantined' ? QUARANTINE_COLLECTION : ACTIVE_COLLECTION;
+
+    try {
+        const existing = await jsonDb.findFirst<AgentMemory>(
+            targetCollection,
+            memory => memory.checksum === checksum && memory.namespace === namespace,
+        );
+
+        if (existing) {
+            await jsonDb.updateRecord<AgentMemory>(targetCollection, existing.id, {
+                importance: Math.max(existing.importance, clamp(importance, 1, 10)),
+                confidence: Math.max(existing.confidence, confidence),
+                reinforcementCount: (existing.reinforcementCount ?? 1) + 1,
+                lastSeenAt: now,
+                expiresAt: calculateExpiry(Math.max(existing.importance, importance), Math.max(existing.confidence, confidence), options.ttlDays),
+            });
+
+            await safeAudit({
+                requestId: existing.id,
+                phase: 'memory-store',
+                operation: 'reinforce-memory',
+                agentId: role,
+                domain,
+                namespace,
+                riskLevel: verificationStatus === 'quarantined' ? 'high' : 'low',
+                riskScore: verificationStatus === 'quarantined' ? 70 : 10,
+                fingerprint: checksum,
+                summary: `Reinforced memory: ${normalizedTopic}`,
+                decision: verificationStatus === 'quarantined' ? 'quarantine' : 'allow',
+                confidence,
+            });
+            return;
+        }
+
+        const memory: AgentMemory = {
+            id: `mem-${sha256(`${checksum}:${now}`).slice(0, 24)}`,
+            userId,
+            namespace,
+            domain,
+            agentRole: role,
+            topic: normalizedTopic,
+            context: normalizedContext,
+            importance: clamp(importance, 1, 10),
+            confidence,
+            checksum,
+            sourceType,
+            sourceId: options.sourceId,
+            sourceVersion: options.sourceVersion,
+            provenanceIds: Array.from(new Set(options.provenanceIds ?? [])),
+            verificationStatus,
+            reinforcementCount: 1,
+            timestamp: now,
+            lastSeenAt: now,
+            expiresAt: calculateExpiry(importance, confidence, options.ttlDays),
+        };
+
+        await jsonDb.insertRecord(targetCollection, memory);
+        await safeAudit({
+            requestId: memory.id,
+            phase: verificationStatus === 'quarantined' ? 'quarantine' : 'memory-store',
+            operation: 'store-memory',
+            agentId: role,
+            domain,
+            namespace,
+            riskLevel: verificationStatus === 'quarantined' ? 'high' : 'low',
+            riskScore: verificationStatus === 'quarantined' ? 70 : 10,
+            fingerprint: checksum,
+            summary: `${verificationStatus}: ${normalizedTopic}`,
+            decision: verificationStatus === 'quarantined' ? 'quarantine' : 'allow',
+            confidence,
+        });
+    } catch (error) {
+        // Memory persistence must never make the primary AI request fail.
+        console.warn('[AI MEMORY] Store skipped:', error instanceof Error ? error.message : error);
+    }
+}
+
+export async function retrieveMemories(
+    userId: string,
+    query: string,
+    limit = 5,
+    options: RetrieveMemoryOptions = {},
+): Promise<string> {
+    const normalizedQuery = sanitizeAiText(query, 2_000);
+    if (!userId || !normalizedQuery) return '';
+
+    try {
+        const domain = options.domain ?? classifyAiDomain(normalizedQuery);
+        const role = options.role ?? DEFAULT_ROLE;
+        const namespace = options.namespace ?? buildMemoryNamespace(role, domain, userId);
+        const minimumConfidence = clamp(options.minimumConfidence ?? 0.65, 0, 1);
+        const now = Date.now();
+        const memories = await jsonDb.getCollection<AgentMemory>(ACTIVE_COLLECTION);
+
+        const relevant = memories
+            .filter(memory => memory.userId === userId)
+            .filter(memory => memory.namespace === namespace)
+            .filter(memory => memory.verificationStatus === 'verified' || (options.includeProvisional !== false && memory.verificationStatus === 'provisional'))
+            .filter(memory => memory.confidence >= minimumConfidence)
+            .filter(memory => !memory.expiresAt || new Date(memory.expiresAt).getTime() > now)
+            .map(memory => {
+                const text = `${memory.topic}\n${memory.context}`;
+                const lexical = lexicalSimilarity(normalizedQuery, text);
+                const entity = entityOverlap(normalizedQuery, text);
+                const ageDays = Math.max(0, (now - new Date(memory.lastSeenAt || memory.timestamp).getTime()) / 86_400_000);
+                const recency = Math.exp(-ageDays / 120);
+                const score = lexical * 0.45 + entity * 0.25 + memory.confidence * 0.18 + (memory.importance / 10) * 0.08 + recency * 0.04;
+                return { memory, score };
+            })
+            .filter(item => item.score >= 0.2)
+            .sort((a, b) => b.score - a.score || b.memory.confidence - a.memory.confidence)
+            .slice(0, clamp(limit, 1, 10));
+
+        await safeAudit({
+            requestId: `memread-${sha256(`${namespace}:${normalizedQuery}`).slice(0, 20)}`,
+            phase: 'memory-retrieve',
+            operation: 'retrieve-memory',
+            agentId: role,
+            domain,
+            namespace,
+            riskLevel: 'low',
+            riskScore: 5,
+            fingerprint: sha256(`${namespace}:${normalizedQuery}`),
+            summary: `Retrieved ${relevant.length} governed memories`,
+            decision: 'allow',
+            confidence: relevant.length > 0 ? relevant[0].memory.confidence : 0,
+        });
+
+        if (relevant.length === 0) return '';
+
+        return '\n[NGỮ CẢNH QUÁ KHỨ ĐÃ QUA MEMORY FIREWALL]:\n' + relevant
+            .map(({ memory, score }) => {
+                const status = memory.verificationStatus === 'verified' ? 'ĐÃ XÁC MINH' : 'TẠM THỜI';
+                return `- [${status}; confidence=${memory.confidence.toFixed(2)}; relevance=${score.toFixed(2)}; source=${memory.sourceType}] ${memory.topic}: ${memory.context}`;
+            })
+            .join('\n');
+    } catch (error) {
+        console.warn('[AI MEMORY] Retrieval skipped:', error instanceof Error ? error.message : error);
+        return '';
+    }
+}
+
+export async function reviewMemory(
+    memoryId: string,
+    decision: 'approve' | 'quarantine' | 'supersede',
+): Promise<AgentMemory | null> {
+    const active = await jsonDb.findFirst<AgentMemory>(ACTIVE_COLLECTION, memory => memory.id === memoryId);
+    const quarantined = active ? null : await jsonDb.findFirst<AgentMemory>(QUARANTINE_COLLECTION, memory => memory.id === memoryId);
+    const memory = active ?? quarantined;
+    if (!memory) return null;
+
+    const fromCollection = active ? ACTIVE_COLLECTION : QUARANTINE_COLLECTION;
+    if (decision === 'approve') {
+        const approved: AgentMemory = {
+            ...memory,
+            confidence: Math.max(memory.confidence, 0.95),
+            sourceType: 'human-approved',
+            verificationStatus: 'verified',
+            lastSeenAt: new Date().toISOString(),
+        };
+        if (fromCollection === QUARANTINE_COLLECTION) {
+            await jsonDb.insertRecord(ACTIVE_COLLECTION, approved);
+            await jsonDb.delete(QUARANTINE_COLLECTION, item => item.id === memoryId);
+        } else {
+            await jsonDb.updateRecord(ACTIVE_COLLECTION, memoryId, approved);
+        }
+        return approved;
+    }
+
+    const status: MemoryVerificationStatus = decision === 'supersede' ? 'superseded' : 'quarantined';
+    const updated = { ...memory, verificationStatus: status, lastSeenAt: new Date().toISOString() };
+    if (fromCollection === ACTIVE_COLLECTION && status === 'quarantined') {
+        await jsonDb.insertRecord(QUARANTINE_COLLECTION, updated);
+        await jsonDb.delete(ACTIVE_COLLECTION, item => item.id === memoryId);
+        return updated;
+    }
+    return jsonDb.updateRecord(fromCollection, memoryId, updated);
+}
+
+export async function getMemoryHealth() {
+    const [active, quarantine] = await Promise.all([
+        jsonDb.getCollection<AgentMemory>(ACTIVE_COLLECTION),
+        jsonDb.getCollection<AgentMemory>(QUARANTINE_COLLECTION),
+    ]);
+    const now = Date.now();
+    return {
+        active: active.filter(item => item.verificationStatus !== 'superseded').length,
+        verified: active.filter(item => item.verificationStatus === 'verified').length,
+        provisional: active.filter(item => item.verificationStatus === 'provisional').length,
+        quarantined: quarantine.length,
+        expired: active.filter(item => item.expiresAt && new Date(item.expiresAt).getTime() <= now).length,
+        duplicateReinforcements: active.reduce((sum, item) => sum + Math.max(0, (item.reinforcementCount ?? 1) - 1), 0),
     };
-    
-    await jsonDb.insertRecord('ai_longterm_memory', memory);
-}
-
-export async function retrieveMemories(userId: string, query: string, limit = 5): Promise<string> {
-    const memories = await jsonDb.getCollection<AgentMemory>('ai_longterm_memory');
-    
-    // Simple relevance check (in production this would use vector search)
-    const relevant = memories
-        .filter(m => m.userId === userId && (m.topic.includes(query) || m.context.includes(query)))
-        .sort((a, b) => b.importance - a.importance)
-        .slice(0, limit);
-
-    if (relevant.length === 0) return "";
-
-    return "\n[NGỮ CẢNH QUÁ KHỨ]:\n" + relevant.map(m => `- ${m.topic}: ${m.context}`).join('\n');
 }
 
 /**
- * Tích hợp vào luồng hỏi AI
+ * Integrate governed memory into an AI request without changing existing callers.
  */
 export async function askAIWithMemory(prompt: string, userId: string, options: any = {}) {
-    const pastContext = await retrieveMemories(userId, prompt.substring(0, 50));
+    const pastContext = await retrieveMemories(userId, prompt.substring(0, 200), 5, {
+        role: options.role,
+        domain: options.domain,
+        namespace: options.namespace,
+    });
     const fullPrompt = pastContext ? `${pastContext}\n\n[CÂU HỎI HIỆN TẠI]: ${prompt}` : prompt;
-    
-    const { askAI } = await import('./ai');
+
+    const { askAI } = await import('./ai/manager');
     return askAI(fullPrompt, { ...options, userId });
 }
