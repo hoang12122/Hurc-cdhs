@@ -1,5 +1,3 @@
-
-
 import type { NavItem } from '@/lib/constants';
 import { 
     LayoutGrid, 
@@ -35,7 +33,8 @@ export const MAIN_NAV_ITEMS: NavItem[] = [
 ];
 
 export const ADMIN_NAV_ITEMS: NavItem[] = [
-   { path: '/admin', label: { en: 'Admin Hub', vi: 'Quản trị Hệ thống' }, icon: LayoutDashboard, permission: 'settings:manage', exact: true },
+  { path: '/admin', label: { en: 'Admin Hub', vi: 'Quản trị Hệ thống' }, icon: LayoutDashboard, permission: 'settings:manage', exact: true },
+  { path: '/admin/ai-governance', label: { en: 'AI Governance', vi: 'Quản trị AI' }, icon: BrainCircuit, permission: 'admin:system', exact: true },
 ];
 
 export const USER_NAV_ITEMS: NavItem[] = [
