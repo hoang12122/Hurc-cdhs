@@ -121,8 +121,12 @@ export async function retrieveMemories(
 export async function getQuarantinedMemories(
   limit = 100,
 ): Promise<AgentMemory[]> {
-  const records = await loadQuarantine();
-  return [...records].reverse().slice(0, clamp(limit, 1, 500));
+  const boundedLimit = clamp(limit, 1, 500);
+  if (!IS_DATABASE_OFFLINE) {
+    return loadOnlineMemories(['REJECTED'], boundedLimit);
+  }
+  const records = await loadOfflineQuarantinedMemories();
+  return [...records].reverse().slice(0, boundedLimit);
 }
 
 export async function getMemoryHealth(): Promise<MemoryHealth> {
