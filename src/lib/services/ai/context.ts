@@ -1,10 +1,43 @@
 import { aiDb, opsDb, IS_DATABASE_OFFLINE } from '../../prisma';
 import { jsonDb } from '../../db/json-db';
+import {
+    detectPromptInjection,
+    getRegisteredAiAgents,
+    sanitizeAiText,
+} from './control-plane';
+import {
+    assessDataCandidate,
+    quarantineDataCandidate,
+} from './data-governance';
 
 /**
- * AI Context Service — Fetches CRM data for AI Ingestion
- * Refactored for Phase 4: Standardized Keys & Atomic JSON operations.
+ * AI Context Service — Governed CRM data ingestion and agent registry.
  */
+
+function getBuiltInAgents() {
+    const now = new Date().toISOString();
+    return getRegisteredAiAgents().map(agent => ({
+        id: agent.id,
+        name: agent.displayName,
+        subsystem: agent.domains.join(', '),
+        systemPrompt: agent.systemPolicy,
+        aiModel: 'local-governed',
+        isDefault: agent.role === 'TECHNICAL_ANALYST',
+        isBuiltIn: true,
+        role: agent.role,
+        capabilities: agent.capabilities,
+        collections: agent.collections,
+        memoryNamespace: agent.memoryNamespace,
+        createdAt: now,
+        updatedAt: now,
+    }));
+}
+
+function mergeAgents(persisted: any[]) {
+    const builtIn = getBuiltInAgents();
+    const ids = new Set(builtIn.map(agent => agent.id));
+    return [...builtIn, ...persisted.filter(agent => !ids.has(agent.id))];
+}
 
 export async function getInternalKnowledgeSnippets(limit: number = 50) {
     if (!IS_DATABASE_OFFLINE) {
@@ -20,23 +53,64 @@ export async function getInternalKnowledgeSnippets(limit: number = 50) {
 }
 
 export async function createInternalKnowledgeSnippet(content: string, source: string, tags: string[]) {
+    const normalizedContent = sanitizeAiText(content, 20_000);
+    const normalizedSource = sanitizeAiText(source, 500);
+    const normalizedTags = Array.from(new Set((tags ?? [])
+        .map(tag => sanitizeAiText(tag, 80).toLocaleLowerCase('vi'))
+        .filter(Boolean)))
+        .slice(0, 30);
+
+    const envelope = assessDataCandidate(
+        {
+            entityType: 'knowledge-snippet',
+            content: normalizedContent,
+            source: normalizedSource,
+            tags: normalizedTags,
+            recordedAt: new Date().toISOString(),
+        },
+        {
+            entityType: 'knowledge-snippet',
+            namespace: 'knowledge:curated',
+            provenance: {
+                sourceType: 'document',
+                sourceId: normalizedSource || 'unspecified',
+                sourceVersion: 'ingestion-v1',
+                collectedAt: new Date().toISOString(),
+            },
+            requiredFields: ['content', 'source'],
+        },
+    );
+
+    if (envelope.decision === 'quarantine' || envelope.decision === 'reject') {
+        await quarantineDataCandidate(envelope, 'Knowledge candidate failed ingestion policy');
+        throw new Error(`Knowledge candidate quarantined: ${envelope.issues.join(', ')}`);
+    }
+
     if (!IS_DATABASE_OFFLINE) {
         try {
             return await aiDb.aiKnowledgeSnippet.create({
-                data: { content, source, tags }
+                data: { content: normalizedContent, source: normalizedSource, tags: normalizedTags }
             });
         } catch (e) { /* fallback */ }
     }
 
     const snippet = {
-        id: `snippet-${Date.now()}`,
-        content,
-        source,
-        tags,
+        id: `snippet-${envelope.fingerprint.slice(0, 24)}`,
+        content: normalizedContent,
+        source: normalizedSource,
+        tags: normalizedTags,
+        governance: {
+            fingerprint: envelope.fingerprint,
+            qualityScore: envelope.qualityScore,
+            trustScore: envelope.trustScore,
+            decision: envelope.decision,
+            issues: envelope.issues,
+            provenance: envelope.provenance,
+        },
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
     };
-    
+
     return await jsonDb.insertRecord<any>('ai_knowledge_snippets', snippet);
 }
 
@@ -52,45 +126,58 @@ export async function deleteInternalKnowledgeSnippet(id: string) {
 export async function getInternalAgents() {
     if (!IS_DATABASE_OFFLINE) {
         try {
-            return await aiDb.aiAgent.findMany({
+            const agents = await aiDb.aiAgent.findMany({
                 orderBy: { name: 'asc' }
             });
+            return mergeAgents(agents);
         } catch (e) { /* fallback */ }
     }
-    
+
     const agents = await jsonDb.getCollection<any>('ai_agents');
-    if (agents.length === 0) {
-        return [
-            { 
-                id: '1', 
-                name: 'Trợ lý Báo cáo (Offline)', 
-                subsystem: 'Tất cả', 
-                systemPrompt: 'Hoạt động ở chế độ Offline', 
-                aiModel: 'gemini-1.5-flash', 
-                isDefault: true, 
-                createdAt: new Date().toISOString() 
-            }
-        ];
-    }
-    return agents;
+    return mergeAgents(agents);
 }
 
 export async function createInternalAgent(data: { name: string, subsystem: string, systemPrompt: string }) {
+    const name = sanitizeAiText(data.name, 120);
+    const subsystem = sanitizeAiText(data.subsystem, 250);
+    const requestedPrompt = sanitizeAiText(data.systemPrompt, 4_000);
+    const injectionSignals = detectPromptInjection(requestedPrompt);
+
+    if (!name || !subsystem || !requestedPrompt) {
+        throw new Error('Agent name, subsystem and system prompt are required.');
+    }
+    if (injectionSignals.length > 0) {
+        throw new Error(`Agent prompt rejected by governance policy: ${injectionSignals.join(', ')}`);
+    }
+    if (/\b(write|delete|drop|truncate|execute|shutdown|ghi|xóa|thực thi|tắt hệ thống)\b/i.test(requestedPrompt)) {
+        throw new Error('Custom agents are advisory-only and cannot request data-write or system-control authority.');
+    }
+
+    const systemPrompt = [
+        requestedPrompt,
+        '[IMMUTABLE CUSTOM AGENT POLICY]',
+        'Chỉ được đọc, phân tích và đề xuất. Không tự ý ghi, sửa, xóa dữ liệu hoặc điều khiển hệ thống.',
+        'Mọi kết luận phải nêu nguồn, độ tin cậy và phần chưa được xác minh.',
+    ].join('\n\n');
+    const governedData = { name, subsystem, systemPrompt };
+
     if (!IS_DATABASE_OFFLINE) {
         try {
-            return await aiDb.aiAgent.create({ data });
+            return await aiDb.aiAgent.create({ data: governedData });
         } catch (e) { /* fallback */ }
     }
 
     const agent = {
-        ...data,
+        ...governedData,
         id: `agent-${Date.now()}`,
-        aiModel: 'gemini-1.5-flash',
+        aiModel: 'local-governed',
         isDefault: false,
+        isBuiltIn: false,
+        governanceMode: 'advisory-only',
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
     };
-    
+
     return await jsonDb.insertRecord<any>('ai_agents', agent);
 }
 
@@ -102,7 +189,7 @@ export async function getInternalSystemSnapshot() {
         const activeDnfs = dnfs.filter((d: any) => !['Đã đóng', 'Hủy'].includes(d.status)).length;
         const severeDnfs = dnfs.filter((d: any) => d.priority === 'Cao' && !['Đã đóng', 'Hủy'].includes(d.status)).length;
         const activeHazards = hazards.filter((h: any) => !['Đã đóng', 'Hủy'].includes(h.status)).length;
-        
+
         return { activeDnfs, severeDnfs, activeHazards };
     }
 
@@ -112,7 +199,7 @@ export async function getInternalSystemSnapshot() {
             opsDb.dnfDocument.count({ where: { priority: 'Cao', status: { notIn: ['Đã đóng', 'Hủy'] } } }),
             opsDb.hazardRecord.count({ where: { status: { notIn: ['Đã đóng', 'Hủy'] } } })
         ]);
-        
+
         return { activeDnfs, severeDnfs, activeHazards };
     } catch (e) {
         return { activeDnfs: 0, severeDnfs: 0, activeHazards: 0 };
