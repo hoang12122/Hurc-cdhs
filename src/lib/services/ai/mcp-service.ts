@@ -46,7 +46,7 @@ function serializeAndValidateArgs(args: unknown): string {
 }
 
 function safeTraceContent(value: unknown, maxChars = 8_000): string {
-    const serialized = typeof value === 'string' ? value : JSON.stringify(value, null, 2);
+    const serialized = (typeof value === 'string' ? value : JSON.stringify(value, null, 2)) ?? '';
     return redactSensitiveData(sanitizeAiText(serialized, maxChars)).text;
 }
 
@@ -56,9 +56,6 @@ class McpService {
     private traces: McpTraceNode[] = [];
     private blockedTools: string[] = [];
 
-    /**
-     * Fetch available tools and expose only read-only operations to agents.
-     */
     async listTools(): Promise<McpTool[]> {
         try {
             const response = await fetch(`${this.baseUrl}/tools`, {
@@ -102,10 +99,6 @@ class McpService {
         }
     }
 
-    /**
-     * Call a read-only MCP tool. The firewall is rechecked at execution time so
-     * callers cannot bypass listTools() by supplying a tool name directly.
-     */
     async callTool(name: string, args: any, parentId?: string): Promise<any> {
         const safeName = sanitizeAiText(name, 120);
         const traceId = crypto.randomUUID();
