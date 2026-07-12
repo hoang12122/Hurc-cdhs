@@ -57,6 +57,7 @@ firestore-debug.log
 /.build-logs/
 /audit_reports/
 /reports/tmp/
+/security-rotation-output.json
 
 # Local database and AI model data
 /data/postgres/

@@ -29,6 +29,7 @@
     "test:graph": "npx tsx src/scripts/test-trustgraph-sync.ts",
     "test:ai-governance": "npx tsx src/scripts/test-ai-governance.ts",
     "test:guard": "node scripts/test-guard.js",
+    "security:rotate-compromised-admins": "npx tsx src/scripts/rotate-compromised-admin-credentials.ts",
     "db:dashboard": "npx tsx src/scripts/generate-integrity-dashboard.ts"
   },
   "dependencies": {
