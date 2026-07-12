@@ -2,16 +2,22 @@
 
 import { revalidatePath } from 'next/cache';
 import { requirePermission, requireAuth } from '@/lib/auth-enforcer';
-import { 
-    getInternalKnowledgeSnippets, 
-    createInternalKnowledgeSnippet, 
-    deleteInternalKnowledgeSnippet 
+import {
+    getInternalKnowledgeSnippets,
+    createInternalKnowledgeSnippet,
+    deleteInternalKnowledgeSnippet
 } from '../services/ai/context';
 import { parsePdf, parseDocx, parseXlsx } from '@/lib/services/file-parser';
+import { checkRateLimit } from '@/lib/rate-limit';
 
-export async function pushKnowledgeSnippet(content: string, source: string = 'Local/Upload', tags: string[] = []) {
-    await requirePermission('ai:use');
-    if (!content.trim()) throw new Error("Content cannot be empty");
+const MAX_UPLOAD_BYTES = 15 * 1024 * 1024;
+const MAX_TEXT_BYTES = 2 * 1024 * 1024;
+const ALLOWED_EXTENSIONS = new Set(['pdf', 'docx', 'xlsx', 'xls', 'txt', 'md']);
+
+export async function pushKnowledgeSnippet(content: string, source = 'Local/Upload', tags: string[] = []) {
+    const user = await requirePermission('knowledge:submit');
+    if (!checkRateLimit(`knowledge-submit:${user.id}`, 20, 60_000)) throw new Error('Too many knowledge submissions');
+    if (!content.trim()) throw new Error('Content cannot be empty');
     const snippet = await createInternalKnowledgeSnippet(content, source, tags);
     revalidatePath('/ai-lab');
     return snippet;
@@ -19,41 +25,39 @@ export async function pushKnowledgeSnippet(content: string, source: string = 'Lo
 
 export async function getKnowledgeSnippets() {
     await requireAuth();
-    return await getInternalKnowledgeSnippets();
+    return getInternalKnowledgeSnippets();
 }
 
 export async function deleteKnowledgeSnippet(id: string) {
-    await requirePermission('ai:use');
+    await requirePermission('knowledge:delete');
     await deleteInternalKnowledgeSnippet(id);
     revalidatePath('/ai-lab');
     return { success: true };
 }
 
 export async function processFileKnowledge(formData: FormData) {
-    await requirePermission('ai:use');
-    const file = formData.get('file') as File;
-    if (!file) throw new Error("No file provided");
+    const user = await requirePermission('knowledge:submit');
+    if (!checkRateLimit(`knowledge-upload:${user.id}`, 10, 60_000)) throw new Error('Too many uploads');
 
-    const buffer = Buffer.from(await file.arrayBuffer());
-    let content = "";
-    const extension = file.name.split('.').pop()?.toLowerCase();
+    const file = formData.get('file') as File | null;
+    if (!file) throw new Error('No file provided');
+    if (file.size > MAX_UPLOAD_BYTES) throw new Error('File is too large. Maximum size is 15MB.');
 
-    // Try TrustGraph Document Load for supported binary formats
-    if (extension === 'pdf') {
-        content = await parsePdf(buffer);
-    } else if (extension === 'docx') {
-        content = await parseDocx(buffer);
-    } else if (extension === 'xlsx' || extension === 'xls') {
-        content = await parseXlsx(buffer);
-    } else if (extension === 'txt' || extension === 'md') {
-        content = buffer.toString('utf-8');
-    } else {
-        throw new Error(`Unsupported file format: .${extension}`);
+    const extension = file.name.split('.').pop()?.toLowerCase() || '';
+    if (!ALLOWED_EXTENSIONS.has(extension)) throw new Error(`Unsupported file format: .${extension}`);
+    if ((extension === 'txt' || extension === 'md') && file.size > MAX_TEXT_BYTES) {
+        throw new Error('Text file is too large. Maximum size is 2MB.');
     }
 
-    if (!content.trim()) throw new Error("Could not extract any text from file.");
+    const buffer = Buffer.from(await file.arrayBuffer());
+    let content = '';
+    if (extension === 'pdf') content = await parsePdf(buffer);
+    else if (extension === 'docx') content = await parseDocx(buffer);
+    else if (extension === 'xlsx' || extension === 'xls') content = await parseXlsx(buffer);
+    else content = buffer.toString('utf-8');
 
-    const snippet = await createInternalKnowledgeSnippet(content, `File: ${file.name}`, [extension || 'file']);
+    if (!content.trim()) throw new Error('Could not extract any text from file.');
+    const snippet = await createInternalKnowledgeSnippet(content, `File: ${file.name.slice(0, 255)}`, [extension]);
     revalidatePath('/ai-lab');
     return { success: true, id: snippet.id };
 }
