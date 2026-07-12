@@ -27,6 +27,7 @@
     "test:mock": "npx tsx src/scripts/test-mock-layer.ts",
     "test:integrity": "npx tsx src/scripts/test-cross-db-integrity.ts",
     "test:graph": "npx tsx src/scripts/test-trustgraph-sync.ts",
+    "test:ai-governance": "npx tsx src/scripts/test-ai-governance.ts",
     "test:guard": "node scripts/test-guard.js",
     "db:dashboard": "npx tsx src/scripts/generate-integrity-dashboard.ts"
   },
