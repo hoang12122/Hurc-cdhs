@@ -541,7 +541,7 @@ export async function reviewMemory(
         };
         if (fromCollection === QUARANTINE_COLLECTION) {
             await jsonDb.insertRecord(ACTIVE_COLLECTION, approved);
-            await jsonDb.delete(QUARANTINE_COLLECTION, item => item.id === memoryId);
+            await jsonDb.delete<AgentMemory>(QUARANTINE_COLLECTION, item => item.id === memoryId);
         } else {
             await jsonDb.updateRecord(ACTIVE_COLLECTION, memoryId, approved);
         }
@@ -552,7 +552,7 @@ export async function reviewMemory(
     const updated = { ...memory, verificationStatus: status, lastSeenAt: new Date().toISOString() };
     if (fromCollection === ACTIVE_COLLECTION && status === 'quarantined') {
         await jsonDb.insertRecord(QUARANTINE_COLLECTION, updated);
-        await jsonDb.delete(ACTIVE_COLLECTION, item => item.id === memoryId);
+        await jsonDb.delete<AgentMemory>(ACTIVE_COLLECTION, item => item.id === memoryId);
         return updated;
     }
     return jsonDb.updateRecord(fromCollection, memoryId, updated);
