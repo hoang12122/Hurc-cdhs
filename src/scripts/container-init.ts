@@ -2,7 +2,7 @@
  * HURC1 CONTAINER INITIALIZATION (Zero-Failure Deploy)
  * Handles DB migrations and connectivity checks inside the container.
  */
-import { execSync } from 'child_process';
+import { execFileSync } from 'child_process';
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -41,7 +41,13 @@ async function init() {
                 attempts++;
                 console.log(`Migrating schema: ${s} (Attempt ${attempts}/${MAX_RETRIES})...`);
                 try {
-                    execSync(`npx prisma db push --schema=prisma/${s}/schema.prisma --accept-data-loss --skip-generate`, { stdio: 'inherit' });
+                    execFileSync('prisma', [
+                        'db',
+                        'push',
+                        `--schema=prisma/${s}/schema.prisma`,
+                        '--accept-data-loss',
+                        '--skip-generate',
+                    ], { stdio: 'inherit' });
                     success = true;
                 } catch (e) {
                     if (attempts >= MAX_RETRIES) {
@@ -59,7 +65,7 @@ async function init() {
         if (fs.existsSync(dbJsonPath)) {
             console.log("🔄 Found db.json. Automatically migrating initial data to PostgreSQL...");
             try {
-                execSync('node dist-init/register.js', { stdio: 'inherit' });
+                execFileSync('node', ['dist-init/register.js'], { stdio: 'inherit' });
                 console.log("✅ Automatic data migration completed successfully.");
             } catch (migrateErr) {
                 console.error("⚠️ Warning: Automatic database sync from db.json failed or skipped some tables. (Non-fatal, starting app anyway):", migrateErr);
@@ -70,7 +76,7 @@ async function init() {
     }
 
     console.log("✅ Initialization complete. Handing over to Next.js...");
-    execSync('node server.js', { stdio: 'inherit' });
+    execFileSync('node', ['server.js'], { stdio: 'inherit' });
 }
 
 init().catch(err => {
