@@ -48,6 +48,9 @@ jobs:
       - name: 📦 Install Dependencies
         run: npm install --include=dev --ignore-scripts
 
+      - name: 🔒 Verify Prisma Dependency Contract
+        run: npm run db:verify:prisma-version
+
       - name: ⚙️ Generate Prisma Clients
         run: npm run db:generate:all
 
