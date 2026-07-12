@@ -17,7 +17,7 @@ permissions:
 
 jobs:
   build-quality-gate:
-    name: Security, Typecheck, Lint, Build, Smoke Test and Dependency Audit
+    name: Security, Typecheck, AI Governance, Lint, Build, Smoke Test and Dependency Audit
     runs-on: ubuntu-latest
     timeout-minutes: 35
 
@@ -79,6 +79,9 @@ jobs:
 
       - name: Static type check
         run: node scripts/run-build-phase.js "Static type check" -- npm run typecheck
+
+      - name: AI governance invariant checks
+        run: node scripts/run-build-phase.js "AI governance invariant checks" -- npm run test:ai-governance
 
       - name: Next.js lint
         run: node scripts/run-build-phase.js "Next.js lint" -- npm run lint
