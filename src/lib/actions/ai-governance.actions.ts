@@ -5,6 +5,7 @@ import { aiDb, IS_DATABASE_OFFLINE } from '@/lib/prisma';
 import { jsonDb } from '@/lib/db/json-db';
 import { getRegisteredAiAgents } from '@/lib/services/ai/control-plane';
 import { getAiRuntimeGuardStatus } from '@/lib/services/ai/runtime-guard';
+import { mcpService } from '@/lib/services/ai/mcp-service';
 import {
   getMemoryHealth,
   getQuarantinedMemories,
@@ -95,6 +96,7 @@ export async function getAiGovernanceDashboard() {
     writeAccess: false,
     agents: getRegisteredAiAgents(),
     runtime: getAiRuntimeGuardStatus(),
+    toolFirewall: mcpService.getFirewallStatus(),
     memory,
     audit,
     protections: [
@@ -105,6 +107,8 @@ export async function getAiGovernanceDashboard() {
       'single-flight-deduplication',
       'per-namespace-concurrency-limit',
       'circuit-breaker-and-timeout',
+      'read-only-tool-firewall',
+      'symlink-and-secret-file-blocking',
       'memory-confidence-and-ttl',
       'memory-quarantine',
       'data-provenance-and-versioning',
