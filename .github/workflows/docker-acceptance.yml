@@ -26,12 +26,15 @@ jobs:
       - name: Checkout source
         uses: actions/checkout@v4
 
-      - name: Show Docker build source
+      - name: Verify Docker dependency policy
         run: |
           echo "GITHUB_SHA=${GITHUB_SHA}"
           echo "--- Dockerfile dependency install policy ---"
-          sed -n '1,18p' Dockerfile
-          grep -q "No package-lock.json or npm-shrinkwrap.json -> npm install" Dockerfile
+          sed -n '1,22p' Dockerfile
+          grep -q '"prisma": "5.22.0"' package.json
+          grep -q '"@prisma/client": "5.22.0"' package.json
+          grep -q 'npm run db:verify:prisma-version' Dockerfile
+          test ! -f prisma.config.ts
 
       - name: Validate Docker Compose configuration
         run: docker compose --profile core --profile tools config
