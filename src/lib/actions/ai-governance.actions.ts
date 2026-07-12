@@ -7,8 +7,8 @@ import { getRegisteredAiAgents } from '@/lib/services/ai/control-plane';
 import { getAiRuntimeGuardStatus } from '@/lib/services/ai/runtime-guard';
 import {
   getMemoryHealth,
+  getQuarantinedMemories,
   reviewMemory,
-  type AgentMemory,
 } from '@/lib/services/agent-memory';
 import {
   assessDataCandidate,
@@ -76,10 +76,12 @@ export async function getAiGovernanceDashboard() {
 
   const [memory, audit] = await Promise.all([
     getMemoryHealth().catch(error => ({
+      store: IS_DATABASE_OFFLINE ? 'json-memory-firewall' : 'postgres-ai-verification-log',
       active: 0,
       verified: 0,
       provisional: 0,
       quarantined: 0,
+      superseded: 0,
       expired: 0,
       duplicateReinforcements: 0,
       error: error instanceof Error ? error.message : String(error),
@@ -115,15 +117,9 @@ export async function getAiGovernanceDashboard() {
 
 export async function getAiMemoryQuarantine(limit = 100) {
   await requirePermission('admin:system');
-  if (!IS_DATABASE_OFFLINE) {
-    return {
-      records: [] as AgentMemory[],
-      note: 'Memory quarantine currently uses the offline governance store; PostgreSQL persistence requires a dedicated schema migration.',
-    };
-  }
-  const records = await jsonDb.getCollection<AgentMemory>('ai_memory_quarantine');
   return {
-    records: [...records].reverse().slice(0, Math.max(1, Math.min(limit, 500))),
+    store: IS_DATABASE_OFFLINE ? 'json-memory-firewall' : 'postgres-ai-verification-log',
+    records: await getQuarantinedMemories(limit),
   };
 }
 
