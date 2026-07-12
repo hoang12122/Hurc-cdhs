@@ -7,10 +7,10 @@ COPY .npmrc ./
 COPY scripts ./scripts
 RUN if [ -f package-lock.json ] || [ -f npm-shrinkwrap.json ]; then \
       echo "Using lockfile -> npm ci"; \
-      npm ci --ignore-scripts; \
+      npm ci --include=dev --ignore-scripts; \
     else \
-      echo "No package-lock.json or npm-shrinkwrap.json -> npm install"; \
-      npm install --ignore-scripts; \
+      echo "No lockfile -> npm install with exact Prisma versions from package.json"; \
+      npm install --include=dev --ignore-scripts; \
     fi
 
 FROM node:20-slim AS builder
@@ -29,10 +29,11 @@ ENV AI_DATABASE_URL=postgresql://build:placeholder@localhost:5432/ai
 ENV METRO_DATABASE_URL=postgresql://build:placeholder@localhost:5432/metro
 ENV OPS_DATABASE_URL=postgresql://build:placeholder@localhost:5432/ops
 ENV DATABASE_URL=postgresql://build:placeholder@localhost:5432/main
+RUN npm run db:verify:prisma-version
 RUN npm run db:validate:all
 RUN npm run import:gis-bim:dry-run
 RUN npm run build
-RUN npx tsc -p tsconfig.init.json && cp src/scripts/register.js ./dist-init/register.js || true
+RUN ./node_modules/.bin/tsc -p tsconfig.init.json && cp src/scripts/register.js ./dist-init/register.js || true
 
 FROM node:20-slim AS runner
 WORKDIR /app
