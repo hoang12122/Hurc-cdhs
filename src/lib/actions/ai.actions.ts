@@ -1,370 +1,218 @@
 'use server';
 
-import { revalidatePath } from 'next/cache';
 import { execFile } from 'child_process';
 import path from 'path';
 import fs from 'fs/promises';
 import util from 'util';
-
-const execPromise = util.promisify(execFile);
-import { askAI, askWithRAG, agentChat, askPersonalized, analyzeWithGraph } from '@/lib/services/ai/manager';
-// @ts-ignore
-import { askVisionAI, askHuggingFace, detectObjectsHF } from '@/lib/services/ai/manager';
+import { askAI, askWithRAG, agentChat, askPersonalized, analyzeWithGraph, askVisionAI, detectObjectsHF } from '@/lib/services/ai/manager';
 import { DEFAULT_AI_MODEL } from '@/lib/constants';
 import { getGroundedContext, syncToTrustGraph, getRelatedEntities, semanticKnowledgeSearch } from '@/lib/services/ai/knowledge';
 import { internalLogSystemEvent as logSystemEvent } from '../services/log-service';
 import { getInternalSystemState as getSystemState } from '../services/system-service';
 import { checkRateLimit } from '@/lib/rate-limit';
 import { requirePermission, requireAuth } from '@/lib/auth-enforcer';
-import { 
-    getInternalAgents, 
+import {
+    getInternalAgents,
     createInternalAgent,
-    getInternalSystemSnapshot, 
-    getInternalRecentDnfDocs, 
-    getInternalRecentHazardDocs 
+    getInternalSystemSnapshot,
+    getInternalRecentDnfDocs,
+    getInternalRecentHazardDocs
 } from '../services/ai/context';
+
+const execPromise = util.promisify(execFile);
+const PYTHON_TIMEOUT_MS = 30_000;
+const MAX_IMAGE_BYTES = 8 * 1024 * 1024;
+const IMAGE_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp']);
+const ALLOWED_NOTEBOOKS = new Set(['lstm_training_demo.ipynb', 'rag_engine_demo.ipynb']);
+
+function validateImage(file: File | null): string | null {
+    if (!file) return 'No image provided';
+    if (!IMAGE_TYPES.has(file.type)) return 'Unsupported image type';
+    if (file.size > MAX_IMAGE_BYTES) return 'Image is too large. Maximum size is 8MB.';
+    return null;
+}
 
 export async function analyzeTelemetryTrend(assetName: string, data: any) {
     await requirePermission('ai:use');
-    const query = `Analyze telemetry for asset ${assetName}. Data: ${JSON.stringify(data)}`;
-    return await askAI(query, { systemPrompt: "You are a telemetry analysis expert. Provide brief insights." });
+    return askAI(`Analyze telemetry for asset ${assetName}. Data: ${JSON.stringify(data)}`, {
+        systemPrompt: 'You are a telemetry analysis expert. Provide brief insights.'
+    });
 }
-
-// ============ AI HINT (Enhanced) ============
 
 export async function generateAiHint(context: string, prompt: string, model?: string) {
-    await requirePermission('ai:use');
-    
-    if (!checkRateLimit(`ai_assist_${context}`, 10, 60000)) { 
-        return "Bạn đang yêu cầu quá nhanh. Vui lòng thử lại sau một lát.";
+    const user = await requirePermission('ai:use');
+    if (!checkRateLimit(`ai_assist:${user.id}:${context.slice(0, 80)}`, 10, 60_000)) {
+        return 'Bạn đang yêu cầu quá nhanh. Vui lòng thử lại sau một lát.';
     }
-    
     try {
         const state = await getSystemState();
-        const configuredModel = state?.aiModelConfig;
-
-        const systemPrompt = "Bạn là một trợ lý ảo chuyên tư vấn về các lỗi kỹ thuật và quản lý bảo trì cho dự án đường sắt đô thị HURC1. Hãy trả lời ngắn gọn, chuyên nghiệp, bằng tiếng Việt.";
-        const result = await askAI(prompt, { 
-            model: model || configuredModel || DEFAULT_AI_MODEL, 
-            systemPrompt 
+        const result = await askAI(prompt, {
+            model: model || state?.aiModelConfig || DEFAULT_AI_MODEL,
+            systemPrompt: 'Bạn là một trợ lý ảo chuyên tư vấn về các lỗi kỹ thuật và quản lý bảo trì cho dự án đường sắt đô thị HURC1. Hãy trả lời ngắn gọn, chuyên nghiệp, bằng tiếng Việt.'
         });
-        
-        await logSystemEvent('AI_ASSISTANT_USED', 'INFO', `AI used for context: ${context.substring(0, 30)}`);
+        await logSystemEvent('AI_ASSISTANT_USED', 'INFO', `User ${user.id} used AI for context: ${context.slice(0, 30)}`);
         return result;
     } catch (e: any) {
-        console.error("AI Error:", e);
+        console.error('AI Error:', e);
         await logSystemEvent('AI_ASSISTANT_ERROR', 'ERROR', `AI request failed: ${e.message}`);
-        return "Hệ thống AI đang quá tải hoặc cấu hình không chính xác. Xin vui lòng thử lại sau.";
+        return 'Hệ thống AI đang quá tải hoặc cấu hình không chính xác. Xin vui lòng thử lại sau.';
     }
 }
-
-// ============ EXECUTIVE SUMMARY (Decoupled) ============
 
 export async function getExecutiveSummary(dnfs: any[], hazards: any[]) {
     await requirePermission('reports:view');
     try {
-        const dataSummary = `
-            Số lượng sự cố (DNF): ${dnfs.length}
-            Số lượng mối nguy (Hazards): ${hazards.length}
-            Mới nhất: ${dnfs.slice(0, 3).map(d => d.descriptionOfFailure).join('; ')}
-        `;
-
-        const query = `Phân tích tổng quan tình hình Metro HURC1. ${dataSummary}. Viết báo cáo chiến lược ngắn gọn.`;
-        const result = await askWithRAG(query, {
-            collection: 'hurc-general',
-            forceIntent: 'graph_rag',
+        const dataSummary = `Số lượng sự cố (DNF): ${dnfs.length}; Số lượng mối nguy: ${hazards.length}; Mới nhất: ${dnfs.slice(0, 3).map(d => d.descriptionOfFailure).join('; ')}`;
+        const result = await askWithRAG(`Phân tích tổng quan tình hình Metro HURC1. ${dataSummary}. Viết báo cáo chiến lược ngắn gọn.`, {
+            collection: 'hurc-general', forceIntent: 'graph_rag'
         });
-
         return result.response;
-    } catch (e: any) {
-        return "Không thể tổng hợp tri thức lúc này.";
+    } catch {
+        return 'Không thể tổng hợp tri thức lúc này.';
     }
 }
-
-// ============ STRATEGIC EXECUTIVE SUMMARY (Decoupled) ============
 
 export async function generateStrategicExecutiveSummary() {
     await requirePermission('reports:view');
     try {
-        const snapshot = await getInternalSystemSnapshot();
-        const query = `Dựa trên dữ liệu thực tế hiện tại:
-        - Số sự cố (DNF) đang mở: ${snapshot.activeDnfs}
-        - Sự cố nghiêm trọng: ${snapshot.severeDnfs}
-        - Mối nguy (Hazard) đang mở: ${snapshot.activeHazards}
-        
-        Viết bản tóm tắt chiến lược kỹ thuật cho CEO/CTO.`;
-
-        const result = await askWithRAG(query, {
-            forceIntent: 'agent',
-            systemPrompt: "Bạn là một CTO ảo chuyên gia về vận hành và bảo trì Metro."
+        const s = await getInternalSystemSnapshot();
+        const result = await askWithRAG(`Dữ liệu thực tế: DNF mở ${s.activeDnfs}; DNF nghiêm trọng ${s.severeDnfs}; Hazard mở ${s.activeHazards}. Viết bản tóm tắt chiến lược kỹ thuật cho CEO/CTO.`, {
+            forceIntent: 'agent', systemPrompt: 'Bạn là một CTO ảo chuyên gia về vận hành và bảo trì Metro.'
         });
-
         return result.response;
-    } catch (e: any) {
-        return "Không thể tổng hợp báo cáo chiến lược lúc này.";
+    } catch {
+        return 'Không thể tổng hợp báo cáo chiến lược lúc này.';
     }
 }
 
-// ============ PREDICTIVE INSIGHTS (Decoupled) ============
-
-export async function predictiveInsights(category?: string) {
+export async function predictiveInsights(_category?: string) {
     await requirePermission('ai:use');
     try {
-        const recentDnfs = await getInternalRecentDnfDocs();
-        const recentHazards = await getInternalRecentHazardDocs();
-
-        const dataSummary = JSON.stringify({
-            dnfs: recentDnfs.map((d: any) => ({ desc: d.descriptionOfFailure, priority: d.priority })),
-            hazards: recentHazards.map((h: any) => ({ desc: h.description, risk: h.riskLevelId })),
+        const [dnfs, hazards] = await Promise.all([getInternalRecentDnfDocs(), getInternalRecentHazardDocs()]);
+        const data = JSON.stringify({
+            dnfs: dnfs.map((d: any) => ({ desc: d.descriptionOfFailure, priority: d.priority })),
+            hazards: hazards.map((h: any) => ({ desc: h.description, risk: h.riskLevelId }))
         });
-
-        const query = `Dựa trên dữ liệu gần đây, hãy phân tích xu hướng và dự báo rủi ro. DỮ LIỆU: ${dataSummary}`;
-        const result = await askWithRAG(query, { forceIntent: 'agent' });
+        const result = await askWithRAG(`Phân tích xu hướng và dự báo rủi ro. DỮ LIỆU: ${data}`, { forceIntent: 'agent' });
         return { insights: result.response, source: result.source, error: null };
-    } catch (e: any) {
-        return { insights: [], error: "Không thể tạo dự báo lúc này." };
+    } catch {
+        return { insights: [], error: 'Không thể tạo dự báo lúc này.' };
     }
 }
 
-// ============ LSTM PREDICTIVE MAINTENANCE (Decoupled) ============
-
-export async function predictEquipmentHealthLSTM(equipmentData: { age_days: number, dnf_count: number, criticality: string }) {
+export async function predictEquipmentHealthLSTM(equipmentData: { age_days: number; dnf_count: number; criticality: string }) {
     await requirePermission('ai:use');
     try {
-        const scriptPath = path.join(process.cwd(), 'src', 'lib', 'ai', 'lstm_advanced.py');
-        const inputStr = JSON.stringify(equipmentData);
-
-        const { stdout, stderr } = await execPromise('python', [scriptPath, inputStr]);
-
-        if (stderr) {
-            console.error("LSTM Script Stderr:", stderr);
-        }
-
-        const result = JSON.parse(stdout);
-        return { ...result, error: null };
-    } catch (e: any) {
-        console.error("LSTM Execution Error:", e);
-        return { error: "Không thể chạy mô hình LSTM lúc này.", failure_probability: 0, health_score: 100, predicted_days_to_failure: 365 };
+        const script = path.join(process.cwd(), 'src', 'lib', 'ai', 'lstm_advanced.py');
+        const { stdout, stderr } = await execPromise('python', [script, JSON.stringify(equipmentData)], {
+            timeout: PYTHON_TIMEOUT_MS, maxBuffer: 1024 * 1024
+        });
+        if (stderr) console.error('LSTM Script Stderr:', stderr);
+        return { ...JSON.parse(stdout), error: null };
+    } catch (e) {
+        console.error('LSTM Execution Error:', e);
+        return { error: 'Không thể chạy mô hình LSTM lúc này.', failure_probability: 0, health_score: 100, predicted_days_to_failure: 365 };
     }
 }
 
-// ============ AGENTS (Decoupled) ============
-
-export async function getAgents() {
-    await requireAuth();
-    return await getInternalAgents();
-}
-
-export async function createAgent(data: { name: string, subsystem: string, systemPrompt: string }) {
-    await requirePermission('admin:system');
-    return await createInternalAgent(data);
-}
-
-// ============ DATA LISTS (Decoupled) ============
-
-export async function getDnfShortList() {
-    await requireAuth();
-    return await getInternalRecentDnfDocs(50);
-}
-
-export async function getHazardShortList() {
-    await requireAuth();
-    return await getInternalRecentHazardDocs(50);
-}
-
-// ============ GROUNDED QUERY ============
+export async function getAgents() { await requireAuth(); return getInternalAgents(); }
+export async function createAgent(data: { name: string; subsystem: string; systemPrompt: string }) { await requirePermission('admin:system'); return createInternalAgent(data); }
+export async function getDnfShortList() { await requireAuth(); return getInternalRecentDnfDocs(50); }
+export async function getHazardShortList() { await requireAuth(); return getInternalRecentHazardDocs(50); }
 
 export async function groundedQuery(recordIds: string[], types: any[], userQuery: string, agentId?: string) {
     await requirePermission('ai:use');
     try {
-        const ragResult = await askWithRAG(userQuery, {
-            systemPrompt: `Bạn là một chuyên gia hỗ trợ kỹ thuật tại HURC1.`,
-        });
-        if (ragResult.source !== 'gemini-fallback') return ragResult.response;
+        const rag = await askWithRAG(userQuery, { systemPrompt: 'Bạn là một chuyên gia hỗ trợ kỹ thuật tại HURC1.' });
+        if (rag.source !== 'gemini-fallback') return rag.response;
         const context = await getGroundedContext(recordIds, types, agentId);
-        const result = await askAI(userQuery, { systemPrompt: `Context: ${context}` });
-        return result;
-    } catch (e: any) {
-        return "Error";
-    }
+        return askAI(userQuery, { systemPrompt: `Context: ${context}` });
+    } catch { return 'Error'; }
 }
-
-// ============ OTHER CORE AI ACTIONS ============
 
 export async function graphQuery(query: string, collection?: string) {
     await requirePermission('ai:use');
     const result = await analyzeWithGraph(query, { collection });
-    const relatedEntities = await getRelatedEntities(query, { collection, limit: 10 });
-    return { response: result.response, source: result.source, entities: relatedEntities };
+    const entities = await getRelatedEntities(query, { collection, limit: 10 });
+    return { response: result.response, source: result.source, entities };
 }
-
-export async function personalizedQuery(query: string, history?: any[]) {
-    const user = await requireAuth();
-    return await askPersonalized(query, { userId: user.id, history });
-}
-
-export async function aiAgentChat(question: string, conversationState?: any, conversationHistory?: any[]) {
-    await requireAuth();
-    return await agentChat(question, { state: conversationState, history: conversationHistory, collection: 'hurc-general' });
-}
+export async function personalizedQuery(query: string, history?: any[]) { const u = await requireAuth(); return askPersonalized(query, { userId: u.id, history }); }
+export async function aiAgentChat(question: string, conversationState?: any, conversationHistory?: any[]) { await requireAuth(); return agentChat(question, { state: conversationState, history: conversationHistory, collection: 'hurc-general' }); }
 
 export async function analyzeSafetyImage(formData: FormData) {
     await requirePermission('ai:use');
     try {
-        const file = formData.get('image') as File;
-        if (!file) return { error: "No image provided", detections: [] };
-        
-        const buffer = Buffer.from(await file.arrayBuffer());
-        
-        // --- STEP 1: VISUAL DETECTION (YOLO) ---
-        // Try local YOLO service first, fallback to HuggingFace
-        const yoloResult = await detectObjectsHF(buffer); 
-        const detections = yoloResult?.detections || [];
-        
-        // --- STEP 2: REASONING (GEMMA 4 CO-INTELLIGENCE) ---
-        const detectionContext = detections.map((d: any) => `${d.label} (confidence: ${Math.round((d.score || d.confidence) * 100)}%)`).join(', ');
-        
-        const prompt = `Dựa trên kết quả thị giác máy tính (YOLOv8) phát hiện các đối tượng sau: [${detectionContext}]. 
-        Hãy thực hiện một "Audit An toàn" kỹ thuật. Tóm tắt các phát hiện và đưa ra dự báo rủi ro cho khu vực thi công Metro. Trả lời bằng tiếng Việt.`;
-
-        const reasoningResult = await askAI(prompt, { 
-            role: 'TECHNICAL_ANALYST', // Routes to Gemma 4 E4B
-            groundingContext: `Detections: ${detectionContext}`
+        const file = formData.get('image') as File | null;
+        const validationError = validateImage(file);
+        if (validationError) return { error: validationError, detections: [] };
+        const buffer = Buffer.from(await file!.arrayBuffer());
+        const detections = (await detectObjectsHF(buffer))?.detections || [];
+        const detectionContext = detections.map((d: any) => `${d.label} (${Math.round((d.score || d.confidence) * 100)}%)`).join(', ');
+        const reasoning = await askAI(`Phát hiện: [${detectionContext}]. Thực hiện Audit An toàn kỹ thuật và dự báo rủi ro khu vực thi công Metro.`, {
+            role: 'TECHNICAL_ANALYST', groundingContext: `Detections: ${detectionContext}`
         });
-
-        // Split response into summary and forecast if possible, or use defaults
-        const summary = reasoningResult.split('\n\n')[0] || `Phát hiện ${detections.length} đối tượng.`;
-        const forecast = reasoningResult.includes('\n\n') ? reasoningResult.split('\n\n').slice(1).join('\n\n') : reasoningResult;
-
-        return { 
-            detections, 
-            summary,
-            forecast,
-            error: null 
-        };
+        const parts = reasoning.split('\n\n');
+        return { detections, summary: parts[0] || `Phát hiện ${detections.length} đối tượng.`, forecast: parts.slice(1).join('\n\n') || reasoning, error: null };
     } catch (e: any) {
-        console.error("AI Vision Audit Error:", e);
-        return { error: e.message || "Lỗi xử lý AI Vision", detections: [] };
+        console.error('AI Vision Audit Error:', e);
+        return { error: 'Lỗi xử lý AI Vision', detections: [] };
     }
 }
 
 export async function analyzeHazardImageOpen(formData: FormData) {
     await requirePermission('ai:use');
     try {
-        const file = formData.get('image') as File;
-        if (!file) return { error: "No image provided" };
-
-        const base64 = Buffer.from(await file.arrayBuffer()).toString('base64');
-        const response = await askVisionAI(
-            "Phân tích mối nguy trong ảnh này. Trả về định dạng JSON với các khóa: description, cause, consequence, severityId (S1-S4), likelihoodId (L1-L4), suggestedActions.", 
-            { data: base64, mimeType: file.type }
-        );
-
-        try {
-            const jsonMatch = response.match(/\{[\s\S]*\}/);
-            if (jsonMatch) {
-                const data = JSON.parse(jsonMatch[0]);
-                return { ...data, error: null, rawResponse: response };
-            }
-        } catch (e) { /* ignore */ }
-
+        const file = formData.get('image') as File | null;
+        const validationError = validateImage(file);
+        if (validationError) return { error: validationError };
+        const base64 = Buffer.from(await file!.arrayBuffer()).toString('base64');
+        const response = await askVisionAI('Phân tích mối nguy trong ảnh. Trả về JSON: description, cause, consequence, severityId, likelihoodId, suggestedActions.', { data: base64, mimeType: file!.type });
+        const jsonMatch = response.match(/\{[\s\S]*\}/);
+        if (jsonMatch) return { ...JSON.parse(jsonMatch[0]), error: null, rawResponse: response };
         return { error: null, rawResponse: response, description: response };
-    } catch (e: any) {
-        return { error: e.message || "Lỗi AI Vision", rawResponse: null };
-    }
+    } catch { return { error: 'Lỗi AI Vision', rawResponse: null }; }
 }
 
-export async function syncDataToTrustGraph(types?: any[]) {
-    await requirePermission('admin:system');
-    return await syncToTrustGraph({ types });
-}
+export async function syncDataToTrustGraph(types?: any[]) { await requirePermission('admin:system'); return syncToTrustGraph({ types }); }
+export async function getAIStatus() { await requireAuth(); return getSystemState(); }
+export async function searchKnowledge(query: string, collection?: string) { await requireAuth(); return semanticKnowledgeSearch(query, { collection }); }
+export async function generateSynthesis(recordIds: string[], types: any[]) { await requirePermission('ai:use'); const c = await getGroundedContext(recordIds, types); return askWithRAG('Synthesize data.', { systemPrompt: `Context: ${c}` }); }
 
-export async function getAIStatus() {
-    await requireAuth();
-    return await getSystemState();
-}
-
-export async function searchKnowledge(query: string, collection?: string) {
-    await requireAuth();
-    return await semanticKnowledgeSearch(query, { collection });
-}
-
-export async function generateSynthesis(recordIds: string[], types: any[]) {
-    await requirePermission('ai:use');
-    const groundingContext = await getGroundedContext(recordIds, types);
-    return await askWithRAG("Synthesize data.", { systemPrompt: `Context: ${groundingContext}` });
-}
-
-// ============ MCP ACTIONS ============
-
-export async function getMcpTools() {
-    await requireAuth();
-    const { mcpService } = await import('../services/ai/mcp-service');
-    return await mcpService.listTools();
-}
-
-export async function callMcpTool(name: string, args: any) {
-    await requirePermission('ai:use');
-    const { mcpService } = await import('../services/ai/mcp-service');
-    return await mcpService.callTool(name, args);
-}
-
-export async function getMcpTraces() {
-    await requireAuth();
-    const { mcpService } = await import('../services/ai/mcp-service');
-    return mcpService.getTraces();
-}
-
-export async function clearMcpTraces() {
-    await requirePermission('admin:system');
-    const { mcpService } = await import('../services/ai/mcp-service');
-    mcpService.clearTraces();
-}
-
-// ============ AI SAFETY LOGGING ============
+export async function getMcpTools() { await requireAuth(); const { mcpService } = await import('../services/ai/mcp-service'); return mcpService.listTools(); }
+export async function callMcpTool(name: string, args: any) { const user = await requirePermission('ai:use'); const { mcpService } = await import('../services/ai/mcp-service'); return mcpService.callTool(name, args, undefined, user.id); }
+export async function getMcpTraces() { const user = await requireAuth(); const { mcpService } = await import('../services/ai/mcp-service'); return mcpService.getTraces(user.id); }
+export async function clearMcpTraces() { await requirePermission('admin:system'); const { mcpService } = await import('../services/ai/mcp-service'); mcpService.clearTraces(); }
 
 export async function logAiAction(action: string, details: string, level: any = 'INFO') {
-    try {
-        await requireAuth();
-        await logSystemEvent(action, level, details, 'ai');
-    } catch (e) {
-        // Logging should be non-blocking and safe
-        console.error("[AI-LOG-ERROR]", e);
-    }
+    try { await requireAuth(); await logSystemEvent(action, level, details, 'ai'); }
+    catch (e) { console.error('[AI-LOG-ERROR]', e); }
 }
 
 export async function askCopilot(query: string) {
     await requirePermission('ai:use');
     try {
-        const scriptPath = path.join(process.cwd(), 'src', 'lib', 'ai', 'rag_engine.py');
-        const inputStr = JSON.stringify({ query });
-        
-        const { stdout, stderr } = await execPromise('python', [scriptPath, inputStr]);
-        if (stderr && !stdout) {
-            throw new Error(stderr);
-        }
-        
-        try {
-            return JSON.parse(stdout);
-        } catch (e) {
-            console.error('Failed to parse RAG engine output:', stdout);
-            return { answer: 'System Error: Failed to parse RAG engine output.', error: stdout };
-        }
-    } catch (error: any) {
+        const script = path.join(process.cwd(), 'src', 'lib', 'ai', 'rag_engine.py');
+        const { stdout, stderr } = await execPromise('python', [script, JSON.stringify({ query })], {
+            timeout: PYTHON_TIMEOUT_MS, maxBuffer: 2 * 1024 * 1024
+        });
+        if (stderr && !stdout) throw new Error('AI engine returned an error');
+        return JSON.parse(stdout);
+    } catch (error) {
         console.error('askCopilot failed:', error);
-        return { answer: 'AI Engine Offline.', error: error.message };
+        return { answer: 'AI Engine Offline.', error: 'AI engine unavailable' };
     }
 }
 
-
 export async function readNotebookFile(filename: string) {
+    await requirePermission('ai:use');
+    if (!ALLOWED_NOTEBOOKS.has(filename)) throw new Error('Notebook is not allowed');
     try {
-        const filePath = path.join(process.cwd(), 'src', 'lib', 'ai', 'notebooks', filename);
-        const fileData = await fs.readFile(filePath, 'utf-8');
-        return JSON.parse(fileData);
+        const notebookRoot = path.resolve(process.cwd(), 'src', 'lib', 'ai', 'notebooks');
+        const filePath = path.resolve(notebookRoot, filename);
+        if (!filePath.startsWith(`${notebookRoot}${path.sep}`)) throw new Error('Invalid notebook path');
+        return JSON.parse(await fs.readFile(filePath, 'utf-8'));
     } catch (error) {
         console.error('Failed to read notebook', error);
         return null;
     }
 }
-
