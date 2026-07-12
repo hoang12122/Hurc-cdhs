@@ -31,7 +31,14 @@ export const MOCK_CURRENT_USER: User = {
   isVerified: true,
   mustChangePassword: false,
   passwordLastChangedAt: '2026-05-22T07:30:00.000Z',
-  permissions: ['settings:manage', 'admin:system', 'ai:use', 'ai:vision'],
+  permissions: [
+    'settings:manage',
+    'admin:system',
+    'ai:use',
+    'ai:vision',
+    'knowledge:submit',
+    'knowledge:delete',
+  ],
 };
 
 export const LOG_LEVELS = ['INFO', 'WARNING', 'ERROR', 'CRITICAL'];
@@ -87,4 +94,6 @@ export const SYSTEM_PERMISSIONS = [
   { id: 'admin:system', label: { vi: 'Quản trị hệ thống và AI', en: 'System and AI governance' }, group: { vi: 'Admin', en: 'Admin' } },
   { id: 'ai:use', label: { vi: 'AI', en: 'AI' }, group: { vi: 'AI', en: 'AI' } },
   { id: 'ai:vision', label: { vi: 'AI Vision', en: 'AI Vision' }, group: { vi: 'AI', en: 'AI' } },
+  { id: 'knowledge:submit', label: { vi: 'Gửi và nhập tri thức AI', en: 'Submit AI knowledge' }, group: { vi: 'AI', en: 'AI' } },
+  { id: 'knowledge:delete', label: { vi: 'Xóa tri thức AI', en: 'Delete AI knowledge' }, group: { vi: 'AI', en: 'AI' } },
 ];
