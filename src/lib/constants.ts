@@ -16,9 +16,9 @@ export const DEFAULT_AI_MODEL = AI_CONFIG.LLM.STABLE_MODEL;
 
 export const ROLE_SUPER_ADMIN: UserRole = 'SUPER_ADMIN';
 export const ROLE_ADMIN_PKTAT: UserRole = 'Admin (P.KTAT)';
-export const ROLE_L3_SPECIALIST: UserRole = 'Chuy\u00ean vi\u00ean (L3)';
-export const ROLE_L2_TECHNICIAN: UserRole = 'K\u1ef9 thu\u1eadt vi\u00ean (L2)';
-export const ROLE_L1_OPERATOR: UserRole = 'Nh\u00e2n vi\u00ean (L1)';
+export const ROLE_L3_SPECIALIST: UserRole = 'Chuyên viên (L3)';
+export const ROLE_L2_TECHNICIAN: UserRole = 'Kỹ thuật viên (L2)';
+export const ROLE_L1_OPERATOR: UserRole = 'Nhân viên (L1)';
 export const ROLE_CLIENT: UserRole = 'Client';
 
 export const MOCK_CURRENT_USER: User = {
@@ -31,11 +31,11 @@ export const MOCK_CURRENT_USER: User = {
   isVerified: true,
   mustChangePassword: false,
   passwordLastChangedAt: '2026-05-22T07:30:00.000Z',
-  permissions: ['settings:manage', 'ai:use', 'ai:vision'],
+  permissions: ['settings:manage', 'admin:system', 'ai:use', 'ai:vision'],
 };
 
 export const LOG_LEVELS = ['INFO', 'WARNING', 'ERROR', 'CRITICAL'];
-export const TOLERANCE_OPERATORS = ['\u00b1', '>', '<', '>=', '<=', '=='];
+export const TOLERANCE_OPERATORS = ['±', '>', '<', '>=', '<=', '=='];
 export const MAINTENANCE_FREQUENCIES = [
   { id: 'general', label: { vi: 'General', en: 'General' } },
   { id: 'daily', label: { vi: 'Daily', en: 'Daily' } },
@@ -45,24 +45,24 @@ export const MAINTENANCE_FREQUENCIES = [
   { id: 'yearly', label: { vi: 'Yearly', en: 'Yearly' } },
 ];
 
-export const CORRECTIVE_ACTION_STATUSES: CorrectiveActionStatus[] = ['M\u1edbi', '\u0110ang th\u1ef1c hi\u1ec7n', 'Ho\u00e0n th\u00e0nh', '\u0110\u00e3 x\u00e1c minh'];
+export const CORRECTIVE_ACTION_STATUSES: CorrectiveActionStatus[] = ['Mới', 'Đang thực hiện', 'Hoàn thành', 'Đã xác minh'];
 export const SEVERITY_LEVELS = [{ id: 'general', label: 'General', icon: Icon, className: 'text-muted-foreground', colorVariable: 'muted' }];
-export const FINDING_TYPES = [{ id: 'general', label: 'General' }, { id: 'other', label: 'Other' }];
+export const FINDING_TYPES = [{ id: 'general', label: { vi: 'Visual', en: 'Visual' } }, { id: 'other', label: { vi: 'Other', en: 'Other' } }];
 
-export const INSPECTION_STATUSES: InspectionStatus[] = ['M\u1edbi', '\u0110\u00e1nh gi\u00e1', 'X\u1eed l\u00fd', 'Ph\u1ea3n h\u1ed3i', '\u0110\u00f3ng', 'H\u1ee7y'];
-export const LOCKED_INSPECTION_STATUSES_FOR_NON_ADMIN: InspectionStatus[] = ['\u0110\u00f3ng', 'H\u1ee7y'];
-export const DNF_STATUSES: DnfStatus[] = ['M\u1edbi', '\u0110\u00e1nh gi\u00e1', 'X\u1eed l\u00fd', 'Ph\u1ea3n h\u1ed3i', '\u0110\u00f3ng', 'H\u1ee7y'];
-export const LOCKED_DNF_STATUSES_FOR_NON_ADMIN: DnfStatus[] = ['\u0110\u00f3ng', 'H\u1ee7y'];
-export const HAZARD_STATUSES: HazardStatus[] = ['M\u1edbi', '\u0110\u00e1nh gi\u00e1', 'X\u1eed l\u00fd', 'Ph\u1ea3n h\u1ed3i', '\u0110\u00f3ng', 'H\u1ee7y'];
-export const LOCKED_HAZARD_STATUSES_FOR_NON_ADMIN: HazardStatus[] = ['\u0110\u00f3ng', 'H\u1ee7y'];
+export const INSPECTION_STATUSES: InspectionStatus[] = ['Mới', 'Đánh giá', 'Xử lý', 'Phản hồi', 'Đóng', 'Hủy'];
+export const LOCKED_INSPECTION_STATUSES_FOR_NON_ADMIN: InspectionStatus[] = ['Đóng', 'Hủy'];
+export const DNF_STATUSES: DnfStatus[] = ['Mới', 'Đánh giá', 'Xử lý', 'Phản hồi', 'Đóng', 'Hủy'];
+export const LOCKED_DNF_STATUSES_FOR_NON_ADMIN: DnfStatus[] = ['Đóng', 'Hủy'];
+export const HAZARD_STATUSES: HazardStatus[] = ['Mới', 'Đánh giá', 'Xử lý', 'Phản hồi', 'Đóng', 'Hủy'];
+export const LOCKED_HAZARD_STATUSES_FOR_NON_ADMIN: HazardStatus[] = ['Đóng', 'Hủy'];
 
 const transitions: Record<DnfStatus, StatusTransitionRule<DnfStatus>> = {
-  'M\u1edbi': { next: ['\u0110\u00e1nh gi\u00e1', 'H\u1ee7y'] },
-  '\u0110\u00e1nh gi\u00e1': { next: ['X\u1eed l\u00fd', 'H\u1ee7y'] },
-  'X\u1eed l\u00fd': { next: ['Ph\u1ea3n h\u1ed3i', 'H\u1ee7y'] },
-  'Ph\u1ea3n h\u1ed3i': { next: ['\u0110\u00f3ng', 'X\u1eed l\u00fd'] },
-  '\u0110\u00f3ng': { next: [] },
-  'H\u1ee7y': { next: [] },
+  'Mới': { next: ['Đánh giá', 'Hủy'] },
+  'Đánh giá': { next: ['Xử lý', 'Hủy'] },
+  'Xử lý': { next: ['Phản hồi', 'Hủy'] },
+  'Phản hồi': { next: ['Đóng', 'Xử lý'] },
+  'Đóng': { next: [] },
+  'Hủy': { next: [] },
 };
 
 export const INSPECTION_STATUS_TRANSITIONS = transitions as Record<InspectionStatus, StatusTransitionRule<InspectionStatus>>;
@@ -80,10 +80,11 @@ export const RISK_MATRIX = { A: { I: 'R1' } };
 export const HAZARD_RISK_LEVELS = [{ id: 'R1', label: { vi: 'R1', en: 'R1' }, description: { vi: 'R1', en: 'R1' }, icon: Icon, color: 'hsl(var(--muted))', textColor: 'hsl(var(--muted-foreground))' }];
 export const calculateRiskLevelId = (severityId?: string, likelihoodId?: string) => (severityId && likelihoodId ? RISK_MATRIX[likelihoodId as 'A']?.[severityId as 'I'] : undefined);
 
-export const IMPROVEMENT_STATUSES: ImprovementStatus[] = ['M\u1edbi', '\u0110ang xem x\u00e9t', '\u0110\u00e3 duy\u1ec7t', '\u0110ang th\u1ef1c hi\u1ec7n', 'Ho\u00e0n th\u00e0nh', '\u0110\u00e3 t\u1eeb ch\u1ed1i'];
+export const IMPROVEMENT_STATUSES: ImprovementStatus[] = ['Mới', 'Đang xem xét', 'Đã duyệt', 'Đang thực hiện', 'Hoàn thành', 'Đã từ chối'];
 export const IMPROVEMENT_CATEGORIES = [{ id: 'general', label: { vi: 'General', en: 'General' }, icon: Icon }];
 export const SYSTEM_PERMISSIONS = [
-  { id: 'settings:manage', label: { vi: 'Settings', en: 'Settings' }, group: { vi: 'Admin', en: 'Admin' } },
-  { id: 'ai:use', label: { vi: 'AI', en: 'AI' }, group: { vi: 'AI', en: 'AI' } },
-  { id: 'ai:vision', label: { vi: 'AI Vision', en: 'AI Vision' }, group: { vi: 'AI', en: 'AI' } },
+  { id: 'settings:manage', label: { vi: 'Cấu hình hệ thống', en: 'System settings' }, group: { vi: 'Quản trị', en: 'Admin' } },
+  { id: 'admin:system', label: { vi: 'Quản trị hệ thống và AI', en: 'System and AI governance' }, group: { vi: 'Quản trị', en: 'Admin' } },
+  { id: 'ai:use', label: { vi: 'Sử dụng AI', en: 'Use AI' }, group: { vi: 'AI', en: 'AI' } },
+  { id: 'ai:vision', label: { vi: 'AI thị giác', en: 'AI Vision' }, group: { vi: 'AI', en: 'AI' } },
 ];
