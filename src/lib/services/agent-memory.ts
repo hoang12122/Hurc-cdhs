@@ -1,4 +1,5 @@
 import { jsonDb } from '../db/json-db';
+import { aiDb, IS_DATABASE_OFFLINE } from '../prisma';
 import {
     appendGovernanceAudit,
     buildMemoryNamespace,
@@ -13,9 +14,10 @@ import {
 /**
  * GOVERNED AGENT MEMORY FIREWALL
  *
- * AI output is never treated as authoritative by default. Memories are
- * namespaced, deduplicated, time-bounded and either provisional, verified,
- * quarantined or superseded.
+ * AI output is never authoritative by default. Memories are namespaced,
+ * deduplicated, time-bounded and either provisional, verified, quarantined or
+ * superseded. Offline mode uses atomic JSON storage; PostgreSQL mode reuses
+ * AiVerificationLog so every learned item has an explicit review state.
  */
 
 export type MemoryVerificationStatus = 'provisional' | 'verified' | 'quarantined' | 'superseded';
@@ -69,6 +71,8 @@ export interface RetrieveMemoryOptions {
 const ACTIVE_COLLECTION = 'ai_longterm_memory';
 const QUARANTINE_COLLECTION = 'ai_memory_quarantine';
 const DEFAULT_ROLE: AiExpertRole = 'TECHNICAL_ANALYST';
+const ONLINE_MEMORY_TARGET_TYPE = 'AI_MEMORY';
+const ONLINE_MEMORY_SOURCE_MODULE = 'MEMORY_FIREWALL';
 
 function clamp(value: number, min: number, max: number): number {
     return Math.min(max, Math.max(min, value));
@@ -118,12 +122,132 @@ function calculateExpiry(importance: number, confidence: number, ttlDays?: numbe
     return expires.toISOString();
 }
 
+function isAgentMemory(value: unknown): value is AgentMemory {
+    if (!value || typeof value !== 'object') return false;
+    const record = value as Partial<AgentMemory>;
+    return Boolean(
+        record.id
+        && record.userId
+        && record.namespace
+        && record.topic
+        && record.context
+        && record.checksum
+        && record.verificationStatus,
+    );
+}
+
+function memoryFromVerificationLog(log: {
+    status: string;
+    aiProposedContent: unknown;
+    finalContent: unknown;
+}): AgentMemory | null {
+    const candidate = log.status === 'APPROVED' && log.finalContent
+        ? log.finalContent
+        : log.aiProposedContent;
+    if (!isAgentMemory(candidate)) return null;
+
+    const verificationStatus: MemoryVerificationStatus = log.status === 'APPROVED'
+        ? 'verified'
+        : log.status === 'REJECTED'
+          ? candidate.verificationStatus === 'superseded' ? 'superseded' : 'quarantined'
+          : 'provisional';
+
+    return {
+        ...candidate,
+        verificationStatus,
+    };
+}
+
+function onlineStatusForMemory(status: MemoryVerificationStatus): 'PROPOSED' | 'APPROVED' | 'REJECTED' {
+    if (status === 'verified') return 'APPROVED';
+    if (status === 'quarantined' || status === 'superseded') return 'REJECTED';
+    return 'PROPOSED';
+}
+
 async function safeAudit(input: Parameters<typeof appendGovernanceAudit>[0]): Promise<void> {
+    if (!IS_DATABASE_OFFLINE) return;
     try {
         await appendGovernanceAudit(input);
     } catch (error) {
         console.warn('[AI MEMORY] Governance audit persistence unavailable:', error instanceof Error ? error.message : error);
     }
+}
+
+async function loadOnlineMemories(statuses: string[] = ['PROPOSED', 'APPROVED'], take = 2_000): Promise<AgentMemory[]> {
+    const logs = await aiDb.aiVerificationLog.findMany({
+        where: {
+            targetType: ONLINE_MEMORY_TARGET_TYPE,
+            status: { in: statuses },
+        },
+        orderBy: { createdAt: 'desc' },
+        take,
+        select: {
+            status: true,
+            aiProposedContent: true,
+            finalContent: true,
+        },
+    });
+
+    return logs
+        .map(memoryFromVerificationLog)
+        .filter((memory): memory is AgentMemory => memory !== null);
+}
+
+async function persistOnlineMemory(memory: AgentMemory): Promise<void> {
+    const status = onlineStatusForMemory(memory.verificationStatus);
+    const existing = await aiDb.aiVerificationLog.findFirst({
+        where: {
+            targetType: ONLINE_MEMORY_TARGET_TYPE,
+            modelVersion: memory.checksum,
+        },
+        orderBy: { createdAt: 'desc' },
+    });
+
+    if (existing) {
+        const existingMemory = memoryFromVerificationLog(existing);
+        const preservedStatus = existing.status === 'APPROVED' ? 'APPROVED' : status;
+        const merged: AgentMemory = {
+            ...(existingMemory ?? memory),
+            ...memory,
+            confidence: Math.max(existingMemory?.confidence ?? 0, memory.confidence),
+            importance: Math.max(existingMemory?.importance ?? 1, memory.importance),
+            reinforcementCount: Math.max(existingMemory?.reinforcementCount ?? 1, memory.reinforcementCount),
+            verificationStatus: preservedStatus === 'APPROVED' ? 'verified' : memory.verificationStatus,
+        };
+
+        await aiDb.aiVerificationLog.update({
+            where: { id: existing.id },
+            data: {
+                targetVersion: merged.reinforcementCount,
+                targetDisplayCode: merged.topic.slice(0, 200),
+                aiProposedContent: merged as any,
+                finalContent: preservedStatus === 'APPROVED' ? merged as any : undefined,
+                status: preservedStatus,
+                riskLevel: preservedStatus === 'APPROVED' ? 'LOW' : merged.verificationStatus === 'quarantined' ? 'HIGH' : 'MEDIUM',
+                verifiedAt: preservedStatus === 'APPROVED' ? existing.verifiedAt ?? new Date() : undefined,
+            },
+        });
+        return;
+    }
+
+    await aiDb.aiVerificationLog.create({
+        data: {
+            targetId: memory.id,
+            targetType: ONLINE_MEMORY_TARGET_TYPE,
+            targetDisplayCode: memory.topic.slice(0, 200),
+            targetVersion: memory.reinforcementCount,
+            sourceModule: ONLINE_MEMORY_SOURCE_MODULE,
+            aiProposedContent: memory as any,
+            finalContent: status === 'APPROVED' ? memory as any : undefined,
+            status,
+            riskLevel: status === 'REJECTED' ? 'HIGH' : status === 'PROPOSED' ? 'MEDIUM' : 'LOW',
+            requiredRole: 'AI_GOVERNANCE_ADMIN',
+            verifiedBy: status === 'APPROVED' ? 'governance-policy' : undefined,
+            verifiedAt: status === 'APPROVED' ? new Date() : undefined,
+            modelVersion: memory.checksum,
+            isOrphan: false,
+        },
+    });
 }
 
 export async function storeExperience(
@@ -156,9 +280,48 @@ export async function storeExperience(
             : 'quarantined';
     const checksum = sha256(`${namespace}\n${normalizedTopic}\n${normalizedContext}`);
     const now = new Date().toISOString();
-    const targetCollection = verificationStatus === 'quarantined' ? QUARANTINE_COLLECTION : ACTIVE_COLLECTION;
+    const memoryId = `mem-${checksum.slice(0, 24)}`;
 
     try {
+        if (!IS_DATABASE_OFFLINE) {
+            const existing = await aiDb.aiVerificationLog.findFirst({
+                where: {
+                    targetType: ONLINE_MEMORY_TARGET_TYPE,
+                    modelVersion: checksum,
+                },
+                orderBy: { createdAt: 'desc' },
+            });
+            const existingMemory = existing ? memoryFromVerificationLog(existing) : null;
+            const memory: AgentMemory = {
+                id: existingMemory?.id ?? memoryId,
+                userId,
+                namespace,
+                domain,
+                agentRole: role,
+                topic: normalizedTopic,
+                context: normalizedContext,
+                importance: Math.max(existingMemory?.importance ?? 1, clamp(importance, 1, 10)),
+                confidence: Math.max(existingMemory?.confidence ?? 0, confidence),
+                checksum,
+                sourceType: existingMemory?.sourceType === 'human-approved' ? 'human-approved' : sourceType,
+                sourceId: options.sourceId ?? existingMemory?.sourceId,
+                sourceVersion: options.sourceVersion ?? existingMemory?.sourceVersion,
+                provenanceIds: Array.from(new Set([...(existingMemory?.provenanceIds ?? []), ...(options.provenanceIds ?? [])])),
+                verificationStatus: existing?.status === 'APPROVED' ? 'verified' : verificationStatus,
+                reinforcementCount: (existingMemory?.reinforcementCount ?? 0) + 1,
+                timestamp: existingMemory?.timestamp ?? now,
+                lastSeenAt: now,
+                expiresAt: calculateExpiry(
+                    Math.max(existingMemory?.importance ?? 1, importance),
+                    Math.max(existingMemory?.confidence ?? 0, confidence),
+                    options.ttlDays,
+                ),
+            };
+            await persistOnlineMemory(memory);
+            return;
+        }
+
+        const targetCollection = verificationStatus === 'quarantined' ? QUARANTINE_COLLECTION : ACTIVE_COLLECTION;
         const existing = await jsonDb.findFirst<AgentMemory>(
             targetCollection,
             memory => memory.checksum === checksum && memory.namespace === namespace,
@@ -191,7 +354,7 @@ export async function storeExperience(
         }
 
         const memory: AgentMemory = {
-            id: `mem-${sha256(`${checksum}:${now}`).slice(0, 24)}`,
+            id: memoryId,
             userId,
             namespace,
             domain,
@@ -248,7 +411,9 @@ export async function retrieveMemories(
         const namespace = options.namespace ?? buildMemoryNamespace(role, domain, userId);
         const minimumConfidence = clamp(options.minimumConfidence ?? 0.65, 0, 1);
         const now = Date.now();
-        const memories = await jsonDb.getCollection<AgentMemory>(ACTIVE_COLLECTION);
+        const memories = IS_DATABASE_OFFLINE
+            ? await jsonDb.getCollection<AgentMemory>(ACTIVE_COLLECTION)
+            : await loadOnlineMemories(['PROPOSED', 'APPROVED']);
 
         const relevant = memories
             .filter(memory => memory.userId === userId)
@@ -302,6 +467,64 @@ export async function reviewMemory(
     memoryId: string,
     decision: 'approve' | 'quarantine' | 'supersede',
 ): Promise<AgentMemory | null> {
+    if (!IS_DATABASE_OFFLINE) {
+        const log = await aiDb.aiVerificationLog.findFirst({
+            where: {
+                targetType: ONLINE_MEMORY_TARGET_TYPE,
+                OR: [
+                    { id: memoryId },
+                    { targetId: memoryId },
+                ],
+            },
+            orderBy: { createdAt: 'desc' },
+        });
+        if (!log) return null;
+
+        const memory = memoryFromVerificationLog(log);
+        if (!memory) return null;
+        const now = new Date().toISOString();
+
+        if (decision === 'approve') {
+            const approved: AgentMemory = {
+                ...memory,
+                confidence: Math.max(memory.confidence, 0.95),
+                sourceType: 'human-approved',
+                verificationStatus: 'verified',
+                lastSeenAt: now,
+            };
+            await aiDb.aiVerificationLog.update({
+                where: { id: log.id },
+                data: {
+                    aiProposedContent: approved as any,
+                    finalContent: approved as any,
+                    status: 'APPROVED',
+                    riskLevel: 'LOW',
+                    verifiedBy: 'AI_GOVERNANCE_ADMIN',
+                    verifiedAt: new Date(),
+                },
+            });
+            return approved;
+        }
+
+        const verificationStatus: MemoryVerificationStatus = decision === 'supersede' ? 'superseded' : 'quarantined';
+        const updated: AgentMemory = {
+            ...memory,
+            verificationStatus,
+            lastSeenAt: now,
+        };
+        await aiDb.aiVerificationLog.update({
+            where: { id: log.id },
+            data: {
+                aiProposedContent: updated as any,
+                status: 'REJECTED',
+                riskLevel: decision === 'quarantine' ? 'HIGH' : 'MEDIUM',
+                verifiedBy: 'AI_GOVERNANCE_ADMIN',
+                verifiedAt: new Date(),
+            },
+        });
+        return updated;
+    }
+
     const active = await jsonDb.findFirst<AgentMemory>(ACTIVE_COLLECTION, memory => memory.id === memoryId);
     const quarantined = active ? null : await jsonDb.findFirst<AgentMemory>(QUARANTINE_COLLECTION, memory => memory.id === memoryId);
     const memory = active ?? quarantined;
@@ -335,17 +558,46 @@ export async function reviewMemory(
     return jsonDb.updateRecord(fromCollection, memoryId, updated);
 }
 
+export async function getQuarantinedMemories(limit = 100): Promise<AgentMemory[]> {
+    if (!IS_DATABASE_OFFLINE) {
+        const logs = await aiDb.aiVerificationLog.findMany({
+            where: {
+                targetType: ONLINE_MEMORY_TARGET_TYPE,
+                status: 'REJECTED',
+            },
+            orderBy: { createdAt: 'desc' },
+            take: clamp(limit, 1, 500),
+            select: {
+                status: true,
+                aiProposedContent: true,
+                finalContent: true,
+            },
+        });
+        return logs
+            .map(memoryFromVerificationLog)
+            .filter((memory): memory is AgentMemory => memory !== null);
+    }
+
+    const records = await jsonDb.getCollection<AgentMemory>(QUARANTINE_COLLECTION);
+    return [...records].reverse().slice(0, clamp(limit, 1, 500));
+}
+
 export async function getMemoryHealth() {
-    const [active, quarantine] = await Promise.all([
-        jsonDb.getCollection<AgentMemory>(ACTIVE_COLLECTION),
-        jsonDb.getCollection<AgentMemory>(QUARANTINE_COLLECTION),
-    ]);
+    const active = IS_DATABASE_OFFLINE
+        ? await jsonDb.getCollection<AgentMemory>(ACTIVE_COLLECTION)
+        : await loadOnlineMemories(['PROPOSED', 'APPROVED']);
+    const quarantine = IS_DATABASE_OFFLINE
+        ? await jsonDb.getCollection<AgentMemory>(QUARANTINE_COLLECTION)
+        : await loadOnlineMemories(['REJECTED']);
     const now = Date.now();
+
     return {
+        store: IS_DATABASE_OFFLINE ? 'json-memory-firewall' : 'postgres-ai-verification-log',
         active: active.filter(item => item.verificationStatus !== 'superseded').length,
         verified: active.filter(item => item.verificationStatus === 'verified').length,
         provisional: active.filter(item => item.verificationStatus === 'provisional').length,
-        quarantined: quarantine.length,
+        quarantined: quarantine.filter(item => item.verificationStatus === 'quarantined').length,
+        superseded: quarantine.filter(item => item.verificationStatus === 'superseded').length,
         expired: active.filter(item => item.expiresAt && new Date(item.expiresAt).getTime() <= now).length,
         duplicateReinforcements: active.reduce((sum, item) => sum + Math.max(0, (item.reinforcementCount ?? 1) - 1), 0),
     };
