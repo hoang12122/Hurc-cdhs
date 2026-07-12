@@ -47,7 +47,7 @@ export const MAINTENANCE_FREQUENCIES = [
 
 export const CORRECTIVE_ACTION_STATUSES: CorrectiveActionStatus[] = ['Mới', 'Đang thực hiện', 'Hoàn thành', 'Đã xác minh'];
 export const SEVERITY_LEVELS = [{ id: 'general', label: 'General', icon: Icon, className: 'text-muted-foreground', colorVariable: 'muted' }];
-export const FINDING_TYPES = [{ id: 'general', label: { vi: 'Visual', en: 'Visual' } }, { id: 'other', label: { vi: 'Other', en: 'Other' } }];
+export const FINDING_TYPES = [{ id: 'general', label: 'General' }, { id: 'other', label: 'Other' }];
 
 export const INSPECTION_STATUSES: InspectionStatus[] = ['Mới', 'Đánh giá', 'Xử lý', 'Phản hồi', 'Đóng', 'Hủy'];
 export const LOCKED_INSPECTION_STATUSES_FOR_NON_ADMIN: InspectionStatus[] = ['Đóng', 'Hủy'];
@@ -83,8 +83,8 @@ export const calculateRiskLevelId = (severityId?: string, likelihoodId?: string)
 export const IMPROVEMENT_STATUSES: ImprovementStatus[] = ['Mới', 'Đang xem xét', 'Đã duyệt', 'Đang thực hiện', 'Hoàn thành', 'Đã từ chối'];
 export const IMPROVEMENT_CATEGORIES = [{ id: 'general', label: { vi: 'General', en: 'General' }, icon: Icon }];
 export const SYSTEM_PERMISSIONS = [
-  { id: 'settings:manage', label: { vi: 'Cấu hình hệ thống', en: 'System settings' }, group: { vi: 'Quản trị', en: 'Admin' } },
-  { id: 'admin:system', label: { vi: 'Quản trị hệ thống và AI', en: 'System and AI governance' }, group: { vi: 'Quản trị', en: 'Admin' } },
-  { id: 'ai:use', label: { vi: 'Sử dụng AI', en: 'Use AI' }, group: { vi: 'AI', en: 'AI' } },
-  { id: 'ai:vision', label: { vi: 'AI thị giác', en: 'AI Vision' }, group: { vi: 'AI', en: 'AI' } },
+  { id: 'settings:manage', label: { vi: 'Settings', en: 'Settings' }, group: { vi: 'Admin', en: 'Admin' } },
+  { id: 'admin:system', label: { vi: 'Quản trị hệ thống và AI', en: 'System and AI governance' }, group: { vi: 'Admin', en: 'Admin' } },
+  { id: 'ai:use', label: { vi: 'AI', en: 'AI' }, group: { vi: 'AI', en: 'AI' } },
+  { id: 'ai:vision', label: { vi: 'AI Vision', en: 'AI Vision' }, group: { vi: 'AI', en: 'AI' } },
 ];
