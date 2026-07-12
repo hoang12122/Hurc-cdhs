@@ -5,13 +5,12 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { useNetwork } from "@/components/providers/network-provider";
-import { CloudOff, RefreshCw, CheckCircle2, AlertCircle } from "lucide-react";
-import { offlineSync } from "@/lib/services/offline-sync";
+import { CloudOff, RefreshCw, AlertCircle } from "lucide-react";
 import { replayOfflineQueue, getPendingCount } from "@/lib/services/offline-queue-service";
 
 /**
  * Task 17.3: Offline Sync Indicator
- * 
+ *
  * Shows a floating indicator when there are pending offline actions.
  * Automatically attempts to replay the queue when connectivity is restored.
  */
@@ -22,31 +21,7 @@ export function OfflineSyncIndicator() {
   const [isSyncing, setIsSyncing] = React.useState(false);
   const prevOnlineRef = React.useRef(isOnline);
 
-  // Poll pending count every 5 seconds
-  React.useEffect(() => {
-    const checkPending = async () => {
-      try {
-        const count = await getPendingCount();
-        setPendingCount(count);
-      } catch {
-        // IndexedDB might not be available in SSR
-      }
-    };
-
-    checkPending();
-    const interval = setInterval(checkPending, 5000);
-    return () => clearInterval(interval);
-  }, []);
-
-  // Auto-sync when coming back online
-  React.useEffect(() => {
-    if (isOnline && !prevOnlineRef.current && pendingCount > 0) {
-      handleSync();
-    }
-    prevOnlineRef.current = isOnline;
-  }, [isOnline, pendingCount]);
-
-  const handleSync = async () => {
+  const handleSync = React.useCallback(async () => {
     if (isSyncing) return;
     setIsSyncing(true);
 
@@ -79,7 +54,31 @@ export function OfflineSyncIndicator() {
     } finally {
       setIsSyncing(false);
     }
-  };
+  }, [isSyncing, toast]);
+
+  // Poll pending count every 5 seconds
+  React.useEffect(() => {
+    const checkPending = async () => {
+      try {
+        const count = await getPendingCount();
+        setPendingCount(count);
+      } catch {
+        // IndexedDB might not be available in SSR
+      }
+    };
+
+    checkPending();
+    const interval = setInterval(checkPending, 5000);
+    return () => clearInterval(interval);
+  }, []);
+
+  // Auto-sync when coming back online
+  React.useEffect(() => {
+    if (isOnline && !prevOnlineRef.current && pendingCount > 0) {
+      void handleSync();
+    }
+    prevOnlineRef.current = isOnline;
+  }, [handleSync, isOnline, pendingCount]);
 
   // Don't render if nothing pending and online
   if (pendingCount === 0 && isOnline) return null;
