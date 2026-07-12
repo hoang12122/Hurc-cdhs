@@ -86,8 +86,22 @@ export async function askPersonalized(query: string, options: ManagerOptions = {
         ...options,
         userId: options.userId ?? options.user,
     });
-    const response = await baseAskPersonalized(context.prompt, governedOptions(context, options));
-    return finalizeGovernedText(context, response, { source: 'personalized-local-ai' });
+    const response = await baseAskPersonalized(context.prompt, {
+        userId: String(options.userId ?? options.user ?? 'anonymous'),
+        history: options.history,
+    });
+
+    return {
+        ...response,
+        content: await finalizeGovernedText(context, response.content, { source: response.source }),
+        governance: {
+            requestId: context.requestId,
+            agentId: context.agent.id,
+            domain: context.domain,
+            riskLevel: context.riskLevel,
+            requiresHumanApproval: context.requiresHumanApproval,
+        },
+    };
 }
 
 export async function getAIHealthStatus() {
