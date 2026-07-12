@@ -1,6 +1,6 @@
 'use server';
 
-import { requireAuth, requirePermission } from '@/lib/auth-enforcer';
+import { requirePermission } from '@/lib/auth-enforcer';
 import { aiDb, IS_DATABASE_OFFLINE } from '@/lib/prisma';
 import { jsonDb } from '@/lib/db/json-db';
 import { getRegisteredAiAgents } from '@/lib/services/ai/control-plane';
@@ -73,7 +73,7 @@ async function getAuditSummary() {
 }
 
 export async function getAiGovernanceDashboard() {
-  await requireAuth();
+  await requirePermission('admin:system');
 
   const [memory, audit] = await Promise.all([
     getMemoryHealth().catch(error => ({
