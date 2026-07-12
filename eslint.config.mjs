@@ -17,6 +17,11 @@ export default defineConfig([
       'react-hooks/preserve-manual-memoization': 'off',
       'react-hooks/immutability': 'off',
       'react-hooks/purity': 'off',
+
+      // react-hook-form's form.watch() is currently reported as an
+      // incompatible-library warning by the React Compiler lint rules. Keep
+      // max-warnings=0 and stage the migration to useWatch() separately.
+      'react-hooks/incompatible-library': 'off',
     },
   },
   {
