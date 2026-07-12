@@ -1,6 +1,7 @@
 import crypto from 'node:crypto';
 import fs from 'node:fs/promises';
 import path from 'node:path';
+import { IS_DATABASE_OFFLINE } from '@/lib/prisma';
 import {
   getInternalUserByEmail,
   updateInternalUser,
@@ -23,7 +24,11 @@ function temporaryPassword(): string {
 }
 
 async function main() {
-  const rotated: Array<{ email: string; temporaryPassword: string }> = [];
+  const rotated: Array<{
+    email: string;
+    temporaryPassword: string;
+    mustChangePasswordEnforced: boolean;
+  }> = [];
 
   for (const email of emails) {
     const user = await getInternalUserByEmail(email);
@@ -34,13 +39,31 @@ async function main() {
 
     const password = temporaryPassword();
     await updateUserPassword(user.id, password, 'security-rotation');
-    await updateInternalUser(user.id, {
-      mustChangePassword: true,
+
+    const sessionPatch: Record<string, unknown> = {
       activeSessionId: crypto.randomUUID(),
-      failedLoginAttempts: 0,
-      lockoutUntil: null,
+    };
+    if (IS_DATABASE_OFFLINE) {
+      Object.assign(sessionPatch, {
+        mustChangePassword: true,
+        failedLoginAttempts: 0,
+        lockoutUntil: null,
+      });
+    }
+    await updateInternalUser(user.id, sessionPatch);
+
+    rotated.push({
+      email,
+      temporaryPassword: password,
+      mustChangePasswordEnforced: IS_DATABASE_OFFLINE,
     });
-    rotated.push({ email, temporaryPassword: password });
+  }
+
+  if (!IS_DATABASE_OFFLINE && rotated.length > 0) {
+    console.warn(
+      '[credential-rotation] PostgreSQL auth schema currently rotates passwords and sessions, '
+        + 'but does not yet persist mustChangePassword.',
+    );
   }
 
   const outputPath = path.join(process.cwd(), 'security-rotation-output.json');
