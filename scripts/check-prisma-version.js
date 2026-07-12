@@ -9,10 +9,15 @@ function readJson(filePath) {
 }
 
 function installedVersion(packageName) {
-  const packageJsonPath = require.resolve(`${packageName}/package.json`, {
-    paths: [root],
-  });
-  return readJson(packageJsonPath).version;
+  const packagePath = packageName.startsWith('@')
+    ? path.join(root, 'node_modules', ...packageName.split('/'), 'package.json')
+    : path.join(root, 'node_modules', packageName, 'package.json');
+
+  if (!fs.existsSync(packagePath)) {
+    throw new Error(`Package metadata not found at ${packagePath}`);
+  }
+
+  return readJson(packagePath).version;
 }
 
 const project = readJson(path.join(root, 'package.json'));
@@ -35,13 +40,13 @@ let actualClient;
 try {
   actualPrisma = installedVersion('prisma');
 } catch (error) {
-  failures.push(`Unable to resolve installed prisma package: ${error.message}`);
+  failures.push(`Unable to read installed prisma package: ${error.message}`);
 }
 
 try {
   actualClient = installedVersion('@prisma/client');
 } catch (error) {
-  failures.push(`Unable to resolve installed @prisma/client package: ${error.message}`);
+  failures.push(`Unable to read installed @prisma/client package: ${error.message}`);
 }
 
 if (actualPrisma && actualPrisma !== EXPECTED_VERSION) {
