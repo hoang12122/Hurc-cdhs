@@ -35,6 +35,9 @@ jobs:
       - name: Install dependencies
         run: node scripts/run-build-phase.js "Install dependencies" -- npm install --include=dev --ignore-scripts
 
+      - name: Verify Prisma dependency contract
+        run: node scripts/run-build-phase.js "Verify Prisma dependency contract" -- npm run db:verify:prisma-version
+
       - name: Design rules file-size boundary
         run: node scripts/run-build-phase.js "Design rules file-size boundary" -- node scripts/check-file-size-boundaries.js --warn
 
