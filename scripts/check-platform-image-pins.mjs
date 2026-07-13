@@ -28,7 +28,7 @@ if (envFile) {
   }
   args.push('--env-file', absolutePath);
 }
-args.push('config', '--format', 'json');
+args.push('--profile', '*', 'config', '--format', 'json');
 
 const result = spawnSync('docker', args, {
   cwd: process.cwd(),
