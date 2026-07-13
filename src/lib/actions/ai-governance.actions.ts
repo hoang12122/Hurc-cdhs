@@ -1,5 +1,6 @@
 'use server';
 
+import { revalidatePath } from 'next/cache';
 import { requirePermission } from '@/lib/auth-enforcer';
 import { getAiGovernanceProfileSnapshot } from '@/lib/config/ai-governance-profile';
 import { aiDb, IS_DATABASE_OFFLINE } from '@/lib/prisma';
@@ -11,6 +12,7 @@ import { mcpService } from '@/lib/services/ai/mcp-service';
 import {
   getMemoryHealth,
   getQuarantinedMemories,
+  getReviewableMemories,
   reviewMemory,
   type MemoryHealth,
 } from '@/lib/services/agent-memory';
@@ -134,6 +136,14 @@ export async function getAiGovernanceDashboard() {
   };
 }
 
+export async function getAiMemoryReviewQueue(limit = 100) {
+  await requirePermission('admin:system');
+  return {
+    store: IS_DATABASE_OFFLINE ? 'json-memory-firewall' : 'postgres-ai-verification-log',
+    records: await getReviewableMemories(limit),
+  };
+}
+
 export async function getAiMemoryQuarantine(limit = 100) {
   await requirePermission('admin:system');
   return {
@@ -147,7 +157,10 @@ export async function reviewAiMemory(
   decision: 'approve' | 'quarantine' | 'supersede',
 ) {
   await requirePermission('admin:system');
-  return reviewMemory(memoryId, decision);
+  const result = await reviewMemory(memoryId, decision);
+  revalidatePath('/admin/ai-governance');
+  revalidatePath('/admin/ai-governance/learning');
+  return result;
 }
 
 export async function assessAiDataCandidate(
