@@ -1,4 +1,11 @@
-import { Activity, BrainCircuit, Database, LockKeyhole, ShieldCheck } from 'lucide-react';
+import {
+  Activity,
+  BrainCircuit,
+  Database,
+  Lightbulb,
+  LockKeyhole,
+  ShieldCheck,
+} from 'lucide-react';
 import { getAiGovernanceDashboard } from '@/lib/actions/ai-governance.actions';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -27,6 +34,7 @@ function MetricCard({
 
 export default async function AiGovernancePage() {
   const dashboard = await getAiGovernanceDashboard();
+  const learning = dashboard.continuousLearning;
   const openCircuits = dashboard.runtime.circuits.filter(circuit => circuit.state !== 'closed').length;
   const activeExecutions = dashboard.runtime.namespaces.reduce((sum, item) => sum + item.active, 0);
 
@@ -39,7 +47,7 @@ export default async function AiGovernancePage() {
             <h1 className="text-3xl font-bold tracking-tight">AI Governance Control Plane</h1>
           </div>
           <p className="mt-2 max-w-3xl text-sm text-muted-foreground">
-            Giám sát agent, bộ nhớ học có kiểm duyệt, audit, circuit breaker và công cụ AI read-only.
+            Giám sát agent, vòng học liên tục có kiểm duyệt, audit, circuit breaker và công cụ AI read-only.
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -71,6 +79,61 @@ export default async function AiGovernancePage() {
           description={`${dashboard.audit.critical} sự kiện critical; ${dashboard.audit.blocked} yêu cầu bị chặn.`}
         />
       </div>
+
+      {learning && (
+        <Card className="border-cyan-200 bg-cyan-50/40">
+          <CardHeader>
+            <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+              <div>
+                <CardTitle className="flex items-center gap-2">
+                  <Lightbulb className="h-5 w-5 text-cyan-700" /> Vòng học liên tục có kiểm duyệt
+                </CardTitle>
+                <CardDescription className="mt-2">
+                  AI thu thập phản hồi, củng cố mẫu, chạy đánh giá bóng và chỉ phát hành sau phê duyệt của con người.
+                </CardDescription>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <Badge variant="outline">{learning.releaseState}</Badge>
+                <Badge variant="outline">Confidence ≥ {learning.policy.minimumConfidence.toFixed(2)}</Badge>
+                <Badge variant="outline">Reinforcement ≥ {learning.policy.minimumReinforcements}</Badge>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-5">
+            <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+              <div className="rounded-xl border bg-white p-4"><div className="text-xs text-muted-foreground">Chờ rà soát</div><div className="mt-1 text-2xl font-bold">{learning.reviewQueue.provisional}</div></div>
+              <div className="rounded-xl border bg-white p-4"><div className="text-xs text-muted-foreground">Đang cách ly</div><div className="mt-1 text-2xl font-bold">{learning.reviewQueue.quarantined}</div></div>
+              <div className="rounded-xl border bg-white p-4"><div className="text-xs text-muted-foreground">Lần củng cố</div><div className="mt-1 text-2xl font-bold">{learning.reviewQueue.reinforced}</div></div>
+              <div className="rounded-xl border bg-white p-4"><div className="text-xs text-muted-foreground">Cửa sổ đánh giá</div><div className="mt-1 text-2xl font-bold">{learning.policy.evaluationWindowDays} ngày</div></div>
+            </div>
+
+            <div className="grid gap-3 lg:grid-cols-2">
+              {learning.proposals.length === 0 && (
+                <div className="rounded-xl border border-dashed bg-white p-5 text-sm text-muted-foreground">
+                  Chưa có đề xuất mới. Hệ thống tiếp tục thu thập phản hồi và đánh giá trong chế độ shadow.
+                </div>
+              )}
+              {learning.proposals.map(proposal => (
+                <div key={proposal.code} className="rounded-xl border bg-white p-4">
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="font-semibold">{proposal.title}</div>
+                    <Badge variant={proposal.priority === 'HIGH' ? 'destructive' : 'secondary'}>{proposal.priority}</Badge>
+                  </div>
+                  <p className="mt-2 text-sm text-muted-foreground">{proposal.rationale}</p>
+                  <p className="mt-3 text-sm"><strong>Đề xuất:</strong> {proposal.recommendedAction}</p>
+                </div>
+              ))}
+            </div>
+
+            <div className="flex flex-wrap gap-2 text-xs">
+              <Badge variant="outline">Human approval: bắt buộc</Badge>
+              <Badge variant="outline">Auto promotion: tắt</Badge>
+              <Badge variant="outline">Tự sửa mã: tắt</Badge>
+              <Badge variant="outline">Ghi dữ liệu vận hành: tắt</Badge>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       <div className="grid gap-6 xl:grid-cols-[2fr_1fr]">
         <Card>
