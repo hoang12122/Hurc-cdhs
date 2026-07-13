@@ -92,6 +92,8 @@ jobs:
         continue-on-error: true
         env:
           PLATFORM_CI_ACCEPTANCE_PASSED: 'true'
+          APP_COMMIT_SHA: ${{ github.sha }}
+          PLATFORM_ATTESTATION_COMMIT_SHA: ${{ github.sha }}
         run: npm run platform:production:attest
 
       - name: Publish attestation summary
@@ -106,6 +108,7 @@ jobs:
           }
           const data = JSON.parse(fs.readFileSync(path, 'utf8'));
           let text = `## Platform Production Readiness: ${data.status}\n\n`;
+          text += `Commit: \`${data.commitSha}\`\n\n`;
           text += '| Phase | Status | Score |\n|---:|---|---:|\n';
           for (const phase of data.phases) text += `| ${phase.phase} | ${phase.ready ? 'READY' : 'NOT READY'} | ${phase.score} |\n`;
           if (data.missingControls?.length) text += `\nMissing controls: ${data.missingControls.join(', ')}\n`;
