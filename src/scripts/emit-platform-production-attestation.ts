@@ -11,12 +11,18 @@ interface PhaseAttestation {
 }
 
 async function main() {
+  const applicationCommit = process.env.APP_COMMIT_SHA
+    ?? process.env.GITHUB_SHA
+    ?? 'local';
+  const attestedCommit = process.env.PLATFORM_ATTESTATION_COMMIT_SHA ?? null;
   const phases: PhaseAttestation[] = [1, 2, 3, 4].map(phase => {
     const readiness = evaluatePlatformProductionReadiness({
       ...process.env,
       NODE_ENV: 'production',
       PLATFORM_DEPLOYMENT_MODE: 'production',
       DATA_PLATFORM_PHASE: String(phase),
+      APP_COMMIT_SHA: applicationCommit,
+      PLATFORM_ATTESTATION_COMMIT_SHA: attestedCommit ?? undefined,
     });
     return {
       phase,
@@ -33,6 +39,7 @@ async function main() {
 
   const controls = {
     ciCdGreen: process.env.PLATFORM_CI_ACCEPTANCE_PASSED === 'true',
+    commitBound: Boolean(attestedCommit && applicationCommit === attestedCommit),
     immutableImages: process.env.PLATFORM_IMAGES_PINNED === 'true',
     mtlsAndAcl: process.env.IOT_REQUIRE_TLS === 'true'
       && process.env.MQTT_ALLOW_ANONYMOUS === 'false'
@@ -54,7 +61,8 @@ async function main() {
   const attestation = {
     schemaVersion: '1.0.0',
     status: allReady ? 'PRODUCTION_READY' : 'NOT_READY',
-    commitSha: process.env.GITHUB_SHA ?? 'local',
+    commitSha: applicationCommit,
+    attestedCommitSha: attestedCommit,
     workflowRunId: process.env.GITHUB_RUN_ID ?? null,
     generatedAt: new Date().toISOString(),
     controls,
@@ -70,6 +78,7 @@ async function main() {
   await writeFile(outputPath, `${JSON.stringify(attestation, null, 2)}\n`, 'utf8');
 
   console.log(`Platform attestation: ${attestation.status}`);
+  console.log(`Application commit: ${applicationCommit}; attested commit: ${attestedCommit ?? 'missing'}`);
   for (const phase of phases) {
     console.log(`Phase ${phase.phase}: ${phase.ready ? 'PRODUCTION_READY' : 'NOT_READY'} (${phase.score}/100)`);
     phase.blockers.forEach(blocker => console.log(`  [BLOCKER] ${blocker}`));
