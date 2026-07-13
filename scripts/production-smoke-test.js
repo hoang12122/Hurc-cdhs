@@ -13,6 +13,10 @@ const routes = [
   { path: '/spatial-twin', maxStatus: 399 },
   { path: '/spatial-twin/import', maxStatus: 399 },
   { path: '/asset-360', maxStatus: 399 },
+  { path: '/iot', maxStatus: 399 },
+  { path: '/data-platform', maxStatus: 399 },
+  { path: '/mlops', maxStatus: 399 },
+  { path: '/evidence-ledger', maxStatus: 399 },
 ];
 
 function sleep(ms) {
