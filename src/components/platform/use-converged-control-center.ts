@@ -16,6 +16,15 @@ export interface PlatformStatus {
     detail: string;
   }>;
   outbox: { pending: number; retrying: number; oldestPendingSeconds: number | null } | null;
+  etl: {
+    received: number;
+    normalized: number;
+    invalid: number;
+    qualityWarnings: number;
+    publishFailures: number;
+    commits: number;
+    lastProcessedAt: string | null;
+  } | null;
   readiness: {
     ready: boolean;
     score: number;
