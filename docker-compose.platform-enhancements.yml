@@ -1,4 +1,10 @@
 services:
+  app:
+    environment:
+      ETL_NORMALIZER_URL: ${ETL_NORMALIZER_URL:-http://etl-normalizer:8082}
+      CLICKHOUSE_USER: ${CLICKHOUSE_USER:-hurc}
+      CLICKHOUSE_PASSWORD: ${CLICKHOUSE_PASSWORD:-change-this-clickhouse-password}
+
   outbox-topic-init:
     image: ${REDPANDA_IMAGE:-docker.redpanda.com/redpandadata/redpanda:v26.1.12}
     container_name: hurc_outbox_topic_init
