@@ -125,6 +125,22 @@ export async function retrieveMemories(
   }
 }
 
+export async function getReviewableMemories(
+  limit = 100,
+): Promise<AgentMemory[]> {
+  const boundedLimit = clamp(limit, 1, 500);
+  const [active, quarantine] = await Promise.all([
+    loadActiveMemories(),
+    loadQuarantine(),
+  ]);
+  return [...active, ...quarantine]
+    .filter(memory => memory.verificationStatus === 'provisional'
+      || memory.verificationStatus === 'quarantined')
+    .sort((a, b) => new Date(b.lastSeenAt || b.timestamp).getTime()
+      - new Date(a.lastSeenAt || a.timestamp).getTime())
+    .slice(0, boundedLimit);
+}
+
 export async function getQuarantinedMemories(
   limit = 100,
 ): Promise<AgentMemory[]> {
