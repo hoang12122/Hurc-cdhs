@@ -1,12 +1,16 @@
 services:
   iot-ingestor:
     image: ${IOT_INGESTOR_IMAGE:-replace-with-iot-ingestor-digest}
+    pull_policy: always
 
   etl-normalizer:
     image: ${ETL_NORMALIZER_IMAGE:-replace-with-etl-normalizer-digest}
+    pull_policy: always
 
   outbox-relay:
     image: ${OUTBOX_RELAY_IMAGE:-replace-with-outbox-relay-digest}
+    pull_policy: always
 
   evidence-ledger:
     image: ${EVIDENCE_LEDGER_IMAGE:-replace-with-evidence-ledger-digest}
+    pull_policy: always
