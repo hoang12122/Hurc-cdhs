@@ -16,6 +16,16 @@ export interface PlatformComponentHealth {
   checkedAt: string;
 }
 
+export interface EtlHealthSummary {
+  received: number;
+  normalized: number;
+  invalid: number;
+  qualityWarnings: number;
+  publishFailures: number;
+  commits: number;
+  lastProcessedAt: string | null;
+}
+
 export interface PlatformHealthOverview {
   phase: number;
   status: ComponentHealthStatus;
@@ -25,6 +35,7 @@ export interface PlatformHealthOverview {
     retrying: number;
     oldestPendingSeconds: number | null;
   } | null;
+  etl: EtlHealthSummary | null;
   readiness: PlatformProductionReadiness;
   checkedAt: string;
 }
@@ -35,7 +46,13 @@ type OutboxHealthRow = {
   oldest_seconds: number | string | null;
 };
 
+type EtlHealthPayload = Partial<EtlHealthSummary> & {
+  status?: string;
+  lastError?: string | null;
+};
+
 const nowIso = () => new Date().toISOString();
+const numberValue = (value: unknown) => Number.isFinite(Number(value)) ? Number(value) : 0;
 
 async function checkTcp(id: string, name: string, phase: number, urlValue: string): Promise<PlatformComponentHealth> {
   const started = Date.now();
@@ -91,6 +108,42 @@ function disabled(id: string, name: string, phase: number): PlatformComponentHea
   return { id, name, phase, status: 'DISABLED', latencyMs: null, detail: `Requires phase ${phase}`, checkedAt: nowIso() };
 }
 
+async function checkEtlNormalizer(): Promise<{ component: PlatformComponentHealth; stats: EtlHealthSummary | null }> {
+  if (CONVERGED_PLATFORM_CONFIG.phase < 2) {
+    return { component: disabled('etl-normalizer', 'ETL Normalizer', 2), stats: null };
+  }
+  const started = Date.now();
+  try {
+    const response = await fetch(`${CONVERGED_PLATFORM_CONFIG.endpoints.etlNormalizerUrl}/health`, {
+      cache: 'no-store',
+      signal: AbortSignal.timeout(3000),
+    });
+    const payload = await response.json() as EtlHealthPayload;
+    if (!response.ok || payload.status !== 'healthy') {
+      throw new Error(payload.lastError || `HTTP ${response.status}`);
+    }
+    const stats: EtlHealthSummary = {
+      received: numberValue(payload.received),
+      normalized: numberValue(payload.normalized),
+      invalid: numberValue(payload.invalid),
+      qualityWarnings: numberValue(payload.qualityWarnings),
+      publishFailures: numberValue(payload.publishFailures),
+      commits: numberValue(payload.commits),
+      lastProcessedAt: typeof payload.lastProcessedAt === 'string' ? payload.lastProcessedAt : null,
+    };
+    const detail = `Normalized ${stats.normalized}/${stats.received}; invalid ${stats.invalid}; warnings ${stats.qualityWarnings}`;
+    return {
+      component: { id: 'etl-normalizer', name: 'ETL Normalizer', phase: 2, status: 'HEALTHY', latencyMs: Date.now() - started, detail, checkedAt: nowIso() },
+      stats,
+    };
+  } catch (error) {
+    return {
+      component: { id: 'etl-normalizer', name: 'ETL Normalizer', phase: 2, status: 'DEGRADED', latencyMs: Date.now() - started, detail: error instanceof Error ? error.message : 'unreachable', checkedAt: nowIso() },
+      stats: null,
+    };
+  }
+}
+
 async function loadOutboxHealth() {
   try {
     const rows = await opsDb.$queryRaw`
@@ -114,6 +167,7 @@ async function loadOutboxHealth() {
 export async function getPlatformHealthOverview(): Promise<PlatformHealthOverview> {
   const phase = CONVERGED_PLATFORM_CONFIG.phase;
   const checks: Array<Promise<PlatformComponentHealth>> = [];
+  const etlCheck = checkEtlNormalizer();
 
   checks.push(phase >= 1
     ? checkTcp('mqtt', 'MQTT Broker', 1, CONVERGED_PLATFORM_CONFIG.endpoints.mqttUrl)
@@ -122,12 +176,13 @@ export async function getPlatformHealthOverview(): Promise<PlatformHealthOvervie
   checks.push(phase >= 2
     ? checkHttp('schema-registry', 'Redpanda / Schema Registry', 2, `${CONVERGED_PLATFORM_CONFIG.endpoints.schemaRegistryUrl}/subjects`)
     : Promise.resolve(disabled('schema-registry', 'Redpanda / Schema Registry', 2)));
+  checks.push(etlCheck.then(result => result.component));
   checks.push(phase >= 2
-    ? checkHttp('minio', 'MinIO Raw Zone', 2, `${CONVERGED_PLATFORM_CONFIG.endpoints.minioUrl}/minio/health/live`)
-    : Promise.resolve(disabled('minio', 'MinIO Raw Zone', 2)));
+    ? checkHttp('minio', 'MinIO Bronze / Silver', 2, `${CONVERGED_PLATFORM_CONFIG.endpoints.minioUrl}/minio/health/live`)
+    : Promise.resolve(disabled('minio', 'MinIO Bronze / Silver', 2)));
   checks.push(phase >= 2
-    ? checkHttp('clickhouse', 'ClickHouse OLAP', 2, `${CONVERGED_PLATFORM_CONFIG.endpoints.clickhouseUrl}/ping`)
-    : Promise.resolve(disabled('clickhouse', 'ClickHouse OLAP', 2)));
+    ? checkHttp('clickhouse', 'ClickHouse Silver / Gold', 2, `${CONVERGED_PLATFORM_CONFIG.endpoints.clickhouseUrl}/ping`)
+    : Promise.resolve(disabled('clickhouse', 'ClickHouse Silver / Gold', 2)));
   checks.push(phase >= 3
     ? checkHttp('mlflow', 'MLflow Registry', 3, `${CONVERGED_PLATFORM_CONFIG.endpoints.mlflowUrl}/health`)
     : Promise.resolve(disabled('mlflow', 'MLflow Registry', 3)));
@@ -142,10 +197,14 @@ export async function getPlatformHealthOverview(): Promise<PlatformHealthOvervie
     ? checkHttp('evidence-ledger', 'Evidence Ledger Gateway', 4, `${CONVERGED_PLATFORM_CONFIG.endpoints.ledgerGatewayUrl}/health`)
     : Promise.resolve(disabled('evidence-ledger', 'Evidence Ledger Gateway', 4)));
 
-  const [components, outbox] = await Promise.all([Promise.all(checks), loadOutboxHealth()]);
+  const [components, outbox, etl] = await Promise.all([
+    Promise.all(checks),
+    loadOutboxHealth(),
+    etlCheck.then(result => result.stats),
+  ]);
   const enabled = components.filter(item => item.status !== 'DISABLED');
   const status: ComponentHealthStatus = enabled.some(item => item.status === 'DEGRADED') ? 'DEGRADED' : 'HEALTHY';
   const readiness = evaluatePlatformProductionReadiness();
 
-  return { phase, status, components, outbox, readiness, checkedAt: nowIso() };
+  return { phase, status, components, outbox, etl, readiness, checkedAt: nowIso() };
 }
