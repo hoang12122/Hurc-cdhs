@@ -66,6 +66,8 @@ export interface AiGovernanceConfig {
   };
 }
 
+type AiEnvironment = Readonly<Partial<NodeJS.ProcessEnv>>;
+
 const RUNTIME_PROFILES = {
   LOW: {
     runtime: { timeoutMs: 60_000, maxConcurrentPerNamespace: 1, queueTimeoutMs: 8_000, failureThreshold: 3, cooldownMs: 120_000 },
@@ -121,13 +123,13 @@ function profile(value: string | undefined, fallback: AiProfileName): AiProfileN
     : fallback;
 }
 
-function integer(env: NodeJS.ProcessEnv, key: string, fallback: number, min: number, max: number): number {
+function integer(env: AiEnvironment, key: string, fallback: number, min: number, max: number): number {
   const parsed = Number(env[key]);
   if (!Number.isFinite(parsed)) return fallback;
   return Math.min(max, Math.max(min, Math.round(parsed)));
 }
 
-function decimal(env: NodeJS.ProcessEnv, key: string, fallback: number, min: number, max: number): number {
+function decimal(env: AiEnvironment, key: string, fallback: number, min: number, max: number): number {
   const parsed = Number(env[key]);
   if (!Number.isFinite(parsed)) return fallback;
   return Math.min(max, Math.max(min, parsed));
@@ -140,7 +142,7 @@ function booleanValue(value: string | undefined, fallback: boolean): boolean {
 }
 
 export function resolveAiGovernanceConfig(
-  env: NodeJS.ProcessEnv = process.env,
+  env: AiEnvironment = process.env,
   nodeEnv: string | undefined = process.env.NODE_ENV,
 ): AiGovernanceConfig {
   const runtimeProfile = profile(env.AI_RUNTIME_PROFILE, 'STANDARD');
