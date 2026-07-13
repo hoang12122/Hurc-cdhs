@@ -1,0 +1,129 @@
+name: Platform Production Readiness Attestation
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  attest-production-readiness:
+    name: Verify and attest Phase 1-4 production readiness
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    environment: production
+    env:
+      CI: 'true'
+      NODE_ENV: production
+      PLATFORM_DEPLOYMENT_MODE: production
+      DATA_PLATFORM_PHASE: '4'
+      AI_RUNTIME_PROFILE: STANDARD
+      AI_ASSURANCE_PROFILE: HIGH
+      MQTT_ALLOW_ANONYMOUS: ${{ vars.MQTT_ALLOW_ANONYMOUS }}
+      IOT_REQUIRE_TLS: ${{ vars.IOT_REQUIRE_TLS }}
+      IOT_DEVICE_IDENTITY_ENFORCED: ${{ vars.IOT_DEVICE_IDENTITY_ENFORCED }}
+      KAFKA_BROKERS: ${{ vars.KAFKA_BROKERS }}
+      REDPANDA_REPLICATION_FACTOR: ${{ vars.REDPANDA_REPLICATION_FACTOR }}
+      CLICKHOUSE_NODE_COUNT: ${{ vars.CLICKHOUSE_NODE_COUNT }}
+      REDPANDA_CONNECT_IMAGE: ${{ vars.REDPANDA_CONNECT_IMAGE }}
+      MINIO_MC_IMAGE: ${{ vars.MINIO_MC_IMAGE }}
+      OUTBOX_MIGRATION_APPLIED: ${{ vars.OUTBOX_MIGRATION_APPLIED }}
+      MLFLOW_BACKEND_STORE_URI: ${{ secrets.MLFLOW_BACKEND_STORE_URI }}
+      MLFLOW_ARTIFACT_ROOT: ${{ vars.MLFLOW_ARTIFACT_ROOT }}
+      MODEL_APPROVAL_WORKFLOW_ENABLED: ${{ vars.MODEL_APPROVAL_WORKFLOW_ENABLED }}
+      BESU_NETWORK: ${{ vars.BESU_NETWORK }}
+      LEDGER_SIGNER_MODE: ${{ vars.LEDGER_SIGNER_MODE }}
+      PLATFORM_KMS_PROVIDER: ${{ vars.PLATFORM_KMS_PROVIDER }}
+      LEDGER_EXTERNAL_SIGNER_URL: ${{ secrets.LEDGER_EXTERNAL_SIGNER_URL }}
+      PLATFORM_IMAGES_PINNED: ${{ vars.PLATFORM_IMAGES_PINNED }}
+      PLATFORM_BENCHMARK_APPROVED: ${{ vars.PLATFORM_BENCHMARK_APPROVED }}
+      PLATFORM_SECURITY_REVIEW_APPROVED: ${{ vars.PLATFORM_SECURITY_REVIEW_APPROVED }}
+      PLATFORM_BACKUP_RESTORE_TESTED: ${{ vars.PLATFORM_BACKUP_RESTORE_TESTED }}
+      PLATFORM_DR_TESTED: ${{ vars.PLATFORM_DR_TESTED }}
+      NEXT_PUBLIC_SETUP_COMPLETE: 'true'
+      SESSION_SECRET: ci_placeholder_session_value
+      AUTH_DATABASE_URL: postgresql://build:placeholder@localhost:5432/auth
+      AI_DATABASE_URL: postgresql://build:placeholder@localhost:5432/ai
+      METRO_DATABASE_URL: postgresql://build:placeholder@localhost:5432/metro
+      OPS_DATABASE_URL: postgresql://build:placeholder@localhost:5432/ops
+      DATABASE_URL: postgresql://build:placeholder@localhost:5432/main
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.12.2'
+
+      - name: Install dependencies
+        run: npm install --include=dev --ignore-scripts
+
+      - name: Validate Compose and schemas
+        run: |
+          npm run platform:config
+          npm run db:validate:all
+
+      - name: Run acceptance tests
+        run: |
+          npm run typecheck
+          npm run test:ai-governance
+          npm run test:ai-profiles
+          npm run test:continuous-learning
+          npm run test:platform-profiles
+          npm run test:digital-twin-health
+          npm run test:platform-readiness
+          npm run lint
+
+      - name: Build production application
+        run: npm run build
+
+      - name: Audit production dependencies
+        run: node scripts/production-dependency-audit.js
+        env:
+          PRODUCTION_AUDIT_FAIL_LEVELS: high,critical
+
+      - name: Emit Phase 1-4 attestation
+        id: attestation
+        continue-on-error: true
+        run: npm run platform:production:attest
+
+      - name: Publish attestation summary
+        if: always()
+        run: |
+          node - <<'NODE'
+          const fs = require('node:fs');
+          const path = '.build-logs/platform-production-attestation.json';
+          if (!fs.existsSync(path)) {
+            fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, '## Platform Production Readiness\n\nAttestation was not generated.\n');
+            process.exit(0);
+          }
+          const data = JSON.parse(fs.readFileSync(path, 'utf8'));
+          let text = `## Platform Production Readiness: ${data.status}\n\n`;
+          text += '| Phase | Status | Score |\n|---:|---|---:|\n';
+          for (const phase of data.phases) text += `| ${phase.phase} | ${phase.ready ? 'READY' : 'NOT READY'} | ${phase.score} |\n`;
+          if (data.missingControls?.length) text += `\nMissing controls: ${data.missingControls.join(', ')}\n`;
+          fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, text);
+          NODE
+
+      - name: Upload production readiness attestation
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: platform-production-attestation-${{ github.run_id }}
+          path: .build-logs/platform-production-attestation.json
+          if-no-files-found: error
+          retention-days: 90
+
+      - name: Enforce attestation result
+        if: always()
+        run: |
+          if [ "${{ steps.attestation.outcome }}" != "success" ]; then
+            echo "Phase 1-4 are not approved for production."
+            exit 1
+          fi
+          echo "Phase 1-4 are PRODUCTION_READY for commit $GITHUB_SHA."
