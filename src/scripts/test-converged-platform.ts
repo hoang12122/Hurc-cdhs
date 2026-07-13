@@ -46,11 +46,22 @@ function main() {
     NODE_ENV: 'development',
     DATA_PLATFORM_PHASE: '4',
     EVENT_BACKBONE_ENABLED: 'false',
-    MLOPS_RUNTIME_ENABLED: 'false',
+    MLOPS_RUNTIME_ENABLED: 'true',
   }, 'development');
-  assert.equal(disabledByFlag.features.eventBackbone, false);
-  assert.equal(disabledByFlag.features.mlops, false);
   assert.equal(disabledByFlag.features.iot, true);
+  assert.equal(disabledByFlag.features.eventBackbone, false);
+  assert.equal(disabledByFlag.features.lakehouse, false);
+  assert.equal(disabledByFlag.features.mlops, false);
+
+  const disabledAtSource = resolveConvergedPlatformConfig({
+    NODE_ENV: 'development',
+    DATA_PLATFORM_PHASE: '4',
+    IOT_RUNTIME_ENABLED: 'false',
+  }, 'development');
+  assert.equal(disabledAtSource.features.iot, false);
+  assert.equal(disabledAtSource.features.eventBackbone, false);
+  assert.equal(disabledAtSource.features.lakehouse, false);
+  assert.equal(disabledAtSource.features.mlops, false);
 
   const clamped = resolveConvergedPlatformConfig({
     NODE_ENV: 'development',
