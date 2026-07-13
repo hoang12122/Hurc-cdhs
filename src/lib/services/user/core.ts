@@ -5,7 +5,8 @@ import { jsonDb } from '../../db/json-db';
 import { authDb, IS_DATABASE_OFFLINE } from '../../prisma';
 
 function omitPassword(user: any): User {
-  const { password: _password, ...userWithoutPassword } = user;
+  const userWithoutPassword = { ...user };
+  delete userWithoutPassword.password;
   return userWithoutPassword as User;
 }
 
