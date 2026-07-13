@@ -34,10 +34,17 @@ const finiteNumber = (value: unknown): number | null => {
   return Number.isFinite(parsed) ? parsed : null;
 };
 
+function parsedDate(value: string | Date | null): Date | null {
+  if (!value) return null;
+  if (value instanceof Date) return value;
+  const parsed = new Date(value);
+  return Number.isNaN(parsed.getTime()) ? null : parsed;
+}
+
 function mapRows(rows: ClickHouseRow[] | TimescaleRow[]): Map<string, TelemetrySnapshot> {
   return new Map(rows.map(row => [normalize(row.asset_id), {
     assetId: row.asset_id,
-    lastSeenAt: row.last_seen_at ? new Date(row.last_seen_at) : null,
+    lastSeenAt: parsedDate(row.last_seen_at),
     total24h: Number(row.total_24h ?? 0),
     error24h: Number(row.error_24h ?? 0),
     anomalyScore: finiteNumber(row.anomaly_score),
@@ -61,7 +68,7 @@ async function loadClickHouseTelemetry(): Promise<Map<string, TelemetrySnapshot>
   `;
   const user = process.env.CLICKHOUSE_USER;
   const password = process.env.CLICKHOUSE_PASSWORD;
-  const headers: HeadersInit = { 'content-type': 'text/plain' };
+  const headers: Record<string, string> = { 'content-type': 'text/plain' };
   if (user) {
     headers.authorization = `Basic ${Buffer.from(`${user}:${password ?? ''}`).toString('base64')}`;
   }
