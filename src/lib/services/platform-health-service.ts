@@ -29,6 +29,12 @@ export interface PlatformHealthOverview {
   checkedAt: string;
 }
 
+type OutboxHealthRow = {
+  pending: bigint;
+  retrying: bigint;
+  oldest_seconds: number | string | null;
+};
+
 const nowIso = () => new Date().toISOString();
 
 async function checkTcp(id: string, name: string, phase: number, urlValue: string): Promise<PlatformComponentHealth> {
@@ -87,13 +93,13 @@ function disabled(id: string, name: string, phase: number): PlatformComponentHea
 
 async function loadOutboxHealth() {
   try {
-    const rows = await opsDb.$queryRawUnsafe<Array<{ pending: bigint; retrying: bigint; oldest_seconds: number | null }>>(`
+    const rows = await opsDb.$queryRaw`
       SELECT
         COUNT(*) FILTER (WHERE published_at IS NULL) AS pending,
         COUNT(*) FILTER (WHERE published_at IS NULL AND attempt_count > 0) AS retrying,
         EXTRACT(EPOCH FROM (NOW() - MIN(created_at) FILTER (WHERE published_at IS NULL))) AS oldest_seconds
       FROM ops_outbox_events
-    `);
+    ` as OutboxHealthRow[];
     const row = rows[0];
     return {
       pending: Number(row?.pending ?? 0),
