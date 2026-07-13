@@ -32,6 +32,7 @@ DECLARE
   row_data JSONB;
   aggregate_id_value TEXT;
   event_suffix TEXT;
+  event_time TIMESTAMPTZ;
 BEGIN
   IF TG_OP = 'DELETE' THEN
     row_data := to_jsonb(OLD);
@@ -46,6 +47,8 @@ BEGIN
     aggregate_id_value := NEW.id;
     event_suffix := 'updated';
   END IF;
+
+  event_time := COALESCE(NULLIF(row_data ->> 'updated_at', '')::timestamptz, NOW());
 
   INSERT INTO ops_outbox_events (
     aggregate_type,
@@ -66,14 +69,17 @@ BEGIN
       'equipmentId', row_data ->> 'failed_component_equipment_lru_train_number',
       'subsystemIds', COALESCE(row_data -> 'subsystem_ids', '[]'::jsonb),
       'hazardLevelId', row_data ->> 'hazard_level_id',
-      'isArchived', COALESCE((row_data ->> 'is_archived')::boolean, false),
+      'isArchived', COALESCE(NULLIF(row_data ->> 'is_archived', '')::boolean, false),
       'updatedAt', row_data ->> 'updated_at'
     ),
     jsonb_build_object('source', 'ops-db-trigger', 'operation', TG_OP),
-    COALESCE((row_data ->> 'updated_at')::timestamptz, NOW())
+    event_time
   );
 
-  RETURN COALESCE(NEW, OLD);
+  IF TG_OP = 'DELETE' THEN
+    RETURN OLD;
+  END IF;
+  RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
 
@@ -83,6 +89,7 @@ DECLARE
   row_data JSONB;
   aggregate_id_value TEXT;
   event_suffix TEXT;
+  event_time TIMESTAMPTZ;
 BEGIN
   IF TG_OP = 'DELETE' THEN
     row_data := to_jsonb(OLD);
@@ -97,6 +104,8 @@ BEGIN
     aggregate_id_value := NEW.id;
     event_suffix := 'updated';
   END IF;
+
+  event_time := COALESCE(NULLIF(row_data ->> 'updated_at', '')::timestamptz, NOW());
 
   INSERT INTO ops_outbox_events (
     aggregate_type,
@@ -118,14 +127,17 @@ BEGIN
       'likelihoodId', row_data ->> 'likelihood_id',
       'riskLevelId', row_data ->> 'risk_level_id',
       'linkedDnfId', row_data ->> 'linked_dnf_id',
-      'isArchived', COALESCE((row_data ->> 'is_archived')::boolean, false),
+      'isArchived', COALESCE(NULLIF(row_data ->> 'is_archived', '')::boolean, false),
       'updatedAt', row_data ->> 'updated_at'
     ),
     jsonb_build_object('source', 'ops-db-trigger', 'operation', TG_OP),
-    COALESCE((row_data ->> 'updated_at')::timestamptz, NOW())
+    event_time
   );
 
-  RETURN COALESCE(NEW, OLD);
+  IF TG_OP = 'DELETE' THEN
+    RETURN OLD;
+  END IF;
+  RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
 
