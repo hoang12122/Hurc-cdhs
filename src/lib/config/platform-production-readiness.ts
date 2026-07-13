@@ -126,10 +126,25 @@ export function evaluatePlatformProductionReadiness(
     });
   }
 
+  add(issues, !truthy(env.PLATFORM_CI_ACCEPTANCE_PASSED), {
+    code: 'CI_ACCEPTANCE', severity: 'BLOCKER', area: 'OPERATIONS',
+    message: 'Chưa có bằng chứng CI/CD acceptance gate xanh cho phiên bản đang triển khai.',
+    remediation: 'Chạy workflow production readiness và gắn attestation với đúng commit SHA.',
+  });
+  add(issues, !truthy(env.PLATFORM_IMAGES_PINNED), {
+    code: 'IMMUTABLE_IMAGES', severity: 'BLOCKER', area: 'OPERATIONS',
+    message: 'Chưa xác nhận toàn bộ image đã pin version hoặc digest bất biến.',
+    remediation: 'Pin mọi image và utility image; lưu SBOM, scan result và rollback reference.',
+  });
   add(issues, !truthy(env.PLATFORM_BENCHMARK_APPROVED), {
     code: 'BENCHMARK', severity: 'BLOCKER', area: 'OPERATIONS',
     message: 'Chưa có benchmark tải được phê duyệt.',
     remediation: 'Đo throughput, p95/p99, message loss, duplicate, replay và recovery theo dữ liệu thật.',
+  });
+  add(issues, !truthy(env.PLATFORM_SECURITY_REVIEW_APPROVED), {
+    code: 'SECURITY_REVIEW', severity: 'BLOCKER', area: 'OPERATIONS',
+    message: 'Chưa có đánh giá bảo mật được phê duyệt cho phiên bản triển khai.',
+    remediation: 'Hoàn thành threat model, dependency scan, CodeQL, cấu hình mạng và biên bản phê duyệt.',
   });
   add(issues, !truthy(env.PLATFORM_BACKUP_RESTORE_TESTED), {
     code: 'BACKUP_RESTORE', severity: 'BLOCKER', area: 'OPERATIONS',
@@ -137,9 +152,9 @@ export function evaluatePlatformProductionReadiness(
     remediation: 'Thực hiện restore TimescaleDB, Kafka metadata, MinIO, ClickHouse, MLflow và ledger metadata.',
   });
   add(issues, !truthy(env.PLATFORM_DR_TESTED), {
-    code: 'DISASTER_RECOVERY', severity: 'WARNING', area: 'OPERATIONS',
-    message: 'Chưa có bằng chứng diễn tập DR.',
-    remediation: 'Thực hiện failover/failback, đo RPO/RTO và lưu biên bản.',
+    code: 'DISASTER_RECOVERY', severity: 'BLOCKER', area: 'OPERATIONS',
+    message: 'Chưa có bằng chứng diễn tập khôi phục thảm họa.',
+    remediation: 'Thực hiện failover/failback, đo RPO/RTO và lưu biên bản nghiệm thu.',
   });
 
   const penalty = issues.reduce((sum, issue) => sum + (issue.severity === 'BLOCKER' ? 9 : 4), 0);
