@@ -1,3 +1,4 @@
+import { AI_GOVERNANCE_CONFIG } from '../../config/ai-governance-profile';
 import type { GovernanceContext } from './control-plane';
 
 interface CircuitState {
@@ -109,23 +110,17 @@ async function withTimeout<T>(promise: Promise<T>, timeoutMs: number): Promise<T
   }
 }
 
-/**
- * Executes one governed operation with:
- * - single-flight deduplication by request fingerprint;
- * - per-namespace concurrency isolation;
- * - timeout protection;
- * - circuit breaker with half-open recovery.
- */
 export async function executeWithRuntimeGuard<T>(
   context: GovernanceContext,
   executor: () => Promise<T>,
   options: RuntimeGuardOptions = {},
 ): Promise<T> {
-  const timeoutMs = options.timeoutMs ?? 120_000;
-  const maxConcurrent = options.maxConcurrentPerNamespace ?? 3;
-  const queueTimeoutMs = options.queueTimeoutMs ?? 15_000;
-  const failureThreshold = options.failureThreshold ?? 5;
-  const cooldownMs = options.cooldownMs ?? 60_000;
+  const profile = AI_GOVERNANCE_CONFIG.runtime;
+  const timeoutMs = options.timeoutMs ?? profile.timeoutMs;
+  const maxConcurrent = options.maxConcurrentPerNamespace ?? profile.maxConcurrentPerNamespace;
+  const queueTimeoutMs = options.queueTimeoutMs ?? profile.queueTimeoutMs;
+  const failureThreshold = options.failureThreshold ?? profile.failureThreshold;
+  const cooldownMs = options.cooldownMs ?? profile.cooldownMs;
 
   if (!circuitAllowsRequest(context.agent.id)) {
     const state = getCircuit(context.agent.id);
@@ -161,6 +156,8 @@ export async function executeWithRuntimeGuard<T>(
 
 export function getAiRuntimeGuardStatus() {
   return {
+    profile: AI_GOVERNANCE_CONFIG.runtimeProfile,
+    config: { ...AI_GOVERNANCE_CONFIG.runtime },
     circuits: Array.from(circuits.entries()).map(([agentId, state]) => ({
       agentId,
       state: state.openedUntil > Date.now() ? 'open' : state.halfOpenProbe ? 'half-open' : 'closed',
