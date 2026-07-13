@@ -24,6 +24,7 @@ jobs:
       MQTT_IMAGE: ${{ vars.MQTT_IMAGE }}
       TIMESCALE_IMAGE: ${{ vars.TIMESCALE_IMAGE }}
       IOT_INGESTOR_IMAGE: ${{ vars.IOT_INGESTOR_IMAGE }}
+      ETL_NORMALIZER_IMAGE: ${{ vars.ETL_NORMALIZER_IMAGE }}
       REDPANDA_IMAGE: ${{ vars.REDPANDA_IMAGE }}
       REDPANDA_CONNECT_IMAGE: ${{ vars.REDPANDA_CONNECT_IMAGE }}
       MINIO_IMAGE: ${{ vars.MINIO_IMAGE }}
@@ -78,6 +79,9 @@ jobs:
         run: |
           npm run platform:config
           npm run db:validate:all
+
+      - name: Verify ETL contract invariants
+        run: python3 -m unittest infra/etl-normalizer/test_contract.py
 
       - name: Audit immutable Phase 1-4 images
         run: node scripts/check-platform-image-pins.mjs
