@@ -17,6 +17,7 @@ const routes = [
   { path: '/data-platform', maxStatus: 399 },
   { path: '/mlops', maxStatus: 399 },
   { path: '/evidence-ledger', maxStatus: 399 },
+  { path: '/admin/ai-governance/learning', maxStatus: 399 },
 ];
 
 function sleep(ms) {
