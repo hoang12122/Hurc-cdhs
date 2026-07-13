@@ -12,6 +12,7 @@ import {
   getMemoryHealth,
   getQuarantinedMemories,
   reviewMemory,
+  type MemoryHealth,
 } from '@/lib/services/agent-memory';
 import {
   assessDataCandidate,
@@ -74,24 +75,30 @@ async function getAuditSummary() {
   }
 }
 
+function emptyMemoryHealth(): MemoryHealth {
+  return {
+    store: IS_DATABASE_OFFLINE
+      ? 'json-memory-firewall'
+      : 'postgres-ai-verification-log',
+    active: 0,
+    verified: 0,
+    provisional: 0,
+    quarantined: 0,
+    superseded: 0,
+    expired: 0,
+    duplicateReinforcements: 0,
+  };
+}
+
 export async function getAiGovernanceDashboard() {
   await requirePermission('admin:system');
 
-  const [memory, audit, continuousLearning] = await Promise.all([
-    getMemoryHealth().catch(error => ({
-      store: IS_DATABASE_OFFLINE ? 'json-memory-firewall' : 'postgres-ai-verification-log',
-      active: 0,
-      verified: 0,
-      provisional: 0,
-      quarantined: 0,
-      superseded: 0,
-      expired: 0,
-      duplicateReinforcements: 0,
-      error: error instanceof Error ? error.message : String(error),
-    })),
+  const [memory, audit] = await Promise.all([
+    getMemoryHealth().catch(() => emptyMemoryHealth()),
     getAuditSummary(),
-    getContinuousLearningStatus().catch(() => null),
   ]);
+  const continuousLearning = await getContinuousLearningStatus(memory)
+    .catch(() => null);
 
   return {
     enabled: true,
