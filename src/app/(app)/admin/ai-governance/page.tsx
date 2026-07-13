@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import {
   Activity,
   BrainCircuit,
@@ -8,6 +9,7 @@ import {
 } from 'lucide-react';
 import { getAiGovernanceDashboard } from '@/lib/actions/ai-governance.actions';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
 export const dynamic = 'force-dynamic';
@@ -125,11 +127,16 @@ export default async function AiGovernancePage() {
               ))}
             </div>
 
-            <div className="flex flex-wrap gap-2 text-xs">
-              <Badge variant="outline">Human approval: bắt buộc</Badge>
-              <Badge variant="outline">Auto promotion: tắt</Badge>
-              <Badge variant="outline">Tự sửa mã: tắt</Badge>
-              <Badge variant="outline">Ghi dữ liệu vận hành: tắt</Badge>
+            <div className="flex flex-wrap items-center justify-between gap-3 border-t pt-4">
+              <div className="flex flex-wrap gap-2 text-xs">
+                <Badge variant="outline">Human approval: bắt buộc</Badge>
+                <Badge variant="outline">Auto promotion: tắt</Badge>
+                <Badge variant="outline">Tự sửa mã: tắt</Badge>
+                <Badge variant="outline">Ghi dữ liệu vận hành: tắt</Badge>
+              </div>
+              <Button asChild>
+                <Link href="/admin/ai-governance/learning">Mở hàng đợi phê duyệt</Link>
+              </Button>
             </div>
           </CardContent>
         </Card>
