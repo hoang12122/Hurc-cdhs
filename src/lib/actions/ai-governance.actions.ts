@@ -6,6 +6,7 @@ import { aiDb, IS_DATABASE_OFFLINE } from '@/lib/prisma';
 import { jsonDb } from '@/lib/db/json-db';
 import { getRegisteredAiAgents } from '@/lib/services/ai/control-plane';
 import { getAiRuntimeGuardStatus } from '@/lib/services/ai/runtime-guard';
+import { getContinuousLearningStatus } from '@/lib/services/ai/continuous-learning';
 import { mcpService } from '@/lib/services/ai/mcp-service';
 import {
   getMemoryHealth,
@@ -76,7 +77,7 @@ async function getAuditSummary() {
 export async function getAiGovernanceDashboard() {
   await requirePermission('admin:system');
 
-  const [memory, audit] = await Promise.all([
+  const [memory, audit, continuousLearning] = await Promise.all([
     getMemoryHealth().catch(error => ({
       store: IS_DATABASE_OFFLINE ? 'json-memory-firewall' : 'postgres-ai-verification-log',
       active: 0,
@@ -89,6 +90,7 @@ export async function getAiGovernanceDashboard() {
       error: error instanceof Error ? error.message : String(error),
     })),
     getAuditSummary(),
+    getContinuousLearningStatus().catch(() => null),
   ]);
 
   return {
@@ -101,6 +103,7 @@ export async function getAiGovernanceDashboard() {
     toolFirewall: mcpService.getFirewallStatus(),
     memory,
     audit,
+    continuousLearning,
     protections: [
       'executable-governance-profile-registry',
       'deterministic-agent-routing',
@@ -114,6 +117,8 @@ export async function getAiGovernanceDashboard() {
       'symlink-and-secret-file-blocking',
       'memory-confidence-and-ttl',
       'memory-quarantine',
+      'governed-continuous-learning',
+      'shadow-evaluation-before-promotion',
       'data-provenance-and-versioning',
       'safety-field-conflict-blocking',
       'human-approval-for-state-change',
