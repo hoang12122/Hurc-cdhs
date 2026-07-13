@@ -27,16 +27,25 @@ DATA_PLATFORM_PHASE=0|1|2|3|4
 |---:|---|
 | 0 | Tắt nền tảng mở rộng; chỉ chạy core khi được chọn |
 | 1 | MQTT, IoT ingestor và TimescaleDB |
-| 2 | Phase 1 + Redpanda/Kafka, MinIO và ClickHouse |
+| 2 | Phase 1 + Redpanda/Kafka, transactional outbox relay, MinIO và ClickHouse |
 | 3 | Phase 2 + MLflow |
 | 4 | Phase 3 + Besu và Evidence Ledger Gateway |
 
-Các dịch vụ nằm trong `docker-compose.platform.yml` và chỉ được bật qua Docker profile tương ứng. Blockchain chỉ neo hash và metadata tối thiểu; không thay database nghiệp vụ, time-series store hoặc object storage.
+Các dịch vụ nằm trong:
 
-Runtime hiện tại là nền tảng POC/UAT có kiểm soát, chưa phải cấu hình production HA. Kiến trúc đích và runbook được trình bày tại:
+```text
+docker-compose.yml
+docker-compose.platform.yml
+docker-compose.platform-enhancements.yml
+```
+
+Chúng chỉ được bật qua Docker profile tương ứng. Blockchain chỉ neo hash và metadata tối thiểu; không thay database nghiệp vụ, time-series store hoặc object storage.
+
+Runtime hiện tại là nền tảng POC/UAT có kiểm soát, chưa phải cấu hình production HA. Kiến trúc và runbook:
 
 - [AI, Big Data, IoT and Blockchain Target Architecture](docs/technical/AI_BIGDATA_IOT_BLOCKCHAIN_TARGET_ARCHITECTURE.md);
-- [Converged Platform Runtime Operations](docs/technical/CONVERGED_PLATFORM_RUNTIME_OPERATIONS.md).
+- [Converged Platform Runtime Operations](docs/technical/CONVERGED_PLATFORM_RUNTIME_OPERATIONS.md);
+- [Digital Twin Operational Control Center](docs/technical/DIGITAL_TWIN_OPERATIONAL_CONTROL_CENTER.md).
 
 ## Phân hệ chính
 
@@ -47,11 +56,39 @@ Runtime hiện tại là nền tảng POC/UAT có kiểm soát, chưa phải c�
 | Hazards | Quản lý mối nguy. |
 | Inspections | Số hóa hoạt động kiểm tra. |
 | Tasks | Theo dõi công việc và phân công. |
-| Asset 360 | Quản lý tài sản và lịch sử liên quan. |
+| Asset 360 | Quản lý tài sản, Health Engine và lịch sử liên quan. |
 | Rail Network | Quản lý tuyến và ga. |
 | GIS/BIM Twin | Quản lý dữ liệu không gian và mô hình kỹ thuật. |
+| IoT Operations | Theo dõi kết nối, telemetry và gateway. |
+| Data Platform | Theo dõi outbox, broker, raw zone và OLAP. |
+| MLOps | Theo dõi model registry, approval và drift. |
+| Evidence Ledger | Theo dõi signer, hash và blockchain verification. |
 | AI Lab | Hỗ trợ hỏi đáp tài liệu và Incident Learning. |
 | Admin | Quản trị người dùng, vai trò và cấu hình. |
+
+## Digital Twin Operational Control Center
+
+Các route đã triển khai:
+
+```text
+/iot
+/data-platform
+/mlops
+/evidence-ledger
+```
+
+Control Center hợp nhất:
+
+- live component health;
+- outbox pending/retry;
+- Digital Twin overall score;
+- confidence theo tài sản;
+- DNF/Hazard/telemetry correlation;
+- yếu tố penalty có thể giải thích;
+- deep-link đến đúng tài sản trong Asset 360;
+- Production HA Readiness score và blocker.
+
+DNF/Hazard được đưa vào transactional outbox bằng PostgreSQL trigger trong cùng transaction, sau đó relay at-least-once sang Redpanda/Kafka.
 
 ## Tài liệu kỹ thuật
 
@@ -63,18 +100,14 @@ Runtime hiện tại là nền tảng POC/UAT có kiểm soát, chưa phải c�
 | [AI Runtime Profile Operations](docs/technical/AI_RUNTIME_PROFILE_OPERATIONS.md) | Environment switch, profile đang chạy, hard limit, rollout, rollback và giới hạn tương thích. |
 | [AI, Big Data, IoT and Blockchain Target Architecture](docs/technical/AI_BIGDATA_IOT_BLOCKCHAIN_TARGET_ARCHITECTURE.md) | Kiến trúc đích hợp nhất, profile LOW/STANDARD/HIGH, roadmap, bảo mật, KPI và tiêu chí nghiệm thu. |
 | [Converged Platform Runtime Operations](docs/technical/CONVERGED_PLATFORM_RUNTIME_OPERATIONS.md) | Cách chạy Phase 1–4, health-check, dữ liệu mẫu, rollback và production hardening. |
-| [Project Structure Guide](docs/technical/PROJECT_STRUCTURE_GUIDE.md) | Quy chuẩn cấu trúc dự án Frontend React/Next.js và Backend Golang; nguyên tắc package-by-feature, `cmd/`, `internal/`, API và checklist tái cấu trúc. |
-| [Structure Migration Plan](docs/technical/STRUCTURE_MIGRATION_PLAN.md) | Kế hoạch sắp xếp lại thư mục phần mềm theo từng đợt và theo dõi CI/CD sau khi merge PR #29. |
+| [Digital Twin Operational Control Center](docs/technical/DIGITAL_TWIN_OPERATIONAL_CONTROL_CENTER.md) | Thuật toán health, outbox, UX, HA gate và tiêu chí nghiệm thu. |
+| [Project Structure Guide](docs/technical/PROJECT_STRUCTURE_GUIDE.md) | Quy chuẩn cấu trúc dự án Frontend React/Next.js và Backend Golang. |
 | [1. System Architecture](docs/1_SYSTEM_ARCHITECTURE.md) | Kiến trúc, module boundary, Service Bus và giới hạn hiện tại. |
-| [2. Design and Coding Rules](docs/2_DESIGN_AND_CODING_RULES.md) | Quy tắc thiết kế, Vibe Code, hook/UI và checklist review. |
-| [3. Developer Guide](docs/3_DEVELOPER_GUIDE.md) | Hướng dẫn tạo module, module mẫu, offline entity sync và audit. |
 | [4. Deployment and Ops](docs/4_DEPLOYMENT_AND_OPS.md) | Dockerfile, docker-compose, CI, healthcheck và smoke test. |
-| [5. Admin User Guide](docs/5_ADMIN_USER_GUIDE.md) | Hướng dẫn quản trị hệ thống. |
-| [6. Modules and Features](docs/6_MODULES_AND_FEATURES.md) | Tổng hợp module và luồng nghiệp vụ. |
 
 ## Kiểm tra nhanh
 
-Repository chưa được xem là có dependency install tái lập cho đến khi `package-lock.json` hoàn chỉnh được tạo và commit. Dùng quy tắc sau trên máy phát triển:
+Repository chưa được xem là có dependency install tái lập cho đến khi `package-lock.json` hoàn chỉnh được tạo và commit.
 
 ```bash
 if [ -f package-lock.json ]; then
@@ -89,14 +122,20 @@ npm run typecheck
 npm run test:ai-governance
 npm run test:ai-profiles
 npm run test:platform-profiles
+npm run test:digital-twin-health
+npm run test:platform-readiness
 npm run platform:config
 npm run lint
 npm run build
 ```
 
-Trên Windows PowerShell, xem lệnh tương ứng trong [Linux and Windows Build Guide](docs/technical/BUILD_WINDOWS_LINUX_GUIDE.md).
+Kiểm tra production HA:
 
-Ghi chú: `npm run lint` dùng local ESLint executable và flat config của Next.js. Không gọi subpath nội bộ của package ESLint.
+```bash
+npm run platform:production:check
+```
+
+Trên Windows PowerShell, xem lệnh tương ứng trong [Linux and Windows Build Guide](docs/technical/BUILD_WINDOWS_LINUX_GUIDE.md).
 
 ## CI hiện có
 
@@ -104,14 +143,12 @@ Ghi chú: `npm run lint` dùng local ESLint executable và flat config của Nex
 - AI governance invariant checks.
 - AI executable profile invariant checks.
 - Converged platform profile invariant checks.
+- Digital Twin health invariant checks.
+- Platform production readiness invariant checks.
 - Converged platform Compose validation.
 - Docker Acceptance Gate.
-- Design rules audit.
-- Module boundary audit.
-- Module registry audit.
-- Developer Guide audit.
-- Deployment and Ops evidence audit.
-- Production smoke test.
+- Module boundary và registry audit.
+- Production route smoke test.
 
 ## Lưu ý dữ liệu và nghiệm thu
 
