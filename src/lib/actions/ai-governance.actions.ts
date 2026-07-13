@@ -1,6 +1,7 @@
 'use server';
 
 import { requirePermission } from '@/lib/auth-enforcer';
+import { getAiGovernanceProfileSnapshot } from '@/lib/config/ai-governance-profile';
 import { aiDb, IS_DATABASE_OFFLINE } from '@/lib/prisma';
 import { jsonDb } from '@/lib/db/json-db';
 import { getRegisteredAiAgents } from '@/lib/services/ai/control-plane';
@@ -94,12 +95,14 @@ export async function getAiGovernanceDashboard() {
     enabled: true,
     mode: 'advisory-only',
     writeAccess: false,
+    activeProfile: getAiGovernanceProfileSnapshot(),
     agents: getRegisteredAiAgents(),
     runtime: getAiRuntimeGuardStatus(),
     toolFirewall: mcpService.getFirewallStatus(),
     memory,
     audit,
     protections: [
+      'executable-governance-profile-registry',
       'deterministic-agent-routing',
       'domain-and-user-namespaces',
       'prompt-injection-screening',
