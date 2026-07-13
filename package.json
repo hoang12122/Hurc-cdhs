@@ -30,6 +30,8 @@
     "test:ai-governance": "npx tsx src/scripts/test-ai-governance.ts",
     "test:ai-profiles": "npx tsx src/scripts/test-ai-profiles.ts",
     "test:platform-profiles": "npx tsx src/scripts/test-converged-platform.ts",
+    "test:digital-twin-health": "npx tsx src/scripts/test-digital-twin-health.ts",
+    "test:platform-readiness": "npx tsx src/scripts/test-platform-production-readiness.ts",
     "test:guard": "node scripts/test-guard.js",
     "platform:config": "node scripts/platform-compose.mjs config",
     "platform:phase1:up": "node scripts/platform-compose.mjs up 1",
@@ -40,6 +42,7 @@
     "platform:ps": "node scripts/platform-compose.mjs ps",
     "platform:logs": "node scripts/platform-compose.mjs logs",
     "platform:down": "node scripts/platform-compose.mjs down",
+    "platform:production:check": "npx tsx src/scripts/check-platform-production-readiness.ts",
     "security:rotate-compromised-admins": "npx tsx src/scripts/rotate-compromised-admin-credentials.ts",
     "db:dashboard": "npx tsx src/scripts/generate-integrity-dashboard.ts"
   },
