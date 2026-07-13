@@ -100,6 +100,21 @@ export function evaluatePlatformProductionReadiness(
       message: 'Chưa xác nhận migration transactional outbox đã áp dụng.',
       remediation: 'Chạy migration OPS DB và đặt OUTBOX_MIGRATION_APPLIED=true sau kiểm thử rollback.',
     });
+    add(issues, !truthy(env.ETL_SCHEMA_CONTRACT_VALIDATED), {
+      code: 'ETL_SCHEMA_CONTRACT', severity: 'BLOCKER', area: 'DATA',
+      message: 'Contract telemetry và quy trình schema evolution chưa được xác minh.',
+      remediation: 'Chạy ETL contract tests, đối chiếu producer/consumer và phê duyệt schemaVersion 1.0.0.',
+    });
+    add(issues, !truthy(env.ETL_REPLAY_TESTED), {
+      code: 'ETL_REPLAY', severity: 'BLOCKER', area: 'DATA',
+      message: 'Chưa có bằng chứng replay Bronze sang Silver/Gold không mất hoặc nhân đôi dữ liệu.',
+      remediation: 'Thực hiện replay có kiểm soát, đối chiếu checksum/count và ghi nhận RPO/RTO.',
+    });
+    add(issues, !truthy(env.ETL_DATA_QUALITY_SLO_APPROVED), {
+      code: 'ETL_DATA_QUALITY_SLO', severity: 'BLOCKER', area: 'DATA',
+      message: 'Chưa phê duyệt SLO chất lượng dữ liệu ETL.',
+      remediation: 'Phê duyệt ngưỡng invalid, duplicate, freshness, completeness và consumer lag.',
+    });
   }
 
   if (phase >= 3) {
