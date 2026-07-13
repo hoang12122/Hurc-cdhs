@@ -1,17 +1,9 @@
-import { Pool } from 'pg';
 import { getAssetsInternal } from '../asset-service';
 import { getDnfsInternal } from '../dnf-service';
 import { getInternalHazards } from '../ops-service';
 import { CONVERGED_PLATFORM_CONFIG } from '@/lib/config/converged-platform-profile';
 import { calculateTwinHealth, type TwinHealthResult } from './health-engine';
-
-interface TelemetrySnapshot {
-  assetId: string;
-  lastSeenAt: Date | null;
-  total24h: number;
-  error24h: number;
-  anomalyScore: number | null;
-}
+import { loadTelemetry, type TelemetrySnapshot } from './telemetry-source';
 
 export interface DigitalTwinAssetOverview {
   id: string;
@@ -41,8 +33,6 @@ interface OperationalIndexes {
   hazardsBySystem: Map<string, any[]>;
 }
 
-let telemetryPool: Pool | null = null;
-
 const normalize = (value: unknown) => String(value ?? '').trim().toLowerCase();
 
 function lookupKeys(value: unknown): string[] {
@@ -61,64 +51,6 @@ function appendIndex(index: Map<string, any[]>, key: string, value: any) {
 
 function uniqueById(values: any[]): any[] {
   return [...new Map(values.map(value => [String(value.id), value])).values()];
-}
-
-function getTelemetryPool(): Pool | null {
-  if (CONVERGED_PLATFORM_CONFIG.phase < 1) return null;
-  const connectionString = process.env.TIMESCALE_DATABASE_URL;
-  if (!connectionString) return null;
-  telemetryPool ??= new Pool({
-    connectionString,
-    max: 3,
-    idleTimeoutMillis: 10_000,
-    connectionTimeoutMillis: 3_000,
-    statement_timeout: 5_000,
-  });
-  return telemetryPool;
-}
-
-async function loadTelemetry(): Promise<Map<string, TelemetrySnapshot>> {
-  const pool = getTelemetryPool();
-  if (!pool) return new Map();
-  try {
-    const result = await pool.query<{
-      asset_id: string;
-      last_seen_at: Date | null;
-      total_24h: string;
-      error_24h: string;
-      anomaly_score: number | null;
-    }>(`
-      SELECT
-        asset_id,
-        MAX(occurred_at) AS last_seen_at,
-        COUNT(*) FILTER (WHERE occurred_at >= NOW() - INTERVAL '24 hours') AS total_24h,
-        COUNT(*) FILTER (
-          WHERE occurred_at >= NOW() - INTERVAL '24 hours'
-            AND LOWER(quality_status) NOT IN ('good', 'ok', 'healthy', 'normal')
-        ) AS error_24h,
-        MAX(
-          CASE
-            WHEN payload ->> 'anomalyScore' ~ '^[0-9]+([.][0-9]+)?$'
-            THEN (payload ->> 'anomalyScore')::double precision
-            ELSE NULL
-          END
-        ) AS anomaly_score
-      FROM telemetry_event
-      WHERE occurred_at >= NOW() - INTERVAL '30 days'
-      GROUP BY asset_id
-      LIMIT 5000
-    `);
-    return new Map(result.rows.map(row => [normalize(row.asset_id), {
-      assetId: row.asset_id,
-      lastSeenAt: row.last_seen_at,
-      total24h: Number(row.total_24h),
-      error24h: Number(row.error_24h),
-      anomalyScore: row.anomaly_score,
-    }]));
-  } catch (error) {
-    console.warn('[digital-twin] telemetry query unavailable:', error instanceof Error ? error.message : error);
-    return new Map();
-  }
 }
 
 const OPEN_DNF_STATUSES = new Set(['Mới', 'Mới lập', 'Đánh giá', 'Xử lý', 'Phản hồi', 'Open', 'In Progress']);
