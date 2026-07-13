@@ -15,6 +15,9 @@ function productionEvidence() {
     REDPANDA_CONNECT_IMAGE: 'docker.redpanda.com/redpandadata/connect:4.50.0',
     MINIO_MC_IMAGE: 'minio/mc:RELEASE.2025-05-21T01-59-54Z',
     OUTBOX_MIGRATION_APPLIED: 'true',
+    ETL_SCHEMA_CONTRACT_VALIDATED: 'true',
+    ETL_REPLAY_TESTED: 'true',
+    ETL_DATA_QUALITY_SLO_APPROVED: 'true',
     MLFLOW_BACKEND_STORE_URI: 'postgresql://mlflow:secret@postgres/metrics',
     MLFLOW_ARTIFACT_ROOT: 's3://hurc-models',
     MODEL_APPROVAL_WORKFLOW_ENABLED: 'true',
@@ -48,6 +51,9 @@ function main() {
   assert.equal(unsafe.ready, false);
   assert.ok(unsafe.issues.some(issue => issue.code === 'MQTT_ANONYMOUS'));
   assert.ok(unsafe.issues.some(issue => issue.code === 'KAFKA_QUORUM'));
+  assert.ok(unsafe.issues.some(issue => issue.code === 'ETL_SCHEMA_CONTRACT'));
+  assert.ok(unsafe.issues.some(issue => issue.code === 'ETL_REPLAY'));
+  assert.ok(unsafe.issues.some(issue => issue.code === 'ETL_DATA_QUALITY_SLO'));
   assert.ok(unsafe.issues.some(issue => issue.code === 'MLFLOW_SQLITE'));
   assert.ok(unsafe.issues.some(issue => issue.code === 'BESU_DEV_NETWORK'));
   assert.ok(unsafe.issues.some(issue => issue.code === 'CI_ACCEPTANCE'));
