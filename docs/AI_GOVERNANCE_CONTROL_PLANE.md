@@ -1,5 +1,7 @@
 # AI Governance Control Plane
 
+> Tài liệu này mô tả nguyên tắc và mô hình quản trị tổng thể. Bảng cấu hình chi tiết, công thức risk/confidence, toàn bộ limit CURRENT, profile `LOW/STANDARD/HIGH`, hard limit và checklist nghiệm thu được trình bày tại [`docs/technical/AI_ARCHITECTURE_CONFIGURATION_REFERENCE.md`](technical/AI_ARCHITECTURE_CONFIGURATION_REFERENCE.md).
+
 ## 1. Mục tiêu
 
 AI Governance Control Plane là lớp kiểm soát thống nhất cho toàn bộ chức năng AI của HURC-CDHS. Hệ thống được thiết kế để nhiều AI chuyên trách có thể hỗ trợ quản lý dữ liệu, tài sản, bảo trì, an toàn và trạng thái hệ thống mà không tự ý thay đổi dữ liệu vận hành.
