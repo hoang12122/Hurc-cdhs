@@ -20,14 +20,25 @@ jobs:
       DATA_PLATFORM_PHASE: '4'
       AI_RUNTIME_PROFILE: STANDARD
       AI_ASSURANCE_PROFILE: HIGH
+      PLATFORM_REQUIRE_IMAGE_DIGEST: 'true'
+      MQTT_IMAGE: ${{ vars.MQTT_IMAGE }}
+      TIMESCALE_IMAGE: ${{ vars.TIMESCALE_IMAGE }}
+      IOT_INGESTOR_IMAGE: ${{ vars.IOT_INGESTOR_IMAGE }}
+      REDPANDA_IMAGE: ${{ vars.REDPANDA_IMAGE }}
+      REDPANDA_CONNECT_IMAGE: ${{ vars.REDPANDA_CONNECT_IMAGE }}
+      MINIO_IMAGE: ${{ vars.MINIO_IMAGE }}
+      MINIO_MC_IMAGE: ${{ vars.MINIO_MC_IMAGE }}
+      CLICKHOUSE_IMAGE: ${{ vars.CLICKHOUSE_IMAGE }}
+      MLFLOW_IMAGE: ${{ vars.MLFLOW_IMAGE }}
+      BESU_IMAGE: ${{ vars.BESU_IMAGE }}
+      EVIDENCE_LEDGER_IMAGE: ${{ vars.EVIDENCE_LEDGER_IMAGE }}
+      OUTBOX_RELAY_IMAGE: ${{ vars.OUTBOX_RELAY_IMAGE }}
       MQTT_ALLOW_ANONYMOUS: ${{ vars.MQTT_ALLOW_ANONYMOUS }}
       IOT_REQUIRE_TLS: ${{ vars.IOT_REQUIRE_TLS }}
       IOT_DEVICE_IDENTITY_ENFORCED: ${{ vars.IOT_DEVICE_IDENTITY_ENFORCED }}
       KAFKA_BROKERS: ${{ vars.KAFKA_BROKERS }}
       REDPANDA_REPLICATION_FACTOR: ${{ vars.REDPANDA_REPLICATION_FACTOR }}
       CLICKHOUSE_NODE_COUNT: ${{ vars.CLICKHOUSE_NODE_COUNT }}
-      REDPANDA_CONNECT_IMAGE: ${{ vars.REDPANDA_CONNECT_IMAGE }}
-      MINIO_MC_IMAGE: ${{ vars.MINIO_MC_IMAGE }}
       OUTBOX_MIGRATION_APPLIED: ${{ vars.OUTBOX_MIGRATION_APPLIED }}
       MLFLOW_BACKEND_STORE_URI: ${{ secrets.MLFLOW_BACKEND_STORE_URI }}
       MLFLOW_ARTIFACT_ROOT: ${{ vars.MLFLOW_ARTIFACT_ROOT }}
@@ -67,6 +78,9 @@ jobs:
         run: |
           npm run platform:config
           npm run db:validate:all
+
+      - name: Audit immutable Phase 1-4 images
+        run: node scripts/check-platform-image-pins.mjs
 
       - name: Run acceptance tests
         run: |
