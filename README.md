@@ -41,7 +41,7 @@ DATA_PLATFORM_PHASE=0|1|2|3|4
 |---:|---|
 | 0 | Tắt nền tảng mở rộng; chỉ chạy core khi được chọn |
 | 1 | MQTT, IoT ingestor và TimescaleDB |
-| 2 | Phase 1 + Redpanda/Kafka, transactional outbox relay, MinIO và ClickHouse |
+| 2 | Phase 1 + Redpanda/Kafka, ETL Normalizer, Bronze–Silver–Gold, transactional outbox, MinIO và ClickHouse |
 | 3 | Phase 2 + MLflow |
 | 4 | Phase 3 + Besu và Evidence Ledger Gateway |
 
@@ -51,14 +51,16 @@ Các dịch vụ nằm trong:
 docker-compose.yml
 docker-compose.platform.yml
 docker-compose.platform-enhancements.yml
+docker-compose.platform-production-images.yml
 ```
 
-Chúng chỉ được bật qua Docker profile tương ứng. Blockchain chỉ neo hash và metadata tối thiểu; không thay database nghiệp vụ, time-series store hoặc object storage.
+Chúng chỉ được bật qua Docker profile tương ứng. Khi `PLATFORM_DEPLOYMENT_MODE=production`, launcher tự ghép production image override và yêu cầu image đã pin. Blockchain chỉ neo hash và metadata tối thiểu; không thay database nghiệp vụ, time-series store hoặc object storage.
 
 Runtime hiện tại là nền tảng POC/UAT có kiểm soát cho đến khi workflow attestation production thành công. Kiến trúc và runbook:
 
 - [AI, Big Data, IoT and Blockchain Target Architecture](docs/technical/AI_BIGDATA_IOT_BLOCKCHAIN_TARGET_ARCHITECTURE.md);
 - [Converged Platform Runtime Operations](docs/technical/CONVERGED_PLATFORM_RUNTIME_OPERATIONS.md);
+- [ETL Data Platform Optimization](docs/technical/ETL_DATA_PLATFORM_OPTIMIZATION.md);
 - [Digital Twin Operational Control Center](docs/technical/DIGITAL_TWIN_OPERATIONAL_CONTROL_CENTER.md);
 - [AI Continuous Learning, UX and Production Readiness](docs/technical/AI_CONTINUOUS_LEARNING_UX_PRODUCTION_READINESS.md).
 
@@ -74,9 +76,26 @@ Runtime hiện tại là nền tảng POC/UAT có kiểm soát cho đến khi wo
 | Asset 360 | Quản lý tài sản, Health Engine và lịch sử liên quan. |
 | Rail Network | Quản lý tuyến và ga. |
 | GIS/BIM Twin | Quản lý dữ liệu không gian và mô hình kỹ thuật. |
-| Nền tảng số hội tụ | Một điểm vào cho IoT, Data Platform, MLOps và Evidence Ledger. |
+| Nền tảng số hội tụ | Một điểm vào cho IoT, ETL/Data Platform, MLOps và Evidence Ledger. |
 | AI Lab | Hỗ trợ hỏi đáp tài liệu và Incident Learning. |
 | Admin | Quản trị người dùng, vai trò, vòng học AI và cấu hình. |
+
+## ETL và Digital Twin
+
+Telemetry được xử lý theo chuỗi:
+
+```text
+MQTT
+→ Bronze raw Kafka/MinIO
+→ ETL contract validation
+→ Silver normalized Kafka/ClickHouse/MinIO
+→ Gold aggregate
+→ Digital Twin và AI
+```
+
+Dữ liệu invalid đi vào Dead Letter và `etl_data_quality_event`; không được đưa vào Gold. Delivery là at-least-once, Silver dùng event ID/version để hợp nhất duplicate trước khi Gold tổng hợp.
+
+Digital Twin ưu tiên ClickHouse Gold tại Phase 2–4 và fallback TimescaleDB khi OLAP chưa sẵn sàng. Điều này giảm quét raw JSON trên đường phản hồi chính.
 
 ## Digital Twin và trải nghiệm điều hành
 
@@ -97,6 +116,7 @@ Các tab chuyên sâu:
 Control Center hợp nhất:
 
 - live component health;
+- ETL Bronze→Silver ratio, invalid/DLQ, warning, publish failure và checkpoint;
 - outbox pending/retry;
 - Digital Twin overall score;
 - confidence theo tài sản;
@@ -137,8 +157,11 @@ Workflow:
 `PRODUCTION_READY` chỉ xuất hiện khi:
 
 - CI/CD acceptance xanh;
-- image được pin version/digest;
+- image được pin bằng digest;
 - mTLS/ACL và device identity;
+- ETL contract đã xác minh;
+- replay Bronze–Silver–Gold đã kiểm thử;
+- SLO data quality đã được phê duyệt;
 - load-test và security review được phê duyệt;
 - backup/restore và DR đã kiểm thử;
 - external signer/KMS-HSM;
@@ -165,6 +188,7 @@ Artifact được lưu tại `.build-logs/platform-production-attestation.json` 
 | [AI Continuous Learning, UX and Production Readiness](docs/technical/AI_CONTINUOUS_LEARNING_UX_PRODUCTION_READINESS.md) | Vòng học có kiểm duyệt, tối ưu tốc độ/UX và attestation đúng commit. |
 | [AI, Big Data, IoT and Blockchain Target Architecture](docs/technical/AI_BIGDATA_IOT_BLOCKCHAIN_TARGET_ARCHITECTURE.md) | Kiến trúc đích hợp nhất, profile LOW/STANDARD/HIGH, roadmap, bảo mật, KPI và tiêu chí nghiệm thu. |
 | [Converged Platform Runtime Operations](docs/technical/CONVERGED_PLATFORM_RUNTIME_OPERATIONS.md) | Cách chạy Phase 1–4, health-check, dữ liệu mẫu, rollback và production hardening. |
+| [ETL Data Platform Optimization](docs/technical/ETL_DATA_PLATFORM_OPTIMIZATION.md) | Bronze–Silver–Gold, contract, data quality, idempotency, replay, SLO và rollback. |
 | [Digital Twin Operational Control Center](docs/technical/DIGITAL_TWIN_OPERATIONAL_CONTROL_CENTER.md) | Thuật toán health, outbox, UX, HA gate và tiêu chí nghiệm thu. |
 | [Project Structure Guide](docs/technical/PROJECT_STRUCTURE_GUIDE.md) | Quy chuẩn cấu trúc dự án Frontend React/Next.js và Backend Golang. |
 | [1. System Architecture](docs/1_SYSTEM_ARCHITECTURE.md) | Kiến trúc, module boundary, Service Bus và giới hạn hiện tại. |
@@ -183,6 +207,7 @@ fi
 
 npm run db:validate:all
 npm run db:generate:all
+python3 -m unittest infra/etl-normalizer/test_contract.py
 npm run typecheck
 npm run test:ai-governance
 npm run test:ai-profiles
@@ -200,6 +225,7 @@ Trên Windows PowerShell, xem lệnh tương ứng trong [Linux and Windows Buil
 ## CI hiện có
 
 - Security and Acceptance Gate;
+- ETL contract invariant checks;
 - AI governance/profile/continuous-learning invariant checks;
 - Converged platform profile invariant checks;
 - Digital Twin health invariant checks;
@@ -214,4 +240,4 @@ Trên Windows PowerShell, xem lệnh tương ứng trong [Linux and Windows Buil
 
 Dữ liệu demo, GIS/BIM, Google Maps, Incident Memory, telemetry, model artifact và Digital Twin cần được phân biệt với dữ liệu chính thức trước khi dùng cho nghiệm thu vận hành.
 
-Không đánh dấu nền tảng Phase 1–4 là production-ready cho đến khi workflow attestation thành công cho đúng commit và artifact chứng minh đầy đủ CI/CD, image pin, mTLS/ACL, load-test, security review, backup/restore, DR và external signer/KMS-HSM.
+Không đánh dấu nền tảng Phase 1–4 là production-ready cho đến khi workflow attestation thành công cho đúng commit và artifact chứng minh đầy đủ CI/CD, image pin, mTLS/ACL, ETL replay/data-quality evidence, load-test, security review, backup/restore, DR và external signer/KMS-HSM.
