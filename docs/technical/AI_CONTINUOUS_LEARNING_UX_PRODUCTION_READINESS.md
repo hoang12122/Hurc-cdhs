@@ -55,6 +55,20 @@ Hard limit:
 
 AI Governance Dashboard hiển thị backlog provisional, quarantine, số lần củng cố, trạng thái phát hành và đề xuất xử lý. Các đề xuất không tự thực thi.
 
+Hàng đợi phê duyệt:
+
+```text
+/admin/ai-governance/learning
+```
+
+Người có quyền `admin:system` có thể:
+
+- `Approve`: chuyển thành `verified`, confidence tối thiểu 0,95 và nguồn `human-approved`;
+- `Quarantine`: cách ly nội dung không đáng tin cậy;
+- `Supersede`: đánh dấu kiến thức đã bị thay thế.
+
+Mỗi quyết định được ghi audit theo người thực hiện. Nội dung được render dạng text, không thực thi HTML hoặc prompt chứa trong ký ức.
+
 ## 3. Tăng tốc độ phản hồi
 
 Hai API điều hành sử dụng cache bounded trong từng Node.js process:
@@ -156,11 +170,14 @@ Checkout
 → Platform/Digital Twin/readiness tests
 → Lint
 → Production build
+→ Production route smoke test
 → Dependency audit
 → Emit attestation
 → Upload JSON artifact
 → Enforce result
 ```
+
+Smoke test bao phủ Control Center, Digital Twin và route phê duyệt vòng học. Route cần đăng nhập được chấp nhận khi trả redirect hợp lệ; lỗi HTTP 4xx/5xx ngoài phạm vi cho phép làm workflow thất bại.
 
 Artifact:
 
