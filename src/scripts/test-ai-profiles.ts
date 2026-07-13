@@ -23,11 +23,23 @@ function main() {
   const highAssurance = resolveAiGovernanceConfig({
     AI_RUNTIME_PROFILE: 'HIGH',
     AI_ASSURANCE_PROFILE: 'HIGH',
+    AI_MEMORY_INCLUDE_PROVISIONAL: 'true',
+    AI_MEMORY_MIN_CONFIDENCE: '0.1',
+    AI_MEMORY_PROVISIONAL_THRESHOLD: '0.1',
+    AI_DATA_QUARANTINE_TRUST_BELOW: '1',
+    AI_DATA_REVIEW_QUALITY_BELOW: '1',
+    AI_DATA_REVIEW_TRUST_BELOW: '1',
+    AI_DATA_REVIEW_ISSUE_COUNT: '20',
+    AI_AGENT_MEMORY_CANDIDATES_ENABLED: 'true',
   }, 'production');
   assert.equal(highAssurance.runtime.maxConcurrentPerNamespace, 6);
   assert.equal(highAssurance.memory.includeProvisional, false);
   assert.equal(highAssurance.memory.retrievalMinConfidence, 0.8);
+  assert.equal(highAssurance.memory.provisionalThreshold, 0.8);
+  assert.equal(highAssurance.data.quarantineTrustBelow, 55);
+  assert.equal(highAssurance.data.reviewQualityBelow, 75);
   assert.equal(highAssurance.data.reviewTrustBelow, 80);
+  assert.equal(highAssurance.data.reviewIssueCount, 2);
   assert.equal(highAssurance.agent.allowAiMemoryCandidates, false);
   assert.equal(highAssurance.agent.allowWrite, false);
 
