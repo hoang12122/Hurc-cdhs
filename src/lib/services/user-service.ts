@@ -1,8 +1,13 @@
 import { authDb, IS_DATABASE_OFFLINE } from '../prisma';
 import { jsonDb } from '../db/json-db';
 import { type User } from '../constants';
-import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
+import {
+    hashPassword,
+    isBcryptHash,
+    passwordHashNeedsUpgrade,
+    verifyPassword,
+} from '../security/password-hashing';
 
 /**
  * CORE LOGIC ONLY - NO 'use server'
@@ -61,7 +66,7 @@ export async function verifyInternalCredentials(email: string, password?: string
         return { error: `Tài khoản đã bị khóa. Vui lòng thử lại sau ${remaining} phút.` };
     }
 
-    const isValid = await bcrypt.compare(password, dbUser.password);
+    const isValid = await verifyPassword(password, dbUser.password);
     
     if (!isValid) {
         const failedAttempts = (dbUser.failedLoginAttempts || 0) + 1;
@@ -83,6 +88,16 @@ export async function verifyInternalCredentials(email: string, password?: string
         lastLoginAt: now.toISOString(),
         lastLoginIp: ip || 'unknown',
     };
+
+    // Transparently strengthen existing bcrypt hashes after a successful login.
+    if (passwordHashNeedsUpgrade(dbUser.password)) {
+        try {
+            updateSuccess.password = await hashPassword(password);
+        } catch (error) {
+            // A rehash failure must not prevent an otherwise valid login.
+            console.error("[USER-SERVICE] Password hash upgrade failed:", error);
+        }
+    }
     
     await updateInternalUser(dbUser.id, updateSuccess);
     return { user: omitPassword({ ...dbUser, ...updateSuccess }) };
@@ -102,7 +117,7 @@ export async function getInternalUsers(): Promise<User[]> {
 }
 
 export async function createInternalUser(user: Partial<User>) {
-    const hashedPassword = await bcrypt.hash(user.password || 'default123', 10);
+    const hashedPassword = await hashPassword(user.password || 'default123');
     const otp = crypto.randomInt(100000, 999999).toString();
     const expiry = new Date(Date.now() + 15 * 60000);
 
@@ -155,8 +170,8 @@ export async function createInternalUser(user: Partial<User>) {
 }
 
 export async function updateInternalUser(id: string, data: any) {
-    if (data.password && !data.password.startsWith('$2b$')) {
-        data.password = await bcrypt.hash(data.password, 10);
+    if (data.password && !isBcryptHash(data.password)) {
+        data.password = await hashPassword(data.password);
     }
 
     const updatePayload = {
@@ -367,7 +382,7 @@ export async function updateUserPassword(userId: string, newPassword: string, ad
     }
 
     // 2. Hash and Update
-    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    const hashedPassword = await hashPassword(newPassword);
     const updateData = {
         password: hashedPassword,
         passwordLastChangedAt: new Date().toISOString(),
