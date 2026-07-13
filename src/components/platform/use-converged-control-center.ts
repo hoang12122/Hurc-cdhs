@@ -75,17 +75,25 @@ export function useConvergedControlCenter() {
     if (!silent) setRefreshing(true);
     setError(null);
 
-    const results = await Promise.allSettled([
-      fetch('/api/platform/status', { cache: 'no-store', signal: controller.signal }).then(readJson<PlatformStatus>),
-      fetch('/api/digital-twin/overview?limit=40', { cache: 'no-store', signal: controller.signal }).then(readJson<TwinOverview>),
-    ]);
+    const platformPromise: Promise<PlatformStatus> = fetch('/api/platform/status', {
+      cache: 'no-store',
+      signal: controller.signal,
+    }).then(response => readJson<PlatformStatus>(response));
+    const twinPromise: Promise<TwinOverview> = fetch('/api/digital-twin/overview?limit=40', {
+      cache: 'no-store',
+      signal: controller.signal,
+    }).then(response => readJson<TwinOverview>(response));
+    const [platformResult, twinResult] = await Promise.allSettled([
+      platformPromise,
+      twinPromise,
+    ] as const);
 
     if (controller.signal.aborted) return;
-    const [platformResult, twinResult] = results;
     if (platformResult.status === 'fulfilled') setPlatform(platformResult.value);
     if (twinResult.status === 'fulfilled') setTwin(twinResult.value);
 
-    const failures = results.filter(result => result.status === 'rejected').length;
+    const failures = [platformResult, twinResult]
+      .filter(result => result.status === 'rejected').length;
     if (failures === 2) setError('Không thể tải dữ liệu điều hành. Vui lòng kiểm tra kết nối hoặc quyền truy cập.');
     else if (failures === 1) setError('Một nguồn dữ liệu đang chậm; giao diện vẫn hiển thị phần dữ liệu còn khả dụng.');
 
