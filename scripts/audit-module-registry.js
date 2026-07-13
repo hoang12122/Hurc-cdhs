@@ -14,6 +14,10 @@ const expectedRoutes = [
   '/ai-lab',
   '/rail-network',
   '/spatial-twin',
+  '/iot',
+  '/data-platform',
+  '/mlops',
+  '/evidence-ledger',
   '/example-module',
 ];
 
