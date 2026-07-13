@@ -8,6 +8,7 @@ Thư mục này chứa tài liệu kỹ thuật phục vụ lập trình viên, 
 | `AI_ARCHITECTURE_CONFIGURATION_REFERENCE.md` | Tham chiếu kiến trúc AI, công thức risk/confidence, limit, profile và hard limit. |
 | `AI_RUNTIME_PROFILE_OPERATIONS.md` | Trạng thái runtime, environment switch, bảng profile thực thi, rollout, rollback và giới hạn tương thích. |
 | `AI_BIGDATA_IOT_BLOCKCHAIN_TARGET_ARCHITECTURE.md` | Kiến trúc đích hợp nhất AI, Big Data, IoT và Blockchain; profile LOW/STANDARD/HIGH; roadmap, bảo mật, KPI và tiêu chí nghiệm thu. |
+| `CONVERGED_PLATFORM_RUNTIME_OPERATIONS.md` | Hướng dẫn chạy runtime Phase 1–4, kiểm tra MQTT/Timescale/Kafka/MinIO/ClickHouse/MLflow/Besu, rollback và production hardening. |
 | `PROJECT_STRUCTURE_GUIDE.md` | Quy chuẩn cấu trúc dự án Frontend React/Next.js và Backend Golang. |
 | `STRUCTURE_MIGRATION_PLAN.md` | Kế hoạch sắp xếp lại thư mục phần mềm theo từng đợt. |
 | `API_INTEGRATION_GUIDE.md` | Hướng dẫn tích hợp API nếu được bổ sung. |
@@ -39,17 +40,35 @@ Tệp environment mẫu:
 docs/config/ai-governance-profiles.env.example
 ```
 
-## Trạng thái kiến trúc AI – Big Data – IoT – Blockchain
+## Trạng thái runtime AI – Big Data – IoT – Blockchain
 
-Tài liệu kiến trúc đích đã được ban hành, nhưng các thành phần mới chưa được kích hoạt trong runtime:
+Runtime opt-in đã được thêm theo thứ tự bắt buộc:
 
-- chưa thêm MQTT broker hoặc IoT gateway;
-- chưa thêm Kafka/Redpanda, stream processor hoặc schema registry;
-- chưa thêm TimescaleDB/ClickHouse/lakehouse;
-- chưa thêm MLflow/feature store;
-- chưa thêm permissioned blockchain node.
+| Phase | Trạng thái mã nguồn | Thành phần |
+|---:|---|---|
+| 1 | Đã có runtime POC/UAT | Mosquitto, IoT ingestor, TimescaleDB |
+| 2 | Đã có runtime POC/UAT | Redpanda/Kafka, Redpanda Connect, MinIO, ClickHouse |
+| 3 | Đã có runtime POC/UAT | MLflow |
+| 4 | Đã có runtime POC/UAT | Besu dev node, authenticated evidence-ledger gateway |
 
-Lộ trình bắt buộc theo thứ tự: IoT foundation → Big Data platform → AI/MLOps → Blockchain evidence ledger. Blockchain không được dùng thay database nghiệp vụ hoặc telemetry store.
+Cấu hình trung tâm:
+
+```text
+DATA_PLATFORM_PHASE=0|1|2|3|4
+```
+
+Các dịch vụ nằm trong `docker-compose.platform.yml` và chỉ được bật khi người vận hành chọn Docker profile `phase1`, `phase2`, `phase3` hoặc `phase4`. Runtime `core` không tự động kéo các container này.
+
+Tệp environment và runbook:
+
+```text
+docs/config/converged-platform.env.example
+docs/technical/CONVERGED_PLATFORM_RUNTIME_OPERATIONS.md
+```
+
+Các cấu hình hiện tại là nền tảng POC/UAT, chưa phải production HA. Trước production phải thay Mosquitto anonymous, Redpanda single-node, MLflow SQLite và Besu dev network bằng cấu hình đã được phê duyệt; đồng thời phải pin image, triển khai mTLS/ACL, external signer/KMS-HSM, load-test, backup/restore và rollback test.
+
+Blockchain chỉ lưu hash và metadata tối thiểu; không thay database nghiệp vụ hoặc telemetry store.
 
 Không đánh dấu CI/CD `PASS` nếu chưa có kết quả pipeline thực tế.
 
