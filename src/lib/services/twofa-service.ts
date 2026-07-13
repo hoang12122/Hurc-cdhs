@@ -1,10 +1,13 @@
 import crypto from 'crypto';
+import bcrypt from 'bcryptjs';
 import { authDb, IS_DATABASE_OFFLINE } from '../prisma';
 import { jsonDb } from '../db/json-db';
 
 /**
  * Node.js Crypto-based TOTP Engine (Google Authenticator Compatible)
  */
+
+const BACKUP_CODE_HASH_ROUNDS = 12;
 
 function decodeBase32(base32: string): Buffer {
   const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
@@ -22,6 +25,29 @@ function decodeBase32(base32: string): Buffer {
     }
   }
   return Buffer.from(bytes);
+}
+
+function normalizeBackupCode(code: string): string {
+  return String(code || '').toUpperCase().trim();
+}
+
+async function hashBackupCode(code: string): Promise<string> {
+  return bcrypt.hash(normalizeBackupCode(code), BACKUP_CODE_HASH_ROUNDS);
+}
+
+async function verifyBackupCodeHash(code: string, storedHash: string): Promise<boolean> {
+  const normalizedCode = normalizeBackupCode(code);
+
+  // Current secure format: bcrypt stores its algorithm and cost prefix in the hash.
+  if (/^\$2[aby]\$/.test(storedHash)) {
+    return bcrypt.compare(normalizedCode, storedHash);
+  }
+
+  // Backward compatibility only: accept legacy SHA-256 backup-code hashes so
+  // existing issued codes can be consumed once, then replaced on regeneration.
+  // New backup codes are never stored with fast general-purpose hashes.
+  const legacySha256 = crypto.createHash('sha256').update(normalizedCode).digest('hex');
+  return storedHash === legacySha256;
 }
 
 export function generateSecret(length = 32): string {
@@ -43,6 +69,8 @@ export function generateTOTP(secret: string, counter: number): string {
     tempCounter = tempCounter >> BigInt(8);
   }
 
+  // TOTP/HOTP interoperability with authenticator apps uses HMAC-SHA1 by RFC 6238.
+  // This is message authentication, not password hashing.
   const hmac = crypto.createHmac('sha1', key);
   hmac.update(buffer);
   const hmacResult = hmac.digest();
@@ -255,10 +283,7 @@ export async function generateUserBackupCodes(userId: string): Promise<string[]>
     const part2 = crypto.randomBytes(2).toString('hex').toUpperCase();
     const code = `${part1}-${part2}`;
     codes.push(code);
-    
-    // Hash SHA256 of the code for secure DB storage
-    const hash = crypto.createHash('sha256').update(code).digest('hex');
-    hashes.push(hash);
+    hashes.push(await hashBackupCode(code));
   }
 
   if (!IS_DATABASE_OFFLINE) {
@@ -266,7 +291,7 @@ export async function generateUserBackupCodes(userId: string): Promise<string[]>
       // Invalidate old backup codes
       await authDb.backupCode.deleteMany({ where: { userId } });
       
-      // Save new ones
+      // Save new bcrypt hashes only. Bcrypt uses a per-hash salt and work factor.
       await authDb.backupCode.createMany({
         data: hashes.map(codeHash => ({ userId, codeHash }))
       });
@@ -286,19 +311,23 @@ export async function generateUserBackupCodes(userId: string): Promise<string[]>
 }
 
 export async function verifyAndUseBackupCode(userId: string, code: string): Promise<boolean> {
-  const hash = crypto.createHash('sha256').update(code.toUpperCase().trim()).digest('hex');
+  const normalizedCode = normalizeBackupCode(code);
+  if (!normalizedCode) return false;
 
   if (!IS_DATABASE_OFFLINE) {
     try {
-      const match = await authDb.backupCode.findFirst({
-        where: { userId, codeHash: hash, used: false }
+      const candidates = await authDb.backupCode.findMany({
+        where: { userId, used: false }
       });
-      if (match) {
-        await authDb.backupCode.update({
-          where: { id: match.id },
-          data: { used: true }
-        });
-        return true;
+
+      for (const candidate of candidates) {
+        if (await verifyBackupCodeHash(normalizedCode, candidate.codeHash)) {
+          await authDb.backupCode.update({
+            where: { id: candidate.id },
+            data: { used: true }
+          });
+          return true;
+        }
       }
       return false;
     } catch (e) {
@@ -306,10 +335,12 @@ export async function verifyAndUseBackupCode(userId: string, code: string): Prom
     }
   }
 
-  const match = await jsonDb.findFirst<any>('backup_codes', (b: any) => b.userId === userId && b.codeHash === hash && !b.used);
-  if (match) {
-    await jsonDb.updateRecord<any>('backup_codes', match.id, { used: true });
-    return true;
+  const candidates = await jsonDb.findMany<any>('backup_codes', (b: any) => b.userId === userId && !b.used);
+  for (const candidate of candidates) {
+    if (await verifyBackupCodeHash(normalizedCode, candidate.codeHash)) {
+      await jsonDb.updateRecord<any>('backup_codes', candidate.id, { used: true });
+      return true;
+    }
   }
   return false;
 }
