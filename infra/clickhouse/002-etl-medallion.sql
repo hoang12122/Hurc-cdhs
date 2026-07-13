@@ -1,6 +1,6 @@
 CREATE DATABASE IF NOT EXISTS hurc;
 
-DROP VIEW IF EXISTS hurc.telemetry_kafka_mv;
+DROP TABLE IF EXISTS hurc.telemetry_kafka_mv;
 DROP TABLE IF EXISTS hurc.telemetry_kafka;
 
 CREATE TABLE IF NOT EXISTS hurc.telemetry_silver (
@@ -78,31 +78,11 @@ CREATE MATERIALIZED VIEW IF NOT EXISTS hurc.telemetry_silver_mv
 TO hurc.telemetry_silver
 AS SELECT * FROM hurc.telemetry_silver_kafka;
 
-CREATE TABLE IF NOT EXISTS hurc.telemetry_gold_hourly (
-  bucket DateTime('UTC'),
-  environment LowCardinality(String),
-  line_code LowCardinality(String),
-  station_code LowCardinality(String),
-  subsystem LowCardinality(String),
-  asset_id String,
-  event_count UInt64,
-  error_count UInt64,
-  warning_count UInt64,
-  duplicate_count UInt64,
-  quality_score_sum UInt64,
-  anomaly_score_sum Float64,
-  anomaly_count UInt64,
-  payload_bytes_sum UInt64,
-  processing_latency_sum UInt64
-)
-ENGINE = SummingMergeTree
-PARTITION BY toYYYYMM(bucket)
-ORDER BY (environment, line_code, station_code, subsystem, asset_id, bucket)
-TTL bucket + INTERVAL 1095 DAY DELETE;
+DROP TABLE IF EXISTS hurc.telemetry_asset_hourly;
+DROP TABLE IF EXISTS hurc.telemetry_gold_hourly_mv;
+DROP TABLE IF EXISTS hurc.telemetry_gold_hourly;
 
-CREATE MATERIALIZED VIEW IF NOT EXISTS hurc.telemetry_gold_hourly_mv
-TO hurc.telemetry_gold_hourly
-AS
+CREATE VIEW hurc.telemetry_gold_hourly AS
 SELECT
   toStartOfHour(occurred_at) AS bucket,
   environment,
@@ -119,10 +99,10 @@ SELECT
   countIf(anomaly_score IS NOT NULL) AS anomaly_count,
   sum(toUInt64(payload_bytes)) AS payload_bytes_sum,
   sum(toUInt64(processing_latency_ms)) AS processing_latency_sum
-FROM hurc.telemetry_silver
+FROM hurc.telemetry_silver FINAL
 GROUP BY bucket, environment, line_code, station_code, subsystem, asset_id;
 
-CREATE VIEW IF NOT EXISTS hurc.telemetry_asset_hourly AS
+CREATE VIEW hurc.telemetry_asset_hourly AS
 SELECT
   bucket,
   environment,
@@ -130,13 +110,12 @@ SELECT
   station_code,
   subsystem,
   asset_id,
-  sum(event_count) AS event_count,
-  sum(error_count) AS error_count,
-  sum(warning_count) AS warning_count,
-  sum(duplicate_count) AS duplicate_count,
-  round(sum(quality_score_sum) / greatest(sum(event_count), 1), 2) AS average_quality_score,
-  round(sum(anomaly_score_sum) / greatest(sum(anomaly_count), 1), 4) AS average_anomaly_score,
-  round(sum(processing_latency_sum) / greatest(sum(event_count), 1), 2) AS average_processing_latency_ms,
-  sum(payload_bytes_sum) AS payload_bytes
-FROM hurc.telemetry_gold_hourly
-GROUP BY bucket, environment, line_code, station_code, subsystem, asset_id;
+  event_count,
+  error_count,
+  warning_count,
+  duplicate_count,
+  round(quality_score_sum / greatest(event_count, 1), 2) AS average_quality_score,
+  round(anomaly_score_sum / greatest(anomaly_count, 1), 4) AS average_anomaly_score,
+  round(processing_latency_sum / greatest(event_count, 1), 2) AS average_processing_latency_ms,
+  payload_bytes_sum AS payload_bytes
+FROM hurc.telemetry_gold_hourly;
