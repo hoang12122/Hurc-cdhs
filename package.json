@@ -28,6 +28,7 @@
     "test:integrity": "npx tsx src/scripts/test-cross-db-integrity.ts",
     "test:graph": "npx tsx src/scripts/test-trustgraph-sync.ts",
     "test:ai-governance": "npx tsx src/scripts/test-ai-governance.ts",
+    "test:ai-profiles": "npx tsx src/scripts/test-ai-profiles.ts",
     "test:guard": "node scripts/test-guard.js",
     "security:rotate-compromised-admins": "npx tsx src/scripts/rotate-compromised-admin-credentials.ts",
     "db:dashboard": "npx tsx src/scripts/generate-integrity-dashboard.ts"
@@ -50,7 +51,7 @@
     "@radix-ui/react-radio-group": "^1.2.0",
     "@radix-ui/react-scroll-area": "^1.1.0",
     "@radix-ui/react-select": "^2.1.1",
-    "@radix-ui/react-separator": "^1.1.0",
+    "@radix-ui/react-separator": "^1.1.1",
     "@radix-ui/react-slider": "^1.2.0",
     "@radix-ui/react-slot": "^1.1.0",
     "@radix-ui/react-switch": "^1.1.0",
