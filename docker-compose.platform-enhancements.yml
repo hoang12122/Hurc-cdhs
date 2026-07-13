@@ -109,6 +109,27 @@ services:
     networks:
       - backend-net
 
+  clickhouse-etl-init:
+    image: ${CLICKHOUSE_IMAGE:-clickhouse/clickhouse-server:25.8-alpine}
+    container_name: hurc_clickhouse_etl_init
+    profiles: ["phase2", "phase3", "phase4"]
+    entrypoint: ["/bin/sh", "-c"]
+    command: >-
+      until clickhouse-client --host clickhouse --user "$$CLICKHOUSE_USER" --password "$$CLICKHOUSE_PASSWORD" --query "SELECT 1"; do sleep 2; done;
+      clickhouse-client --host clickhouse --user "$$CLICKHOUSE_USER" --password "$$CLICKHOUSE_PASSWORD" --multiquery < /migrations/002-etl-medallion.sql
+    environment:
+      CLICKHOUSE_USER: ${CLICKHOUSE_USER:-hurc}
+      CLICKHOUSE_PASSWORD: ${CLICKHOUSE_PASSWORD:-change-this-clickhouse-password}
+    volumes:
+      - ./infra/clickhouse/002-etl-medallion.sql:/migrations/002-etl-medallion.sql:ro
+    depends_on:
+      clickhouse:
+        condition: service_healthy
+      etl-topic-init:
+        condition: service_completed_successfully
+    networks:
+      - backend-net
+
   curated-sink:
     image: ${REDPANDA_CONNECT_IMAGE:-docker.redpanda.com/redpandadata/connect:latest}
     container_name: hurc_curated_sink
@@ -123,6 +144,8 @@ services:
     depends_on:
       etl-normalizer:
         condition: service_healthy
+      clickhouse-etl-init:
+        condition: service_completed_successfully
       minio-init:
         condition: service_completed_successfully
     networks:
