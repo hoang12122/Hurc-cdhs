@@ -1,0 +1,65 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hurc.local/schemas/telemetry-v1.schema.json",
+  "title": "HURC Telemetry Event v1",
+  "type": "object",
+  "additionalProperties": true,
+  "required": ["eventId", "eventType", "schemaVersion", "occurredAt", "asset", "payload"],
+  "properties": {
+    "eventId": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128
+    },
+    "eventType": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 120
+    },
+    "schemaVersion": {
+      "const": "1.0.0"
+    },
+    "occurredAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "traceId": {
+      "type": "string",
+      "maxLength": 128
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "environment": { "type": "string", "maxLength": 64 },
+        "gatewayId": { "type": "string", "maxLength": 128 }
+      }
+    },
+    "asset": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["assetId"],
+      "properties": {
+        "assetId": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "line": { "type": "string", "maxLength": 64 },
+        "station": { "type": "string", "maxLength": 64 },
+        "subsystem": { "type": "string", "maxLength": 64 }
+      }
+    },
+    "quality": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": ["good", "warning", "error", "unknown"]
+        },
+        "clockSkewMs": { "type": "integer" },
+        "duplicate": { "type": "boolean" }
+      }
+    },
+    "payload": {
+      "type": "object"
+    }
+  }
+}
