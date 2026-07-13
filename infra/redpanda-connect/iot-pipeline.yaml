@@ -1,0 +1,48 @@
+input:
+  mqtt:
+    urls:
+      - tcp://mqtt:1883
+    client_id: hurc-redpanda-connect
+    topics:
+      - hurc/+/+/+/+/+/telemetry
+    qos: 1
+    clean_session: false
+    auto_replay_nacks: true
+
+pipeline:
+  processors:
+    - mapping: |
+        root = this
+        meta mqtt_topic = metadata("mqtt_topic")
+        meta event_id = this.eventId.or(uuid_v4())
+
+output:
+  broker:
+    pattern: fan_out
+    outputs:
+      - kafka_franz:
+          seed_brokers:
+            - redpanda:9092
+          client_id: hurc-iot-pipeline
+          topic: iot.telemetry.raw
+          key: ${! this.eventId.or(metadata("event_id")) }
+          max_in_flight: 20
+          batching:
+            count: 100
+            period: 1s
+      - aws_s3:
+          bucket: hurc-raw
+          path: telemetry/${! timestamp_unix() }/${! uuid_v4() }.json
+          endpoint: http://minio:9000
+          force_path_style_urls: true
+          region: us-east-1
+          credentials:
+            id: ${MINIO_ROOT_USER}
+            secret: ${MINIO_ROOT_PASSWORD}
+          max_in_flight: 16
+          batching:
+            count: 100
+            period: 5s
+            processors:
+              - archive:
+                  format: json_array
