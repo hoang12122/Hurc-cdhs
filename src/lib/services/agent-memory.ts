@@ -1,4 +1,4 @@
-/**
+/*
  * GOVERNED AGENT MEMORY FIREWALL
  *
  * Public compatibility facade. Implementation is split into focused modules
@@ -20,6 +20,7 @@ export { storeExperience } from './agent-memory/store';
 export {
   getMemoryHealth,
   getQuarantinedMemories,
+  getReviewableMemories,
   retrieveMemories,
 } from './agent-memory/retrieval';
 export { reviewMemory } from './agent-memory/review';
