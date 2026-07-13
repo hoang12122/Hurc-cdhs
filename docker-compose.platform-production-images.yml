@@ -2,6 +2,9 @@ services:
   iot-ingestor:
     image: ${IOT_INGESTOR_IMAGE:-replace-with-iot-ingestor-digest}
 
+  etl-normalizer:
+    image: ${ETL_NORMALIZER_IMAGE:-replace-with-etl-normalizer-digest}
+
   outbox-relay:
     image: ${OUTBOX_RELAY_IMAGE:-replace-with-outbox-relay-digest}
 
