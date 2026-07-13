@@ -8,6 +8,15 @@ Hệ thống hiện là **Modular Monolith theo hướng Micro-Frontend-ready**.
 
 Không mô tả hệ thống là Micro-Frontend triển khai độc lập hoặc production-ready tuyệt đối nếu chưa có đủ kết quả kiểm thử, dữ liệu chính thức và quy trình vận hành được phê duyệt.
 
+AI Governance hỗ trợ profile runtime thực thi:
+
+```text
+AI_RUNTIME_PROFILE=LOW|STANDARD|HIGH
+AI_ASSURANCE_PROFILE=LOW|STANDARD|HIGH
+```
+
+Mặc định `STANDARD/STANDARD`. Quyền ghi của AI luôn bị khóa.
+
 ## Phân hệ chính
 
 | Phân hệ | Nội dung |
@@ -29,7 +38,8 @@ Không mô tả hệ thống là Micro-Frontend triển khai độc lập hoặc
 |---|---|
 | [0. Documentation Structure and Writing Guide](docs/00_DOCUMENTATION_STRUCTURE_AND_WRITING_GUIDE.md) | Quy chuẩn sắp xếp thư mục, phân loại đối tượng đọc, loại tài liệu, cấu trúc và nguyên tắc biên soạn. |
 | [Linux and Windows Build Guide](docs/technical/BUILD_WINDOWS_LINUX_GUIDE.md) | Hướng dẫn build source, development, Docker, biến môi trường, Prisma, smoke test và xử lý lỗi trên Linux/Windows. |
-| [AI Architecture and Configuration Reference](docs/technical/AI_ARCHITECTURE_CONFIGURATION_REFERENCE.md) | Kiến trúc AI chi tiết; risk/confidence engine; limit CURRENT; profile LOW/STANDARD/HIGH; hard limit; Memory, Data, MCP, Vision, rate-limit và checklist nghiệm thu. |
+| [AI Architecture and Configuration Reference](docs/technical/AI_ARCHITECTURE_CONFIGURATION_REFERENCE.md) | Kiến trúc AI; risk/confidence; limit; Memory, Data, MCP, Vision và rate-limit. |
+| [AI Runtime Profile Operations](docs/technical/AI_RUNTIME_PROFILE_OPERATIONS.md) | Environment switch, profile đang chạy, hard limit, rollout, rollback và giới hạn tương thích. |
 | [Project Structure Guide](docs/technical/PROJECT_STRUCTURE_GUIDE.md) | Quy chuẩn cấu trúc dự án Frontend React/Next.js và Backend Golang; nguyên tắc package-by-feature, `cmd/`, `internal/`, API và checklist tái cấu trúc. |
 | [Structure Migration Plan](docs/technical/STRUCTURE_MIGRATION_PLAN.md) | Kế hoạch sắp xếp lại thư mục phần mềm theo từng đợt và theo dõi CI/CD sau khi merge PR #29. |
 | [1. System Architecture](docs/1_SYSTEM_ARCHITECTURE.md) | Kiến trúc, module boundary, Service Bus và giới hạn hiện tại. |
@@ -54,6 +64,7 @@ npm run db:validate:all
 npm run db:generate:all
 npm run typecheck
 npm run test:ai-governance
+npm run test:ai-profiles
 npm run lint
 npm run build
 ```
@@ -65,6 +76,8 @@ Ghi chú: `npm run lint` dùng local ESLint executable và flat config của Nex
 ## CI hiện có
 
 - Security and Acceptance Gate.
+- AI governance invariant checks.
+- AI executable profile invariant checks.
 - Docker Acceptance Gate.
 - Design rules audit.
 - Module boundary audit.
