@@ -1,6 +1,7 @@
 import net from 'node:net';
 import { Pool } from 'pg';
 import { CONVERGED_PLATFORM_CONFIG } from '@/lib/config/converged-platform-profile';
+import { evaluatePlatformProductionReadiness, type PlatformProductionReadiness } from '@/lib/config/platform-production-readiness';
 import { opsDb } from '@/lib/prisma';
 
 export type ComponentHealthStatus = 'HEALTHY' | 'DEGRADED' | 'DISABLED';
@@ -24,6 +25,7 @@ export interface PlatformHealthOverview {
     retrying: number;
     oldestPendingSeconds: number | null;
   } | null;
+  readiness: PlatformProductionReadiness;
   checkedAt: string;
 }
 
@@ -137,6 +139,7 @@ export async function getPlatformHealthOverview(): Promise<PlatformHealthOvervie
   const [components, outbox] = await Promise.all([Promise.all(checks), loadOutboxHealth()]);
   const enabled = components.filter(item => item.status !== 'DISABLED');
   const status: ComponentHealthStatus = enabled.some(item => item.status === 'DEGRADED') ? 'DEGRADED' : 'HEALTHY';
+  const readiness = evaluatePlatformProductionReadiness();
 
-  return { phase, status, components, outbox, checkedAt: nowIso() };
+  return { phase, status, components, outbox, readiness, checkedAt: nowIso() };
 }
