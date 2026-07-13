@@ -52,7 +52,12 @@ export const MAINTENANCE_FREQUENCIES = [
   { id: 'yearly', label: { vi: 'Yearly', en: 'Yearly' } },
 ];
 
-export const CORRECTIVE_ACTION_STATUSES: CorrectiveActionStatus[] = ['Mới', 'Đang thực hiện', 'Hoàn thành', 'Đã xác minh'];
+export const CORRECTIVE_ACTION_STATUSES = [
+  'Mới',
+  'Đang thực hiện',
+  'Hoàn thành',
+  'Đã xác minh',
+] as const satisfies readonly CorrectiveActionStatus[];
 export const SEVERITY_LEVELS = [{ id: 'general', label: 'General', icon: Icon, className: 'text-muted-foreground', colorVariable: 'muted' }];
 export const FINDING_TYPES = [{ id: 'general', label: 'General' }, { id: 'other', label: 'Other' }];
 
