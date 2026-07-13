@@ -45,7 +45,7 @@ export interface AiGovernanceConfig {
   };
   uploads: {
     knowledgeMaxBytes: number;
-    textExtractionMaxBytes: number;
+    knowledgeTextMaxChars: number;
   };
   rateLimits: {
     loginAttempts: number;
@@ -69,7 +69,7 @@ const RUNTIME_PROFILES = {
     runtime: { timeoutMs: 60_000, maxConcurrentPerNamespace: 1, queueTimeoutMs: 8_000, failureThreshold: 3, cooldownMs: 120_000 },
     mcp: { maxArgumentChars: 10_000, maxResponseChars: 250_000, timeoutMs: 10_000, maxTracesPerUser: 30 },
     vision: { maxUploadBytes: 4 * 1024 * 1024, workerTimeoutMs: 15_000, detectTimeoutMs: 10_000, defaultConfidence: 0.35, defaultIou: 0.45, defaultMaxDetections: 25 },
-    uploads: { knowledgeMaxBytes: 8 * 1024 * 1024, textExtractionMaxBytes: 1 * 1024 * 1024 },
+    uploads: { knowledgeMaxBytes: 8 * 1024 * 1024, knowledgeTextMaxChars: 12_000 },
     rate: { aiHintPerMinute: 5, aiFeedbackPerMinute: 10, visionPerMinute: 5, sseOpenPerMinute: 3 },
     agentToolRead: false,
   },
@@ -77,7 +77,7 @@ const RUNTIME_PROFILES = {
     runtime: { timeoutMs: 120_000, maxConcurrentPerNamespace: 3, queueTimeoutMs: 15_000, failureThreshold: 5, cooldownMs: 60_000 },
     mcp: { maxArgumentChars: 50_000, maxResponseChars: 1_000_000, timeoutMs: 20_000, maxTracesPerUser: 100 },
     vision: { maxUploadBytes: 8 * 1024 * 1024, workerTimeoutMs: 20_000, detectTimeoutMs: 12_000, defaultConfidence: 0.35, defaultIou: 0.45, defaultMaxDetections: 50 },
-    uploads: { knowledgeMaxBytes: 15 * 1024 * 1024, textExtractionMaxBytes: 2 * 1024 * 1024 },
+    uploads: { knowledgeMaxBytes: 15 * 1024 * 1024, knowledgeTextMaxChars: 20_000 },
     rate: { aiHintPerMinute: 10, aiFeedbackPerMinute: 20, visionPerMinute: 10, sseOpenPerMinute: 5 },
     agentToolRead: true,
   },
@@ -85,7 +85,7 @@ const RUNTIME_PROFILES = {
     runtime: { timeoutMs: 180_000, maxConcurrentPerNamespace: 6, queueTimeoutMs: 30_000, failureThreshold: 7, cooldownMs: 30_000 },
     mcp: { maxArgumentChars: 100_000, maxResponseChars: 2_000_000, timeoutMs: 30_000, maxTracesPerUser: 200 },
     vision: { maxUploadBytes: 16 * 1024 * 1024, workerTimeoutMs: 30_000, detectTimeoutMs: 20_000, defaultConfidence: 0.35, defaultIou: 0.45, defaultMaxDetections: 100 },
-    uploads: { knowledgeMaxBytes: 25 * 1024 * 1024, textExtractionMaxBytes: 4 * 1024 * 1024 },
+    uploads: { knowledgeMaxBytes: 25 * 1024 * 1024, knowledgeTextMaxChars: 50_000 },
     rate: { aiHintPerMinute: 20, aiFeedbackPerMinute: 30, visionPerMinute: 20, sseOpenPerMinute: 10 },
     agentToolRead: true,
   },
@@ -158,7 +158,7 @@ export function resolveAiGovernanceConfig(
   };
 
   return {
-    version: '2026-07-13.1',
+    version: '2026-07-13.2',
     runtimeProfile,
     assuranceProfile,
     runtime,
