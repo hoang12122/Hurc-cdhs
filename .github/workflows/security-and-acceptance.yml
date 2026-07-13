@@ -17,12 +17,13 @@ permissions:
 
 jobs:
   build-quality-gate:
-    name: Security, Typecheck, AI Governance, Lint, Build, Smoke Test and Dependency Audit
+    name: Security, Typecheck, AI Governance, Platform Profiles, Lint, Build, Smoke Test and Dependency Audit
     runs-on: ubuntu-latest
     timeout-minutes: 35
     env:
       AI_RUNTIME_PROFILE: STANDARD
       AI_ASSURANCE_PROFILE: STANDARD
+      DATA_PLATFORM_PHASE: '0'
 
     steps:
       - name: Checkout source
@@ -80,6 +81,9 @@ jobs:
       - name: Core workflow logic audit
         run: node scripts/run-build-phase.js "Core workflow logic audit" -- node scripts/audit-core-workflow-logic.js
 
+      - name: Converged platform compose validation
+        run: node scripts/run-build-phase.js "Converged platform compose validation" -- npm run platform:config
+
       - name: Static type check
         run: node scripts/run-build-phase.js "Static type check" -- npm run typecheck
 
@@ -88,6 +92,9 @@ jobs:
 
       - name: AI executable profile invariant checks
         run: node scripts/run-build-phase.js "AI executable profile invariant checks" -- npm run test:ai-profiles
+
+      - name: Converged platform phase invariant checks
+        run: node scripts/run-build-phase.js "Converged platform phase invariant checks" -- npm run test:platform-profiles
 
       - name: Next.js lint
         run: node scripts/run-build-phase.js "Next.js lint" -- npm run lint
