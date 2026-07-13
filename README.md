@@ -17,6 +17,17 @@ AI_ASSURANCE_PROFILE=LOW|STANDARD|HIGH
 
 Mặc định `STANDARD/STANDARD`. Quyền ghi của AI luôn bị khóa.
 
+Định hướng phát triển tiếp theo là nền tảng hợp nhất:
+
+```text
+IoT tạo dữ liệu
+→ Big Data tiếp nhận, lưu trữ và xử lý
+→ AI phân tích, dự báo và hỗ trợ quyết định
+→ Blockchain neo bằng chứng và xác minh liên tổ chức
+```
+
+Blockchain không được dùng thay database nghiệp vụ hoặc kho telemetry. Kiến trúc đích và roadmap được mô tả tại [AI, Big Data, IoT and Blockchain Target Architecture](docs/technical/AI_BIGDATA_IOT_BLOCKCHAIN_TARGET_ARCHITECTURE.md).
+
 ## Phân hệ chính
 
 | Phân hệ | Nội dung |
@@ -40,6 +51,7 @@ Mặc định `STANDARD/STANDARD`. Quyền ghi của AI luôn bị khóa.
 | [Linux and Windows Build Guide](docs/technical/BUILD_WINDOWS_LINUX_GUIDE.md) | Hướng dẫn build source, development, Docker, biến môi trường, Prisma, smoke test và xử lý lỗi trên Linux/Windows. |
 | [AI Architecture and Configuration Reference](docs/technical/AI_ARCHITECTURE_CONFIGURATION_REFERENCE.md) | Kiến trúc AI; risk/confidence; limit; Memory, Data, MCP, Vision và rate-limit. |
 | [AI Runtime Profile Operations](docs/technical/AI_RUNTIME_PROFILE_OPERATIONS.md) | Environment switch, profile đang chạy, hard limit, rollout, rollback và giới hạn tương thích. |
+| [AI, Big Data, IoT and Blockchain Target Architecture](docs/technical/AI_BIGDATA_IOT_BLOCKCHAIN_TARGET_ARCHITECTURE.md) | Kiến trúc đích hợp nhất, profile LOW/STANDARD/HIGH, roadmap, bảo mật, KPI và tiêu chí nghiệm thu. |
 | [Project Structure Guide](docs/technical/PROJECT_STRUCTURE_GUIDE.md) | Quy chuẩn cấu trúc dự án Frontend React/Next.js và Backend Golang; nguyên tắc package-by-feature, `cmd/`, `internal/`, API và checklist tái cấu trúc. |
 | [Structure Migration Plan](docs/technical/STRUCTURE_MIGRATION_PLAN.md) | Kế hoạch sắp xếp lại thư mục phần mềm theo từng đợt và theo dõi CI/CD sau khi merge PR #29. |
 | [1. System Architecture](docs/1_SYSTEM_ARCHITECTURE.md) | Kiến trúc, module boundary, Service Bus và giới hạn hiện tại. |
@@ -89,3 +101,5 @@ Ghi chú: `npm run lint` dùng local ESLint executable và flat config của Nex
 ## Lưu ý dữ liệu
 
 Dữ liệu demo, GIS/BIM, Google Maps, Incident Memory và Digital Twin cần được phân biệt với dữ liệu chính thức trước khi dùng cho nghiệm thu vận hành.
+
+Kiến trúc AI – Big Data – IoT – Blockchain hiện là định hướng và roadmap. Chưa được mô tả là runtime đã triển khai cho đến khi có code, infrastructure, test, runbook và CI/CD tương ứng.
