@@ -1,0 +1,32 @@
+input:
+  kafka_franz:
+    seed_brokers:
+      - redpanda:9092
+    topics:
+      - iot.telemetry.normalized
+    consumer_group: hurc-curated-sink-v1
+    start_from_oldest: true
+
+pipeline:
+  processors:
+    - mapping: |
+        root = this
+        root._curatedAt = now()
+
+output:
+  aws_s3:
+    bucket: hurc-curated
+    path: silver/telemetry/date=${! now().format("2006-01-02") }/hour=${! now().format("15") }/${! this.event_id }.json
+    endpoint: http://minio:9000
+    force_path_style_urls: true
+    region: us-east-1
+    credentials:
+      id: ${MINIO_ROOT_USER}
+      secret: ${MINIO_ROOT_PASSWORD}
+    max_in_flight: 16
+    batching:
+      count: 500
+      period: 5s
+      processors:
+        - archive:
+            format: json_array
