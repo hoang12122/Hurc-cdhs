@@ -15,6 +15,11 @@ export interface PlatformProductionReadiness {
   score: number;
   phase: number;
   deploymentMode: string;
+  commitBinding: {
+    applicationCommit: string | null;
+    attestedCommit: string | null;
+    matched: boolean;
+  };
   issues: ReadinessIssue[];
   evaluatedAt: string;
 }
@@ -42,6 +47,13 @@ export function evaluatePlatformProductionReadiness(
 ): PlatformProductionReadiness {
   const phase = Number(env.DATA_PLATFORM_PHASE ?? CONVERGED_PLATFORM_CONFIG.phase);
   const deploymentMode = env.PLATFORM_DEPLOYMENT_MODE ?? env.NODE_ENV ?? 'development';
+  const applicationCommit = env.APP_COMMIT_SHA ?? env.GITHUB_SHA ?? null;
+  const attestedCommit = env.PLATFORM_ATTESTATION_COMMIT_SHA ?? null;
+  const commitMatched = Boolean(
+    applicationCommit
+    && attestedCommit
+    && applicationCommit === attestedCommit,
+  );
   const issues: ReadinessIssue[] = [];
 
   if (phase >= 1) {
@@ -131,6 +143,11 @@ export function evaluatePlatformProductionReadiness(
     message: 'Chưa có bằng chứng CI/CD acceptance gate xanh cho phiên bản đang triển khai.',
     remediation: 'Chạy workflow production readiness và gắn attestation với đúng commit SHA.',
   });
+  add(issues, !commitMatched, {
+    code: 'ATTESTATION_COMMIT', severity: 'BLOCKER', area: 'OPERATIONS',
+    message: 'Attestation production chưa khớp với commit ứng dụng đang triển khai.',
+    remediation: 'Đặt APP_COMMIT_SHA và PLATFORM_ATTESTATION_COMMIT_SHA bằng cùng SHA đã qua acceptance gate.',
+  });
   add(issues, !truthy(env.PLATFORM_IMAGES_PINNED), {
     code: 'IMMUTABLE_IMAGES', severity: 'BLOCKER', area: 'OPERATIONS',
     message: 'Chưa xác nhận toàn bộ image đã pin version hoặc digest bất biến.',
@@ -164,6 +181,11 @@ export function evaluatePlatformProductionReadiness(
     score,
     phase,
     deploymentMode,
+    commitBinding: {
+      applicationCommit,
+      attestedCommit,
+      matched: commitMatched,
+    },
     issues,
     evaluatedAt: new Date().toISOString(),
   };
