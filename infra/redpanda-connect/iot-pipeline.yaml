@@ -13,7 +13,8 @@ pipeline:
   processors:
     - mapping: |
         root = this
-        meta mqtt_topic = metadata("mqtt_topic")
+        root._mqttTopic = metadata("mqtt_topic")
+        root._ingestedAt = now()
         meta event_id = this.eventId.or(uuid_v4())
 
 output:
