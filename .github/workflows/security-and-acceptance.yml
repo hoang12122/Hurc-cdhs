@@ -17,7 +17,7 @@ permissions:
 
 jobs:
   build-quality-gate:
-    name: Security, Typecheck, AI Governance, Learning, Platform Profiles, Twin, Lint, Build, Smoke Test and Dependency Audit
+    name: Security, Typecheck, AI Governance, Learning, ETL, Platform Profiles, Twin, Lint, Build, Smoke Test and Dependency Audit
     runs-on: ubuntu-latest
     timeout-minutes: 35
     env:
@@ -83,6 +83,9 @@ jobs:
 
       - name: Converged platform compose validation
         run: node scripts/run-build-phase.js "Converged platform compose validation" -- npm run platform:config
+
+      - name: ETL contract invariant checks
+        run: node scripts/run-build-phase.js "ETL contract invariant checks" -- python3 -m unittest infra/etl-normalizer/test_contract.py
 
       - name: Static type check
         run: node scripts/run-build-phase.js "Static type check" -- npm run typecheck
