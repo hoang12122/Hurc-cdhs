@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import { spawnSync } from 'node:child_process';
-import { existsSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 
 const action = process.argv[2] ?? 'config';
@@ -17,10 +17,42 @@ if (action === 'up' && (!Number.isInteger(phase) || phase < 1 || phase > 4)) {
   process.exit(2);
 }
 
+function readEnvironmentFile(filePath) {
+  if (!filePath) return {};
+  const values = {};
+  for (const rawLine of readFileSync(filePath, 'utf8').split(/\r?\n/)) {
+    const line = rawLine.trim();
+    if (!line || line.startsWith('#')) continue;
+    const separator = line.indexOf('=');
+    if (separator <= 0) continue;
+    const key = line.slice(0, separator).trim();
+    const value = line.slice(separator + 1).trim().replace(/^['"]|['"]$/g, '');
+    values[key] = value;
+  }
+  return values;
+}
+
+const envFile = process.env.PLATFORM_ENV_FILE?.trim();
+let envFilePath = null;
+if (envFile) {
+  envFilePath = resolve(envFile);
+  if (!existsSync(envFilePath)) {
+    console.error(`PLATFORM_ENV_FILE does not exist: ${envFilePath}`);
+    process.exit(2);
+  }
+}
+const fileEnvironment = readEnvironmentFile(envFilePath);
+const deploymentMode = process.env.PLATFORM_DEPLOYMENT_MODE
+  ?? fileEnvironment.PLATFORM_DEPLOYMENT_MODE
+  ?? 'development';
+const useProductionImages = deploymentMode === 'production'
+  || process.env.PLATFORM_USE_PRODUCTION_IMAGES === 'true';
+
 const composeFiles = [
   'docker-compose.yml',
   'docker-compose.platform.yml',
   'docker-compose.platform-enhancements.yml',
+  ...(useProductionImages ? ['docker-compose.platform-production-images.yml'] : []),
 ];
 const args = ['compose'];
 for (const file of composeFiles) {
@@ -30,16 +62,7 @@ for (const file of composeFiles) {
   }
   args.push('-f', file);
 }
-
-const envFile = process.env.PLATFORM_ENV_FILE?.trim();
-if (envFile) {
-  const absolutePath = resolve(envFile);
-  if (!existsSync(absolutePath)) {
-    console.error(`PLATFORM_ENV_FILE does not exist: ${absolutePath}`);
-    process.exit(2);
-  }
-  args.push('--env-file', absolutePath);
-}
+if (envFilePath) args.push('--env-file', envFilePath);
 
 if (action === 'config') {
   args.push('config', '--quiet');
@@ -55,13 +78,16 @@ if (action === 'config') {
 
 const childEnvironment = {
   ...process.env,
+  ...fileEnvironment,
+  PLATFORM_DEPLOYMENT_MODE: deploymentMode,
   ...(action === 'up' ? { DATA_PLATFORM_PHASE: String(phase) } : {}),
 };
 
 console.log(`[platform-compose] docker ${args.join(' ')}`);
-if (action === 'up') {
-  console.log(`[platform-compose] DATA_PLATFORM_PHASE=${phase}`);
-}
+console.log(`[platform-compose] PLATFORM_DEPLOYMENT_MODE=${deploymentMode}`);
+if (action === 'up') console.log(`[platform-compose] DATA_PLATFORM_PHASE=${phase}`);
+if (useProductionImages) console.log('[platform-compose] immutable production image override enabled');
+
 const result = spawnSync('docker', args, {
   cwd: process.cwd(),
   env: childEnvironment,
