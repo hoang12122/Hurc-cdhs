@@ -52,5 +52,81 @@ services:
     networks:
       - backend-net
 
+  etl-topic-init:
+    image: ${REDPANDA_IMAGE:-docker.redpanda.com/redpandadata/redpanda:v26.1.12}
+    container_name: hurc_etl_topic_init
+    profiles: ["phase2", "phase3", "phase4"]
+    command:
+      - topic
+      - create
+      - iot.telemetry.normalized
+      - iot.telemetry.replay
+      - --partitions
+      - "6"
+      - --replicas
+      - "1"
+      - --if-not-exists
+      - -X
+      - brokers=redpanda:9092
+    depends_on:
+      redpanda:
+        condition: service_healthy
+    networks:
+      - backend-net
+
+  etl-normalizer:
+    build:
+      context: .
+      dockerfile: infra/etl-normalizer/Dockerfile
+    container_name: hurc_etl_normalizer
+    restart: unless-stopped
+    profiles: ["phase2", "phase3", "phase4"]
+    environment:
+      KAFKA_BROKERS: ${KAFKA_BROKERS:-redpanda:9092}
+      TIMESCALE_DATABASE_URL: ${TIMESCALE_DATABASE_URL:-postgresql://postgres:change-me@timescaledb:5432/hurc_telemetry}
+      ETL_RAW_TOPIC: ${ETL_RAW_TOPIC:-iot.telemetry.raw}
+      ETL_NORMALIZED_TOPIC: ${ETL_NORMALIZED_TOPIC:-iot.telemetry.normalized}
+      ETL_DEAD_LETTER_TOPIC: ${ETL_DEAD_LETTER_TOPIC:-iot.telemetry.dead-letter}
+      ETL_CONSUMER_GROUP: ${ETL_CONSUMER_GROUP:-hurc-etl-normalizer-v1}
+      ETL_COMMIT_BATCH_SIZE: ${ETL_COMMIT_BATCH_SIZE:-100}
+      ETL_COMMIT_INTERVAL_SECONDS: ${ETL_COMMIT_INTERVAL_SECONDS:-2}
+      ETL_MAX_FUTURE_SECONDS: ${ETL_MAX_FUTURE_SECONDS:-300}
+      ETL_MAX_CLOCK_SKEW_MS: ${ETL_MAX_CLOCK_SKEW_MS:-120000}
+      EVENT_MAX_PAYLOAD_BYTES: ${EVENT_MAX_PAYLOAD_BYTES:-524288}
+      HEALTH_PORT: 8082
+    depends_on:
+      redpanda:
+        condition: service_healthy
+      etl-topic-init:
+        condition: service_completed_successfully
+      timescaledb:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8082/health', timeout=3)"]
+      interval: 15s
+      timeout: 5s
+      retries: 15
+    networks:
+      - backend-net
+
+  curated-sink:
+    image: ${REDPANDA_CONNECT_IMAGE:-docker.redpanda.com/redpandadata/connect:latest}
+    container_name: hurc_curated_sink
+    restart: unless-stopped
+    profiles: ["phase2", "phase3", "phase4"]
+    command: ["-c", "/etc/redpanda-connect/curated-pipeline.yaml"]
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-hurc-minio}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-change-this-minio-password}
+    volumes:
+      - ./infra/redpanda-connect/curated-pipeline.yaml:/etc/redpanda-connect/curated-pipeline.yaml:ro
+    depends_on:
+      etl-normalizer:
+        condition: service_healthy
+      minio-init:
+        condition: service_completed_successfully
+    networks:
+      - backend-net
+
 networks:
   backend-net:
