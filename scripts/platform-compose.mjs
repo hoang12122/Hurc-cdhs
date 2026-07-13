@@ -47,10 +47,18 @@ if (action === 'config') {
   args.push('ps');
 }
 
+const childEnvironment = {
+  ...process.env,
+  ...(action === 'up' ? { DATA_PLATFORM_PHASE: String(phase) } : {}),
+};
+
 console.log(`[platform-compose] docker ${args.join(' ')}`);
+if (action === 'up') {
+  console.log(`[platform-compose] DATA_PLATFORM_PHASE=${phase}`);
+}
 const result = spawnSync('docker', args, {
   cwd: process.cwd(),
-  env: process.env,
+  env: childEnvironment,
   stdio: 'inherit',
   shell: false,
 });
