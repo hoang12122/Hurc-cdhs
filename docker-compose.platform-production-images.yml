@@ -1,0 +1,9 @@
+services:
+  iot-ingestor:
+    image: ${IOT_INGESTOR_IMAGE:-replace-with-iot-ingestor-digest}
+
+  outbox-relay:
+    image: ${OUTBOX_RELAY_IMAGE:-replace-with-outbox-relay-digest}
+
+  evidence-ledger:
+    image: ${EVIDENCE_LEDGER_IMAGE:-replace-with-evidence-ledger-digest}
