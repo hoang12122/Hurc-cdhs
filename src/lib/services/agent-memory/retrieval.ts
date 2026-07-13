@@ -1,3 +1,4 @@
+import { AI_GOVERNANCE_CONFIG } from '../../config/ai-governance-profile';
 import { IS_DATABASE_OFFLINE } from '../../prisma';
 import {
   buildMemoryNamespace,
@@ -40,18 +41,25 @@ async function loadQuarantine(): Promise<AgentMemory[]> {
 export async function retrieveMemories(
   userId: string,
   query: string,
-  limit = 5,
+  limit = AI_GOVERNANCE_CONFIG.memory.retrievalLimit,
   options: RetrieveMemoryOptions = {},
 ): Promise<string> {
   const normalizedQuery = sanitizeAiText(query, 2_000);
   if (!userId || !normalizedQuery) return '';
 
   try {
+    const profile = AI_GOVERNANCE_CONFIG.memory;
     const domain = options.domain ?? classifyAiDomain(normalizedQuery);
     const role = options.role ?? DEFAULT_ROLE;
     const namespace = options.namespace
       ?? buildMemoryNamespace(role, domain, userId);
-    const minimumConfidence = clamp(options.minimumConfidence ?? 0.65, 0, 1);
+    const minimumConfidence = clamp(
+      options.minimumConfidence ?? profile.retrievalMinConfidence,
+      0,
+      1,
+    );
+    const includeProvisional = options.includeProvisional
+      ?? profile.includeProvisional;
     const now = Date.now();
     const memories = await loadActiveMemories();
 
@@ -59,8 +67,7 @@ export async function retrieveMemories(
       .filter(memory => memory.userId === userId)
       .filter(memory => memory.namespace === namespace)
       .filter(memory => memory.verificationStatus === 'verified'
-        || (options.includeProvisional !== false
-          && memory.verificationStatus === 'provisional'))
+        || (includeProvisional && memory.verificationStatus === 'provisional'))
       .filter(memory => memory.confidence >= minimumConfidence)
       .filter(memory => !memory.expiresAt
         || new Date(memory.expiresAt).getTime() > now)
@@ -81,7 +88,7 @@ export async function retrieveMemories(
           + recency * 0.04;
         return { memory, score };
       })
-      .filter(item => item.score >= 0.2)
+      .filter(item => item.score >= profile.relevanceThreshold)
       .sort((a, b) => b.score - a.score
         || b.memory.confidence - a.memory.confidence)
       .slice(0, clamp(limit, 1, 10));
@@ -96,7 +103,7 @@ export async function retrieveMemories(
       riskLevel: 'low',
       riskScore: 5,
       fingerprint: sha256(`${namespace}:${normalizedQuery}`),
-      summary: `Retrieved ${relevant.length} governed memories`,
+      summary: `Retrieved ${relevant.length} governed memories using ${AI_GOVERNANCE_CONFIG.assuranceProfile} assurance`,
       decision: 'allow',
       confidence: relevant.length > 0 ? relevant[0].memory.confidence : 0,
     });
