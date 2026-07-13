@@ -1,3 +1,4 @@
+import { AI_GOVERNANCE_CONFIG } from '../../config/ai-governance-profile';
 import { IS_DATABASE_OFFLINE } from '../../prisma';
 import {
   buildMemoryNamespace,
@@ -27,11 +28,15 @@ function resolveVerificationStatus(
   humanApproved: boolean,
   unsafe: boolean,
 ): MemoryVerificationStatus {
+  const profile = AI_GOVERNANCE_CONFIG;
   if (unsafe) return 'quarantined';
   if (humanApproved || sourceType === 'human-approved' || sourceType === 'database') {
     return 'verified';
   }
-  return confidence >= 0.65 ? 'provisional' : 'quarantined';
+  if (sourceType === 'ai-output' && !profile.agent.allowAiMemoryCandidates) {
+    return 'quarantined';
+  }
+  return confidence >= profile.memory.provisionalThreshold ? 'provisional' : 'quarantined';
 }
 
 export async function storeExperience(
@@ -41,8 +46,9 @@ export async function storeExperience(
   importance = 5,
   options: StoreExperienceOptions = {},
 ): Promise<void> {
-  const normalizedTopic = sanitizeAiText(topic, 500);
-  const normalizedContext = sanitizeAiText(context, 12_000);
+  const profile = AI_GOVERNANCE_CONFIG.memory;
+  const normalizedTopic = sanitizeAiText(topic, profile.topicMaxChars);
+  const normalizedContext = sanitizeAiText(context, profile.contextMaxChars);
   if (!userId || !normalizedTopic || !normalizedContext) return;
 
   const domain = options.domain
@@ -53,8 +59,11 @@ export async function storeExperience(
   const sourceType = options.sourceType ?? 'ai-output';
   const confidence = clamp(
     options.humanApproved
-      ? Math.max(options.confidence ?? 0.95, 0.95)
-      : options.confidence ?? 0.68,
+      ? Math.max(
+        options.confidence ?? profile.humanApprovedMinConfidence,
+        profile.humanApprovedMinConfidence,
+      )
+      : options.confidence ?? profile.defaultConfidence,
     0,
     1,
   );
