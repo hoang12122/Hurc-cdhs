@@ -179,7 +179,10 @@ services:
       mc mb --ignore-existing local/hurc-curated;
       mc mb --ignore-existing local/hurc-models;
       mc mb --ignore-existing local/hurc-evidence;
-      mc anonymous set none local/hurc-raw local/hurc-curated local/hurc-models local/hurc-evidence"
+      mc anonymous set none local/hurc-raw;
+      mc anonymous set none local/hurc-curated;
+      mc anonymous set none local/hurc-models;
+      mc anonymous set none local/hurc-evidence"
     environment:
       MINIO_ROOT_USER: ${MINIO_ROOT_USER:-hurc-minio}
       MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-change-this-minio-password}
@@ -232,7 +235,7 @@ services:
       redpanda-init:
         condition: service_completed_successfully
     healthcheck:
-      test: ["CMD", "clickhouse-client", "--query", "SELECT 1"]
+      test: ["CMD-SHELL", "clickhouse-client --user $$CLICKHOUSE_USER --password $$CLICKHOUSE_PASSWORD --query 'SELECT 1'"]
       interval: 15s
       timeout: 5s
       retries: 15
