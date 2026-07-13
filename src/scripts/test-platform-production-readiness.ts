@@ -20,6 +20,8 @@ function main() {
   assert.ok(unsafe.issues.some(issue => issue.code === 'KAFKA_QUORUM'));
   assert.ok(unsafe.issues.some(issue => issue.code === 'MLFLOW_SQLITE'));
   assert.ok(unsafe.issues.some(issue => issue.code === 'BESU_DEV_NETWORK'));
+  assert.ok(unsafe.issues.some(issue => issue.code === 'CI_ACCEPTANCE'));
+  assert.ok(unsafe.issues.some(issue => issue.code === 'SECURITY_REVIEW'));
   assert.ok(unsafe.score < 50);
 
   const ready = evaluatePlatformProductionReadiness({
@@ -42,7 +44,10 @@ function main() {
     LEDGER_SIGNER_MODE: 'external',
     PLATFORM_KMS_PROVIDER: 'external-hsm',
     LEDGER_EXTERNAL_SIGNER_URL: 'https://signer.internal.example',
+    PLATFORM_CI_ACCEPTANCE_PASSED: 'true',
+    PLATFORM_IMAGES_PINNED: 'true',
     PLATFORM_BENCHMARK_APPROVED: 'true',
+    PLATFORM_SECURITY_REVIEW_APPROVED: 'true',
     PLATFORM_BACKUP_RESTORE_TESTED: 'true',
     PLATFORM_DR_TESTED: 'true',
   });
