@@ -2,7 +2,9 @@ import assert from 'node:assert/strict';
 import { resolveAiGovernanceConfig } from '../lib/config/ai-governance-profile';
 
 function main() {
-  const standard = resolveAiGovernanceConfig({}, 'development');
+  const standard = resolveAiGovernanceConfig({
+    NODE_ENV: 'development',
+  }, 'development');
   assert.equal(standard.runtimeProfile, 'STANDARD');
   assert.equal(standard.assuranceProfile, 'STANDARD');
   assert.equal(standard.runtime.timeoutMs, 120_000);
@@ -12,6 +14,7 @@ function main() {
   assert.equal(standard.agent.allowWrite, false);
 
   const lowCapacity = resolveAiGovernanceConfig({
+    NODE_ENV: 'development',
     AI_RUNTIME_PROFILE: 'LOW',
     AI_ASSURANCE_PROFILE: 'STANDARD',
   }, 'development');
@@ -21,6 +24,7 @@ function main() {
   assert.equal(lowCapacity.agent.allowToolRead, false);
 
   const highAssurance = resolveAiGovernanceConfig({
+    NODE_ENV: 'production',
     AI_RUNTIME_PROFILE: 'HIGH',
     AI_ASSURANCE_PROFILE: 'HIGH',
     AI_MEMORY_INCLUDE_PROVISIONAL: 'true',
@@ -44,6 +48,7 @@ function main() {
   assert.equal(highAssurance.agent.allowWrite, false);
 
   const clamped = resolveAiGovernanceConfig({
+    NODE_ENV: 'development',
     AI_EXECUTION_TIMEOUT_MS: '999999',
     AI_MAX_CONCURRENT_PER_NAMESPACE: '99',
     AI_MEMORY_RETRIEVAL_LIMIT: '99',
@@ -55,11 +60,15 @@ function main() {
   assert.equal(clamped.data.contextMaxChars, 64_000);
 
   assert.throws(
-    () => resolveAiGovernanceConfig({ AI_ASSURANCE_PROFILE: 'LOW' }, 'production'),
+    () => resolveAiGovernanceConfig({
+      NODE_ENV: 'production',
+      AI_ASSURANCE_PROFILE: 'LOW',
+    }, 'production'),
     /LOW AI assurance is blocked in production/,
   );
 
   const approvedLow = resolveAiGovernanceConfig({
+    NODE_ENV: 'production',
     AI_ASSURANCE_PROFILE: 'LOW',
     AI_ALLOW_LOW_ASSURANCE_IN_PRODUCTION: 'true',
   }, 'production');
