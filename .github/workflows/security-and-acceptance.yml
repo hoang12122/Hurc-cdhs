@@ -20,6 +20,9 @@ jobs:
     name: Security, Typecheck, AI Governance, Lint, Build, Smoke Test and Dependency Audit
     runs-on: ubuntu-latest
     timeout-minutes: 35
+    env:
+      AI_RUNTIME_PROFILE: STANDARD
+      AI_ASSURANCE_PROFILE: STANDARD
 
     steps:
       - name: Checkout source
@@ -82,6 +85,9 @@ jobs:
 
       - name: AI governance invariant checks
         run: node scripts/run-build-phase.js "AI governance invariant checks" -- npm run test:ai-governance
+
+      - name: AI executable profile invariant checks
+        run: node scripts/run-build-phase.js "AI executable profile invariant checks" -- npm run test:ai-profiles
 
       - name: Next.js lint
         run: node scripts/run-build-phase.js "Next.js lint" -- npm run lint
