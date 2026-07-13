@@ -12,7 +12,10 @@ import {
     Network,
     MapPinned,
     Workflow,
-    GitCompare
+    GitCompare,
+    RadioTower,
+    Database,
+    Blocks
 } from 'lucide-react';
 
 export const MAIN_NAV_ITEMS: NavItem[] = [
@@ -27,6 +30,10 @@ export const MAIN_NAV_ITEMS: NavItem[] = [
   { path: '/asset-360', label: { en: 'Asset 360', vi: 'Tài sản 360 (Digital Twin)' }, icon: LayoutDashboard, exact: false },
   { path: '/rail-network', label: { en: 'Rail Network', vi: 'Mạng tuyến Metro' }, icon: Network, exact: true },
   { path: '/spatial-twin', label: { en: 'GIS/BIM Twin', vi: 'GIS/BIM Twin' }, icon: MapPinned, exact: true },
+  { path: '/iot', label: { en: 'IoT Operations', vi: 'Vận hành IoT' }, icon: RadioTower, exact: true },
+  { path: '/data-platform', label: { en: 'Data Platform', vi: 'Nền tảng Dữ liệu' }, icon: Database, exact: true },
+  { path: '/mlops', label: { en: 'MLOps', vi: 'MLOps & Độ tin cậy AI' }, icon: BrainCircuit, exact: true },
+  { path: '/evidence-ledger', label: { en: 'Evidence Ledger', vi: 'Sổ bằng chứng Blockchain' }, icon: Blocks, exact: true },
   { path: '/ai-lab', label: { en: 'AI Knowledge Lab', vi: 'AI Knowledge Lab' }, icon: BrainCircuit, exact: true },
   { path: '/ai-lab/incident-memory', label: { en: 'Incident Memory Approval', vi: 'Phê duyệt Incident Memory' }, icon: BrainCircuit, exact: true },
   { path: '/metro/assets', label: { en: 'Metro Expert', vi: 'Chuyên gia Metro' }, icon: MetroIcon, exact: false },
