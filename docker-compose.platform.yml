@@ -1,0 +1,338 @@
+services:
+  app:
+    environment:
+      DATA_PLATFORM_PHASE: ${DATA_PLATFORM_PHASE:-0}
+      MQTT_URL: ${MQTT_URL:-mqtt://mqtt:1883}
+      TIMESCALE_DATABASE_URL: ${TIMESCALE_DATABASE_URL:-postgresql://postgres:change-me@timescaledb:5432/hurc_telemetry}
+      KAFKA_BROKERS: ${KAFKA_BROKERS:-redpanda:9092}
+      SCHEMA_REGISTRY_URL: ${SCHEMA_REGISTRY_URL:-http://redpanda:8081}
+      MINIO_ENDPOINT: ${MINIO_ENDPOINT:-http://minio:9000}
+      CLICKHOUSE_URL: ${CLICKHOUSE_URL:-http://clickhouse:8123}
+      MLFLOW_TRACKING_URI: ${MLFLOW_TRACKING_URI:-http://mlflow:5000}
+      BESU_RPC_URL: ${BESU_RPC_URL:-http://besu:8545}
+      LEDGER_GATEWAY_URL: ${LEDGER_GATEWAY_URL:-http://evidence-ledger:8787}
+      LEDGER_SIGNER_MODE: ${LEDGER_SIGNER_MODE:-disabled}
+      LEDGER_WRITE_ENABLED: ${LEDGER_WRITE_ENABLED:-false}
+
+  mqtt:
+    image: ${MQTT_IMAGE:-eclipse-mosquitto:2.0.20}
+    container_name: hurc_mqtt
+    restart: unless-stopped
+    profiles: ["phase1", "phase2", "phase3", "phase4"]
+    ports:
+      - "127.0.0.1:${MQTT_HOST_PORT:-1883}:1883"
+    volumes:
+      - ./infra/mqtt/mosquitto.dev.conf:/mosquitto/config/mosquitto.conf:ro
+      - mqtt-data:/mosquitto/data
+      - mqtt-log:/mosquitto/log
+    healthcheck:
+      test: ["CMD", "mosquitto_pub", "-h", "127.0.0.1", "-t", "hurc/health", "-m", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks:
+      - backend-net
+
+  timescaledb:
+    image: ${TIMESCALE_IMAGE:-timescale/timescaledb-ha:pg18}
+    container_name: hurc_timescaledb
+    restart: unless-stopped
+    profiles: ["phase1", "phase2", "phase3", "phase4"]
+    ports:
+      - "127.0.0.1:${TIMESCALE_HOST_PORT:-5433}:5432"
+    environment:
+      POSTGRES_USER: ${TIMESCALE_USER:-postgres}
+      POSTGRES_PASSWORD: ${TIMESCALE_PASSWORD:-change-me}
+      POSTGRES_DB: ${TIMESCALE_DATABASE:-hurc_telemetry}
+      PGDATA: /pgdata
+    volumes:
+      - timescale-data:/pgdata
+      - ./infra/timescale/001-init.sql:/docker-entrypoint-initdb.d/001-init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 10s
+      timeout: 5s
+      retries: 15
+    networks:
+      - backend-net
+
+  iot-ingestor:
+    build:
+      context: ./infra/iot-ingestor
+    container_name: hurc_iot_ingestor
+    restart: unless-stopped
+    profiles: ["phase1", "phase2", "phase3", "phase4"]
+    environment:
+      MQTT_HOST: mqtt
+      MQTT_PORT: 1883
+      MQTT_TOPIC: ${MQTT_TOPIC:-hurc/+/+/+/+/+/telemetry}
+      MQTT_USERNAME: ${MQTT_USERNAME:-}
+      MQTT_PASSWORD: ${MQTT_PASSWORD:-}
+      MQTT_TLS: ${MQTT_TLS:-false}
+      MQTT_MAX_PAYLOAD_BYTES: ${MQTT_MAX_PAYLOAD_BYTES:-262144}
+      TIMESCALE_DATABASE_URL: ${TIMESCALE_DATABASE_URL:-postgresql://postgres:change-me@timescaledb:5432/hurc_telemetry}
+    depends_on:
+      mqtt:
+        condition: service_healthy
+      timescaledb:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8080/health', timeout=3)"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+    networks:
+      - backend-net
+
+  redpanda:
+    image: ${REDPANDA_IMAGE:-docker.redpanda.com/redpandadata/redpanda:v26.1.12}
+    container_name: hurc_redpanda
+    restart: unless-stopped
+    profiles: ["phase2", "phase3", "phase4"]
+    command:
+      - redpanda
+      - start
+      - --mode
+      - dev-container
+      - --smp
+      - "1"
+      - --memory
+      - 1G
+      - --reserve-memory
+      - 0M
+      - --node-id
+      - "0"
+      - --check=false
+      - --kafka-addr
+      - internal://0.0.0.0:9092,external://0.0.0.0:19092
+      - --advertise-kafka-addr
+      - internal://redpanda:9092,external://localhost:19092
+      - --rpc-addr
+      - 0.0.0.0:33145
+      - --advertise-rpc-addr
+      - redpanda:33145
+      - --schema-registry-addr
+      - 0.0.0.0:8081
+      - --pandaproxy-addr
+      - 0.0.0.0:8082
+    ports:
+      - "127.0.0.1:${KAFKA_HOST_PORT:-19092}:19092"
+      - "127.0.0.1:${SCHEMA_REGISTRY_HOST_PORT:-18081}:8081"
+      - "127.0.0.1:${REDPANDA_ADMIN_HOST_PORT:-19644}:9644"
+    volumes:
+      - redpanda-data:/var/lib/redpanda/data
+    healthcheck:
+      test: ["CMD", "rpk", "cluster", "info", "-X", "brokers=redpanda:9092"]
+      interval: 10s
+      timeout: 10s
+      retries: 15
+    networks:
+      - backend-net
+
+  redpanda-init:
+    image: ${REDPANDA_IMAGE:-docker.redpanda.com/redpandadata/redpanda:v26.1.12}
+    container_name: hurc_redpanda_init
+    profiles: ["phase2", "phase3", "phase4"]
+    command:
+      - topic
+      - create
+      - iot.telemetry.raw
+      - iot.telemetry.dead-letter
+      - --partitions
+      - "3"
+      - --replicas
+      - "1"
+      - --if-not-exists
+      - -X
+      - brokers=redpanda:9092
+    depends_on:
+      redpanda:
+        condition: service_healthy
+    networks:
+      - backend-net
+
+  minio:
+    image: ${MINIO_IMAGE:-minio/minio:RELEASE.2025-05-24T17-08-30Z}
+    container_name: hurc_minio
+    restart: unless-stopped
+    profiles: ["phase2", "phase3", "phase4"]
+    command: server --console-address ":9001" /data
+    ports:
+      - "127.0.0.1:${MINIO_API_HOST_PORT:-9000}:9000"
+      - "127.0.0.1:${MINIO_CONSOLE_HOST_PORT:-9001}:9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-hurc-minio}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-change-this-minio-password}
+    volumes:
+      - minio-data:/data
+    networks:
+      - backend-net
+
+  minio-init:
+    image: ${MINIO_MC_IMAGE:-minio/mc:latest}
+    container_name: hurc_minio_init
+    profiles: ["phase2", "phase3", "phase4"]
+    entrypoint: /bin/sh
+    command: >-
+      -c "until mc alias set local http://minio:9000 $$MINIO_ROOT_USER $$MINIO_ROOT_PASSWORD; do sleep 2; done;
+      mc mb --ignore-existing local/hurc-raw;
+      mc mb --ignore-existing local/hurc-curated;
+      mc mb --ignore-existing local/hurc-models;
+      mc mb --ignore-existing local/hurc-evidence;
+      mc anonymous set none local/hurc-raw local/hurc-curated local/hurc-models local/hurc-evidence"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-hurc-minio}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-change-this-minio-password}
+    depends_on:
+      - minio
+    networks:
+      - backend-net
+
+  redpanda-connect:
+    image: ${REDPANDA_CONNECT_IMAGE:-docker.redpanda.com/redpandadata/connect:latest}
+    container_name: hurc_redpanda_connect
+    restart: unless-stopped
+    profiles: ["phase2", "phase3", "phase4"]
+    command: ["-c", "/etc/redpanda-connect/iot-pipeline.yaml"]
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-hurc-minio}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-change-this-minio-password}
+    volumes:
+      - ./infra/redpanda-connect/iot-pipeline.yaml:/etc/redpanda-connect/iot-pipeline.yaml:ro
+    depends_on:
+      mqtt:
+        condition: service_healthy
+      redpanda:
+        condition: service_healthy
+      redpanda-init:
+        condition: service_completed_successfully
+      minio-init:
+        condition: service_completed_successfully
+    networks:
+      - backend-net
+
+  clickhouse:
+    image: ${CLICKHOUSE_IMAGE:-clickhouse/clickhouse-server:25.8-alpine}
+    container_name: hurc_clickhouse
+    restart: unless-stopped
+    profiles: ["phase2", "phase3", "phase4"]
+    ports:
+      - "127.0.0.1:${CLICKHOUSE_HTTP_HOST_PORT:-8123}:8123"
+    environment:
+      CLICKHOUSE_DB: hurc
+      CLICKHOUSE_USER: ${CLICKHOUSE_USER:-hurc}
+      CLICKHOUSE_PASSWORD: ${CLICKHOUSE_PASSWORD:-change-this-clickhouse-password}
+      CLICKHOUSE_DEFAULT_ACCESS_MANAGEMENT: "1"
+    volumes:
+      - clickhouse-data:/var/lib/clickhouse
+      - ./infra/clickhouse/001-init.sql:/docker-entrypoint-initdb.d/001-init.sql:ro
+    depends_on:
+      redpanda:
+        condition: service_healthy
+      redpanda-init:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD", "clickhouse-client", "--query", "SELECT 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 15
+    networks:
+      - backend-net
+
+  mlflow:
+    image: ${MLFLOW_IMAGE:-ghcr.io/mlflow/mlflow:v3.5.1}
+    container_name: hurc_mlflow
+    restart: unless-stopped
+    profiles: ["phase3", "phase4"]
+    command:
+      - mlflow
+      - server
+      - --host
+      - 0.0.0.0
+      - --port
+      - "5000"
+      - --backend-store-uri
+      - sqlite:////mlflow/mlflow.db
+      - --default-artifact-root
+      - /mlflow/artifacts
+      - --serve-artifacts
+    ports:
+      - "127.0.0.1:${MLFLOW_HOST_PORT:-5000}:5000"
+    volumes:
+      - mlflow-data:/mlflow
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:5000/health', timeout=3)"]
+      interval: 15s
+      timeout: 5s
+      retries: 15
+    networks:
+      - backend-net
+
+  besu:
+    image: ${BESU_IMAGE:-hyperledger/besu:25.7.0}
+    container_name: hurc_besu
+    restart: unless-stopped
+    profiles: ["phase4"]
+    command:
+      - --network=dev
+      - --data-path=/var/lib/besu
+      - --rpc-http-enabled=true
+      - --rpc-http-host=0.0.0.0
+      - --rpc-http-port=8545
+      - --rpc-http-api=ETH,NET,WEB3,TXPOOL
+      - --host-allowlist=*
+      - --rpc-http-cors-origins=*
+      - --miner-enabled=true
+      - --miner-coinbase=${BESU_MINER_COINBASE:-0x0000000000000000000000000000000000000000}
+      - --min-gas-price=0
+    ports:
+      - "127.0.0.1:${BESU_RPC_HOST_PORT:-8545}:8545"
+    volumes:
+      - besu-data:/var/lib/besu
+    networks:
+      - backend-net
+
+  evidence-ledger:
+    build:
+      context: ./infra/evidence-ledger
+    container_name: hurc_evidence_ledger
+    restart: unless-stopped
+    profiles: ["phase4"]
+    ports:
+      - "127.0.0.1:${LEDGER_GATEWAY_HOST_PORT:-8787}:8787"
+    environment:
+      NODE_ENV: ${NODE_ENV:-development}
+      PORT: 8787
+      BESU_RPC_URL: http://besu:8545
+      LEDGER_GATEWAY_TOKEN: ${LEDGER_GATEWAY_TOKEN:-change-this-development-ledger-token}
+      LEDGER_WRITE_ENABLED: ${LEDGER_WRITE_ENABLED:-false}
+      LEDGER_SIGNER_MODE: ${LEDGER_SIGNER_MODE:-disabled}
+      LEDGER_PRIVATE_KEY: ${LEDGER_PRIVATE_KEY:-}
+      LEDGER_EXTERNAL_SIGNER_URL: ${LEDGER_EXTERNAL_SIGNER_URL:-}
+      LEDGER_EXTERNAL_SIGNER_TOKEN: ${LEDGER_EXTERNAL_SIGNER_TOKEN:-}
+      LEDGER_DATA_FILE: /data/anchors.ndjson
+    volumes:
+      - evidence-ledger-data:/data
+    depends_on:
+      - besu
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:8787/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 15s
+      timeout: 5s
+      retries: 20
+    networks:
+      - backend-net
+
+volumes:
+  mqtt-data:
+  mqtt-log:
+  timescale-data:
+  redpanda-data:
+  minio-data:
+  clickhouse-data:
+  mlflow-data:
+  besu-data:
+  evidence-ledger-data:
+
+networks:
+  backend-net:
