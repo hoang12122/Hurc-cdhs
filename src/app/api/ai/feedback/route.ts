@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { AI_GOVERNANCE_CONFIG } from '@/lib/config/ai-governance-profile';
 import { storeExperience } from '@/lib/services/agent-memory';
 import { internalLogSystemEvent } from '@/lib/services/log-service';
 import { requirePermission } from '@/lib/auth-enforcer';
@@ -15,13 +16,18 @@ function normalizeText(value: unknown, maxLength: number): string {
 export async function POST(req: Request) {
     try {
         const user = await requirePermission('ai:use');
-        if (!checkRateLimit(`ai_feedback:${user.id}`, 20, 60_000)) {
+        const profile = AI_GOVERNANCE_CONFIG;
+        if (!checkRateLimit(
+            `ai_feedback:${user.id}`,
+            profile.rateLimits.aiFeedbackPerMinute,
+            60_000,
+        )) {
             return NextResponse.json({ error: 'Too many feedback requests' }, { status: 429 });
         }
 
         const body = await req.json();
-        const topic = normalizeText(body?.topic, MAX_TOPIC_LENGTH);
-        const context = normalizeText(body?.context, MAX_CONTEXT_LENGTH);
+        const topic = normalizeText(body?.topic, Math.min(MAX_TOPIC_LENGTH, profile.memory.topicMaxChars));
+        const context = normalizeText(body?.context, Math.min(MAX_CONTEXT_LENGTH, profile.memory.contextMaxChars));
         const feedbackText = normalizeText(body?.feedbackText, MAX_FEEDBACK_LENGTH);
         const isPositive = body?.isPositive === true;
 
@@ -36,18 +42,22 @@ export async function POST(req: Request) {
         await storeExperience(user.id, topic, memoryContent, isPositive ? 5 : 8, {
             sourceType: 'system-event',
             sourceId: `feedback:${user.id}`,
-            confidence: isPositive ? 0.7 : 0.4,
+            confidence: isPositive ? profile.memory.defaultConfidence : 0.4,
             humanApproved: false,
         });
 
         await internalLogSystemEvent(
             'AI_FEEDBACK_RECEIVED',
             isPositive ? 'INFO' : 'WARNING',
-            `User ${user.id} submitted ${isPositive ? 'positive' : 'negative'} AI feedback for topic: ${topic}`,
+            `User ${user.id} submitted ${isPositive ? 'positive' : 'negative'} AI feedback under ${profile.runtimeProfile}/${profile.assuranceProfile}: ${topic}`,
             'ai'
         );
 
-        return NextResponse.json({ success: true });
+        return NextResponse.json({
+            success: true,
+            runtimeProfile: profile.runtimeProfile,
+            assuranceProfile: profile.assuranceProfile,
+        });
     } catch (error: any) {
         const status = error?.message?.toLowerCase().includes('permission') || error?.message?.toLowerCase().includes('auth') ? 403 : 500;
         return NextResponse.json({ error: status === 500 ? 'Unable to process feedback' : 'Forbidden' }, { status });
