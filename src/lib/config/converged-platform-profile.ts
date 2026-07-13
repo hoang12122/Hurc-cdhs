@@ -20,6 +20,7 @@ export interface ConvergedPlatformConfig {
     schemaRegistryUrl: string;
     minioUrl: string;
     clickhouseUrl: string;
+    etlNormalizerUrl: string;
     mlflowUrl: string;
     besuRpcUrl: string;
     ledgerGatewayUrl: string;
@@ -30,6 +31,8 @@ export interface ConvergedPlatformConfig {
     ingestionPerSecond: number;
     deadLetterRetentionDays: number;
     rawRetentionDays: number;
+    etlFutureSkewSeconds: number;
+    etlClockSkewMs: number;
   };
   security: {
     requireTls: boolean;
@@ -96,7 +99,7 @@ export function resolveConvergedPlatformConfig(
   const evidenceLedger = phase >= 4 && booleanValue(env.EVIDENCE_LEDGER_ENABLED, true);
 
   return {
-    version: '2026-07-13.2',
+    version: '2026-07-13.3',
     phase,
     environment: nodeEnv ?? 'development',
     features: { iot, eventBackbone, lakehouse, mlops, evidenceLedger },
@@ -107,6 +110,7 @@ export function resolveConvergedPlatformConfig(
       schemaRegistryUrl: env.SCHEMA_REGISTRY_URL ?? 'http://redpanda:8081',
       minioUrl: env.MINIO_ENDPOINT ?? 'http://minio:9000',
       clickhouseUrl: env.CLICKHOUSE_URL ?? 'http://clickhouse:8123',
+      etlNormalizerUrl: env.ETL_NORMALIZER_URL ?? 'http://etl-normalizer:8082',
       mlflowUrl: env.MLFLOW_TRACKING_URI ?? 'http://mlflow:5000',
       besuRpcUrl: env.BESU_RPC_URL ?? 'http://besu:8545',
       ledgerGatewayUrl: env.LEDGER_GATEWAY_URL ?? 'http://evidence-ledger:8787',
@@ -117,6 +121,8 @@ export function resolveConvergedPlatformConfig(
       ingestionPerSecond: integer(env, 'INGESTION_RATE_PER_SECOND', phase >= 2 ? 5_000 : 100, 1, 50_000),
       deadLetterRetentionDays: integer(env, 'DEAD_LETTER_RETENTION_DAYS', 30, 1, 365),
       rawRetentionDays: integer(env, 'RAW_RETENTION_DAYS', phase >= 2 ? 365 : 90, 7, 3_650),
+      etlFutureSkewSeconds: integer(env, 'ETL_MAX_FUTURE_SECONDS', 300, 0, 3_600),
+      etlClockSkewMs: integer(env, 'ETL_MAX_CLOCK_SKEW_MS', 120_000, 1_000, 3_600_000),
     },
     security: {
       requireTls: production || booleanValue(env.IOT_REQUIRE_TLS, false),
