@@ -82,6 +82,9 @@ jobs:
       - name: Build production application
         run: npm run build
 
+      - name: Smoke test production routes
+        run: node scripts/production-smoke-test.js
+
       - name: Audit production dependencies
         run: node scripts/production-dependency-audit.js
         env:
