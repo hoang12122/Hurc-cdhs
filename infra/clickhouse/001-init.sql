@@ -36,16 +36,18 @@ SETTINGS
 CREATE MATERIALIZED VIEW IF NOT EXISTS hurc.telemetry_kafka_mv
 TO hurc.telemetry_olap
 AS
+WITH splitByChar('/', JSONExtractString(raw_event, '_mqttTopic')) AS topic_parts
 SELECT
   if(empty(JSONExtractString(raw_event, 'eventId')), hex(MD5(raw_event)), JSONExtractString(raw_event, 'eventId')) AS event_id,
   if(empty(JSONExtractString(raw_event, 'eventType')), 'telemetry.received', JSONExtractString(raw_event, 'eventType')) AS event_type,
   if(empty(JSONExtractString(raw_event, 'schemaVersion')), '1.0.0', JSONExtractString(raw_event, 'schemaVersion')) AS schema_version,
   coalesce(parseDateTime64BestEffortOrNull(JSONExtractString(raw_event, 'occurredAt'), 3), now64(3)) AS occurred_at,
-  JSONExtractString(raw_event, 'source', 'environment') AS environment,
-  JSONExtractString(raw_event, 'asset', 'line') AS line_code,
-  JSONExtractString(raw_event, 'asset', 'station') AS station_code,
-  JSONExtractString(raw_event, 'asset', 'subsystem') AS subsystem,
-  JSONExtractString(raw_event, 'asset', 'assetId') AS asset_id,
+  coalesce(parseDateTime64BestEffortOrNull(JSONExtractString(raw_event, '_ingestedAt'), 3), now64(3)) AS ingested_at,
+  if(empty(JSONExtractString(raw_event, 'source', 'environment')), arrayElement(topic_parts, 2), JSONExtractString(raw_event, 'source', 'environment')) AS environment,
+  if(empty(JSONExtractString(raw_event, 'asset', 'line')), arrayElement(topic_parts, 3), JSONExtractString(raw_event, 'asset', 'line')) AS line_code,
+  if(empty(JSONExtractString(raw_event, 'asset', 'station')), arrayElement(topic_parts, 4), JSONExtractString(raw_event, 'asset', 'station')) AS station_code,
+  if(empty(JSONExtractString(raw_event, 'asset', 'subsystem')), arrayElement(topic_parts, 5), JSONExtractString(raw_event, 'asset', 'subsystem')) AS subsystem,
+  if(empty(JSONExtractString(raw_event, 'asset', 'assetId')), arrayElement(topic_parts, 6), JSONExtractString(raw_event, 'asset', 'assetId')) AS asset_id,
   if(empty(JSONExtractString(raw_event, 'quality', 'status')), 'unknown', JSONExtractString(raw_event, 'quality', 'status')) AS quality_status,
   JSONExtractString(raw_event, 'traceId') AS trace_id,
   JSONExtractRaw(raw_event, 'payload') AS payload_json,
