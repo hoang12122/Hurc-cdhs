@@ -2,6 +2,36 @@
 
 > Tài liệu này mô tả nguyên tắc và mô hình quản trị tổng thể. Bảng cấu hình chi tiết, công thức risk/confidence, toàn bộ limit CURRENT, profile `LOW/STANDARD/HIGH`, hard limit và checklist nghiệm thu được trình bày tại [`docs/technical/AI_ARCHITECTURE_CONFIGURATION_REFERENCE.md`](technical/AI_ARCHITECTURE_CONFIGURATION_REFERENCE.md).
 
+## Trạng thái áp dụng của lần cập nhật tài liệu
+
+Lần cập nhật này **chỉ thay đổi tài liệu**, chưa làm thay đổi runtime của phần mềm.
+
+Phạm vi đã thực hiện:
+
+- bổ sung mô tả kiến trúc AI và luồng kiểm soát;
+- ghi nhận các giá trị `CURRENT` đang tồn tại trong mã nguồn;
+- bổ sung profile khuyến nghị `LOW_RESOURCE`, `STANDARD`, `HIGH_CAPACITY`;
+- bổ sung profile kiểm soát `LOW_ASSURANCE`, `STANDARD_ASSURANCE`, `HIGH_ASSURANCE`;
+- bổ sung hard limit, bảng tham chiếu, cảnh báo vận hành và checklist nghiệm thu;
+- liên kết tài liệu từ README và chỉ mục kỹ thuật.
+
+Phạm vi **chưa thực hiện**:
+
+- chưa sửa các tệp runtime trong `src/` để áp dụng profile;
+- chưa tạo Config Registry tập trung;
+- chưa thêm environment switch để chuyển `LOW/STANDARD/HIGH`;
+- chưa thay đổi timeout, concurrency, confidence, trust threshold, rate-limit, upload limit hoặc quyền của agent;
+- chưa thay đổi database schema, Docker, dependency hoặc workflow CI;
+- chưa xác nhận CI/CD PASS cho commit tài liệu mới nhất.
+
+Do đó:
+
+1. Các giá trị ghi **CURRENT** tiếp tục phản ánh cấu hình đang được mã nguồn sử dụng.
+2. Các bảng `LOW/STANDARD/HIGH` chỉ là chuẩn khuyến nghị, không tự động có hiệu lực.
+3. Muốn thay đổi runtime phải thực hiện một thay đổi mã nguồn riêng, có review, test, bằng chứng load-test hoặc security validation phù hợp và phương án rollback.
+4. Không được sử dụng việc tài liệu đã mô tả một profile làm bằng chứng rằng profile đó đã được kích hoạt trên production.
+5. Chỉ được đánh dấu kiểm thử hoặc CI là `PASS` sau khi có kết quả kiểm tra thực tế từ pipeline tương ứng.
+
 ## 1. Mục tiêu
 
 AI Governance Control Plane là lớp kiểm soát thống nhất cho toàn bộ chức năng AI của HURC-CDHS. Hệ thống được thiết kế để nhiều AI chuyên trách có thể hỗ trợ quản lý dữ liệu, tài sản, bảo trì, an toàn và trạng thái hệ thống mà không tự ý thay đổi dữ liệu vận hành.
