@@ -74,6 +74,26 @@ services:
     networks:
       - backend-net
 
+  timescale-etl-init:
+    image: ${TIMESCALE_IMAGE:-timescale/timescaledb-ha:pg18}
+    container_name: hurc_timescale_etl_init
+    profiles: ["phase2", "phase3", "phase4"]
+    entrypoint: ["/bin/sh", "-c"]
+    command: >-
+      until pg_isready -h timescaledb -U "$$TIMESCALE_USER" -d "$$TIMESCALE_DATABASE"; do sleep 2; done;
+      PGPASSWORD="$$TIMESCALE_PASSWORD" psql -v ON_ERROR_STOP=1 -h timescaledb -U "$$TIMESCALE_USER" -d "$$TIMESCALE_DATABASE" -f /migrations/001-init.sql
+    environment:
+      TIMESCALE_USER: ${TIMESCALE_USER:-postgres}
+      TIMESCALE_PASSWORD: ${TIMESCALE_PASSWORD:-change-me}
+      TIMESCALE_DATABASE: ${TIMESCALE_DATABASE:-hurc_telemetry}
+    volumes:
+      - ./infra/timescale/001-init.sql:/migrations/001-init.sql:ro
+    depends_on:
+      timescaledb:
+        condition: service_healthy
+    networks:
+      - backend-net
+
   etl-normalizer:
     build:
       context: .
@@ -99,8 +119,8 @@ services:
         condition: service_healthy
       etl-topic-init:
         condition: service_completed_successfully
-      timescaledb:
-        condition: service_healthy
+      timescale-etl-init:
+        condition: service_completed_successfully
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8082/health', timeout=3)"]
       interval: 15s
