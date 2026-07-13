@@ -5,6 +5,7 @@ import { requirePermission } from '@/lib/auth-enforcer';
 import { getAiGovernanceProfileSnapshot } from '@/lib/config/ai-governance-profile';
 import { aiDb, IS_DATABASE_OFFLINE } from '@/lib/prisma';
 import { jsonDb } from '@/lib/db/json-db';
+import { internalLogSystemEvent } from '@/lib/services/log-service';
 import { getRegisteredAiAgents } from '@/lib/services/ai/control-plane';
 import { getAiRuntimeGuardStatus } from '@/lib/services/ai/runtime-guard';
 import { getContinuousLearningStatus } from '@/lib/services/ai/continuous-learning';
@@ -156,8 +157,14 @@ export async function reviewAiMemory(
   memoryId: string,
   decision: 'approve' | 'quarantine' | 'supersede',
 ) {
-  await requirePermission('admin:system');
+  const user = await requirePermission('admin:system');
   const result = await reviewMemory(memoryId, decision);
+  await internalLogSystemEvent(
+    'AI_MEMORY_REVIEW',
+    decision === 'approve' ? 'INFO' : 'WARNING',
+    `Reviewer ${user.id} applied ${decision} to governed memory ${memoryId}`,
+    'ai',
+  );
   revalidatePath('/admin/ai-governance');
   revalidatePath('/admin/ai-governance/learning');
   return result;
