@@ -2,6 +2,7 @@
 
 import { cookies, headers } from 'next/headers';
 import { type User } from '../constants';
+import { AI_GOVERNANCE_CONFIG } from '../config/ai-governance-profile';
 import { getSessionUser, checkPermission } from '../services/auth-service';
 import { verifyInternalCredentials, getInternalUserById, updateInternalUser } from '../services/user-service';
 import { internalLogSystemEvent } from '../services/log-service';
@@ -49,9 +50,10 @@ export async function login(email: string, password?: string, rememberMe = false
     const ip = getClientIp(reqHeaders);
     const normalizedEmail = String(email || '').trim().toLowerCase();
     const identifier = `login:${ip}:${normalizedEmail}`;
+    const limits = AI_GOVERNANCE_CONFIG.rateLimits;
 
-    if (!checkRateLimit(identifier, 5, 15 * 60 * 1000)) {
-        return { error: 'Bạn đã đăng nhập sai quá nhiều lần. Vui lòng thử lại sau 15 phút.' };
+    if (!checkRateLimit(identifier, limits.loginAttempts, limits.loginWindowMs)) {
+        return { error: 'Bạn đã đăng nhập sai quá nhiều lần. Vui lòng thử lại sau.' };
     }
 
     const result = await verifyInternalCredentials(normalizedEmail, password, ip);
@@ -64,7 +66,7 @@ export async function login(email: string, password?: string, rememberMe = false
     }
 
     await establishSession(user, rememberMe, reqHeaders);
-    await logSecurityEvent(user.id, 'LOGIN_SUCCESS', `RememberMe: ${rememberMe}; IP: ${ip}`);
+    await logSecurityEvent(user.id, 'LOGIN_SUCCESS', `RememberMe: ${rememberMe}; IP: ${ip}; Assurance: ${AI_GOVERNANCE_CONFIG.assuranceProfile}`);
     return { user };
 }
 
@@ -73,11 +75,12 @@ export async function login2FA(userId: string, code: string, rememberMe = false)
     const ip = getClientIp(reqHeaders);
     const normalizedUserId = String(userId || '').trim();
     const normalizedCode = String(code || '').replace(/\s+/g, '').toUpperCase();
+    const limits = AI_GOVERNANCE_CONFIG.rateLimits;
 
     if (!normalizedUserId || !normalizedCode) return { error: 'Thiếu thông tin xác thực.' };
-    if (!checkRateLimit(`2fa:${ip}:${normalizedUserId}`, 5, 10 * 60 * 1000)) {
-        await logSecurityEvent(normalizedUserId, '2FA_RATE_LIMITED', `IP: ${ip}`);
-        return { error: 'Bạn đã nhập sai mã quá nhiều lần. Vui lòng thử lại sau 10 phút.' };
+    if (!checkRateLimit(`2fa:${ip}:${normalizedUserId}`, limits.twoFactorAttempts, limits.twoFactorWindowMs)) {
+        await logSecurityEvent(normalizedUserId, '2FA_RATE_LIMITED', `IP: ${ip}; Assurance: ${AI_GOVERNANCE_CONFIG.assuranceProfile}`);
+        return { error: 'Bạn đã nhập sai mã quá nhiều lần. Vui lòng thử lại sau.' };
     }
 
     const user = await getInternalUserById(normalizedUserId);
