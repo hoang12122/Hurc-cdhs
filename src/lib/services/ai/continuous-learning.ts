@@ -114,10 +114,12 @@ function buildProposals(health: MemoryHealth): LearningProposal[] {
   return proposals;
 }
 
-export async function getContinuousLearningStatus(): Promise<ContinuousLearningStatus> {
+export async function getContinuousLearningStatus(
+  existingHealth?: MemoryHealth,
+): Promise<ContinuousLearningStatus> {
   const policy = resolveContinuousLearningPolicy();
   const [health, quarantine] = await Promise.all([
-    getMemoryHealth(),
+    existingHealth ? Promise.resolve(existingHealth) : getMemoryHealth(),
     getQuarantinedMemories(20),
   ]);
   const proposals = policy.enabled ? buildProposals(health) : [];
