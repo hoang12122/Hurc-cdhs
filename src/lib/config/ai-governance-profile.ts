@@ -46,6 +46,8 @@ export interface AiGovernanceConfig {
   uploads: {
     knowledgeMaxBytes: number;
     knowledgeTextMaxChars: number;
+    /** @deprecated Compatibility alias; value is a character limit. */
+    textExtractionMaxBytes: number;
   };
   rateLimits: {
     loginAttempts: number;
@@ -156,9 +158,13 @@ export function resolveAiGovernanceConfig(
     failureThreshold: integer(env, 'AI_FAILURE_THRESHOLD', capacity.runtime.failureThreshold, 1, 10),
     cooldownMs: integer(env, 'AI_COOLDOWN_MS', capacity.runtime.cooldownMs, 15_000, 300_000),
   };
+  const uploads = {
+    ...capacity.uploads,
+    textExtractionMaxBytes: capacity.uploads.knowledgeTextMaxChars,
+  };
 
   return {
-    version: '2026-07-13.2',
+    version: '2026-07-13.3',
     runtimeProfile,
     assuranceProfile,
     runtime,
@@ -182,7 +188,7 @@ export function resolveAiGovernanceConfig(
     },
     mcp: capacity.mcp,
     vision: capacity.vision,
-    uploads: capacity.uploads,
+    uploads,
     rateLimits: {
       loginAttempts: assurance.auth.loginAttempts,
       loginWindowMs: 15 * 60_000,
