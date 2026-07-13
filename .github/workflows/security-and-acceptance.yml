@@ -17,7 +17,7 @@ permissions:
 
 jobs:
   build-quality-gate:
-    name: Security, Typecheck, AI Governance, Platform Profiles, Twin, Lint, Build, Smoke Test and Dependency Audit
+    name: Security, Typecheck, AI Governance, Learning, Platform Profiles, Twin, Lint, Build, Smoke Test and Dependency Audit
     runs-on: ubuntu-latest
     timeout-minutes: 35
     env:
@@ -92,6 +92,9 @@ jobs:
 
       - name: AI executable profile invariant checks
         run: node scripts/run-build-phase.js "AI executable profile invariant checks" -- npm run test:ai-profiles
+
+      - name: Continuous learning safety invariant checks
+        run: node scripts/run-build-phase.js "Continuous learning safety invariant checks" -- npm run test:continuous-learning
 
       - name: Converged platform phase invariant checks
         run: node scripts/run-build-phase.js "Converged platform phase invariant checks" -- npm run test:platform-profiles
