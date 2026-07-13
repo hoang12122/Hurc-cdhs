@@ -17,16 +17,26 @@ AI_ASSURANCE_PROFILE=LOW|STANDARD|HIGH
 
 Mặc định `STANDARD/STANDARD`. Quyền ghi của AI luôn bị khóa.
 
-Định hướng phát triển tiếp theo là nền tảng hợp nhất:
+Nền tảng hợp nhất AI – Big Data – IoT – Blockchain đã có runtime opt-in theo giai đoạn:
 
 ```text
-IoT tạo dữ liệu
-→ Big Data tiếp nhận, lưu trữ và xử lý
-→ AI phân tích, dự báo và hỗ trợ quyết định
-→ Blockchain neo bằng chứng và xác minh liên tổ chức
+DATA_PLATFORM_PHASE=0|1|2|3|4
 ```
 
-Blockchain không được dùng thay database nghiệp vụ hoặc kho telemetry. Kiến trúc đích và roadmap được mô tả tại [AI, Big Data, IoT and Blockchain Target Architecture](docs/technical/AI_BIGDATA_IOT_BLOCKCHAIN_TARGET_ARCHITECTURE.md).
+| Phase | Thành phần runtime |
+|---:|---|
+| 0 | Tắt nền tảng mở rộng; chỉ chạy core khi được chọn |
+| 1 | MQTT, IoT ingestor và TimescaleDB |
+| 2 | Phase 1 + Redpanda/Kafka, MinIO và ClickHouse |
+| 3 | Phase 2 + MLflow |
+| 4 | Phase 3 + Besu và Evidence Ledger Gateway |
+
+Các dịch vụ nằm trong `docker-compose.platform.yml` và chỉ được bật qua Docker profile tương ứng. Blockchain chỉ neo hash và metadata tối thiểu; không thay database nghiệp vụ, time-series store hoặc object storage.
+
+Runtime hiện tại là nền tảng POC/UAT có kiểm soát, chưa phải cấu hình production HA. Kiến trúc đích và runbook được trình bày tại:
+
+- [AI, Big Data, IoT and Blockchain Target Architecture](docs/technical/AI_BIGDATA_IOT_BLOCKCHAIN_TARGET_ARCHITECTURE.md);
+- [Converged Platform Runtime Operations](docs/technical/CONVERGED_PLATFORM_RUNTIME_OPERATIONS.md).
 
 ## Phân hệ chính
 
@@ -52,6 +62,7 @@ Blockchain không được dùng thay database nghiệp vụ hoặc kho telemetr
 | [AI Architecture and Configuration Reference](docs/technical/AI_ARCHITECTURE_CONFIGURATION_REFERENCE.md) | Kiến trúc AI; risk/confidence; limit; Memory, Data, MCP, Vision và rate-limit. |
 | [AI Runtime Profile Operations](docs/technical/AI_RUNTIME_PROFILE_OPERATIONS.md) | Environment switch, profile đang chạy, hard limit, rollout, rollback và giới hạn tương thích. |
 | [AI, Big Data, IoT and Blockchain Target Architecture](docs/technical/AI_BIGDATA_IOT_BLOCKCHAIN_TARGET_ARCHITECTURE.md) | Kiến trúc đích hợp nhất, profile LOW/STANDARD/HIGH, roadmap, bảo mật, KPI và tiêu chí nghiệm thu. |
+| [Converged Platform Runtime Operations](docs/technical/CONVERGED_PLATFORM_RUNTIME_OPERATIONS.md) | Cách chạy Phase 1–4, health-check, dữ liệu mẫu, rollback và production hardening. |
 | [Project Structure Guide](docs/technical/PROJECT_STRUCTURE_GUIDE.md) | Quy chuẩn cấu trúc dự án Frontend React/Next.js và Backend Golang; nguyên tắc package-by-feature, `cmd/`, `internal/`, API và checklist tái cấu trúc. |
 | [Structure Migration Plan](docs/technical/STRUCTURE_MIGRATION_PLAN.md) | Kế hoạch sắp xếp lại thư mục phần mềm theo từng đợt và theo dõi CI/CD sau khi merge PR #29. |
 | [1. System Architecture](docs/1_SYSTEM_ARCHITECTURE.md) | Kiến trúc, module boundary, Service Bus và giới hạn hiện tại. |
@@ -77,6 +88,8 @@ npm run db:generate:all
 npm run typecheck
 npm run test:ai-governance
 npm run test:ai-profiles
+npm run test:platform-profiles
+npm run platform:config
 npm run lint
 npm run build
 ```
@@ -90,6 +103,8 @@ Ghi chú: `npm run lint` dùng local ESLint executable và flat config của Nex
 - Security and Acceptance Gate.
 - AI governance invariant checks.
 - AI executable profile invariant checks.
+- Converged platform profile invariant checks.
+- Converged platform Compose validation.
 - Docker Acceptance Gate.
 - Design rules audit.
 - Module boundary audit.
@@ -98,8 +113,8 @@ Ghi chú: `npm run lint` dùng local ESLint executable và flat config của Nex
 - Deployment and Ops evidence audit.
 - Production smoke test.
 
-## Lưu ý dữ liệu
+## Lưu ý dữ liệu và nghiệm thu
 
-Dữ liệu demo, GIS/BIM, Google Maps, Incident Memory và Digital Twin cần được phân biệt với dữ liệu chính thức trước khi dùng cho nghiệm thu vận hành.
+Dữ liệu demo, GIS/BIM, Google Maps, Incident Memory, telemetry, model artifact và Digital Twin cần được phân biệt với dữ liệu chính thức trước khi dùng cho nghiệm thu vận hành.
 
-Kiến trúc AI – Big Data – IoT – Blockchain hiện là định hướng và roadmap. Chưa được mô tả là runtime đã triển khai cho đến khi có code, infrastructure, test, runbook và CI/CD tương ứng.
+Không đánh dấu nền tảng Phase 1–4 là production-ready cho đến khi có CI/CD xanh, image pin, mTLS/ACL, load-test, security review, backup/restore, external signer/KMS-HSM cho ledger và rollback test tương ứng.
