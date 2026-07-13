@@ -35,7 +35,33 @@ export interface DigitalTwinOverview {
   assets: DigitalTwinAssetOverview[];
 }
 
+interface OperationalIndexes {
+  dnfsByEquipment: Map<string, any[]>;
+  hazardsByDnf: Map<string, any[]>;
+  hazardsBySystem: Map<string, any[]>;
+}
+
 let telemetryPool: Pool | null = null;
+
+const normalize = (value: unknown) => String(value ?? '').trim().toLowerCase();
+
+function lookupKeys(value: unknown): string[] {
+  const normalized = normalize(value);
+  if (!normalized) return [];
+  const tokens = normalized.split(/[\s,;/|]+/).filter(token => token.length >= 3);
+  return [...new Set([normalized, ...tokens])];
+}
+
+function appendIndex(index: Map<string, any[]>, key: string, value: any) {
+  if (!key) return;
+  const bucket = index.get(key);
+  if (bucket) bucket.push(value);
+  else index.set(key, [value]);
+}
+
+function uniqueById(values: any[]): any[] {
+  return [...new Map(values.map(value => [String(value.id), value])).values()];
+}
 
 function getTelemetryPool(): Pool | null {
   if (CONVERGED_PLATFORM_CONFIG.phase < 1) return null;
@@ -82,7 +108,7 @@ async function loadTelemetry(): Promise<Map<string, TelemetrySnapshot>> {
       GROUP BY asset_id
       LIMIT 5000
     `);
-    return new Map(result.rows.map(row => [row.asset_id, {
+    return new Map(result.rows.map(row => [normalize(row.asset_id), {
       assetId: row.asset_id,
       lastSeenAt: row.last_seen_at,
       total24h: Number(row.total_24h),
@@ -98,20 +124,41 @@ async function loadTelemetry(): Promise<Map<string, TelemetrySnapshot>> {
 const OPEN_DNF_STATUSES = new Set(['Mới', 'Mới lập', 'Đánh giá', 'Xử lý', 'Phản hồi', 'Open', 'In Progress']);
 const CLOSED_HAZARD_STATUSES = new Set(['Đóng', 'Closed', 'Hủy', 'Cancelled']);
 
-function assetMatchesDnf(asset: any, dnf: any): boolean {
-  const equipment = String(dnf.failedComponentEquipmentLRUTrainNumber ?? dnf.equipmentId ?? '').toLowerCase();
-  const identifiers = [asset.id, asset.code].filter(Boolean).map((value: unknown) => String(value).toLowerCase());
-  return identifiers.some(identifier => equipment === identifier || equipment.includes(identifier));
+function buildOperationalIndexes(dnfs: any[], hazards: any[]): OperationalIndexes {
+  const dnfsByEquipment = new Map<string, any[]>();
+  const hazardsByDnf = new Map<string, any[]>();
+  const hazardsBySystem = new Map<string, any[]>();
+
+  for (const dnf of dnfs) {
+    const equipment = dnf.failedComponentEquipmentLRUTrainNumber ?? dnf.equipmentId;
+    for (const key of lookupKeys(equipment)) appendIndex(dnfsByEquipment, key, dnf);
+  }
+  for (const hazard of hazards) {
+    if (hazard.linkedDnfId) appendIndex(hazardsByDnf, String(hazard.linkedDnfId), hazard);
+    for (const key of lookupKeys(hazard.systemGroup)) appendIndex(hazardsBySystem, key, hazard);
+  }
+  return { dnfsByEquipment, hazardsByDnf, hazardsBySystem };
 }
 
-function assetMatchesHazard(asset: any, hazard: any, linkedDnfIds: Set<string>): boolean {
-  if (hazard.linkedDnfId && linkedDnfIds.has(hazard.linkedDnfId)) return true;
-  const subsystem = String(asset.subsystem ?? asset.systemId ?? '').toLowerCase();
-  const systemGroup = String(hazard.systemGroup ?? '').toLowerCase();
-  const stationId = String(asset.stationId ?? '').toLowerCase();
-  const locations = Array.isArray(hazard.locationIds) ? hazard.locationIds.map((value: unknown) => String(value).toLowerCase()) : [];
-  return Boolean(subsystem && systemGroup && (subsystem === systemGroup || systemGroup.includes(subsystem)))
-    && (!stationId || locations.length === 0 || locations.includes(stationId));
+function dnfsForAsset(asset: any, indexes: OperationalIndexes): any[] {
+  const matches: any[] = [];
+  for (const key of [...lookupKeys(asset.id), ...lookupKeys(asset.code)]) {
+    matches.push(...(indexes.dnfsByEquipment.get(key) ?? []));
+  }
+  return uniqueById(matches);
+}
+
+function hazardsForAsset(asset: any, assetDnfs: any[], indexes: OperationalIndexes): any[] {
+  const matches: any[] = [];
+  for (const dnf of assetDnfs) matches.push(...(indexes.hazardsByDnf.get(String(dnf.id)) ?? []));
+  for (const key of [...lookupKeys(asset.subsystem), ...lookupKeys(asset.systemId)]) {
+    matches.push(...(indexes.hazardsBySystem.get(key) ?? []));
+  }
+  const station = normalize(asset.stationId);
+  return uniqueById(matches).filter(hazard => {
+    const locations = Array.isArray(hazard.locationIds) ? hazard.locationIds.map(normalize) : [];
+    return !station || locations.length === 0 || locations.includes(station) || Boolean(hazard.linkedDnfId);
+  });
 }
 
 function completenessFor(asset: any, telemetry: TelemetrySnapshot | undefined): number {
@@ -135,15 +182,15 @@ export async function getDigitalTwinOverview(): Promise<DigitalTwinOverview> {
     getInternalHazards(),
     loadTelemetry(),
   ]);
-
+  const indexes = buildOperationalIndexes(dnfs as any[], hazards as any[]);
   const now = Date.now();
+
   const result = (assets as any[]).slice(0, 500).map(asset => {
-    const assetDnfs = (dnfs as any[]).filter(dnf => assetMatchesDnf(asset, dnf));
+    const assetDnfs = dnfsForAsset(asset, indexes);
     const openDnfs = assetDnfs.filter(dnf => OPEN_DNF_STATUSES.has(String(dnf.status)));
-    const linkedDnfIds = new Set(assetDnfs.map(dnf => String(dnf.id)));
-    const assetHazards = (hazards as any[]).filter(hazard => assetMatchesHazard(asset, hazard, linkedDnfIds));
+    const assetHazards = hazardsForAsset(asset, assetDnfs, indexes);
     const openHazards = assetHazards.filter(hazard => !CLOSED_HAZARD_STATUSES.has(String(hazard.status)));
-    const telemetry = telemetryByAsset.get(String(asset.id)) ?? telemetryByAsset.get(String(asset.code));
+    const telemetry = telemetryByAsset.get(normalize(asset.id)) ?? telemetryByAsset.get(normalize(asset.code));
     const total24h = telemetry?.total24h ?? 0;
     const errorRatio = total24h > 0 ? (telemetry?.error24h ?? 0) / total24h : null;
     const overdueDnfs = openDnfs.filter(dnf => now - new Date(dnf.createdAt ?? now).getTime() > 7 * 86_400_000).length;
@@ -164,12 +211,13 @@ export async function getDigitalTwinOverview(): Promise<DigitalTwinOverview> {
       previousScore: typeof asset.healthScore === 'number' ? asset.healthScore : null,
     });
 
+    const subsystem = asset.subsystem ?? asset.systemId;
     return {
       id: String(asset.id),
       code: String(asset.code ?? asset.id),
       name: String(asset.name ?? asset.code ?? asset.id),
       stationId: asset.stationId ? String(asset.stationId) : null,
-      subsystem: asset.subsystem ?? asset.systemId ? String(asset.subsystem ?? asset.systemId) : null,
+      subsystem: subsystem ? String(subsystem) : null,
       criticality: asset.criticality ? String(asset.criticality) : null,
       lastTelemetryAt: telemetry?.lastSeenAt?.toISOString() ?? null,
       openDnfs: openDnfs.length,
