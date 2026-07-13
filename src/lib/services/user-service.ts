@@ -9,10 +9,24 @@ import {
     verifyPassword,
 } from '../security/password-hashing';
 
+export {
+    createInternalPasswordResetRequest,
+    createInternalRole,
+    deleteInternalRole,
+    getInternalPasswordResetRequests,
+    getInternalRoles,
+    updateInternalPasswordResetRequest,
+    updateInternalRole,
+} from './user-access-service';
+export {
+    generateRandomPassword,
+    updateUserPassword,
+    validatePassword,
+} from './user-password-service';
+
 /**
  * CORE LOGIC ONLY - NO 'use server'
- * This service handles all data persistence and business logic for Users and Roles.
- * Refactored for Phase 4: Atomic Offline Operations.
+ * Handles user persistence, credential verification, and account metadata.
  */
 
 function omitPassword(user: any): User {
@@ -21,67 +35,58 @@ function omitPassword(user: any): User {
 }
 
 /**
- * VALIDATION: Centralized password strength check
- */
-export function validatePassword(password: string): { isValid: boolean; message?: string } {
-    if (password.length < 10) return { isValid: false, message: "Mật khẩu phải có ít nhất 10 ký tự." };
-    if (!/[A-Z]/.test(password)) return { isValid: false, message: "Mật khẩu phải chứa ít nhất một chữ hoa." };
-    if (!/[a-z]/.test(password)) return { isValid: false, message: "Mật khẩu phải chứa ít nhất một chữ thường." };
-    if (!/[0-9]/.test(password)) return { isValid: false, message: "Mật khẩu phải chứa ít nhất một chữ số." };
-    if (!/[^A-Za-z0-9]/.test(password)) return { isValid: false, message: "Mật khẩu phải chứa ít nhất một ký tự đặc biệt." };
-    return { isValid: true };
-}
-
-/**
  * LOGIN VERIFICATION: Enhanced with Brute Force Protection & Metadata Updates
  */
-export async function verifyInternalCredentials(email: string, password?: string, ip?: string): Promise<{ user?: User; error?: string }> {
-    if (!password) return { error: "Mật khẩu không được để trống." };
-    
+export async function verifyInternalCredentials(
+    email: string,
+    password?: string,
+    ip?: string,
+): Promise<{ user?: User; error?: string }> {
+    if (!password) return { error: 'Mật khẩu không được để trống.' };
+
     let dbUser: any = null;
     const now = new Date();
 
     if (!IS_DATABASE_OFFLINE) {
         try {
             dbUser = await authDb.user.findUnique({ where: { email } });
-        } catch (e) {
-            console.warn("[USER-SERVICE] DB unreachable during login, checking local store.");
+        } catch (error) {
+            console.warn('[USER-SERVICE] DB unreachable during login, checking local store.');
         }
     }
 
     if (!dbUser) {
-        dbUser = await jsonDb.findFirst<any>('users', (u: any) => u.email === email);
+        dbUser = await jsonDb.findFirst<any>('users', (user: any) => user.email === email);
     }
 
-    if (!dbUser) return { error: "Email hoặc mật khẩu không chính xác." };
+    if (!dbUser) return { error: 'Email hoặc mật khẩu không chính xác.' };
 
-    // Check Account Status
     if (dbUser.status !== 'active') {
-        return { error: "Tài khoản đã bị vô hiệu hóa hoặc tạm khóa. Vui lòng liên hệ quản trị viên." };
+        return { error: 'Tài khoản đã bị vô hiệu hóa hoặc tạm khóa. Vui lòng liên hệ quản trị viên.' };
     }
 
-    // Check Lockout
     if (dbUser.lockoutUntil && new Date(dbUser.lockoutUntil) > now) {
-        const remaining = Math.ceil((new Date(dbUser.lockoutUntil).getTime() - now.getTime()) / 60000);
+        const remaining = Math.ceil(
+            (new Date(dbUser.lockoutUntil).getTime() - now.getTime()) / 60000,
+        );
         return { error: `Tài khoản đã bị khóa. Vui lòng thử lại sau ${remaining} phút.` };
     }
 
     const isValid = await verifyPassword(password, dbUser.password);
-    
+
     if (!isValid) {
         const failedAttempts = (dbUser.failedLoginAttempts || 0) + 1;
         const updateData: any = { failedLoginAttempts: failedAttempts };
-        
+
         if (failedAttempts >= 5) {
             updateData.lockoutUntil = new Date(now.getTime() + 15 * 60000).toISOString();
             updateData.failedLoginAttempts = 0;
         }
-        
+
         await updateInternalUser(dbUser.id, updateData);
-        return { error: "Email hoặc mật khẩu không chính xác." };
+        return { error: 'Email hoặc mật khẩu không chính xác.' };
     }
 
-    // Success - Update Metadata
     const updateSuccess: any = {
         failedLoginAttempts: 0,
         lockoutUntil: null,
@@ -89,16 +94,15 @@ export async function verifyInternalCredentials(email: string, password?: string
         lastLoginIp: ip || 'unknown',
     };
 
-    // Transparently strengthen existing bcrypt hashes after a successful login.
     if (passwordHashNeedsUpgrade(dbUser.password)) {
         try {
             updateSuccess.password = await hashPassword(password);
         } catch (error) {
-            // A rehash failure must not prevent an otherwise valid login.
-            console.error("[USER-SERVICE] Password hash upgrade failed:", error);
+            // Rehash failure must not prevent an otherwise valid login.
+            console.error('[USER-SERVICE] Password hash upgrade failed:', error);
         }
     }
-    
+
     await updateInternalUser(dbUser.id, updateSuccess);
     return { user: omitPassword({ ...dbUser, ...updateSuccess }) };
 }
@@ -106,12 +110,11 @@ export async function verifyInternalCredentials(email: string, password?: string
 export async function getInternalUsers(): Promise<User[]> {
     if (!IS_DATABASE_OFFLINE) {
         try {
-            const users = await authDb.user.findMany({
-                orderBy: { name: 'asc' }
-            });
+            const users = await authDb.user.findMany({ orderBy: { name: 'asc' } });
             return users.map(omitPassword) as unknown as User[];
-        } catch (e) {}
+        } catch (error) {}
     }
+
     const users = await jsonDb.getCollection<any>('users');
     return users.map(omitPassword) as unknown as User[];
 }
@@ -127,7 +130,7 @@ export async function createInternalUser(user: Partial<User>) {
         email: user.email,
         password: hashedPassword,
         role: user.role,
-        status: "active",
+        status: 'active',
         department: user.department,
         ouId: user.ouId || null,
         isVerified: user.isVerified !== false,
@@ -136,37 +139,38 @@ export async function createInternalUser(user: Partial<User>) {
         mustChangePassword: user.mustChangePassword || false,
         passwordLastChangedAt: new Date().toISOString(),
         createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
+        updatedAt: new Date().toISOString(),
     };
 
     if (!IS_DATABASE_OFFLINE) {
         try {
-            const pgRecord: any = {
-                id: record.id,
-                name: record.name,
-                email: record.email,
-                password: record.password,
-                role: record.role,
-                status: record.status,
-                department: record.department,
-                ouId: record.ouId,
-                isVerified: record.isVerified,
-                verificationOtp: record.verificationOtp,
-                otpExpiry: new Date(record.otpExpiry),
-                passwordLastChangedAt: new Date(record.passwordLastChangedAt),
-                createdAt: new Date(record.createdAt),
-                updatedAt: new Date(record.updatedAt),
-                permissions: user.permissions || [],
-                assignedSubsystems: user.assignedSubsystems || []
-            };
-            return await authDb.user.create({ data: pgRecord });
-        } catch (e) {
-            console.error("[USER-SERVICE] PostgreSQL create user failed:", e);
-            throw e;
+            return await authDb.user.create({
+                data: {
+                    id: record.id,
+                    name: record.name,
+                    email: record.email,
+                    password: record.password,
+                    role: record.role,
+                    status: record.status,
+                    department: record.department,
+                    ouId: record.ouId,
+                    isVerified: record.isVerified,
+                    verificationOtp: record.verificationOtp,
+                    otpExpiry: new Date(record.otpExpiry),
+                    passwordLastChangedAt: new Date(record.passwordLastChangedAt),
+                    createdAt: new Date(record.createdAt),
+                    updatedAt: new Date(record.updatedAt),
+                    permissions: user.permissions || [],
+                    assignedSubsystems: user.assignedSubsystems || [],
+                },
+            });
+        } catch (error) {
+            console.error('[USER-SERVICE] PostgreSQL create user failed:', error);
+            throw error;
         }
     }
-    
-    return await jsonDb.insertRecord<any>('users', record);
+
+    return jsonDb.insertRecord<any>('users', record);
 }
 
 export async function updateInternalUser(id: string, data: any) {
@@ -176,235 +180,106 @@ export async function updateInternalUser(id: string, data: any) {
 
     const updatePayload = {
         ...data,
-        updatedAt: new Date().toISOString()
+        updatedAt: new Date().toISOString(),
     };
 
     if (!IS_DATABASE_OFFLINE) {
         const pgPayload: any = {};
         const allowedFields = [
-            'name', 'email', 'password', 'role', 'status', 'department', 'ouId',
-            'isVerified', 'passwordLastChangedAt', 'permissions', 
-            'assignedSubsystems', 'avatarUrl', 'verificationOtp', 'otpExpiry', 'deletedAt',
-            'activeSessionId'
+            'name',
+            'email',
+            'password',
+            'role',
+            'status',
+            'department',
+            'ouId',
+            'isVerified',
+            'passwordLastChangedAt',
+            'permissions',
+            'assignedSubsystems',
+            'avatarUrl',
+            'verificationOtp',
+            'otpExpiry',
+            'deletedAt',
+            'activeSessionId',
         ];
-        
+
         for (const key of allowedFields) {
-            if (key in updatePayload) {
-                if (['passwordLastChangedAt', 'otpExpiry', 'deletedAt'].includes(key) && updatePayload[key]) {
-                    pgPayload[key] = new Date(updatePayload[key]);
-                } else {
-                    pgPayload[key] = updatePayload[key];
-                }
+            if (!(key in updatePayload)) continue;
+
+            if (
+                ['passwordLastChangedAt', 'otpExpiry', 'deletedAt'].includes(key) &&
+                updatePayload[key]
+            ) {
+                pgPayload[key] = new Date(updatePayload[key]);
+            } else {
+                pgPayload[key] = updatePayload[key];
             }
         }
 
         try {
             return await authDb.user.update({
                 where: { id },
-                data: pgPayload
+                data: pgPayload,
             });
-        } catch (e) {
-            console.error("[USER-SERVICE] PostgreSQL update user failed:", e);
-            throw e;
+        } catch (error) {
+            console.error('[USER-SERVICE] PostgreSQL update user failed:', error);
+            throw error;
         }
     }
 
-    return await jsonDb.updateRecord<any>('users', id, updatePayload);
+    return jsonDb.updateRecord<any>('users', id, updatePayload);
 }
 
 export async function deleteInternalUser(id: string) {
     if (!IS_DATABASE_OFFLINE) {
         try {
             return await authDb.user.delete({ where: { id } });
-        } catch (e) {
-            console.error("[USER-SERVICE] PostgreSQL delete user failed:", e);
-            throw e;
+        } catch (error) {
+            console.error('[USER-SERVICE] PostgreSQL delete user failed:', error);
+            throw error;
         }
     }
-    return await jsonDb.delete('users', (u: any) => u.id === id);
+
+    return jsonDb.delete('users', (user: any) => user.id === id);
 }
 
 export async function getInternalUserByEmail(email: string): Promise<User | null> {
     let dbUser: any = null;
+
     if (!IS_DATABASE_OFFLINE) {
         try {
             dbUser = await authDb.user.findUnique({ where: { email } });
-        } catch (e) {
-            console.warn("[USER-SERVICE] DB unreachable during getInternalUserByEmail, checking local store.");
+        } catch (error) {
+            console.warn(
+                '[USER-SERVICE] DB unreachable during getInternalUserByEmail, checking local store.',
+            );
         }
     }
+
     if (!dbUser) {
-        dbUser = await jsonDb.findFirst<any>('users', (u: any) => u.email === email);
+        dbUser = await jsonDb.findFirst<any>('users', (user: any) => user.email === email);
     }
+
     return dbUser ? omitPassword(dbUser) : null;
 }
 
 export async function getInternalUserById(id: string): Promise<User | null> {
     let dbUser: any = null;
+
     if (!IS_DATABASE_OFFLINE) {
         try {
             dbUser = await authDb.user.findUnique({ where: { id } });
-        } catch (e) {
-            console.warn("[USER-SERVICE] DB unreachable during getInternalUserById, checking local store.");
+        } catch (error) {
+            console.warn(
+                '[USER-SERVICE] DB unreachable during getInternalUserById, checking local store.',
+            );
         }
     }
+
     if (!dbUser) {
-        dbUser = await jsonDb.findFirst<any>('users', (u: any) => u.id === id);
+        dbUser = await jsonDb.findFirst<any>('users', (user: any) => user.id === id);
     }
+
     return dbUser ? omitPassword(dbUser) : null;
-}
-
-// Password Reset Requests
-export async function getInternalPasswordResetRequests() {
-    if (!IS_DATABASE_OFFLINE) {
-        try {
-            return await authDb.passwordResetRequest.findMany({ where: { status: 'pending' } });
-        } catch (e) {}
-    }
-    const all = await jsonDb.getCollection<any>('password_reset_requests');
-    return all.filter((r: any) => r.status === 'pending');
-}
-
-export async function createInternalPasswordResetRequest(userId: string, email: string, name: string) {
-    const record = {
-        id: `pwr-${Date.now()}`,
-        userId,
-        userEmail: email,
-        userName: name,
-        status: 'pending',
-        createdAt: new Date().toISOString()
-    };
-
-    if (!IS_DATABASE_OFFLINE) {
-        try {
-            const pgRecord = {
-                ...record,
-                createdAt: new Date(record.createdAt)
-            };
-            await authDb.passwordResetRequest.create({ data: pgRecord });
-            return;
-        } catch (e) {
-            console.error("[USER-SERVICE] PostgreSQL create password reset request failed:", e);
-            throw e;
-        }
-    }
-    await jsonDb.insertRecord<any>('password_reset_requests', record);
-}
-
-export async function updateInternalPasswordResetRequest(id: string, status: string) {
-    if (!IS_DATABASE_OFFLINE) {
-        try {
-            await authDb.passwordResetRequest.update({
-                where: { id },
-                data: { status }
-            });
-            return;
-        } catch (e) {
-            console.error("[USER-SERVICE] PostgreSQL update password reset request failed:", e);
-            throw e;
-        }
-    }
-    await jsonDb.updateRecord<any>('password_reset_requests', id, { status });
-}
-
-// Roles
-export async function getInternalRoles() {
-    if (!IS_DATABASE_OFFLINE) {
-        try {
-            const roles = await authDb.role.findMany();
-            if (roles && roles.length > 0) {
-                return roles;
-            }
-        } catch (e) {
-            console.warn("[USER-SERVICE] DB unreachable during getInternalRoles, checking local store.");
-        }
-    }
-    return await jsonDb.getCollection<any>('roles');
-}
-
-export async function createInternalRole(data: any) {
-    if (!IS_DATABASE_OFFLINE) {
-        try {
-            await authDb.role.create({ data });
-            return;
-        } catch (e) {
-            console.error("[USER-SERVICE] PostgreSQL create role failed:", e);
-            throw e;
-        }
-    }
-    await jsonDb.insertRecord<any>('roles', data);
-}
-
-export async function updateInternalRole(id: string, data: any) {
-    if (!IS_DATABASE_OFFLINE) {
-        try {
-            await authDb.role.update({ where: { id }, data });
-            return;
-        } catch (e) {
-            console.error("[USER-SERVICE] PostgreSQL update role failed:", e);
-            throw e;
-        }
-    }
-    await jsonDb.updateRecord<any>('roles', id, data);
-}
-
-export async function deleteInternalRole(id: string) {
-    if (!IS_DATABASE_OFFLINE) {
-        try {
-            await authDb.role.delete({ where: { id } });
-            return;
-        } catch (e) {
-            console.error("[USER-SERVICE] PostgreSQL delete role failed:", e);
-            throw e;
-        }
-    }
-    await jsonDb.delete('roles', (r: any) => r.id === id);
-}
-
-export function generateRandomPassword(length: number = 8): string {
-    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-    let password = 'HURC-';
-    for (let i = 0; i < length; i++) {
-        const randomIndex = crypto.randomInt(0, chars.length);
-        password += chars.charAt(randomIndex);
-    }
-    return password;
-}
-
-/**
- * PASSWORD UPDATE: Refactored with validation and hashing
- */
-export async function updateUserPassword(userId: string, newPassword: string, adminId?: string) {
-    // 1. Validation
-    const check = validatePassword(newPassword);
-    if (!check.isValid) {
-        throw new Error(check.message);
-    }
-
-    // 2. Hash and Update
-    const hashedPassword = await hashPassword(newPassword);
-    const updateData = {
-        password: hashedPassword,
-        passwordLastChangedAt: new Date().toISOString(),
-        mustChangePassword: false,
-        updatedAt: new Date().toISOString()
-    };
-
-    if (!IS_DATABASE_OFFLINE) {
-        try {
-            const pgUpdateData = {
-                password: updateData.password,
-                passwordLastChangedAt: new Date(updateData.passwordLastChangedAt)
-            };
-            return await authDb.user.update({
-                where: { id: userId },
-                data: pgUpdateData
-            });
-        } catch (e) {
-            console.error("[USER-SERVICE] PostgreSQL update user password failed:", e);
-            throw e;
-        }
-    }
-
-    return await jsonDb.updateRecord<any>('users', userId, updateData);
 }
