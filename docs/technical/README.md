@@ -9,6 +9,7 @@ Thư mục này chứa tài liệu kỹ thuật phục vụ lập trình viên, 
 | `AI_RUNTIME_PROFILE_OPERATIONS.md` | Trạng thái runtime, environment switch, bảng profile thực thi, rollout, rollback và giới hạn tương thích. |
 | `AI_BIGDATA_IOT_BLOCKCHAIN_TARGET_ARCHITECTURE.md` | Kiến trúc đích hợp nhất AI, Big Data, IoT và Blockchain; profile LOW/STANDARD/HIGH; roadmap, bảo mật, KPI và tiêu chí nghiệm thu. |
 | `CONVERGED_PLATFORM_RUNTIME_OPERATIONS.md` | Hướng dẫn chạy runtime Phase 1–4, kiểm tra MQTT/Timescale/Kafka/MinIO/ClickHouse/MLflow/Besu, rollback và production hardening. |
+| `DIGITAL_TWIN_OPERATIONAL_CONTROL_CENTER.md` | Mục đích nghiệp vụ, transactional outbox, Health Engine, logic liên kết, UX, HA readiness và tiêu chí nghiệm thu Digital Twin. |
 | `PROJECT_STRUCTURE_GUIDE.md` | Quy chuẩn cấu trúc dự án Frontend React/Next.js và Backend Golang. |
 | `STRUCTURE_MIGRATION_PLAN.md` | Kế hoạch sắp xếp lại thư mục phần mềm theo từng đợt. |
 | `API_INTEGRATION_GUIDE.md` | Hướng dẫn tích hợp API nếu được bổ sung. |
@@ -47,7 +48,7 @@ Runtime opt-in đã được thêm theo thứ tự bắt buộc:
 | Phase | Trạng thái mã nguồn | Thành phần |
 |---:|---|---|
 | 1 | Đã có runtime POC/UAT | Mosquitto, IoT ingestor, TimescaleDB |
-| 2 | Đã có runtime POC/UAT | Redpanda/Kafka, Redpanda Connect, MinIO, ClickHouse |
+| 2 | Đã có runtime POC/UAT | Redpanda/Kafka, Outbox Relay, Redpanda Connect, MinIO, ClickHouse |
 | 3 | Đã có runtime POC/UAT | MLflow |
 | 4 | Đã có runtime POC/UAT | Besu dev node, authenticated evidence-ledger gateway |
 
@@ -57,16 +58,33 @@ Cấu hình trung tâm:
 DATA_PLATFORM_PHASE=0|1|2|3|4
 ```
 
-Các dịch vụ nằm trong `docker-compose.platform.yml` và chỉ được bật khi người vận hành chọn Docker profile `phase1`, `phase2`, `phase3` hoặc `phase4`. Runtime `core` không tự động kéo các container này.
+Các dịch vụ nằm trong ba compose file và chỉ được bật khi người vận hành chọn profile tương ứng:
+
+```text
+docker-compose.yml
+docker-compose.platform.yml
+docker-compose.platform-enhancements.yml
+```
+
+Runtime `core` không tự động kéo các container mới.
 
 Tệp environment và runbook:
 
 ```text
 docs/config/converged-platform.env.example
 docs/technical/CONVERGED_PLATFORM_RUNTIME_OPERATIONS.md
+docs/technical/DIGITAL_TWIN_OPERATIONAL_CONTROL_CENTER.md
 ```
 
-Các cấu hình hiện tại là nền tảng POC/UAT, chưa phải production HA. Trước production phải thay Mosquitto anonymous, Redpanda single-node, MLflow SQLite và Besu dev network bằng cấu hình đã được phê duyệt; đồng thời phải pin image, triển khai mTLS/ACL, external signer/KMS-HSM, load-test, backup/restore và rollback test.
+Control Center đã có các route `/iot`, `/data-platform`, `/mlops`, `/evidence-ledger`, live health API, Digital Twin overview, deep-link Asset 360 và Production HA Readiness Gate.
+
+Lệnh gate:
+
+```bash
+npm run platform:production:check
+```
+
+Các cấu hình hiện tại vẫn là nền tảng POC/UAT, chưa phải production HA. Trước production phải thay Mosquitto anonymous, Redpanda single-node, MLflow SQLite và Besu dev network bằng cấu hình đã được phê duyệt; đồng thời phải pin image, triển khai mTLS/ACL, external signer/KMS-HSM, load-test, backup/restore và rollback test.
 
 Blockchain chỉ lưu hash và metadata tối thiểu; không thay database nghiệp vụ hoặc telemetry store.
 
