@@ -17,6 +17,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { EtlHealthCards } from './etl-health-cards';
 import {
   useConvergedControlCenter,
   type ComponentStatus,
@@ -35,10 +36,10 @@ const focusConfig = {
   },
   'data-platform': {
     title: 'Data Platform',
-    description: 'Theo dõi event backbone, raw zone, OLAP, outbox và khả năng replay.',
+    description: 'Theo dõi Bronze–Silver–Gold, event backbone, ETL quality, outbox và khả năng replay.',
     icon: Database,
     requiredPhase: 2,
-    checklist: ['Outbox không tồn đọng', 'Kafka consumer không lag', 'Raw zone bất biến', 'Schema có version'],
+    checklist: ['ETL không tồn đọng', 'Kafka consumer không lag', 'Bronze bất biến', 'Schema có version'],
   },
   mlops: {
     title: 'MLOps & AI Reliability',
@@ -161,6 +162,8 @@ export function ConvergedControlCenter({ focus }: { focus: PlatformFocus }) {
           <Card><CardHeader className="pb-2"><CardDescription>Outbox chờ publish</CardDescription><CardTitle className="text-3xl">{platform?.outbox?.pending ?? '—'}</CardTitle></CardHeader><CardContent className="text-sm text-slate-500">Retry: {platform?.outbox?.retrying ?? '—'} sự kiện.</CardContent></Card>
           <Card><CardHeader className="pb-2"><CardDescription>Telemetry</CardDescription><CardTitle className="text-xl">{twin?.telemetryAvailable ? 'Đang nhận dữ liệu' : 'Chưa có dữ liệu'}</CardTitle></CardHeader><CardContent className="text-sm text-slate-500">Thiếu telemetry sẽ làm giảm confidence.</CardContent></Card>
         </section>
+
+        {focus === 'data-platform' && <EtlHealthCards etl={platform?.etl ?? null} />}
 
         <section className="grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
           <Card>
