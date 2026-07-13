@@ -17,7 +17,21 @@ AI_ASSURANCE_PROFILE=LOW|STANDARD|HIGH
 
 Mặc định `STANDARD/STANDARD`. Quyền ghi của AI luôn bị khóa.
 
-Nền tảng hợp nhất AI – Big Data – IoT – Blockchain đã có runtime opt-in theo giai đoạn:
+AI có vòng học liên tục có kiểm duyệt:
+
+```text
+Phản hồi và dữ liệu đã xác minh
+→ Memory Firewall
+→ provisional/quarantine
+→ shadow evaluation
+→ đề xuất cải thiện
+→ human approval
+→ verified knowledge hoặc model release có kiểm soát
+```
+
+AI không tự sửa mã, không tự phát hành model và không tự ghi dữ liệu vận hành.
+
+Nền tảng hợp nhất AI – Big Data – IoT – Blockchain có runtime opt-in:
 
 ```text
 DATA_PLATFORM_PHASE=0|1|2|3|4
@@ -41,11 +55,12 @@ docker-compose.platform-enhancements.yml
 
 Chúng chỉ được bật qua Docker profile tương ứng. Blockchain chỉ neo hash và metadata tối thiểu; không thay database nghiệp vụ, time-series store hoặc object storage.
 
-Runtime hiện tại là nền tảng POC/UAT có kiểm soát, chưa phải cấu hình production HA. Kiến trúc và runbook:
+Runtime hiện tại là nền tảng POC/UAT có kiểm soát cho đến khi workflow attestation production thành công. Kiến trúc và runbook:
 
 - [AI, Big Data, IoT and Blockchain Target Architecture](docs/technical/AI_BIGDATA_IOT_BLOCKCHAIN_TARGET_ARCHITECTURE.md);
 - [Converged Platform Runtime Operations](docs/technical/CONVERGED_PLATFORM_RUNTIME_OPERATIONS.md);
-- [Digital Twin Operational Control Center](docs/technical/DIGITAL_TWIN_OPERATIONAL_CONTROL_CENTER.md).
+- [Digital Twin Operational Control Center](docs/technical/DIGITAL_TWIN_OPERATIONAL_CONTROL_CENTER.md);
+- [AI Continuous Learning, UX and Production Readiness](docs/technical/AI_CONTINUOUS_LEARNING_UX_PRODUCTION_READINESS.md).
 
 ## Phân hệ chính
 
@@ -59,19 +74,21 @@ Runtime hiện tại là nền tảng POC/UAT có kiểm soát, chưa phải c�
 | Asset 360 | Quản lý tài sản, Health Engine và lịch sử liên quan. |
 | Rail Network | Quản lý tuyến và ga. |
 | GIS/BIM Twin | Quản lý dữ liệu không gian và mô hình kỹ thuật. |
-| IoT Operations | Theo dõi kết nối, telemetry và gateway. |
-| Data Platform | Theo dõi outbox, broker, raw zone và OLAP. |
-| MLOps | Theo dõi model registry, approval và drift. |
-| Evidence Ledger | Theo dõi signer, hash và blockchain verification. |
+| Nền tảng số hội tụ | Một điểm vào cho IoT, Data Platform, MLOps và Evidence Ledger. |
 | AI Lab | Hỗ trợ hỏi đáp tài liệu và Incident Learning. |
-| Admin | Quản trị người dùng, vai trò và cấu hình. |
+| Admin | Quản trị người dùng, vai trò, vòng học AI và cấu hình. |
 
-## Digital Twin Operational Control Center
+## Digital Twin và trải nghiệm điều hành
 
-Các route đã triển khai:
+Control Center có điểm vào chính:
 
 ```text
 /iot
+```
+
+Các tab chuyên sâu:
+
+```text
 /data-platform
 /mlops
 /evidence-ledger
@@ -84,11 +101,58 @@ Control Center hợp nhất:
 - Digital Twin overall score;
 - confidence theo tài sản;
 - DNF/Hazard/telemetry correlation;
-- yếu tố penalty có thể giải thích;
+- penalty có thể giải thích;
 - deep-link đến đúng tài sản trong Asset 360;
-- Production HA Readiness score và blocker.
+- Production Readiness score và blocker;
+- tải từng phần khi một nguồn dữ liệu chậm;
+- polling chỉ khi tab đang hiển thị;
+- loading skeleton và thời điểm cập nhật gần nhất.
+
+Hai API điều hành dùng bounded TTL cache, stale-while-refresh, payload limit và `server-timing` để giảm truy vấn lặp và cải thiện tốc độ phản hồi.
 
 DNF/Hazard được đưa vào transactional outbox bằng PostgreSQL trigger trong cùng transaction, sau đó relay at-least-once sang Redpanda/Kafka.
+
+## Production Readiness Attestation
+
+Không đánh dấu Phase 1–4 là production-ready chỉ vì container đang chạy hoặc healthcheck xanh.
+
+Lệnh kiểm tra:
+
+```bash
+npm run platform:production:check
+```
+
+Lệnh phát hành attestation:
+
+```bash
+npm run platform:production:attest
+```
+
+Workflow:
+
+```text
+.github/workflows/platform-production-readiness.yml
+```
+
+`PRODUCTION_READY` chỉ xuất hiện khi:
+
+- CI/CD acceptance xanh;
+- image được pin version/digest;
+- mTLS/ACL và device identity;
+- load-test và security review được phê duyệt;
+- backup/restore và DR đã kiểm thử;
+- external signer/KMS-HSM;
+- toàn bộ Phase 1–4 không còn blocker;
+- attestation khớp đúng commit ứng dụng.
+
+Commit binding:
+
+```text
+APP_COMMIT_SHA=<deployed-sha>
+PLATFORM_ATTESTATION_COMMIT_SHA=<same-approved-sha>
+```
+
+Artifact được lưu tại `.build-logs/platform-production-attestation.json` và được GitHub Actions tải lên khi workflow chạy.
 
 ## Tài liệu kỹ thuật
 
@@ -98,6 +162,7 @@ DNF/Hazard được đưa vào transactional outbox bằng PostgreSQL trigger tr
 | [Linux and Windows Build Guide](docs/technical/BUILD_WINDOWS_LINUX_GUIDE.md) | Hướng dẫn build source, development, Docker, biến môi trường, Prisma, smoke test và xử lý lỗi trên Linux/Windows. |
 | [AI Architecture and Configuration Reference](docs/technical/AI_ARCHITECTURE_CONFIGURATION_REFERENCE.md) | Kiến trúc AI; risk/confidence; limit; Memory, Data, MCP, Vision và rate-limit. |
 | [AI Runtime Profile Operations](docs/technical/AI_RUNTIME_PROFILE_OPERATIONS.md) | Environment switch, profile đang chạy, hard limit, rollout, rollback và giới hạn tương thích. |
+| [AI Continuous Learning, UX and Production Readiness](docs/technical/AI_CONTINUOUS_LEARNING_UX_PRODUCTION_READINESS.md) | Vòng học có kiểm duyệt, tối ưu tốc độ/UX và attestation đúng commit. |
 | [AI, Big Data, IoT and Blockchain Target Architecture](docs/technical/AI_BIGDATA_IOT_BLOCKCHAIN_TARGET_ARCHITECTURE.md) | Kiến trúc đích hợp nhất, profile LOW/STANDARD/HIGH, roadmap, bảo mật, KPI và tiêu chí nghiệm thu. |
 | [Converged Platform Runtime Operations](docs/technical/CONVERGED_PLATFORM_RUNTIME_OPERATIONS.md) | Cách chạy Phase 1–4, health-check, dữ liệu mẫu, rollback và production hardening. |
 | [Digital Twin Operational Control Center](docs/technical/DIGITAL_TWIN_OPERATIONAL_CONTROL_CENTER.md) | Thuật toán health, outbox, UX, HA gate và tiêu chí nghiệm thu. |
@@ -121,6 +186,7 @@ npm run db:generate:all
 npm run typecheck
 npm run test:ai-governance
 npm run test:ai-profiles
+npm run test:continuous-learning
 npm run test:platform-profiles
 npm run test:digital-twin-health
 npm run test:platform-readiness
@@ -129,29 +195,23 @@ npm run lint
 npm run build
 ```
 
-Kiểm tra production HA:
-
-```bash
-npm run platform:production:check
-```
-
 Trên Windows PowerShell, xem lệnh tương ứng trong [Linux and Windows Build Guide](docs/technical/BUILD_WINDOWS_LINUX_GUIDE.md).
 
 ## CI hiện có
 
-- Security and Acceptance Gate.
-- AI governance invariant checks.
-- AI executable profile invariant checks.
-- Converged platform profile invariant checks.
-- Digital Twin health invariant checks.
-- Platform production readiness invariant checks.
-- Converged platform Compose validation.
-- Docker Acceptance Gate.
-- Module boundary và registry audit.
+- Security and Acceptance Gate;
+- AI governance/profile/continuous-learning invariant checks;
+- Converged platform profile invariant checks;
+- Digital Twin health invariant checks;
+- Platform production readiness invariant checks;
+- Platform Production Readiness Attestation workflow;
+- Converged platform Compose validation;
+- Docker Acceptance Gate;
+- Module boundary và registry audit;
 - Production route smoke test.
 
 ## Lưu ý dữ liệu và nghiệm thu
 
 Dữ liệu demo, GIS/BIM, Google Maps, Incident Memory, telemetry, model artifact và Digital Twin cần được phân biệt với dữ liệu chính thức trước khi dùng cho nghiệm thu vận hành.
 
-Không đánh dấu nền tảng Phase 1–4 là production-ready cho đến khi có CI/CD xanh, image pin, mTLS/ACL, load-test, security review, backup/restore, external signer/KMS-HSM cho ledger và rollback test tương ứng.
+Không đánh dấu nền tảng Phase 1–4 là production-ready cho đến khi workflow attestation thành công cho đúng commit và artifact chứng minh đầy đủ CI/CD, image pin, mTLS/ACL, load-test, security review, backup/restore, DR và external signer/KMS-HSM.
