@@ -17,13 +17,19 @@ if (action === 'up' && (!Number.isInteger(phase) || phase < 1 || phase > 4)) {
   process.exit(2);
 }
 
-const args = [
-  'compose',
-  '-f',
+const composeFiles = [
   'docker-compose.yml',
-  '-f',
   'docker-compose.platform.yml',
+  'docker-compose.platform-enhancements.yml',
 ];
+const args = ['compose'];
+for (const file of composeFiles) {
+  if (!existsSync(resolve(file))) {
+    console.error(`Required compose file does not exist: ${file}`);
+    process.exit(2);
+  }
+  args.push('-f', file);
+}
 
 const envFile = process.env.PLATFORM_ENV_FILE?.trim();
 if (envFile) {
