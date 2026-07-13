@@ -1,0 +1,56 @@
+services:
+  outbox-topic-init:
+    image: ${REDPANDA_IMAGE:-docker.redpanda.com/redpandadata/redpanda:v26.1.12}
+    container_name: hurc_outbox_topic_init
+    profiles: ["phase2", "phase3", "phase4"]
+    command:
+      - topic
+      - create
+      - ops.domain-events
+      - ops.domain-events.dead-letter
+      - --partitions
+      - "6"
+      - --replicas
+      - "1"
+      - --if-not-exists
+      - -X
+      - brokers=redpanda:9092
+    depends_on:
+      redpanda:
+        condition: service_healthy
+    networks:
+      - backend-net
+
+  outbox-relay:
+    build:
+      context: ./infra/outbox-relay
+    container_name: hurc_outbox_relay
+    restart: unless-stopped
+    profiles: ["phase2", "phase3", "phase4"]
+    environment:
+      OPS_DATABASE_URL: ${OPS_DATABASE_URL:-postgresql://postgres:hurc123@postgres:5432/hurc_ops}
+      KAFKA_BROKERS: ${KAFKA_BROKERS:-redpanda:9092}
+      OUTBOX_EVENT_TOPIC: ${OUTBOX_EVENT_TOPIC:-ops.domain-events}
+      OUTBOX_DEAD_LETTER_TOPIC: ${OUTBOX_DEAD_LETTER_TOPIC:-ops.domain-events.dead-letter}
+      OUTBOX_BATCH_SIZE: ${OUTBOX_BATCH_SIZE:-100}
+      OUTBOX_POLL_INTERVAL_SECONDS: ${OUTBOX_POLL_INTERVAL_SECONDS:-1}
+      OUTBOX_LOCK_TIMEOUT_SECONDS: ${OUTBOX_LOCK_TIMEOUT_SECONDS:-300}
+      OUTBOX_MAX_ATTEMPTS: ${OUTBOX_MAX_ATTEMPTS:-12}
+      HEALTH_PORT: 8081
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redpanda:
+        condition: service_healthy
+      outbox-topic-init:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8081/health', timeout=3)"]
+      interval: 15s
+      timeout: 5s
+      retries: 15
+    networks:
+      - backend-net
+
+networks:
+  backend-net:
