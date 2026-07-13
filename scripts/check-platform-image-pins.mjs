@@ -8,6 +8,7 @@ const composeFiles = [
   'docker-compose.yml',
   'docker-compose.platform.yml',
   'docker-compose.platform-enhancements.yml',
+  'docker-compose.platform-production-images.yml',
 ];
 const args = ['compose'];
 for (const file of composeFiles) {
@@ -27,7 +28,7 @@ if (envFile) {
   }
   args.push('--env-file', absolutePath);
 }
-args.push('config', '--images');
+args.push('config', '--format', 'json');
 
 const result = spawnSync('docker', args, {
   cwd: process.cwd(),
@@ -40,42 +41,53 @@ if (result.error) {
   process.exit(1);
 }
 if (result.status !== 0) {
-  process.stderr.write(result.stderr || 'Unable to resolve Compose images.\n');
+  process.stderr.write(result.stderr || 'Unable to resolve Compose configuration.\n');
   process.exit(result.status ?? 1);
 }
 
-const images = [...new Set(
-  String(result.stdout)
-    .split(/\r?\n/)
-    .map(value => value.trim())
-    .filter(Boolean),
-)];
-if (images.length === 0) {
-  console.error('[image-pin-audit] Compose did not return any images.');
+let configuration;
+try {
+  configuration = JSON.parse(String(result.stdout));
+} catch (error) {
+  console.error('[image-pin-audit] Compose did not return valid JSON:', error);
   process.exit(1);
 }
 
-const requireDigest = process.env.PLATFORM_REQUIRE_IMAGE_DIGEST === 'true';
+const phasePattern = /^phase[1-4]$/;
+const services = Object.entries(configuration.services ?? {})
+  .filter(([, service]) => Array.isArray(service.profiles)
+    && service.profiles.some(profile => phasePattern.test(String(profile))));
+if (services.length === 0) {
+  console.error('[image-pin-audit] No Phase 1-4 services were resolved.');
+  process.exit(1);
+}
+
+const requireDigest = process.env.PLATFORM_REQUIRE_IMAGE_DIGEST !== 'false';
 const failures = [];
-for (const image of images) {
+const audited = [];
+for (const [serviceName, service] of services) {
+  const image = String(service.image ?? '').trim();
+  audited.push({ serviceName, image });
   const lower = image.toLowerCase();
   const leaf = image.slice(image.lastIndexOf('/') + 1);
   const hasDigest = /@sha256:[a-f0-9]{64}$/i.test(image);
   const hasTag = leaf.includes(':');
 
-  if (lower.includes('replace-with') || lower.includes('change-me')) {
-    failures.push(`${image}: placeholder image reference`);
+  if (!image) {
+    failures.push(`${serviceName}: production image reference is missing`);
+  } else if (lower.includes('replace-with') || lower.includes('change-me')) {
+    failures.push(`${serviceName}: placeholder image reference (${image})`);
   } else if (lower === 'latest' || lower.endsWith(':latest')) {
-    failures.push(`${image}: latest tag is mutable`);
+    failures.push(`${serviceName}: latest tag is mutable (${image})`);
   } else if (requireDigest && !hasDigest) {
-    failures.push(`${image}: immutable sha256 digest is required`);
+    failures.push(`${serviceName}: immutable sha256 digest is required (${image})`);
   } else if (!requireDigest && !hasDigest && !hasTag) {
-    failures.push(`${image}: explicit version tag or digest is required`);
+    failures.push(`${serviceName}: explicit version tag or digest is required (${image})`);
   }
 }
 
-console.log(`[image-pin-audit] Resolved ${images.length} unique image references.`);
-images.forEach(image => console.log(`- ${image}`));
+console.log(`[image-pin-audit] Audited ${audited.length} Phase 1-4 services.`);
+audited.forEach(item => console.log(`- ${item.serviceName}: ${item.image || '<missing>'}`));
 if (failures.length > 0) {
   console.error('[image-pin-audit] FAILED:');
   failures.forEach(failure => console.error(`- ${failure}`));
