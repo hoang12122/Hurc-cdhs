@@ -1,30 +1,8 @@
 import assert from 'node:assert/strict';
 import { evaluatePlatformProductionReadiness } from '../lib/config/platform-production-readiness';
 
-function main() {
-  const unsafe = evaluatePlatformProductionReadiness({
-    NODE_ENV: 'production',
-    PLATFORM_DEPLOYMENT_MODE: 'production',
-    DATA_PLATFORM_PHASE: '4',
-    KAFKA_BROKERS: 'redpanda:9092',
-    REDPANDA_REPLICATION_FACTOR: '1',
-    CLICKHOUSE_NODE_COUNT: '1',
-    REDPANDA_CONNECT_IMAGE: 'docker.redpanda.com/redpandadata/connect:latest',
-    MLFLOW_BACKEND_STORE_URI: 'sqlite:////mlflow/mlflow.db',
-    MLFLOW_ARTIFACT_ROOT: '/mlflow/artifacts',
-    BESU_NETWORK: 'dev',
-    LEDGER_SIGNER_MODE: 'local-dev',
-  });
-  assert.equal(unsafe.ready, false);
-  assert.ok(unsafe.issues.some(issue => issue.code === 'MQTT_ANONYMOUS'));
-  assert.ok(unsafe.issues.some(issue => issue.code === 'KAFKA_QUORUM'));
-  assert.ok(unsafe.issues.some(issue => issue.code === 'MLFLOW_SQLITE'));
-  assert.ok(unsafe.issues.some(issue => issue.code === 'BESU_DEV_NETWORK'));
-  assert.ok(unsafe.issues.some(issue => issue.code === 'CI_ACCEPTANCE'));
-  assert.ok(unsafe.issues.some(issue => issue.code === 'SECURITY_REVIEW'));
-  assert.ok(unsafe.score < 50);
-
-  const ready = evaluatePlatformProductionReadiness({
+function productionEvidence() {
+  return {
     NODE_ENV: 'production',
     PLATFORM_DEPLOYMENT_MODE: 'production',
     DATA_PLATFORM_PHASE: '4',
@@ -50,9 +28,50 @@ function main() {
     PLATFORM_SECURITY_REVIEW_APPROVED: 'true',
     PLATFORM_BACKUP_RESTORE_TESTED: 'true',
     PLATFORM_DR_TESTED: 'true',
+  } as const;
+}
+
+function main() {
+  const unsafe = evaluatePlatformProductionReadiness({
+    NODE_ENV: 'production',
+    PLATFORM_DEPLOYMENT_MODE: 'production',
+    DATA_PLATFORM_PHASE: '4',
+    KAFKA_BROKERS: 'redpanda:9092',
+    REDPANDA_REPLICATION_FACTOR: '1',
+    CLICKHOUSE_NODE_COUNT: '1',
+    REDPANDA_CONNECT_IMAGE: 'docker.redpanda.com/redpandadata/connect:latest',
+    MLFLOW_BACKEND_STORE_URI: 'sqlite:////mlflow/mlflow.db',
+    MLFLOW_ARTIFACT_ROOT: '/mlflow/artifacts',
+    BESU_NETWORK: 'dev',
+    LEDGER_SIGNER_MODE: 'local-dev',
+  });
+  assert.equal(unsafe.ready, false);
+  assert.ok(unsafe.issues.some(issue => issue.code === 'MQTT_ANONYMOUS'));
+  assert.ok(unsafe.issues.some(issue => issue.code === 'KAFKA_QUORUM'));
+  assert.ok(unsafe.issues.some(issue => issue.code === 'MLFLOW_SQLITE'));
+  assert.ok(unsafe.issues.some(issue => issue.code === 'BESU_DEV_NETWORK'));
+  assert.ok(unsafe.issues.some(issue => issue.code === 'CI_ACCEPTANCE'));
+  assert.ok(unsafe.issues.some(issue => issue.code === 'ATTESTATION_COMMIT'));
+  assert.ok(unsafe.issues.some(issue => issue.code === 'SECURITY_REVIEW'));
+  assert.ok(unsafe.score < 50);
+
+  const mismatched = evaluatePlatformProductionReadiness({
+    ...productionEvidence(),
+    APP_COMMIT_SHA: 'commit-a',
+    PLATFORM_ATTESTATION_COMMIT_SHA: 'commit-b',
+  });
+  assert.equal(mismatched.ready, false);
+  assert.equal(mismatched.commitBinding.matched, false);
+  assert.ok(mismatched.issues.some(issue => issue.code === 'ATTESTATION_COMMIT'));
+
+  const ready = evaluatePlatformProductionReadiness({
+    ...productionEvidence(),
+    APP_COMMIT_SHA: 'commit-approved',
+    PLATFORM_ATTESTATION_COMMIT_SHA: 'commit-approved',
   });
   assert.equal(ready.ready, true);
   assert.equal(ready.score, 100);
+  assert.equal(ready.commitBinding.matched, true);
   assert.equal(ready.issues.length, 0);
 
   console.log('Platform production readiness invariant checks passed.');
