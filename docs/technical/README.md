@@ -13,6 +13,16 @@ Thư mục này chứa tài liệu kỹ thuật phục vụ lập trình viên, 
 | `MODULE_BOUNDARY_GUIDE.md` | Hướng dẫn ranh giới module nếu được bổ sung. |
 | `SECURITY_GUIDE.md` | Hướng dẫn bảo mật nếu được bổ sung. |
 
+## Trạng thái tài liệu cấu hình AI
+
+Bản cập nhật kiến trúc và cấu hình AI hiện tại chỉ bổ sung tài liệu tham chiếu, chưa làm thay đổi runtime.
+
+- Các giá trị đánh dấu `CURRENT` phản ánh cấu hình đang tồn tại trong mã nguồn.
+- Các profile `LOW_RESOURCE`, `STANDARD`, `HIGH_CAPACITY`, `LOW_ASSURANCE`, `STANDARD_ASSURANCE` và `HIGH_ASSURANCE` là khuyến nghị, chưa phải environment switch có hiệu lực tự động.
+- Chưa thay đổi timeout, concurrency, risk threshold, confidence, Memory/Data Governance, MCP, Vision, rate-limit, session hoặc 2FA bằng lần cập nhật tài liệu này.
+- Muốn áp dụng profile phải có thay đổi mã nguồn riêng, kiểm thử, review, bằng chứng load-test hoặc security validation và phương án rollback.
+- Không đánh dấu CI/CD `PASS` nếu chưa có kết quả pipeline thực tế.
+
 Nguyên tắc cập nhật:
 
 1. Tài liệu kỹ thuật phải nêu rõ phạm vi áp dụng.
