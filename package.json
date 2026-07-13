@@ -30,6 +30,7 @@
     "test:ai-governance": "npx tsx src/scripts/test-ai-governance.ts",
     "test:guard": "node scripts/test-guard.js",
     "security:rotate-compromised-admins": "npx tsx src/scripts/rotate-compromised-admin-credentials.ts",
+    "security:benchmark-password-hashing": "npx tsx src/scripts/benchmark-password-hashing.ts",
     "db:dashboard": "npx tsx src/scripts/generate-integrity-dashboard.ts"
   },
   "dependencies": {
@@ -115,7 +116,7 @@
     "eslint-config-next": "^16.2.10",
     "eslint-plugin-jsx-a11y": "^6.10.2",
     "eslint-plugin-react": "^7.37.5",
-    "eslint-plugin-react-hooks": "^5.2.0",
+    "eslint-plugin-react-hooks": "^7.0.1",
     "jest": "^30.4.2",
     "npm-check-updates": "^17.1.1",
     "postcss": "^8.4.40",
