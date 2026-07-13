@@ -151,6 +151,7 @@ export function resolveAiGovernanceConfig(
 
   const capacity = RUNTIME_PROFILES[runtimeProfile];
   const assurance = ASSURANCE_PROFILES[assuranceProfile];
+  const strict = assuranceProfile === 'HIGH';
   const runtime = {
     timeoutMs: integer(env, 'AI_EXECUTION_TIMEOUT_MS', capacity.runtime.timeoutMs, 3_000, 240_000),
     maxConcurrentPerNamespace: integer(env, 'AI_MAX_CONCURRENT_PER_NAMESPACE', capacity.runtime.maxConcurrentPerNamespace, 1, 8),
@@ -162,28 +163,43 @@ export function resolveAiGovernanceConfig(
     ...capacity.uploads,
     textExtractionMaxBytes: capacity.uploads.knowledgeTextMaxChars,
   };
+  const proposedMemory = {
+    defaultConfidence: decimal(env, 'AI_MEMORY_DEFAULT_CONFIDENCE', assurance.memory.defaultConfidence, 0, 1),
+    humanApprovedMinConfidence: decimal(env, 'AI_MEMORY_HUMAN_APPROVED_MIN', assurance.memory.humanApprovedMinConfidence, 0.8, 1),
+    provisionalThreshold: decimal(env, 'AI_MEMORY_PROVISIONAL_THRESHOLD', assurance.memory.provisionalThreshold, 0, 1),
+    retrievalMinConfidence: decimal(env, 'AI_MEMORY_MIN_CONFIDENCE', assurance.memory.retrievalMinConfidence, 0, 1),
+    includeProvisional: booleanValue(env.AI_MEMORY_INCLUDE_PROVISIONAL, assurance.memory.includeProvisional),
+    retrievalLimit: integer(env, 'AI_MEMORY_RETRIEVAL_LIMIT', assurance.memory.retrievalLimit, 1, 10),
+    relevanceThreshold: decimal(env, 'AI_MEMORY_RELEVANCE_THRESHOLD', assurance.memory.relevanceThreshold, 0, 1),
+  };
+  const proposedData = {
+    quarantineTrustBelow: integer(env, 'AI_DATA_QUARANTINE_TRUST_BELOW', assurance.data.quarantineTrustBelow, 0, 100),
+    reviewQualityBelow: integer(env, 'AI_DATA_REVIEW_QUALITY_BELOW', assurance.data.reviewQualityBelow, 0, 100),
+    reviewTrustBelow: integer(env, 'AI_DATA_REVIEW_TRUST_BELOW', assurance.data.reviewTrustBelow, 0, 100),
+    reviewIssueCount: integer(env, 'AI_DATA_REVIEW_ISSUE_COUNT', assurance.data.reviewIssueCount, 1, 20),
+  };
 
   return {
-    version: '2026-07-13.3',
+    version: '2026-07-13.4',
     runtimeProfile,
     assuranceProfile,
     runtime,
     memory: {
       topicMaxChars: runtimeProfile === 'LOW' ? 300 : runtimeProfile === 'HIGH' ? 800 : 500,
       contextMaxChars: runtimeProfile === 'LOW' ? 8_000 : runtimeProfile === 'HIGH' ? 20_000 : 12_000,
-      defaultConfidence: decimal(env, 'AI_MEMORY_DEFAULT_CONFIDENCE', assurance.memory.defaultConfidence, 0, 1),
-      humanApprovedMinConfidence: decimal(env, 'AI_MEMORY_HUMAN_APPROVED_MIN', assurance.memory.humanApprovedMinConfidence, 0.8, 1),
-      provisionalThreshold: decimal(env, 'AI_MEMORY_PROVISIONAL_THRESHOLD', assurance.memory.provisionalThreshold, 0, 1),
-      retrievalMinConfidence: decimal(env, 'AI_MEMORY_MIN_CONFIDENCE', assurance.memory.retrievalMinConfidence, 0, 1),
-      includeProvisional: booleanValue(env.AI_MEMORY_INCLUDE_PROVISIONAL, assurance.memory.includeProvisional),
-      retrievalLimit: integer(env, 'AI_MEMORY_RETRIEVAL_LIMIT', assurance.memory.retrievalLimit, 1, 10),
-      relevanceThreshold: decimal(env, 'AI_MEMORY_RELEVANCE_THRESHOLD', assurance.memory.relevanceThreshold, 0, 1),
+      defaultConfidence: strict ? Math.max(assurance.memory.defaultConfidence, proposedMemory.defaultConfidence) : proposedMemory.defaultConfidence,
+      humanApprovedMinConfidence: strict ? Math.max(assurance.memory.humanApprovedMinConfidence, proposedMemory.humanApprovedMinConfidence) : proposedMemory.humanApprovedMinConfidence,
+      provisionalThreshold: strict ? Math.max(assurance.memory.provisionalThreshold, proposedMemory.provisionalThreshold) : proposedMemory.provisionalThreshold,
+      retrievalMinConfidence: strict ? Math.max(assurance.memory.retrievalMinConfidence, proposedMemory.retrievalMinConfidence) : proposedMemory.retrievalMinConfidence,
+      includeProvisional: strict ? false : proposedMemory.includeProvisional,
+      retrievalLimit: proposedMemory.retrievalLimit,
+      relevanceThreshold: strict ? Math.max(assurance.memory.relevanceThreshold, proposedMemory.relevanceThreshold) : proposedMemory.relevanceThreshold,
     },
     data: {
-      quarantineTrustBelow: integer(env, 'AI_DATA_QUARANTINE_TRUST_BELOW', assurance.data.quarantineTrustBelow, 0, 100),
-      reviewQualityBelow: integer(env, 'AI_DATA_REVIEW_QUALITY_BELOW', assurance.data.reviewQualityBelow, 0, 100),
-      reviewTrustBelow: integer(env, 'AI_DATA_REVIEW_TRUST_BELOW', assurance.data.reviewTrustBelow, 0, 100),
-      reviewIssueCount: integer(env, 'AI_DATA_REVIEW_ISSUE_COUNT', assurance.data.reviewIssueCount, 1, 20),
+      quarantineTrustBelow: strict ? Math.max(assurance.data.quarantineTrustBelow, proposedData.quarantineTrustBelow) : proposedData.quarantineTrustBelow,
+      reviewQualityBelow: strict ? Math.max(assurance.data.reviewQualityBelow, proposedData.reviewQualityBelow) : proposedData.reviewQualityBelow,
+      reviewTrustBelow: strict ? Math.max(assurance.data.reviewTrustBelow, proposedData.reviewTrustBelow) : proposedData.reviewTrustBelow,
+      reviewIssueCount: strict ? Math.min(assurance.data.reviewIssueCount, proposedData.reviewIssueCount) : proposedData.reviewIssueCount,
       contextMaxChars: integer(env, 'AI_DATA_CONTEXT_MAX_CHARS', runtimeProfile === 'LOW' ? 12_000 : runtimeProfile === 'HIGH' ? 48_000 : 24_000, 4_000, 64_000),
     },
     mcp: capacity.mcp,
@@ -198,7 +214,9 @@ export function resolveAiGovernanceConfig(
     },
     agent: {
       allowToolRead: booleanValue(env.AI_AGENT_TOOL_READ_ENABLED, capacity.agentToolRead),
-      allowAiMemoryCandidates: booleanValue(env.AI_AGENT_MEMORY_CANDIDATES_ENABLED, assurance.allowAiMemoryCandidates),
+      allowAiMemoryCandidates: strict
+        ? false
+        : booleanValue(env.AI_AGENT_MEMORY_CANDIDATES_ENABLED, assurance.allowAiMemoryCandidates),
       allowWrite: false,
     },
   };
