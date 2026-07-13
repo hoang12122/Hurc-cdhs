@@ -1,7 +1,12 @@
 CREATE EXTENSION IF NOT EXISTS timescaledb;
 
-CREATE TABLE IF NOT EXISTS telemetry_event (
+CREATE TABLE IF NOT EXISTS telemetry_event_dedup (
   event_id TEXT PRIMARY KEY,
+  first_seen_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS telemetry_event (
+  event_id TEXT NOT NULL,
   event_type TEXT NOT NULL DEFAULT 'telemetry.received',
   schema_version TEXT NOT NULL DEFAULT '1.0.0',
   occurred_at TIMESTAMPTZ NOT NULL,
@@ -27,6 +32,8 @@ SELECT create_hypertable(
   migrate_data => TRUE
 );
 
+CREATE UNIQUE INDEX IF NOT EXISTS telemetry_event_identity_idx
+  ON telemetry_event (event_id, occurred_at);
 CREATE INDEX IF NOT EXISTS telemetry_asset_time_idx
   ON telemetry_event (asset_id, occurred_at DESC);
 CREATE INDEX IF NOT EXISTS telemetry_station_time_idx
