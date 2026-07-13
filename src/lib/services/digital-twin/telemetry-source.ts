@@ -56,7 +56,7 @@ async function loadClickHouseTelemetry(): Promise<Map<string, TelemetrySnapshot>
   const query = `
     SELECT
       asset_id,
-      max(bucket) AS last_seen_at,
+      max(last_seen_at) AS last_seen_at,
       sumIf(event_count, bucket >= now() - INTERVAL 24 HOUR) AS total_24h,
       sumIf(error_count + warning_count, bucket >= now() - INTERVAL 24 HOUR) AS error_24h,
       if(sum(anomaly_count) = 0, NULL, sum(anomaly_score_sum) / sum(anomaly_count)) AS anomaly_score
