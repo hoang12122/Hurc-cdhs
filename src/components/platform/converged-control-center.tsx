@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import Link from 'next/link';
 import {
   Activity,
@@ -17,53 +17,18 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  useConvergedControlCenter,
+  type ComponentStatus,
+  type TwinOverview,
+} from './use-converged-control-center';
 
 export type PlatformFocus = 'iot' | 'data-platform' | 'mlops' | 'evidence-ledger';
 
-type ComponentStatus = 'HEALTHY' | 'DEGRADED' | 'DISABLED';
-
-interface PlatformStatus {
-  phase: number;
-  status: ComponentStatus;
-  components: Array<{
-    id: string;
-    name: string;
-    phase: number;
-    status: ComponentStatus;
-    latencyMs: number | null;
-    detail: string;
-  }>;
-  outbox: { pending: number; retrying: number; oldestPendingSeconds: number | null } | null;
-  checkedAt: string;
-}
-
-interface TwinOverview {
-  generatedAt: string;
-  telemetryAvailable: boolean;
-  overallScore: number;
-  counts: { healthy: number; watch: number; degraded: number; critical: number };
-  assets: Array<{
-    id: string;
-    code: string;
-    name: string;
-    stationId: string | null;
-    subsystem: string | null;
-    openDnfs: number;
-    openHazards: number;
-    lastTelemetryAt: string | null;
-    health: {
-      score: number;
-      band: 'HEALTHY' | 'WATCH' | 'DEGRADED' | 'CRITICAL';
-      confidence: number;
-      factors: Array<{ label: string; penalty: number }>;
-    };
-  }>;
-}
-
 const focusConfig = {
   iot: {
-    title: 'IoT Operations',
-    description: 'Quản lý kết nối thiết bị, chất lượng telemetry và sức khỏe gateway.',
+    title: 'Nền tảng số hội tụ',
+    description: 'Điểm vào duy nhất cho IoT, dữ liệu lớn, MLOps, Digital Twin và sổ bằng chứng.',
     icon: RadioTower,
     requiredPhase: 1,
     checklist: ['Định danh thiết bị riêng', 'Đồng bộ thời gian', 'Theo dõi mất kết nối', 'Kiểm soát chất lượng payload'],
@@ -92,18 +57,18 @@ const focusConfig = {
 } as const;
 
 const navItems: Array<{ id: PlatformFocus; href: string; label: string }> = [
-  { id: 'iot', href: '/iot', label: 'IoT' },
+  { id: 'iot', href: '/iot', label: 'Tổng quan' },
   { id: 'data-platform', href: '/data-platform', label: 'Data Platform' },
   { id: 'mlops', href: '/mlops', label: 'MLOps' },
   { id: 'evidence-ledger', href: '/evidence-ledger', label: 'Evidence Ledger' },
 ];
 
 function statusClass(status: ComponentStatus | TwinOverview['assets'][number]['health']['band']) {
-  if (status === 'HEALTHY') return 'bg-emerald-100 text-emerald-800 border-emerald-200';
-  if (status === 'WATCH') return 'bg-amber-100 text-amber-800 border-amber-200';
-  if (status === 'DEGRADED') return 'bg-orange-100 text-orange-800 border-orange-200';
-  if (status === 'CRITICAL') return 'bg-red-100 text-red-800 border-red-200';
-  return 'bg-slate-100 text-slate-600 border-slate-200';
+  if (status === 'HEALTHY') return 'border-emerald-200 bg-emerald-100 text-emerald-800';
+  if (status === 'WATCH') return 'border-amber-200 bg-amber-100 text-amber-800';
+  if (status === 'DEGRADED') return 'border-orange-200 bg-orange-100 text-orange-800';
+  if (status === 'CRITICAL') return 'border-red-200 bg-red-100 text-red-800';
+  return 'border-slate-200 bg-slate-100 text-slate-600';
 }
 
 function formatAge(value: string | null) {
@@ -114,37 +79,27 @@ function formatAge(value: string | null) {
   return `${Math.round(minutes / 1440)} ngày trước`;
 }
 
+function formatClock(value: string | null) {
+  if (!value) return 'Chưa cập nhật';
+  return new Intl.DateTimeFormat('vi-VN', {
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+  }).format(new Date(value));
+}
+
 export function ConvergedControlCenter({ focus }: { focus: PlatformFocus }) {
   const config = focusConfig[focus];
   const Icon = config.icon;
-  const [platform, setPlatform] = useState<PlatformStatus | null>(null);
-  const [twin, setTwin] = useState<TwinOverview | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  const refresh = useCallback(async () => {
-    setError(null);
-    try {
-      const [platformResponse, twinResponse] = await Promise.all([
-        fetch('/api/platform/status', { cache: 'no-store' }),
-        fetch('/api/digital-twin/overview', { cache: 'no-store' }),
-      ]);
-      if (!platformResponse.ok || !twinResponse.ok) throw new Error('Không thể tải dữ liệu điều hành.');
-      const [platformData, twinData] = await Promise.all([platformResponse.json(), twinResponse.json()]);
-      setPlatform(platformData);
-      setTwin(twinData);
-    } catch (refreshError) {
-      setError(refreshError instanceof Error ? refreshError.message : 'Không thể tải dữ liệu điều hành.');
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    refresh();
-    const timer = window.setInterval(refresh, 30_000);
-    return () => window.clearInterval(timer);
-  }, [refresh]);
+  const {
+    platform,
+    twin,
+    loading,
+    refreshing,
+    error,
+    lastUpdatedAt,
+    refresh,
+  } = useConvergedControlCenter();
 
   const visibleComponents = useMemo(
     () => platform?.components.filter(item => item.phase <= Math.max(config.requiredPhase, platform.phase)) ?? [],
@@ -152,6 +107,8 @@ export function ConvergedControlCenter({ focus }: { focus: PlatformFocus }) {
   );
   const riskAssets = twin?.assets.slice(0, 8) ?? [];
   const phaseReady = (platform?.phase ?? 0) >= config.requiredPhase;
+  const readiness = platform?.readiness;
+  const blockers = readiness?.issues.filter(issue => issue.severity === 'BLOCKER').slice(0, 5) ?? [];
 
   return (
     <main className="min-h-full bg-slate-50/70 p-4 md:p-8">
@@ -164,14 +121,18 @@ export function ConvergedControlCenter({ focus }: { focus: PlatformFocus }) {
                 <div className="mb-2 flex flex-wrap items-center gap-2">
                   <Badge className={statusClass(platform?.status ?? 'DISABLED')}>{platform?.status ?? 'LOADING'}</Badge>
                   <Badge variant="outline">Phase {platform?.phase ?? 0}</Badge>
+                  <Badge className={readiness?.ready ? statusClass('HEALTHY') : statusClass('DEGRADED')}>
+                    {readiness?.ready ? 'PRODUCTION READY' : `NOT READY ${readiness?.score ?? 0}/100`}
+                  </Badge>
                   {!phaseReady && <Badge className="border-amber-200 bg-amber-50 text-amber-800">Cần Phase {config.requiredPhase}</Badge>}
                 </div>
                 <h1 className="text-2xl font-black tracking-tight text-slate-950 md:text-3xl">{config.title}</h1>
                 <p className="mt-1 max-w-3xl text-sm text-slate-600 md:text-base">{config.description}</p>
+                <p className="mt-2 text-xs text-slate-400">Cập nhật gần nhất: {formatClock(lastUpdatedAt)}</p>
               </div>
             </div>
-            <Button variant="outline" onClick={refresh} disabled={loading}>
-              <RefreshCcw className={`mr-2 h-4 w-4 ${loading ? 'animate-spin' : ''}`} /> Làm mới
+            <Button variant="outline" onClick={() => void refresh()} disabled={refreshing}>
+              <RefreshCcw className={`mr-2 h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} /> Làm mới
             </Button>
           </div>
 
@@ -185,22 +146,25 @@ export function ConvergedControlCenter({ focus }: { focus: PlatformFocus }) {
           </nav>
         </section>
 
+        {loading && (
+          <div className="rounded-2xl border bg-white p-5 text-sm text-slate-500">Đang tổng hợp dữ liệu vận hành và Digital Twin...</div>
+        )}
         {error && (
-          <div className="flex items-center gap-3 rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-800">
+          <div className="flex items-center gap-3 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
             <AlertTriangle className="h-5 w-5 shrink-0" /> {error}
           </div>
         )}
 
         <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-          <Card><CardHeader className="pb-2"><CardDescription>Digital Twin Health</CardDescription><CardTitle className="text-3xl">{twin?.overallScore ?? '—'}</CardTitle></CardHeader><CardContent className="text-sm text-slate-500">Confidence theo từng tài sản, không mặc định khỏe khi thiếu dữ liệu.</CardContent></Card>
+          <Card><CardHeader className="pb-2"><CardDescription>Digital Twin Health</CardDescription><CardTitle className="text-3xl">{twin?.overallScore ?? '—'}</CardTitle></CardHeader><CardContent className="text-sm text-slate-500">Không mặc định khỏe khi thiếu dữ liệu.</CardContent></Card>
           <Card><CardHeader className="pb-2"><CardDescription>Tài sản Critical</CardDescription><CardTitle className="text-3xl text-red-600">{twin?.counts.critical ?? '—'}</CardTitle></CardHeader><CardContent className="text-sm text-slate-500">Cần điều tra và xác nhận của con người.</CardContent></Card>
           <Card><CardHeader className="pb-2"><CardDescription>Outbox chờ publish</CardDescription><CardTitle className="text-3xl">{platform?.outbox?.pending ?? '—'}</CardTitle></CardHeader><CardContent className="text-sm text-slate-500">Retry: {platform?.outbox?.retrying ?? '—'} sự kiện.</CardContent></Card>
-          <Card><CardHeader className="pb-2"><CardDescription>Telemetry</CardDescription><CardTitle className="text-xl">{twin?.telemetryAvailable ? 'Đang nhận dữ liệu' : 'Chưa có dữ liệu'}</CardTitle></CardHeader><CardContent className="text-sm text-slate-500">Không có telemetry sẽ làm giảm độ tin cậy.</CardContent></Card>
+          <Card><CardHeader className="pb-2"><CardDescription>Telemetry</CardDescription><CardTitle className="text-xl">{twin?.telemetryAvailable ? 'Đang nhận dữ liệu' : 'Chưa có dữ liệu'}</CardTitle></CardHeader><CardContent className="text-sm text-slate-500">Thiếu telemetry sẽ làm giảm confidence.</CardContent></Card>
         </section>
 
         <section className="grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
           <Card>
-            <CardHeader><CardTitle className="flex items-center gap-2"><ServerCog className="h-5 w-5" /> Trạng thái thành phần</CardTitle><CardDescription>Kết quả kiểm tra trực tiếp, tự làm mới mỗi 30 giây.</CardDescription></CardHeader>
+            <CardHeader><CardTitle className="flex items-center gap-2"><ServerCog className="h-5 w-5" /> Trạng thái thành phần</CardTitle><CardDescription>Kiểm tra trực tiếp; tự làm mới khi tab đang hoạt động.</CardDescription></CardHeader>
             <CardContent className="grid gap-3 md:grid-cols-2">
               {visibleComponents.map(item => (
                 <div key={item.id} className="rounded-2xl border p-4">
@@ -216,11 +180,18 @@ export function ConvergedControlCenter({ focus }: { focus: PlatformFocus }) {
           </Card>
 
           <Card>
-            <CardHeader><CardTitle className="flex items-center gap-2"><ShieldCheck className="h-5 w-5" /> Điều kiện vận hành</CardTitle><CardDescription>Không đánh dấu hoàn thành chỉ vì container đang chạy.</CardDescription></CardHeader>
+            <CardHeader><CardTitle className="flex items-center gap-2"><ShieldCheck className="h-5 w-5" /> Việc cần làm tiếp theo</CardTitle><CardDescription>Ưu tiên blocker thật thay vì checklist hình thức.</CardDescription></CardHeader>
             <CardContent className="space-y-3">
-              {config.checklist.map(item => (
-                <div key={item} className="flex items-start gap-3 rounded-xl bg-slate-50 p-3 text-sm">
-                  <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600" /> {item}
+              {blockers.length === 0 && config.checklist.map(item => (
+                <div key={item} className="flex items-start gap-3 rounded-xl bg-emerald-50 p-3 text-sm text-emerald-900">
+                  <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" /> {item}
+                </div>
+              ))}
+              {blockers.map(issue => (
+                <div key={issue.code} className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-900">
+                  <div className="font-semibold">{issue.area}/{issue.code}</div>
+                  <div className="mt-1">{issue.message}</div>
+                  <div className="mt-2 text-xs text-red-700">{issue.remediation}</div>
                 </div>
               ))}
             </CardContent>
@@ -228,7 +199,7 @@ export function ConvergedControlCenter({ focus }: { focus: PlatformFocus }) {
         </section>
 
         <Card>
-          <CardHeader><CardTitle className="flex items-center gap-2"><Activity className="h-5 w-5" /> Tài sản cần ưu tiên</CardTitle><CardDescription>Xếp theo điểm sức khỏe tăng dần; điểm thấp được hiển thị trước.</CardDescription></CardHeader>
+          <CardHeader><CardTitle className="flex items-center gap-2"><Activity className="h-5 w-5" /> Tài sản cần ưu tiên</CardTitle><CardDescription>Xếp theo điểm sức khỏe tăng dần.</CardDescription></CardHeader>
           <CardContent className="space-y-3">
             {riskAssets.length === 0 && <div className="rounded-2xl border border-dashed p-8 text-center text-sm text-slate-500">Chưa có tài sản hoặc dữ liệu Digital Twin.</div>}
             {riskAssets.map(asset => (
