@@ -90,13 +90,13 @@ export function resolveConvergedPlatformConfig(
   }
 
   const iot = phase >= 1 && booleanValue(env.IOT_RUNTIME_ENABLED, true);
-  const eventBackbone = phase >= 2 && booleanValue(env.EVENT_BACKBONE_ENABLED, true);
-  const lakehouse = phase >= 2 && booleanValue(env.LAKEHOUSE_RUNTIME_ENABLED, true);
-  const mlops = phase >= 3 && booleanValue(env.MLOPS_RUNTIME_ENABLED, true);
+  const eventBackbone = iot && phase >= 2 && booleanValue(env.EVENT_BACKBONE_ENABLED, true);
+  const lakehouse = eventBackbone && booleanValue(env.LAKEHOUSE_RUNTIME_ENABLED, true);
+  const mlops = lakehouse && phase >= 3 && booleanValue(env.MLOPS_RUNTIME_ENABLED, true);
   const evidenceLedger = phase >= 4 && booleanValue(env.EVIDENCE_LEDGER_ENABLED, true);
 
   return {
-    version: '2026-07-13.1',
+    version: '2026-07-13.2',
     phase,
     environment: nodeEnv ?? 'development',
     features: { iot, eventBackbone, lakehouse, mlops, evidenceLedger },
