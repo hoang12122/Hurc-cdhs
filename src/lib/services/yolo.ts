@@ -1,4 +1,9 @@
-import { applyYoloQualityGate, type YoloQualityOptions, type YoloQualityResult } from './yolo-quality-gate';
+import { AI_GOVERNANCE_CONFIG } from '../config/ai-governance-profile';
+import {
+  applyYoloQualityGate,
+  type YoloQualityOptions,
+  type YoloQualityResult,
+} from './yolo-quality-gate';
 
 export interface YoloDetection {
   box: [number, number, number, number];
@@ -21,22 +26,41 @@ export interface YoloClientOptions extends YoloQualityOptions {
 }
 
 const DEFAULT_YOLO_URL = 'http://yolo-service:5005/detect';
-const DEFAULT_TIMEOUT_MS = 12000;
 
 function buildYoloUrl(options: YoloClientOptions) {
+  const profile = AI_GOVERNANCE_CONFIG.vision;
   const rawUrl = process.env.YOLO_SERVICE_URL || DEFAULT_YOLO_URL;
   const url = new URL(rawUrl);
-
-  if (options.minConfidence !== undefined) url.searchParams.set('conf', String(options.minConfidence));
-  if (options.iouThreshold !== undefined) url.searchParams.set('iou', String(options.iouThreshold));
-  if (options.maxDetections !== undefined) url.searchParams.set('max_det', String(options.maxDetections));
-
+  url.searchParams.set('conf', String(
+    options.minConfidence ?? profile.defaultConfidence,
+  ));
+  url.searchParams.set('iou', String(
+    options.iouThreshold ?? profile.defaultIou,
+  ));
+  url.searchParams.set('max_det', String(
+    options.maxDetections ?? profile.defaultMaxDetections,
+  ));
   return url.toString();
 }
 
-export async function detectObjects(imageBuffer: Buffer, options: YoloClientOptions = {}): Promise<YoloQualityResult | null> {
+export async function detectObjects(
+  imageBuffer: Buffer,
+  options: YoloClientOptions = {},
+): Promise<YoloQualityResult | null> {
+  const profile = AI_GOVERNANCE_CONFIG.vision;
+  if (imageBuffer.length > profile.maxUploadBytes) {
+    console.warn(
+      `[YOLO] Image rejected by ${AI_GOVERNANCE_CONFIG.runtimeProfile} profile size limit.`,
+    );
+    return null;
+  }
+
+  const timeoutMs = Math.min(
+    30_000,
+    Math.max(3_000, options.timeoutMs ?? profile.detectTimeoutMs),
+  );
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), options.timeoutMs ?? DEFAULT_TIMEOUT_MS);
+  const timeout = setTimeout(() => controller.abort(), timeoutMs);
 
   try {
     const formData = new FormData();
@@ -54,7 +78,12 @@ export async function detectObjects(imageBuffer: Buffer, options: YoloClientOpti
     }
 
     const raw = (await response.json()) as YoloResponse;
-    return applyYoloQualityGate(raw, options);
+    return applyYoloQualityGate(raw, {
+      ...options,
+      minConfidence: options.minConfidence ?? profile.defaultConfidence,
+      iouThreshold: options.iouThreshold ?? profile.defaultIou,
+      maxDetections: options.maxDetections ?? profile.defaultMaxDetections,
+    });
   } catch (error) {
     console.error('Error calling YOLO Service:', error);
     return null;
