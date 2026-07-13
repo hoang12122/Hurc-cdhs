@@ -1,417 +1,351 @@
 # Converged Platform Runtime Operations
 
-## 1. Trạng thái triển khai
+## 1. Mục đích và trạng thái
 
-HURC-CDHS đã có runtime opt-in cho bốn giai đoạn:
+HURC-CDHS có runtime opt-in theo bốn phase:
 
-| Giai đoạn | Docker profile | Thành phần chính |
-|---|---|---|
-| 1 — IoT Foundation | `phase1` | Mosquitto, TimescaleDB, IoT ingestor |
-| 2 — Big Data Platform | `phase2` | Phase 1 + Redpanda/Kafka, Redpanda Connect, MinIO, ClickHouse |
-| 3 — AI/MLOps | `phase3` | Phase 2 + MLflow |
-| 4 — Evidence Ledger | `phase4` | Phase 3 + Hyperledger Besu, evidence-ledger gateway |
+| Phase | Thành phần |
+|---:|---|
+| 1 | Mosquitto, IoT Ingestor, TimescaleDB |
+| 2 | Phase 1 + Redpanda/Kafka, Transactional Outbox Relay, MinIO, ClickHouse |
+| 3 | Phase 2 + MLflow |
+| 4 | Phase 3 + Besu, Evidence Ledger Gateway |
 
-Các profile cộng dồn. Bật `phase4` sẽ khởi động toàn bộ thành phần từ Giai đoạn 1 đến Giai đoạn 4.
+Các phase cộng dồn. Runtime `core` không tự kéo các dịch vụ mở rộng.
 
-Runtime chính `core` không tự động kéo các dịch vụ trên. Khi chỉ chạy `core`, hệ thống vẫn giữ kiến trúc gọn như trước.
-
-> Đây là runtime POC/UAT có kiểm soát. Redpanda một node, Mosquitto anonymous, MLflow SQLite và Besu `dev` network không phải cấu hình production HA.
+Đây là nền tảng POC/UAT có kiểm soát. Production HA chỉ được xem xét khi `npm run platform:production:check` không còn blocker và có CI, load-test, security review, backup/restore, DR và biên bản nghiệm thu.
 
 ## 2. Tệp triển khai
 
 ```text
+docker-compose.yml
 docker-compose.platform.yml
-src/lib/config/converged-platform-profile.ts
-src/scripts/test-converged-platform.ts
+docker-compose.platform-enhancements.yml
 scripts/platform-compose.mjs
 scripts/check-converged-platform.mjs
-infra/mqtt/mosquitto.dev.conf
+src/lib/config/converged-platform-profile.ts
+src/lib/config/platform-production-readiness.ts
+src/lib/services/platform-health-service.ts
+src/lib/services/digital-twin/
 infra/iot-ingestor/
-infra/timescale/001-init.sql
-infra/redpanda-connect/iot-pipeline.yaml
-infra/clickhouse/001-init.sql
+infra/outbox-relay/
+infra/timescale/
+infra/redpanda-connect/
+infra/clickhouse/
 infra/evidence-ledger/
+prisma/ops/migrations/20260713170000_add_transactional_outbox/
 docs/config/converged-platform.env.example
 ```
 
-## 3. Config Registry
-
-Biến trung tâm:
+## 3. Cấu hình trung tâm
 
 ```text
 DATA_PLATFORM_PHASE=0|1|2|3|4
+PLATFORM_DEPLOYMENT_MODE=development|uat|production
 ```
 
 Quy tắc:
 
-- Phase `0`: tắt toàn bộ nền tảng mở rộng;
-- Phase `1`: chỉ IoT và time-series;
-- Phase `2`: bổ sung event backbone, object storage và OLAP;
-- Phase `3`: bổ sung MLOps;
-- Phase `4`: bổ sung blockchain evidence ledger;
-- feature không thể bật trước phase tương ứng;
-- production chặn `LEDGER_SIGNER_MODE=local-dev`;
-- production chỉ cho ghi ledger khi dùng `LEDGER_SIGNER_MODE=external`;
-- payload, ingestion rate và retention đều được clamp bằng hard limit.
+- feature không thể bật trước phase;
+- tắt IoT sẽ tắt các lớp phụ thuộc;
+- tắt event backbone sẽ tắt lakehouse và MLOps;
+- production chặn signer `local-dev`;
+- ledger write production yêu cầu external signer;
+- giới hạn payload, rate và retention được clamp;
+- phase được launcher truyền trực tiếp vào app container.
 
-Kiểm thử:
+Kiểm thử cấu hình:
 
 ```bash
 npm run test:platform-profiles
+npm run test:platform-readiness
+npm run test:digital-twin-health
 ```
 
 ## 4. Chuẩn bị môi trường
 
-Sao chép tệp mẫu thành tệp cục bộ không commit:
-
-### Linux
+Linux:
 
 ```bash
 cp docs/config/converged-platform.env.example .env.platform.local
 chmod 600 .env.platform.local
 ```
 
-### Windows PowerShell
+Windows PowerShell:
 
 ```powershell
 Copy-Item docs/config/converged-platform.env.example .env.platform.local
 ```
 
-Sau đó sửa tối thiểu:
+Không dùng các giá trị `change-me`, `replace-with-secret` hoặc token mẫu ngoài máy thử nghiệm cô lập.
 
-```text
-DATA_PLATFORM_PHASE=<phase cần chạy>
-TIMESCALE_PASSWORD=<secret mới>
-TIMESCALE_DATABASE_URL=postgresql://postgres:<secret mới>@timescaledb:5432/hurc_telemetry
-MINIO_ROOT_USER=<user mới>
-MINIO_ROOT_PASSWORD=<secret mới>
-CLICKHOUSE_PASSWORD=<secret mới>
-LEDGER_GATEWAY_TOKEN=<chuỗi ngẫu nhiên tối thiểu 24 ký tự>
-```
+## 5. Kiểm tra Compose
 
-Không dùng giá trị `change-me` hoặc `replace-with-secret` ngoài máy thử nghiệm cô lập.
-
-## 5. Kiểm tra cú pháp Compose
-
-### Linux
+Linux:
 
 ```bash
 PLATFORM_ENV_FILE=.env.platform.local node scripts/platform-compose.mjs config
 ```
 
-### Windows PowerShell
+PowerShell:
 
 ```powershell
 $env:PLATFORM_ENV_FILE = ".env.platform.local"
 node scripts/platform-compose.mjs config
 ```
 
-CI cũng chạy:
+CI gọi:
 
 ```bash
 npm run platform:config
-npm run test:platform-profiles
 ```
 
-## 6. Khởi động từng giai đoạn
-
-### 6.1. Giai đoạn 1
-
-Đặt:
-
-```text
-DATA_PLATFORM_PHASE=1
-```
-
-Chạy:
+## 6. Khởi động
 
 ```bash
 PLATFORM_ENV_FILE=.env.platform.local node scripts/platform-compose.mjs up 1
-```
-
-Hoặc khi biến môi trường đã được nạp:
-
-```bash
-npm run platform:phase1:up
-```
-
-Luồng dữ liệu:
-
-```text
-Sensor/Gateway
-→ MQTT topic
-→ iot-ingestor validation
-→ event ID deduplication
-→ TimescaleDB telemetry_event
-→ telemetry_dead_letter nếu dữ liệu lỗi
-```
-
-### 6.2. Giai đoạn 2
-
-Đặt:
-
-```text
-DATA_PLATFORM_PHASE=2
-```
-
-Chạy:
-
-```bash
 PLATFORM_ENV_FILE=.env.platform.local node scripts/platform-compose.mjs up 2
-```
-
-Luồng bổ sung:
-
-```text
-MQTT
-→ Redpanda Connect
-→ iot.telemetry.raw
-→ ClickHouse Kafka Engine
-→ telemetry_olap
-
-MQTT
-→ Redpanda Connect
-→ MinIO bucket hurc-raw
-```
-
-Các bucket được tạo:
-
-```text
-hurc-raw
-hurc-curated
-hurc-models
-hurc-evidence
-```
-
-### 6.3. Giai đoạn 3
-
-Đặt:
-
-```text
-DATA_PLATFORM_PHASE=3
-```
-
-Chạy:
-
-```bash
 PLATFORM_ENV_FILE=.env.platform.local node scripts/platform-compose.mjs up 3
-```
-
-MLflow mặc định dùng SQLite và volume cục bộ. Chỉ dùng cho development/UAT. Production phải chuyển backend store sang PostgreSQL và artifact store sang object storage được kiểm soát.
-
-### 6.4. Giai đoạn 4
-
-Đặt:
-
-```text
-DATA_PLATFORM_PHASE=4
-LEDGER_WRITE_ENABLED=false
-LEDGER_SIGNER_MODE=disabled
-```
-
-Khởi động chế độ verification/readiness:
-
-```bash
 PLATFORM_ENV_FILE=.env.platform.local node scripts/platform-compose.mjs up 4
 ```
 
-Chế độ ghi production:
+Hoặc:
 
-```text
-LEDGER_WRITE_ENABLED=true
-LEDGER_SIGNER_MODE=external
-LEDGER_EXTERNAL_SIGNER_URL=<dịch vụ signer qua KMS/HSM>
-LEDGER_EXTERNAL_SIGNER_TOKEN=<secret>
+```bash
+npm run platform:phase1:up
+npm run platform:phase2:up
+npm run platform:phase3:up
+npm run platform:phase4:up
 ```
 
-Không đưa private key production vào `.env`, Docker image hoặc repository.
+## 7. Luồng IoT
 
-## 7. Gửi telemetry mẫu
+```text
+Sensor / Gateway
+→ MQTT
+→ schema/topic/payload validation
+→ eventId deduplication
+→ TimescaleDB
+→ telemetry_dead_letter khi lỗi
+```
 
-Topic chuẩn:
+Topic:
 
 ```text
 hurc/<environment>/<line>/<station>/<subsystem>/<assetId>/telemetry
 ```
 
-Ví dụ:
+Payload mẫu:
 
-```bash
-docker exec hurc_mqtt mosquitto_pub \
-  -h 127.0.0.1 \
-  -q 1 \
-  -t hurc/dev/L1/BEN-THANH/PSD/PSD-BT-001/telemetry \
-  -m '{"eventId":"evt-psd-bt-001-0001","eventType":"telemetry.received","schemaVersion":"1.0.0","occurredAt":"2026-07-13T08:00:00.000Z","source":{"type":"iot-device","id":"sensor-001","gatewayId":"gateway-bt-01"},"asset":{"assetId":"PSD-BT-001","line":"L1","station":"BEN-THANH","subsystem":"PSD"},"quality":{"status":"good","clockSkewMs":20,"duplicate":false},"traceId":"trace-demo-001","payload":{"temperatureC":31.2,"voltageV":24.1}}'
+```json
+{
+  "eventId": "evt-psd-bt-001-0001",
+  "eventType": "telemetry.received",
+  "schemaVersion": "1.0.0",
+  "occurredAt": "2026-07-13T08:00:00.000Z",
+  "source": { "type": "iot-device", "id": "sensor-001", "gatewayId": "gateway-bt-01" },
+  "asset": { "assetId": "PSD-BT-001", "line": "L1", "station": "BEN-THANH", "subsystem": "PSD" },
+  "quality": { "status": "good", "clockSkewMs": 20, "duplicate": false },
+  "traceId": "trace-demo-001",
+  "payload": { "temperatureC": 31.2, "voltageV": 24.1, "anomalyScore": 0.08 }
+}
 ```
 
-IoT ingestor kiểm tra:
+## 8. Transactional Outbox
 
-- payload không vượt giới hạn;
-- topic đúng cấu trúc;
-- JSON UTF-8 hợp lệ;
-- `eventId` tồn tại;
-- `occurredAt` hợp lệ;
-- `payload` là object;
-- `asset.assetId` khớp topic;
-- event trùng không ghi lại;
-- event lỗi vào dead-letter.
-
-## 8. Kiểm tra dữ liệu
-
-### 8.1. TimescaleDB
-
-```bash
-docker exec hurc_timescaledb psql \
-  -U postgres \
-  -d hurc_telemetry \
-  -c "SELECT event_id, station_code, subsystem, asset_id, occurred_at FROM telemetry_event ORDER BY occurred_at DESC LIMIT 10;"
-```
-
-Dead-letter:
-
-```bash
-docker exec hurc_timescaledb psql \
-  -U postgres \
-  -d hurc_telemetry \
-  -c "SELECT received_at, topic, reason FROM telemetry_dead_letter ORDER BY received_at DESC LIMIT 10;"
-```
-
-### 8.2. Kafka/Redpanda
-
-```bash
-docker exec hurc_redpanda rpk topic consume \
-  iot.telemetry.raw \
-  -n 1 \
-  -X brokers=redpanda:9092
-```
-
-### 8.3. ClickHouse
-
-```bash
-docker exec hurc_clickhouse sh -lc \
-  'clickhouse-client --user "$CLICKHOUSE_USER" --password "$CLICKHOUSE_PASSWORD" --query "SELECT event_id, station_code, subsystem, asset_id, occurred_at FROM hurc.telemetry_olap ORDER BY occurred_at DESC LIMIT 10"'
-```
-
-### 8.4. MinIO
-
-Mở trên máy cục bộ:
+Migration OPS DB tạo:
 
 ```text
-http://127.0.0.1:9001
+ops_outbox_events
+ops_dnf_outbox_trigger
+ops_hazard_outbox_trigger
 ```
 
-Xác nhận object xuất hiện trong bucket `hurc-raw`.
-
-### 8.5. MLflow
+Luồng:
 
 ```text
-http://127.0.0.1:5000
+DNF / Hazard INSERT, UPDATE, DELETE
+→ trigger trong cùng transaction
+→ ops_outbox_events
+→ Outbox Relay
+→ ops.domain-events
+→ ops.domain-events.dead-letter khi quá số lần retry
 ```
 
-### 8.6. Besu
+Đặc tính:
+
+- `FOR UPDATE SKIP LOCKED`;
+- nhiều worker không lấy cùng event;
+- at-least-once;
+- event ID làm Kafka key;
+- exponential backoff;
+- lock timeout;
+- dead-letter sau `OUTBOX_MAX_ATTEMPTS`;
+- health endpoint riêng;
+- payload chỉ chứa trường nghiệp vụ cần thiết.
+
+Áp dụng migration:
 
 ```bash
-curl -s http://127.0.0.1:8545 \
-  -H 'content-type: application/json' \
-  --data '{"jsonrpc":"2.0","id":1,"method":"eth_blockNumber","params":[]}'
+npm run db:ops:migrate
+npm run db:ops:status
 ```
 
-PowerShell:
+Sau kiểm thử migration và rollback, mới đặt:
 
-```powershell
-Invoke-RestMethod `
-  -Uri "http://127.0.0.1:8545" `
-  -Method Post `
-  -ContentType "application/json" `
-  -Body '{"jsonrpc":"2.0","id":1,"method":"eth_blockNumber","params":[]}'
+```text
+OUTBOX_MIGRATION_APPLIED=true
 ```
 
-## 9. Health-check toàn nền tảng
+Kiểm tra hàng đợi:
 
-Linux:
+```sql
+SELECT event_type, attempt_count, published_at, last_error, created_at
+FROM ops_outbox_events
+ORDER BY created_at DESC
+LIMIT 50;
+```
+
+## 9. Big Data
+
+Phase 2 fan-out:
+
+```text
+MQTT
+├─→ TimescaleDB
+└─→ Redpanda Connect
+    ├─→ iot.telemetry.raw
+    └─→ MinIO hurc-raw
+
+ops_outbox_events
+→ Outbox Relay
+→ ops.domain-events
+```
+
+ClickHouse đọc `iot.telemetry.raw` qua Kafka Engine và materialized view.
+
+Kiểm tra:
 
 ```bash
-DATA_PLATFORM_PHASE=2 npm run platform:status
+docker exec hurc_redpanda rpk topic consume ops.domain-events -n 1 -X brokers=redpanda:9092
+docker exec hurc_redpanda rpk topic consume iot.telemetry.raw -n 1 -X brokers=redpanda:9092
 ```
 
-Windows PowerShell:
+## 10. Digital Twin
 
-```powershell
-$env:DATA_PLATFORM_PHASE = "2"
+API:
+
+```text
+GET /api/digital-twin/overview
+```
+
+Nguồn dữ liệu:
+
+- Asset;
+- DNF;
+- Hazard;
+- Timescale telemetry;
+- anomaly score;
+- lịch bảo trì và độ đầy đủ dữ liệu.
+
+Health Engine trả:
+
+- score;
+- band;
+- confidence;
+- trend;
+- factors và penalty;
+- recommendations.
+
+Không có telemetry sẽ giảm confidence, không mặc định tài sản khỏe.
+
+Route điều hành:
+
+```text
+/iot
+/data-platform
+/mlops
+/evidence-ledger
+/asset-360?equipmentId=<asset-id>
+```
+
+## 11. Live health
+
+```text
+GET /api/platform/status
+```
+
+Kiểm tra trực tiếp:
+
+- MQTT;
+- TimescaleDB;
+- Redpanda/Schema Registry;
+- MinIO;
+- ClickHouse;
+- MLflow;
+- Besu;
+- Evidence Ledger;
+- outbox pending/retrying/oldest.
+
+CLI:
+
+```bash
 npm run platform:status
-```
-
-Kiểm tra theo phase:
-
-| Phase | Kiểm tra |
-|---:|---|
-| 1 | MQTT TCP, TimescaleDB TCP |
-| 2 | Phase 1 + Redpanda Admin, MinIO, ClickHouse |
-| 3 | Phase 2 + MLflow |
-| 4 | Phase 3 + Besu JSON-RPC, Evidence Ledger |
-
-Lệnh bổ sung:
-
-```bash
 npm run platform:ps
 npm run platform:logs
 ```
 
-Khi dùng `PLATFORM_ENV_FILE`, gọi wrapper trực tiếp:
+## 12. Production HA Gate
 
 ```bash
-PLATFORM_ENV_FILE=.env.platform.local node scripts/platform-compose.mjs ps
-PLATFORM_ENV_FILE=.env.platform.local node scripts/platform-compose.mjs logs
+npm run platform:production:check
 ```
 
-## 10. Evidence Ledger API
+Blocker được kiểm tra:
 
-Gateway chỉ nhận hash, không nhận file hoặc tài liệu gốc.
+- MQTT anonymous;
+- TLS/mTLS và device identity;
+- ít nhất ba Kafka/Redpanda broker;
+- replication factor tối thiểu 3;
+- ClickHouse tối thiểu hai node;
+- image `latest`;
+- outbox migration;
+- MLflow SQLite/local artifact;
+- model approval workflow;
+- Besu dev network;
+- external signer và KMS/HSM;
+- benchmark;
+- backup/restore;
+- DR.
 
-Health:
+Các cờ bằng chứng chỉ được đặt `true` sau khi có biên bản hoặc artifact tương ứng:
 
 ```text
-GET /health
+PLATFORM_BENCHMARK_APPROVED=true
+PLATFORM_BACKUP_RESTORE_TESTED=true
+PLATFORM_DR_TESTED=true
 ```
 
-Anchor:
+## 13. Evidence Ledger
+
+Gateway chỉ nhận hash và metadata tối thiểu.
 
 ```text
 POST /anchors
-Authorization: Bearer <LEDGER_GATEWAY_TOKEN>
-Content-Type: application/json
+GET /verify?hash=<sha256>
+GET /health
 ```
 
-Payload:
+Không lưu DNF, ảnh, video, PII hoặc secret lên chain. Production bắt buộc:
 
-```json
-{
-  "evidenceId": "DNF-2026-001/revision-3",
-  "evidenceHash": "<sha256-64-hex>",
-  "metadata": {
-    "documentType": "DNF",
-    "revision": "3",
-    "approvedByRole": "Safety Manager"
-  }
-}
+```text
+BESU_NETWORK=<permissioned-network>
+LEDGER_SIGNER_MODE=external
+PLATFORM_KMS_PROVIDER=<kms-or-hsm>
+LEDGER_EXTERNAL_SIGNER_URL=<internal-signer>
 ```
 
-Gateway lưu:
-
-- evidence ID;
-- evidence hash;
-- metadata hash;
-- transaction hash;
-- block number;
-- signer identity;
-- thời điểm neo;
-- record hash append-only.
-
-Không lưu nội dung DNF, ảnh, video, PII hoặc secret lên chain.
-
-## 11. Dừng và rollback
-
-Dừng container nhưng giữ volume:
+## 14. Dừng và rollback
 
 ```bash
 npm run platform:down
@@ -425,105 +359,21 @@ LEDGER_WRITE_ENABLED=false
 LEDGER_SIGNER_MODE=disabled
 ```
 
-Sau khi đổi environment phải restart app/container.
+Không xóa volume trước khi backup và restore test hoàn tất.
 
-Không xóa volume trước khi hoàn thành:
-
-- export dữ liệu;
-- backup PostgreSQL/TimescaleDB;
-- backup MinIO;
-- backup ClickHouse;
-- lưu MLflow metadata/artifact;
-- lưu evidence anchor mapping;
-- kiểm tra khả năng restore.
-
-## 12. Production hardening bắt buộc
-
-### MQTT/IoT
-
-- thay `mosquitto.dev.conf`;
-- tắt anonymous;
-- mTLS hoặc credential riêng từng device/gateway;
-- topic ACL;
-- revoke và rotation;
-- tách VLAN/zone;
-- không public port trực tiếp.
-
-### Redpanda/Kafka
-
-- tối thiểu ba broker cho HA;
-- TLS/SASL/ACL;
-- replication factor phù hợp;
-- schema compatibility;
-- quota;
-- dead-letter/replay runbook;
-- backup và disaster recovery.
-
-### MinIO/Lakehouse
-
-- pin image digest;
-- distributed storage;
-- encryption at rest;
-- lifecycle/retention;
-- versioning/object lock khi cần;
-- tách credential theo service.
-
-### ClickHouse
-
-- cluster/replication theo tải;
-- user riêng cho ingestion và query;
-- TLS;
-- retention được phê duyệt;
-- backup/restore;
-- resource quota.
-
-### MLflow
-
-- PostgreSQL backend store;
-- artifact store kiểm soát;
-- authentication/reverse proxy;
-- model approval;
-- model signature;
-- canary và rollback;
-- drift monitoring.
-
-### Blockchain
-
-- không dùng Besu `dev` network;
-- triển khai permissioned network nhiều node;
-- KMS/HSM hoặc external signer;
-- endorsement/permission policy;
-- certificate rotation/revocation;
-- legal and security review;
-- không dùng public development key;
-- không ghi dữ liệu thật on-chain.
-
-## 13. Giới hạn hiện tại
-
-- IoT ingestor hiện ghi TimescaleDB và không điều khiển thiết bị;
-- Redpanda/ClickHouse/MinIO là single-node POC;
-- Redpanda Connect và MinIO client còn dùng tag `latest` mặc định, phải pin trước production;
-- MLflow dùng SQLite/local artifact volume;
-- Besu chạy `dev` network;
-- evidence gateway hỗ trợ external signer contract nhưng repository không chứa KMS/HSM signer;
-- chưa có UI `/iot`, `/data-platform`, `/mlops`, `/evidence-ledger`;
-- chưa có benchmark thực tế;
-- chưa được xem là production-ready nếu CI, security review, load-test và backup/restore chưa PASS.
-
-## 14. Tiêu chí hoàn thành từng giai đoạn
+## 15. Tiêu chí nghiệm thu
 
 Một phase chỉ được nghiệm thu khi có:
 
-- compose config hợp lệ;
-- invariant test PASS;
-- image được pin;
-- healthcheck xanh;
-- event schema version;
-- idempotency test;
-- dead-letter và replay test;
-- load-test và p95 latency;
-- backup/restore;
-- security review;
-- observability dashboard;
-- rollback test;
-- bằng chứng dữ liệu thật hoặc dữ liệu mô phỏng được ghi rõ.
+1. Compose config hợp lệ;
+2. migration và rollback test;
+3. invariant test;
+4. event schema version;
+5. idempotency, retry, dead-letter và replay test;
+6. healthcheck và observability;
+7. load-test và p95/p99;
+8. security review;
+9. backup/restore;
+10. DR/failover;
+11. UI/UAT nghiệp vụ;
+12. CI/CD xanh.
