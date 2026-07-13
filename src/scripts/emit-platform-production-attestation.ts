@@ -32,7 +32,7 @@ async function main() {
   });
 
   const controls = {
-    ciCdGreen: process.env.CI === 'true',
+    ciCdGreen: process.env.PLATFORM_CI_ACCEPTANCE_PASSED === 'true',
     immutableImages: process.env.PLATFORM_IMAGES_PINNED === 'true',
     mtlsAndAcl: process.env.IOT_REQUIRE_TLS === 'true'
       && process.env.MQTT_ALLOW_ANONYMOUS === 'false'
