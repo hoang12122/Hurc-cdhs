@@ -1,13 +1,15 @@
 export const dynamic = 'force-dynamic';
 
 import { NextRequest } from 'next/server';
+import { AI_GOVERNANCE_CONFIG } from '@/lib/config/ai-governance-profile';
 import { pgEventEmitter } from '@/lib/services/event-emitter';
 import { requireAuth } from '@/lib/auth-enforcer';
 import { checkRateLimit } from '@/lib/rate-limit';
 
 export async function GET(req: NextRequest) {
     const user = await requireAuth();
-    if (!checkRateLimit(`sse:${user.id}`, 5, 60_000)) {
+    const limit = AI_GOVERNANCE_CONFIG.rateLimits.sseOpenPerMinute;
+    if (!checkRateLimit(`sse:${user.id}`, limit, 60_000)) {
         return new Response('Too many event stream connections', { status: 429 });
     }
 
@@ -30,7 +32,10 @@ export async function GET(req: NextRequest) {
     await pgEventEmitter.listen('system_alerts', handleSystemAlert);
 
     const intervalId = setInterval(() => {
-        void writeEvent('ping', { time: Date.now() });
+        void writeEvent('ping', {
+            time: Date.now(),
+            profile: AI_GOVERNANCE_CONFIG.runtimeProfile,
+        });
     }, 20_000);
 
     const cleanup = () => {
@@ -50,6 +55,7 @@ export async function GET(req: NextRequest) {
             'Connection': 'keep-alive',
             'Content-Encoding': 'none',
             'X-Accel-Buffering': 'no',
+            'X-AI-Runtime-Profile': AI_GOVERNANCE_CONFIG.runtimeProfile,
         },
     });
 }
