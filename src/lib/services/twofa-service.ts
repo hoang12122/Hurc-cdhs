@@ -38,16 +38,13 @@ async function hashBackupCode(code: string): Promise<string> {
 async function verifyBackupCodeHash(code: string, storedHash: string): Promise<boolean> {
   const normalizedCode = normalizeBackupCode(code);
 
-  // Current secure format: bcrypt stores its algorithm and cost prefix in the hash.
-  if (/^\$2[aby]\$/.test(storedHash)) {
-    return bcrypt.compare(normalizedCode, storedHash);
+  // Backup codes are authentication secrets. Only bcrypt hashes are accepted.
+  // Legacy fast hashes must be rotated by regenerating backup codes.
+  if (!/^\$2[aby]\$/.test(storedHash)) {
+    return false;
   }
 
-  // Backward compatibility only: accept legacy SHA-256 backup-code hashes so
-  // existing issued codes can be consumed once, then replaced on regeneration.
-  // New backup codes are never stored with fast general-purpose hashes.
-  const legacySha256 = crypto.createHash('sha256').update(normalizedCode).digest('hex');
-  return storedHash === legacySha256;
+  return bcrypt.compare(normalizedCode, storedHash);
 }
 
 export function generateSecret(length = 32): string {
