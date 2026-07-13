@@ -85,6 +85,7 @@ DROP TABLE IF EXISTS hurc.telemetry_gold_hourly;
 CREATE VIEW hurc.telemetry_gold_hourly AS
 SELECT
   toStartOfHour(occurred_at) AS bucket,
+  max(occurred_at) AS last_seen_at,
   environment,
   line_code,
   station_code,
@@ -105,6 +106,7 @@ GROUP BY bucket, environment, line_code, station_code, subsystem, asset_id;
 CREATE VIEW hurc.telemetry_asset_hourly AS
 SELECT
   bucket,
+  last_seen_at,
   environment,
   line_code,
   station_code,
