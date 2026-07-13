@@ -1,3 +1,4 @@
+import { AI_GOVERNANCE_CONFIG } from '../../config/ai-governance-profile';
 import { aiDb, opsDb, IS_DATABASE_OFFLINE } from '../../prisma';
 import { jsonDb } from '../../db/json-db';
 import {
@@ -13,6 +14,15 @@ import {
 /**
  * AI Context Service — Governed CRM data ingestion and agent registry.
  */
+function effectiveCapabilities(capabilities: string[]) {
+    return capabilities.filter(capability => {
+        if (capability === 'tool-read') return AI_GOVERNANCE_CONFIG.agent.allowToolRead;
+        if (capability === 'memory-write-candidate') {
+            return AI_GOVERNANCE_CONFIG.agent.allowAiMemoryCandidates;
+        }
+        return capability !== 'write';
+    });
+}
 
 function getBuiltInAgents() {
     const now = new Date().toISOString();
@@ -25,9 +35,14 @@ function getBuiltInAgents() {
         isDefault: agent.role === 'TECHNICAL_ANALYST',
         isBuiltIn: true,
         role: agent.role,
-        capabilities: agent.capabilities,
+        capabilities: effectiveCapabilities(agent.capabilities),
         collections: agent.collections,
         memoryNamespace: agent.memoryNamespace,
+        governanceProfile: {
+            runtime: AI_GOVERNANCE_CONFIG.runtimeProfile,
+            assurance: AI_GOVERNANCE_CONFIG.assuranceProfile,
+            allowWrite: false,
+        },
         createdAt: now,
         updatedAt: now,
     }));
@@ -53,7 +68,7 @@ export async function getInternalKnowledgeSnippets(limit: number = 50) {
 }
 
 export async function createInternalKnowledgeSnippet(content: string, source: string, tags: string[]) {
-    const normalizedContent = sanitizeAiText(content, 20_000);
+    const normalizedContent = sanitizeAiText(content, AI_GOVERNANCE_CONFIG.uploads.textExtractionMaxBytes);
     const normalizedSource = sanitizeAiText(source, 500);
     const normalizedTags = Array.from(new Set((tags ?? [])
         .map(tag => sanitizeAiText(tag, 80).toLocaleLowerCase('vi'))
@@ -100,6 +115,8 @@ export async function createInternalKnowledgeSnippet(content: string, source: st
         source: normalizedSource,
         tags: normalizedTags,
         governance: {
+            runtimeProfile: AI_GOVERNANCE_CONFIG.runtimeProfile,
+            assuranceProfile: AI_GOVERNANCE_CONFIG.assuranceProfile,
             fingerprint: envelope.fingerprint,
             qualityScore: envelope.qualityScore,
             trustScore: envelope.trustScore,
@@ -174,6 +191,11 @@ export async function createInternalAgent(data: { name: string, subsystem: strin
         isDefault: false,
         isBuiltIn: false,
         governanceMode: 'advisory-only',
+        governanceProfile: {
+            runtime: AI_GOVERNANCE_CONFIG.runtimeProfile,
+            assurance: AI_GOVERNANCE_CONFIG.assuranceProfile,
+            allowWrite: false,
+        },
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
     };
