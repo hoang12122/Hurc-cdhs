@@ -77,6 +77,19 @@ class TimescaleBatchStore:
         finally:
             self.connection.close()
 
+    def _lock_event_ids(self, cursor, event_ids):
+        ordered = sorted(set(event_ids))
+        if not ordered:
+            return
+        cursor.execute(
+            """
+            SELECT pg_advisory_xact_lock(hashtextextended(event_id, 0))
+            FROM unnest(%s::text[]) AS event_id
+            ORDER BY event_id
+            """,
+            (ordered,),
+        )
+
     def _existing_identities(self, cursor, event_ids):
         if not event_ids:
             return {}
@@ -116,16 +129,17 @@ class TimescaleBatchStore:
         try:
             with self.connection:
                 with self.connection.cursor() as cursor:
+                    self._lock_event_ids(cursor, by_event_id.keys())
                     existing = self._existing_identities(cursor, by_event_id.keys())
 
                     for event_id, items in by_event_id.items():
                         known_checksum = existing.get(event_id)
                         checksums = {str(event["event_checksum"]) for _message, event in items}
                         if known_checksum is None and len(checksums) > 1:
-                            for message, event in items:
-                                conflicts.append((message, event, "different checksums in the same batch"))
-                                topic, partition, offset = _source(message, event)
-                                lineage_rows.append((topic, partition, offset, event_id, event["event_checksum"], "timescale-quarantine", self.run_id))
+                            conflicts.extend(
+                                (message, event, "different checksums in the same batch")
+                                for message, event in items
+                            )
                             continue
 
                         if known_checksum is None:
@@ -166,22 +180,19 @@ class TimescaleBatchStore:
                               event_id, event_checksum, first_source_topic,
                               first_source_partition, first_source_offset, seen_count, conflict_count
                             ) VALUES %s
-                            ON CONFLICT (event_id) DO NOTHING
                             """,
                             identity_inserts,
                         )
-                    if identity_updates:
-                        execute_values(
-                            cursor,
+                    for seen_count, conflict_count, event_id in identity_updates:
+                        cursor.execute(
                             """
-                            UPDATE etl_event_identity AS identity SET
-                              seen_count = identity.seen_count + values.seen_count,
-                              conflict_count = identity.conflict_count + values.conflict_count,
+                            UPDATE etl_event_identity SET
+                              seen_count = seen_count + %s,
+                              conflict_count = conflict_count + %s,
                               last_seen_at = NOW()
-                            FROM (VALUES %s) AS values(seen_count, conflict_count, event_id)
-                            WHERE identity.event_id = values.event_id
+                            WHERE event_id = %s
                             """,
-                            identity_updates,
+                            (seen_count, conflict_count, event_id),
                         )
 
                     if inserted:
