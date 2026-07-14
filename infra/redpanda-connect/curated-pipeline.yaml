@@ -3,8 +3,8 @@ input:
     seed_brokers:
       - redpanda:9092
     topics:
-      - iot.telemetry.normalized
-    consumer_group: hurc-curated-sink-v2
+      - iot.telemetry.accepted
+    consumer_group: hurc-curated-accepted-v1
     start_from_oldest: true
 
 pipeline:
