@@ -28,6 +28,8 @@ jobs:
       ETL_TIMESCALE_SINK_IMAGE: ${{ vars.ETL_TIMESCALE_SINK_IMAGE }}
       ETL_REPLAY_WORKER_IMAGE: ${{ vars.ETL_REPLAY_WORKER_IMAGE }}
       ETL_ACCEPTED_RELAY_IMAGE: ${{ vars.ETL_ACCEPTED_RELAY_IMAGE }}
+      SCADA_GATEWAY_IMAGE: ${{ vars.SCADA_GATEWAY_IMAGE }}
+      VISION_TRAINER_IMAGE: ${{ vars.VISION_TRAINER_IMAGE }}
       REDPANDA_IMAGE: ${{ vars.REDPANDA_IMAGE }}
       REDPANDA_CONNECT_IMAGE: ${{ vars.REDPANDA_CONNECT_IMAGE }}
       MINIO_IMAGE: ${{ vars.MINIO_IMAGE }}
@@ -40,6 +42,9 @@ jobs:
       MQTT_ALLOW_ANONYMOUS: ${{ vars.MQTT_ALLOW_ANONYMOUS }}
       IOT_REQUIRE_TLS: ${{ vars.IOT_REQUIRE_TLS }}
       IOT_DEVICE_IDENTITY_ENFORCED: ${{ vars.IOT_DEVICE_IDENTITY_ENFORCED }}
+      SCADA_GATEWAY_ENABLED: ${{ vars.SCADA_GATEWAY_ENABLED }}
+      SCADA_READ_ONLY_VALIDATED: ${{ vars.SCADA_READ_ONLY_VALIDATED }}
+      SCADA_SECURITY_REVIEW_APPROVED: ${{ vars.SCADA_SECURITY_REVIEW_APPROVED }}
       KAFKA_BROKERS: ${{ vars.KAFKA_BROKERS }}
       REDPANDA_REPLICATION_FACTOR: ${{ vars.REDPANDA_REPLICATION_FACTOR }}
       CLICKHOUSE_NODE_COUNT: ${{ vars.CLICKHOUSE_NODE_COUNT }}
@@ -54,6 +59,10 @@ jobs:
       MLFLOW_BACKEND_STORE_URI: ${{ secrets.MLFLOW_BACKEND_STORE_URI }}
       MLFLOW_ARTIFACT_ROOT: ${{ vars.MLFLOW_ARTIFACT_ROOT }}
       MODEL_APPROVAL_WORKFLOW_ENABLED: ${{ vars.MODEL_APPROVAL_WORKFLOW_ENABLED }}
+      VISION_TRAINING_ENABLED: ${{ vars.VISION_TRAINING_ENABLED }}
+      VISION_MODEL_ACTIVE: ${{ vars.VISION_MODEL_ACTIVE }}
+      VISION_DATASET_REVIEW_APPROVED: ${{ vars.VISION_DATASET_REVIEW_APPROVED }}
+      VISION_MODEL_VALIDATION_APPROVED: ${{ vars.VISION_MODEL_VALIDATION_APPROVED }}
       BESU_NETWORK: ${{ vars.BESU_NETWORK }}
       LEDGER_SIGNER_MODE: ${{ vars.LEDGER_SIGNER_MODE }}
       PLATFORM_KMS_PROVIDER: ${{ vars.PLATFORM_KMS_PROVIDER }}
@@ -82,6 +91,11 @@ jobs:
         with:
           node-version: '20.12.2'
 
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
       - name: Install dependencies
         run: npm install --include=dev --ignore-scripts
 
@@ -93,18 +107,24 @@ jobs:
       - name: Verify canonical ETL architecture
         run: node scripts/check-etl-architecture.mjs
 
-      - name: Verify ETL Python syntax
+      - name: Verify Vision and SCADA safety contracts
+        run: node scripts/check-vision-scada-contracts.mjs
+
+      - name: Verify Python syntax
         run: >-
           python3 -m py_compile
           infra/etl-normalizer/contract.py infra/etl-normalizer/registry.py infra/etl-normalizer/main.py
           infra/timescale-sink/store.py infra/timescale-sink/main.py
           infra/etl-replay-worker/config.py infra/etl-replay-worker/control.py
           infra/etl-replay-worker/replay.py infra/etl-replay-worker/main.py
-          infra/etl-accepted-relay/main.py
-          infra/iot-ingestor/entrypoint.py
+          infra/etl-accepted-relay/main.py infra/iot-ingestor/entrypoint.py
+          infra/vision-trainer/main.py infra/scada-gateway/main.py
 
       - name: Verify ETL contract invariants
         run: python3 -m unittest infra/etl-normalizer/test_contract.py
+
+      - name: Verify operational data exchange contract
+        run: npx tsx src/scripts/test-data-exchange.ts
 
       - name: Audit immutable Phase 1-4 images
         run: node scripts/check-platform-image-pins.mjs
