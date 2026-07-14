@@ -15,8 +15,8 @@ const requireText = (content, text, message) => {
 
 requireText(dnfAction, 'where.createdById', 'DNF creator scope must be applied in the database query.');
 requireText(hazardAction, 'whereClause.createdById', 'Hazard creator scope must be applied in the database query.');
-requireText(dnfAction, 'pages: Math.ceil(total / pagination.pageSize)', 'DNF page count must use the scoped database total.');
-requireText(hazardAction, 'pages: Math.ceil(total / pagination.pageSize)', 'Hazard page count must use the scoped database total.');
+requireText(dnfAction, 'pages: Math.max(1, Math.ceil(total / pagination.pageSize))', 'DNF page count must use the scoped database total.');
+requireText(hazardAction, 'pages: Math.max(1, Math.ceil(total / pagination.pageSize))', 'Hazard page count must use the scoped database total.');
 
 if (dnfAction.includes('total: filtered.length') || hazardAction.includes('total: filtered.length')) {
   failures.push('Post-pagination application filtering must not define pagination totals.');
