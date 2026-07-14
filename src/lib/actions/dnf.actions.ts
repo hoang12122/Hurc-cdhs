@@ -3,11 +3,11 @@
 import { revalidatePath } from 'next/cache';
 import { type DnfDocument, type CorrectiveAction } from '@/lib/types';
 import { internalLogSystemEvent as logSystemEvent } from '../services/log-service';
-import { 
-    getDnfsInternal, 
+import {
+    getDnfsInternal,
     getDnfByIdInternal,
-    createDnfInternal, 
-    updateDnfInternal, 
+    createDnfInternal,
+    updateDnfInternal,
     deleteDnfInternal,
     getDnfsPaginatedInternal,
     countDnfsByPrefixInternal,
@@ -17,33 +17,53 @@ import {
     deleteCorrectiveActionInternal
 } from '../services/dnf-service';
 import { requirePermission, requireAuth } from '@/lib/auth-enforcer';
+import { OUScopeService } from '../services/ou-scope-service';
 
-/**
- * FETCH ALL DNFS
- */
+const MAX_PAGE_SIZE = 100;
+
+function normalizePagination(page: number, pageSize: number) {
+    const normalizedPage = Math.max(1, Math.trunc(Number(page) || 1));
+    const normalizedPageSize = Math.min(MAX_PAGE_SIZE, Math.max(1, Math.trunc(Number(pageSize) || 20)));
+    return {
+        page: normalizedPage,
+        pageSize: normalizedPageSize,
+        skip: (normalizedPage - 1) * normalizedPageSize,
+    };
+}
+
+async function applyCreatorScope(where: Record<string, unknown>, currentUser: Awaited<ReturnType<typeof requireAuth>>) {
+    if (currentUser.role === 'SUPER_ADMIN' || currentUser.permissions?.includes('dnf:view_all')) return;
+
+    const userOuId = (currentUser as typeof currentUser & { ouId?: string | null }).ouId;
+    const scopedUserIds = userOuId ? await OUScopeService.getUsersInScope(userOuId) : [];
+    where.createdById = { in: Array.from(new Set([...scopedUserIds, currentUser.id])) };
+}
+
+function resolveSubsystemScope(requested?: string[], assigned?: string[]) {
+    if (!assigned?.length) return requested?.length ? requested : undefined;
+    if (!requested?.length) return assigned;
+    const allowed = new Set(assigned);
+    return requested.filter(id => allowed.has(id));
+}
+
+/** FETCH ALL DNFS */
 export async function getDnfs(): Promise<DnfDocument[]> {
     const currentUser = await requireAuth();
     const all = await getDnfsInternal();
-    
-    // Apply OU scope filtering
+
     if (currentUser.role !== 'SUPER_ADMIN' && !currentUser.permissions?.includes('dnf:view_all')) {
-        const userOuId = (currentUser as any).ouId;
-        if (userOuId) {
-            const { OUScopeService } = await import('../services/ou-scope-service');
-            const scopedUserIds = await OUScopeService.getUsersInScope(userOuId);
-            scopedUserIds.push(currentUser.id);
-            return all.filter((r: any) => scopedUserIds.includes(r.createdById));
-        }
+        const userOuId = (currentUser as typeof currentUser & { ouId?: string | null }).ouId;
+        const scopedUserIds = userOuId ? await OUScopeService.getUsersInScope(userOuId) : [];
+        const allowedIds = new Set([...scopedUserIds, currentUser.id]);
+        return all.filter(record => allowedIds.has(record.createdById));
     }
     return all;
 }
 
-/**
- * FETCH PAGINATED DNFS WITH FILTERS
- */
-export async function getDnfsPaginated(params: { 
-    page: number; 
-    pageSize: number; 
+/** FETCH PAGINATED DNFS WITH FILTERS */
+export async function getDnfsPaginated(params: {
+    page: number;
+    pageSize: number;
     searchTerm?: string;
     statuses?: string[];
     subsystems?: string[];
@@ -54,88 +74,70 @@ export async function getDnfsPaginated(params: {
     priorities?: number[];
 }) {
     const currentUser = await requireAuth();
-    const skip = (params.page - 1) * params.pageSize;
-    
-    // Construct where clause
-    const where: any = { isArchived: false };
-    
-    if (params.searchTerm) {
+    const pagination = normalizePagination(params.page, params.pageSize);
+    const where: Record<string, unknown> = { isArchived: false };
+
+    await applyCreatorScope(where, currentUser);
+
+    const searchTerm = params.searchTerm?.trim();
+    if (searchTerm) {
         where.OR = [
-            { id: { contains: params.searchTerm, mode: 'insensitive' } },
-            { descriptionOfFailure: { contains: params.searchTerm, mode: 'insensitive' } },
-            { locationOfFailure: { contains: params.searchTerm, mode: 'insensitive' } }
+            { id: { contains: searchTerm, mode: 'insensitive' } },
+            { descriptionOfFailure: { contains: searchTerm, mode: 'insensitive' } },
+            { locationOfFailure: { contains: searchTerm, mode: 'insensitive' } }
         ];
     }
-    
+
     if (params.statuses?.length) where.status = { in: params.statuses };
-    if (params.subsystems?.length) where.subsystemIds = { hasSome: params.subsystems };
-    if (params.assignedSubsystems?.length) where.subsystemIds = { hasSome: params.assignedSubsystems };
+    const scopedSubsystems = resolveSubsystemScope(params.subsystems, params.assignedSubsystems);
+    if (scopedSubsystems) where.subsystemIds = { hasSome: scopedSubsystems };
     if (params.hazardLevels?.length) where.hazardLevelId = { in: params.hazardLevels };
-    
+
     if (params.startDate || params.endDate) {
-        where.dateTimeOfFailureOccurrence = {};
-        if (params.startDate) where.dateTimeOfFailureOccurrence.gte = new Date(params.startDate);
-        if (params.endDate) where.dateTimeOfFailureOccurrence.lte = new Date(params.endDate);
+        const dateRange: { gte?: Date; lte?: Date } = {};
+        if (params.startDate) dateRange.gte = new Date(params.startDate);
+        if (params.endDate) dateRange.lte = new Date(params.endDate);
+        where.dateTimeOfFailureOccurrence = dateRange;
     }
-    
-    const { total, dnfs } = await getDnfsPaginatedInternal(skip, params.pageSize, where);
-    
-    // Apply OU scope filtering for non-admin users
-    let filtered = dnfs;
-    if (currentUser.role !== 'SUPER_ADMIN' && !currentUser.permissions?.includes('dnf:view_all')) {
-        const userOuId = (currentUser as any).ouId;
-        if (userOuId) {
-            const { OUScopeService } = await import('../services/ou-scope-service');
-            const scopedUserIds = await OUScopeService.getUsersInScope(userOuId);
-            scopedUserIds.push(currentUser.id);
-            filtered = filtered.filter((r: any) => scopedUserIds.includes(r.createdById));
-        }
-    }
-    
+
+    const { total, dnfs } = await getDnfsPaginatedInternal(pagination.skip, pagination.pageSize, where);
     return {
-        data: filtered,
+        data: dnfs,
         metadata: {
-            total: filtered.length,
-            pages: Math.ceil(filtered.length / params.pageSize)
+            total,
+            pages: Math.ceil(total / pagination.pageSize),
+            currentPage: pagination.page,
+            pageSize: pagination.pageSize,
         }
     };
 }
 
-/**
- * FETCH DNF BY ID
- */
+/** FETCH DNF BY ID */
 export async function getDnfById(id: string): Promise<DnfDocument | null> {
     await requireAuth();
     const dnf = await getDnfByIdInternal(id);
     return (dnf as unknown as DnfDocument) || null;
 }
 
-/**
- * ADD NEW DNF RECORD
- */
+/** ADD NEW DNF RECORD */
 export async function addDnf(dnf: Omit<DnfDocument, 'id'|'createdAt'|'updatedAt'|'createdById'|'statusHistory'|'isArchived'|'correctiveActions'>): Promise<DnfDocument> {
     const user = await requirePermission('dnf:manage');
-    
-    // Generate ID
     const sys = dnf.subsystemIds?.[0] || 'GEN';
     const count = await countDnfsByPrefixInternal(`DNF-${sys}-`);
     const newId = `DNF-${sys}-${String(count + 1).padStart(3, '0')}`;
-    
     const record = await createDnfInternal(newId, dnf, user.id);
-    
+
     if (record.priority === 'Cao') {
         await notifyDnfAlertInternal(record.id, record.descriptionOfFailure);
     }
-    
+
     await logSystemEvent('CREATE_DNF', 'INFO', `Created DNF record: ${record.id}`);
     revalidatePath('/dnf');
     revalidatePath('/dashboard');
     return record as unknown as DnfDocument;
 }
 
-/**
- * UPDATE DNF RECORD
- */
+/** UPDATE DNF RECORD */
 export async function updateDnf(updatedDnf: DnfDocument): Promise<void> {
     await requirePermission('dnf:manage');
     await updateDnfInternal(updatedDnf.id, updatedDnf);
@@ -145,9 +147,7 @@ export async function updateDnf(updatedDnf: DnfDocument): Promise<void> {
     revalidatePath('/dashboard');
 }
 
-/**
- * DELETE DNF RECORD
- */
+/** DELETE DNF RECORD */
 export async function deleteDnf(dnfId: string): Promise<void> {
     await requirePermission('dnf:manage');
     await deleteDnfInternal(dnfId);
@@ -156,13 +156,12 @@ export async function deleteDnf(dnfId: string): Promise<void> {
     revalidatePath('/dashboard');
 }
 
-/**
- * BATCH IMPORT DNFS
- */
-export async function addManyDnfs(dnfs: any[]) {
+/** BATCH IMPORT DNFS */
+export async function addManyDnfs(dnfs: unknown[]) {
     const user = await requirePermission('dnf:manage');
     let imported = 0;
-    for (const dnf of dnfs) {
+    for (const rawDnf of dnfs) {
+        const dnf = rawDnf as Partial<DnfDocument>;
         const sys = dnf.subsystemIds?.[0] || 'GEN';
         const count = await countDnfsByPrefixInternal(`DNF-${sys}-`);
         const newId = `DNF-${sys}-${String(count + 1).padStart(3, '0')}`;
@@ -173,9 +172,7 @@ export async function addManyDnfs(dnfs: any[]) {
     return { success: true, count: imported };
 }
 
-/**
- * CORRECTIVE ACTIONS
- */
+/** CORRECTIVE ACTIONS */
 export async function addCorrectiveAction(dnfId: string, data: Omit<CorrectiveAction, 'id' | 'dnfId' | 'status' | 'createdAt' | 'updatedAt'>) {
     await requirePermission('dnf:manage');
     const result = await createCorrectiveActionInternal(dnfId, data);
@@ -196,9 +193,7 @@ export async function deleteCorrectiveAction(id: string, dnfId: string) {
     revalidatePath(`/dnf/${dnfId}`);
 }
 
-/**
- * COMPATIBILITY ALIASES
- */
+/** COMPATIBILITY ALIASES */
 export async function updateMockDnf(data: DnfDocument) {
     return await updateDnf(data);
 }
@@ -207,7 +202,6 @@ export async function deleteMockDnf(id: string) {
     return await deleteDnf(id);
 }
 
-// Added alias to satisfy dashboard page which I briefly broke
 export async function getDnfRecords(): Promise<DnfDocument[]> {
     return await getDnfs();
 }
