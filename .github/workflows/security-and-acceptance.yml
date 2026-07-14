@@ -94,10 +94,13 @@ jobs:
           infra/timescale-sink/store.py infra/timescale-sink/main.py
           infra/etl-replay-worker/config.py infra/etl-replay-worker/control.py
           infra/etl-replay-worker/replay.py infra/etl-replay-worker/main.py
-          infra/iot-ingestor/entrypoint.py
+          infra/etl-replay-worker/test_replay.py infra/iot-ingestor/entrypoint.py
 
       - name: ETL contract invariant checks
         run: node scripts/run-build-phase.js "ETL contract invariant checks" -- python3 -m unittest infra/etl-normalizer/test_contract.py
+
+      - name: ETL replay policy checks
+        run: node scripts/run-build-phase.js "ETL replay policy checks" -- python3 -m unittest infra/etl-replay-worker/test_replay.py
 
       - name: Static type check
         run: node scripts/run-build-phase.js "Static type check" -- npm run typecheck
