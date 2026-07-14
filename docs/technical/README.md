@@ -10,7 +10,8 @@ Thư mục này chứa tài liệu kỹ thuật phục vụ lập trình viên, 
 | `AI_CONTINUOUS_LEARNING_UX_PRODUCTION_READINESS.md` | Vòng học liên tục có kiểm duyệt, tối ưu tốc độ/UX và attestation production gắn đúng commit. |
 | `AI_BIGDATA_IOT_BLOCKCHAIN_TARGET_ARCHITECTURE.md` | Kiến trúc đích hợp nhất AI, Big Data, IoT và Blockchain; profile LOW/STANDARD/HIGH; roadmap, bảo mật, KPI và tiêu chí nghiệm thu. |
 | `CONVERGED_PLATFORM_RUNTIME_OPERATIONS.md` | Hướng dẫn chạy runtime Phase 1–4, kiểm tra MQTT/Timescale/Kafka/MinIO/ClickHouse/MLflow/Besu, rollback và production hardening. |
-| `ETL_DATA_PLATFORM_OPTIMIZATION.md` | Contract telemetry, Bronze–Silver–Gold, data quality, idempotency, replay, SLO, migration và rollback ETL. |
+| `ETL_DATA_PLATFORM_OPTIMIZATION.md` | Contract telemetry, Bronze–Silver–Gold, data quality, effectively-once, lineage, replay, SLO, migration và rollback ETL. |
+| `ETL_REPLAY_OPERATIONS.md` | Dual-control replay, lease, heartbeat, checkpoint, source expiration, đối soát và khôi phục. |
 | `DIGITAL_TWIN_OPERATIONAL_CONTROL_CENTER.md` | Mục đích nghiệp vụ, transactional outbox, Health Engine, logic liên kết, UX, HA readiness và tiêu chí nghiệm thu Digital Twin. |
 | `PROJECT_STRUCTURE_GUIDE.md` | Quy chuẩn cấu trúc dự án Frontend React/Next.js và Backend Golang. |
 | `STRUCTURE_MIGRATION_PLAN.md` | Kế hoạch sắp xếp lại thư mục phần mềm theo từng đợt. |
@@ -59,7 +60,7 @@ Runtime opt-in đã được thêm theo thứ tự bắt buộc:
 | Phase | Trạng thái mã nguồn | Thành phần |
 |---:|---|---|
 | 1 | Đã có runtime POC/UAT | Mosquitto, IoT ingestor, TimescaleDB |
-| 2 | Đã có runtime POC/UAT | Redpanda/Kafka, ETL Normalizer, Bronze/Silver/Gold, Outbox Relay, MinIO, ClickHouse |
+| 2 | Đã có runtime POC/UAT | Redpanda/Kafka, ETL Normalizer, canonical Timescale Sink, replay worker, Bronze/Silver/Gold, Outbox Relay, MinIO, ClickHouse |
 | 3 | Đã có runtime POC/UAT | MLflow |
 | 4 | Đã có runtime POC/UAT | Besu dev node, authenticated evidence-ledger gateway |
 
@@ -86,11 +87,12 @@ Tệp environment và runbook:
 docs/config/converged-platform.env.example
 docs/technical/CONVERGED_PLATFORM_RUNTIME_OPERATIONS.md
 docs/technical/ETL_DATA_PLATFORM_OPTIMIZATION.md
+docs/technical/ETL_REPLAY_OPERATIONS.md
 docs/technical/DIGITAL_TWIN_OPERATIONAL_CONTROL_CENTER.md
 docs/technical/AI_CONTINUOUS_LEARNING_UX_PRODUCTION_READINESS.md
 ```
 
-Control Center có một điểm vào chính `/iot` và các tab `/data-platform`, `/mlops`, `/evidence-ledger`; live health API, ETL quality metrics, Digital Twin overview, deep-link Asset 360 và Production Readiness Gate.
+Control Center có một điểm vào chính `/iot` và các tab `/data-platform`, `/mlops`, `/evidence-ledger`; live health API, ETL quality metrics, Digital Twin overview, deep-link Asset 360 và Production Readiness Gate. `/data-platform` có drill-down pipeline run, quality issue, checksum collision và replay request.
 
 ## Điều kiện đánh dấu Production Ready
 
@@ -117,8 +119,10 @@ Chỉ ghi `PRODUCTION_READY` khi:
 - CI/CD acceptance xanh;
 - image được pin bằng digest;
 - mTLS/ACL và device identity được cưỡng chế;
-- ETL contract đã xác minh;
-- replay Bronze–Silver–Gold đã kiểm thử;
+- ETL contract và Schema Registry fail-closed đã xác minh;
+- Phase 2–4 chỉ có canonical ingress;
+- effectively-once, collision quarantine và late-data policy đã kiểm thử;
+- replay lease/checkpoint và đối soát Bronze–Silver–Gold đã kiểm thử;
 - SLO data quality đã được phê duyệt;
 - benchmark tải và security review được phê duyệt;
 - backup/restore và DR đã kiểm thử;
