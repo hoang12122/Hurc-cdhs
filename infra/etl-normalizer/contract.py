@@ -59,6 +59,7 @@ def stable_event_checksum(event):
         for key, value in event.items()
         if not str(key).startswith("_")
     }
+    stable_event["_mqttTopic"] = event.get("_mqttTopic")
     return hashlib.sha256(canonical_json(stable_event).encode("utf-8")).hexdigest()
 
 
@@ -89,6 +90,15 @@ def optional_float(value, field_name):
     if parsed != parsed or parsed in (float("inf"), float("-inf")):
         raise ContractError("INVALID_PAYLOAD", f"{field_name} must be finite")
     return parsed
+
+
+def require_dimension_match(field_name, supplied, expected):
+    value = bounded_text(supplied, 128)
+    if value and value.casefold() != expected.casefold():
+        raise ContractError(
+            "ASSET_TOPIC_MISMATCH",
+            f"{field_name} does not match MQTT topic",
+        )
 
 
 def normalize_event(
@@ -142,8 +152,12 @@ def normalize_event(
         raise ContractError("MISSING_ASSET", "asset.assetId is required")
     if asset_id != topic["asset_id"]:
         raise ContractError("ASSET_TOPIC_MISMATCH", "asset.assetId does not match MQTT topic")
+    require_dimension_match("asset.line", asset.get("line"), topic["line_code"])
+    require_dimension_match("asset.station", asset.get("station"), topic["station_code"])
+    require_dimension_match("asset.subsystem", asset.get("subsystem"), topic["subsystem"])
 
     source = event.get("source") if isinstance(event.get("source"), dict) else {}
+    require_dimension_match("source.environment", source.get("environment"), topic["environment"])
     quality = event.get("quality") if isinstance(event.get("quality"), dict) else {}
     quality_status = bounded_text(quality.get("status") or "unknown", 32).lower()
     if quality_status not in QUALITY_STATUSES:
