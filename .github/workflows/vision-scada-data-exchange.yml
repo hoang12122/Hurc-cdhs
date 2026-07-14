@@ -5,6 +5,9 @@ on:
   pull_request:
     branches: [main]
     paths:
+      - '.github/workflows/vision-scada-data-exchange.yml'
+      - 'package.json'
+      - 'package-lock.json'
       - 'infra/vision-trainer/**'
       - 'infra/scada-gateway/**'
       - 'docker-compose.vision-scada.yml'
@@ -12,15 +15,24 @@ on:
       - 'scripts/platform-compose.mjs'
       - 'scripts/check-platform-image-pins.mjs'
       - 'scripts/check-vision-scada-contracts.mjs'
+      - 'scripts/check-operational-performance-invariants.mjs'
       - 'src/app/api/vision-training/**'
       - 'src/app/api/data-exchange/**'
+      - 'src/app/(app)/dnf/**'
+      - 'src/app/(app)/hazards/**'
       - 'src/components/ai/vision-training-studio.tsx'
       - 'src/components/admin/operational-data-exchange.tsx'
+      - 'src/components/ui/operational-list-loading.tsx'
+      - 'src/lib/actions/dnf.actions.ts'
+      - 'src/lib/actions/hazard.actions.ts'
       - 'src/lib/services/data-exchange/**'
       - 'src/scripts/test-data-exchange.ts'
   push:
     branches: [main]
     paths:
+      - '.github/workflows/vision-scada-data-exchange.yml'
+      - 'package.json'
+      - 'package-lock.json'
       - 'infra/vision-trainer/**'
       - 'infra/scada-gateway/**'
       - 'docker-compose.vision-scada.yml'
@@ -28,15 +40,29 @@ on:
       - 'scripts/platform-compose.mjs'
       - 'scripts/check-platform-image-pins.mjs'
       - 'scripts/check-vision-scada-contracts.mjs'
+      - 'scripts/check-operational-performance-invariants.mjs'
       - 'src/app/api/vision-training/**'
       - 'src/app/api/data-exchange/**'
+      - 'src/app/(app)/dnf/**'
+      - 'src/app/(app)/hazards/**'
       - 'src/components/ai/vision-training-studio.tsx'
       - 'src/components/admin/operational-data-exchange.tsx'
+      - 'src/components/ui/operational-list-loading.tsx'
+      - 'src/lib/actions/dnf.actions.ts'
+      - 'src/lib/actions/hazard.actions.ts'
       - 'src/lib/services/data-exchange/**'
       - 'src/scripts/test-data-exchange.ts'
 
+concurrency:
+  group: vision-scada-data-exchange-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 permissions:
   contents: read
+
+env:
+  CI: 'true'
+  NEXT_TELEMETRY_DISABLED: '1'
 
 jobs:
   validate:
@@ -48,13 +74,15 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '20.12.2'
+          cache: npm
+          cache-dependency-path: package-lock.json
 
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
 
       - name: Install Node dependencies
-        run: npm install --include=dev --ignore-scripts
+        run: npm ci --include=dev --ignore-scripts --no-audit --fund=false
 
       - name: Validate Compose overlays
         run: npm run platform:config
@@ -67,6 +95,9 @@ jobs:
 
       - name: Verify DNF and Hazard CSV contract
         run: npx tsx src/scripts/test-data-exchange.ts
+
+      - name: Verify operational performance invariants
+        run: node scripts/check-operational-performance-invariants.mjs
 
       - name: Static type check
         run: npm run typecheck
