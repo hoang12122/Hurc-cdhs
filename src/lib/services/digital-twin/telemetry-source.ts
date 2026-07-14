@@ -42,13 +42,16 @@ function parsedDate(value: string | Date | null): Date | null {
 }
 
 function mapRows(rows: ClickHouseRow[] | TimescaleRow[]): Map<string, TelemetrySnapshot> {
-  return new Map(rows.map(row => [normalize(row.asset_id), {
-    assetId: row.asset_id,
-    lastSeenAt: parsedDate(row.last_seen_at),
-    total24h: Number(row.total_24h ?? 0),
-    error24h: Number(row.error_24h ?? 0),
-    anomalyScore: finiteNumber(row.anomaly_score),
-  }]));
+  return new Map(rows.map(row => [
+    normalize(row.asset_id),
+    {
+      assetId: row.asset_id,
+      lastSeenAt: parsedDate(row.last_seen_at),
+      total24h: Number(row.total_24h ?? 0),
+      error24h: Number(row.error_24h ?? 0),
+      anomalyScore: finiteNumber(row.anomaly_score),
+    },
+  ] as const));
 }
 
 async function loadClickHouseTelemetry(): Promise<Map<string, TelemetrySnapshot>> {
