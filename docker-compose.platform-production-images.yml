@@ -15,6 +15,10 @@ services:
     image: ${ETL_REPLAY_WORKER_IMAGE:-replace-with-etl-replay-worker-digest}
     pull_policy: always
 
+  etl-accepted-relay:
+    image: ${ETL_ACCEPTED_RELAY_IMAGE:-replace-with-etl-accepted-relay-digest}
+    pull_policy: always
+
   outbox-relay:
     image: ${OUTBOX_RELAY_IMAGE:-replace-with-outbox-relay-digest}
     pull_policy: always
