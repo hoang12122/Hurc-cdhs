@@ -93,12 +93,12 @@ def resolve_bounds(consumer, request_item, partitions):
 def validate_request(request_item):
     source = request_item["source"]
     target = request_item["target"]
+    if source == target:
+        raise ValueError("source and target topics must be different")
     if source not in ALLOWED_SOURCE_TOPICS:
         raise ValueError(f"source topic is not allowed: {source}")
     if target not in ALLOWED_TARGET_TOPICS:
         raise ValueError(f"target topic is not allowed: {target}")
-    if source == target:
-        raise ValueError("source and target topics must be different")
     if request_item["from"] and request_item["to"] and request_item["from"] >= request_item["to"]:
         raise ValueError("from_timestamp must be earlier than to_timestamp")
 
