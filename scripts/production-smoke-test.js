@@ -18,6 +18,8 @@ const routes = [
   { path: '/mlops', maxStatus: 399 },
   { path: '/evidence-ledger', maxStatus: 399 },
   { path: '/admin/ai-governance/learning', maxStatus: 399 },
+  { path: '/admin/ai-governance/vision-training', maxStatus: 399 },
+  { path: '/admin/data-exchange', maxStatus: 399 },
 ];
 
 function sleep(ms) {
