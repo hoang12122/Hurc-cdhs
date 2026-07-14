@@ -40,12 +40,31 @@ class TelemetryContractTests(unittest.TestCase):
         self.assertEqual(result["quality_score"], 100)
         self.assertEqual(result["quality_flags"], [])
         self.assertEqual(result["processing_latency_ms"], 1000)
+        self.assertEqual(result["late_event"], 0)
         self.assertEqual(len(result["event_checksum"]), 64)
 
     def test_checksum_is_deterministic(self):
         first = normalize_event(valid_event(), now=NOW)
         second = normalize_event(valid_event(), now=NOW)
         self.assertEqual(first["event_checksum"], second["event_checksum"])
+
+    def test_checksum_ignores_transport_metadata_during_replay(self):
+        original = valid_event()
+        replayed = valid_event()
+        replayed["_ingestedAt"] = "2026-07-13T10:15:00Z"
+        replayed["_curatedAt"] = "2026-07-13T10:16:00Z"
+        first = normalize_event(original, now=NOW)
+        second = normalize_event(replayed, now=NOW + timedelta(minutes=20))
+        self.assertEqual(first["event_checksum"], second["event_checksum"])
+
+    def test_marks_event_beyond_watermark_as_late(self):
+        event = valid_event()
+        event["occurredAt"] = "2026-07-13T09:49:00Z"
+        result = normalize_event(event, now=NOW, watermark_delay_seconds=300)
+        self.assertEqual(result["late_event"], 1)
+        self.assertEqual(result["lateness_ms"], 360000)
+        self.assertIn("LATE_EVENT", result["quality_flags"])
+        self.assertEqual(result["quality_score"], 95)
 
     def test_rejects_asset_topic_mismatch(self):
         event = valid_event()
