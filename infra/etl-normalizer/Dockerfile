@@ -8,7 +8,7 @@ WORKDIR /app
 COPY infra/etl-normalizer/requirements.txt ./
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY infra/etl-normalizer/contract.py infra/etl-normalizer/main.py ./
+COPY infra/etl-normalizer/contract.py infra/etl-normalizer/main.py infra/etl-normalizer/registry.py ./
 COPY infra/etl/contracts ./contracts
 
 RUN useradd --create-home --uid 10002 etl && chown -R etl:etl /app
