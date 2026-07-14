@@ -28,7 +28,7 @@ export async function GET(
 ) {
   try {
     const entity = await contextEntity(context);
-    const user = await requirePermission(`${entity}:manage`);
+    const user = await requirePermission('admin:system');
     if (!checkRateLimit(`data-exchange-export:${entity}:${user.id}`, 10, 60_000)) {
       return NextResponse.json({ error: 'Too many export requests.' }, { status: 429 });
     }
@@ -63,7 +63,7 @@ export async function POST(
 ) {
   try {
     const entity = await contextEntity(context);
-    const user = await requirePermission(`${entity}:manage`);
+    const user = await requirePermission('admin:system');
     if (!checkRateLimit(`data-exchange-import:${entity}:${user.id}`, 5, 60_000)) {
       return NextResponse.json({ error: 'Too many import requests.' }, { status: 429 });
     }
@@ -79,7 +79,7 @@ export async function POST(
     } else {
       const body = await request.json() as { records?: Array<Record<string, unknown>> };
       if (!Array.isArray(body.records)) return NextResponse.json({ error: 'records array is required.' }, { status: 400 });
-      rows = body.records.map(record => Object.fromEntries(Object.entries(record).map(([key, value]) => [key, value === null || value === undefined ? '' : String(value)])));
+      rows = body.records.map(record => Object.fromEntries(Object.entries(record).map(([key, fieldValue]) => [key, fieldValue === null || fieldValue === undefined ? '' : String(fieldValue)])));
     }
     const result = await importOperationalRecords(entity, rows, user.id, dryRun);
     return NextResponse.json(result, {
