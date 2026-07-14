@@ -8,6 +8,7 @@ const failures = [];
 const dnfAction = read('src/lib/actions/dnf.actions.ts');
 const hazardAction = read('src/lib/actions/hazard.actions.ts');
 const authEnforcer = read('src/lib/auth-enforcer.ts');
+const ouScope = read('src/lib/services/ou-scope-service.ts');
 const workflow = read('.github/workflows/vision-scada-data-exchange.yml');
 
 const requireText = (content, text, message) => {
@@ -27,6 +28,8 @@ if (authEnforcer.includes("import { hasPermission }")) {
   failures.push('requirePermission must not trigger a second session lookup through hasPermission.');
 }
 requireText(authEnforcer, "user.permissions?.includes(permission)", 'Permission checks must use the already authenticated user snapshot.');
+requireText(ouScope, 'select: { id: true }', 'OU scope must query only user IDs on the database path.');
+requireText(ouScope, 'where: { ouId: { in: scopeOuIds } }', 'OU scope must push OU filtering into the database query.');
 
 requireText(workflow, 'cache: npm', 'Workflow must use the npm dependency cache.');
 requireText(workflow, 'npm ci', 'Workflow must use reproducible npm ci installation.');
@@ -45,4 +48,4 @@ if (failures.length) {
   process.exit(1);
 }
 
-console.log('[operational-performance] PASS: scoped pagination, auth reuse, CI cache and route loading are enforced.');
+console.log('[operational-performance] PASS: scoped pagination, auth reuse, targeted OU queries, CI cache and route loading are enforced.');
