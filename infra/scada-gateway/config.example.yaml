@@ -1,0 +1,60 @@
+gateway:
+  id: hurc-scada-gateway-01
+  environment: uat
+  line: line-1
+  read_only: true
+  publish_interval_seconds: 5
+
+mqtt:
+  host: mqtt
+  port: 1883
+  username: ""
+  password: ""
+  tls: false
+
+sources:
+  - id: opcua-psd
+    protocol: opcua
+    endpoint: opc.tcp://10.10.10.20:4840
+    security_policy: None
+    points:
+      - tag: ns=2;s=PSD.BT.Door01.Position
+        asset_id: PSD-BT-01
+        station: BT
+        subsystem: PSD
+        metric: door_position
+        unit: percent
+
+  - id: modbus-power
+    protocol: modbus_tcp
+    host: 10.10.20.30
+    port: 502
+    unit_id: 1
+    points:
+      - tag: input:30001:2
+        asset_id: PWR-OPH-UPS01
+        station: OPH
+        subsystem: POWER
+        metric: input_voltage
+        unit: V
+        data_type: float32
+        byte_order: big
+        word_order: big
+
+  - id: vendor-f-scada
+    protocol: rest
+    endpoint: https://f-scada.example.local/api/v1/points
+    method: GET
+    tls_verify: true
+    headers:
+      authorization: Bearer ${F_SCADA_READ_TOKEN}
+    points:
+      - tag: stations.BT.psd.door01.status
+        asset_id: PSD-BT-01
+        station: BT
+        subsystem: PSD
+        metric: door_status
+        unit: state
+        value_path: data.value
+        timestamp_path: data.timestamp
+        quality_path: data.quality
