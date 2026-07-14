@@ -24,6 +24,7 @@ requireText('docker-compose.platform-enhancements.yml', compose, [
   ['Timescale sink service', /^  timescale-sink:/m],
   ['governed replay worker service', /^  etl-replay-worker:/m],
   ['canonical migration', /002-etl-canonical\.sql/],
+  ['replay-safe ClickHouse migration', /003-etl-latest-state\.sql/],
   ['normalizer readiness check', /8082\/ready/],
   ['sink readiness check', /8083\/ready/],
   ['replay readiness check', /8084\/ready/],
@@ -84,8 +85,14 @@ const clickhouse = read('infra/clickhouse/002-etl-medallion.sql');
 requireText('infra/clickhouse/002-etl-medallion.sql', clickhouse, [
   ['late data fields', /late_event UInt8/],
   ['source offset lineage', /source_offset Int64/],
-  ['fast latest asset view', /telemetry_asset_latest/],
   ['quality aggregation', /telemetry_quality_hourly/],
+]);
+
+const latestState = read('infra/clickhouse/003-etl-latest-state.sql');
+requireText('infra/clickhouse/003-etl-latest-state.sql', latestState, [
+  ['latest state view', /telemetry_asset_latest/],
+  ['event-time ordering', /tuple\(occurred_at, ingest_version\)/],
+  ['maximum event time', /max\(occurred_at\) AS last_seen_at/],
 ]);
 
 const productionImages = read('docker-compose.platform-production-images.yml');
