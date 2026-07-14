@@ -1,0 +1,75 @@
+name: Vision, SCADA and Data Exchange Gate
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'infra/vision-trainer/**'
+      - 'infra/scada-gateway/**'
+      - 'docker-compose.vision-scada.yml'
+      - 'docker-compose.platform-production-images.yml'
+      - 'scripts/platform-compose.mjs'
+      - 'scripts/check-platform-image-pins.mjs'
+      - 'scripts/check-vision-scada-contracts.mjs'
+      - 'src/app/api/vision-training/**'
+      - 'src/app/api/data-exchange/**'
+      - 'src/components/ai/vision-training-studio.tsx'
+      - 'src/components/admin/operational-data-exchange.tsx'
+      - 'src/lib/services/data-exchange/**'
+      - 'src/scripts/test-data-exchange.ts'
+  push:
+    branches: [main]
+    paths:
+      - 'infra/vision-trainer/**'
+      - 'infra/scada-gateway/**'
+      - 'docker-compose.vision-scada.yml'
+      - 'docker-compose.platform-production-images.yml'
+      - 'scripts/platform-compose.mjs'
+      - 'scripts/check-platform-image-pins.mjs'
+      - 'scripts/check-vision-scada-contracts.mjs'
+      - 'src/app/api/vision-training/**'
+      - 'src/app/api/data-exchange/**'
+      - 'src/components/ai/vision-training-studio.tsx'
+      - 'src/components/admin/operational-data-exchange.tsx'
+      - 'src/lib/services/data-exchange/**'
+      - 'src/scripts/test-data-exchange.ts'
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20.12.2'
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install Node dependencies
+        run: npm install --include=dev --ignore-scripts
+
+      - name: Validate Compose overlays
+        run: npm run platform:config
+
+      - name: Verify safety contracts
+        run: node scripts/check-vision-scada-contracts.mjs
+
+      - name: Compile Python services
+        run: python3 -m py_compile infra/vision-trainer/main.py infra/scada-gateway/main.py
+
+      - name: Verify DNF and Hazard CSV contract
+        run: npx tsx src/scripts/test-data-exchange.ts
+
+      - name: Static type check
+        run: npm run typecheck
+
+      - name: Lint
+        run: npm run lint
