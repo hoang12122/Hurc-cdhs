@@ -105,6 +105,26 @@ export function evaluatePlatformProductionReadiness(
       message: 'Contract telemetry và quy trình schema evolution chưa được xác minh.',
       remediation: 'Chạy ETL contract tests, đối chiếu producer/consumer và phê duyệt schemaVersion 1.0.0.',
     });
+    add(issues, !truthy(env.ETL_SCHEMA_REGISTRY_REQUIRED), {
+      code: 'ETL_SCHEMA_REGISTRY', severity: 'BLOCKER', area: 'DATA',
+      message: 'Runtime chưa fail-closed khi Schema Registry không khả dụng.',
+      remediation: 'Đặt ETL_SCHEMA_REGISTRY_REQUIRED=true và xác minh BACKWARD_TRANSITIVE compatibility.',
+    });
+    add(issues, !truthy(env.ETL_CANONICAL_INGRESS_VERIFIED), {
+      code: 'ETL_CANONICAL_INGRESS', severity: 'BLOCKER', area: 'DATA',
+      message: 'Chưa xác nhận Phase 2–4 chỉ có một đường ingestion chuẩn.',
+      remediation: 'Chứng minh legacy direct sink đã tắt và mọi telemetry đi qua Bronze → Normalizer → canonical sinks.',
+    });
+    add(issues, !truthy(env.ETL_EFFECTIVELY_ONCE_TESTED), {
+      code: 'ETL_EFFECTIVELY_ONCE', severity: 'BLOCKER', area: 'DATA',
+      message: 'Chưa kiểm thử tính effectively-once của ETL.',
+      remediation: 'Kiểm thử crash/retry, same-checksum dedup, eventId collision quarantine và offset commit sau DB transaction.',
+    });
+    add(issues, !truthy(env.ETL_LATE_DATA_POLICY_APPROVED), {
+      code: 'ETL_LATE_DATA', severity: 'BLOCKER', area: 'DATA',
+      message: 'Chính sách watermark và late data chưa được phê duyệt.',
+      remediation: 'Phê duyệt watermark, ngưỡng freshness, cách tái tính Gold và quy trình xử lý dữ liệu đến muộn.',
+    });
     add(issues, !truthy(env.ETL_REPLAY_TESTED), {
       code: 'ETL_REPLAY', severity: 'BLOCKER', area: 'DATA',
       message: 'Chưa có bằng chứng replay Bronze sang Silver/Gold không mất hoặc nhân đôi dữ liệu.',
@@ -196,11 +216,7 @@ export function evaluatePlatformProductionReadiness(
     score,
     phase,
     deploymentMode,
-    commitBinding: {
-      applicationCommit,
-      attestedCommit,
-      matched: commitMatched,
-    },
+    commitBinding: { applicationCommit, attestedCommit, matched: commitMatched },
     issues,
     evaluatedAt: new Date().toISOString(),
   };
