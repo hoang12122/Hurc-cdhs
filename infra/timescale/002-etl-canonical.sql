@@ -83,6 +83,30 @@ CREATE TABLE IF NOT EXISTS etl_checkpoint (
   PRIMARY KEY (pipeline_name, source_topic, partition_id)
 );
 
+ALTER TABLE etl_replay_request
+  ADD COLUMN IF NOT EXISTS worker_id TEXT,
+  ADD COLUMN IF NOT EXISTS heartbeat_at TIMESTAMPTZ,
+  ADD COLUMN IF NOT EXISTS attempt_count INTEGER NOT NULL DEFAULT 0,
+  ADD COLUMN IF NOT EXISTS checkpoint_offsets JSONB NOT NULL DEFAULT '{}'::JSONB,
+  ADD COLUMN IF NOT EXISTS source_end_offsets JSONB NOT NULL DEFAULT '{}'::JSONB;
+
+CREATE INDEX IF NOT EXISTS etl_replay_lease_idx
+  ON etl_replay_request (status, heartbeat_at)
+  WHERE status = 'RUNNING';
+
+CREATE TABLE IF NOT EXISTS etl_replay_audit (
+  id BIGSERIAL PRIMARY KEY,
+  request_id UUID NOT NULL REFERENCES etl_replay_request(id),
+  action TEXT NOT NULL CHECK (action IN ('CLAIMED', 'HEARTBEAT', 'COMPLETED', 'FAILED', 'LEASE_EXPIRED')),
+  worker_id TEXT,
+  replayed_count BIGINT NOT NULL DEFAULT 0,
+  detail TEXT,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS etl_replay_audit_request_idx
+  ON etl_replay_audit (request_id, created_at DESC);
+
 DELETE FROM etl_data_quality_event older
 USING etl_data_quality_event newer
 WHERE older.id < newer.id
