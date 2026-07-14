@@ -1,0 +1,37 @@
+services:
+  etl-topic-init:
+    command: ["topic", "create", "iot.telemetry.normalized", "iot.telemetry.replay", "iot.telemetry.accepted", "--partitions", "6", "--replicas", "1", "--if-not-exists", "-X", "brokers=redpanda:9092"]
+
+  timescale-etl-init:
+    command: >-
+      until pg_isready -h timescaledb -U "$$TIMESCALE_USER" -d "$$TIMESCALE_DATABASE"; do sleep 2; done;
+      PGPASSWORD="$$TIMESCALE_PASSWORD" psql -v ON_ERROR_STOP=1 -h timescaledb -U "$$TIMESCALE_USER" -d "$$TIMESCALE_DATABASE" -f /migrations/001-init.sql;
+      PGPASSWORD="$$TIMESCALE_PASSWORD" psql -v ON_ERROR_STOP=1 -h timescaledb -U "$$TIMESCALE_USER" -d "$$TIMESCALE_DATABASE" -f /migrations/002-etl-canonical.sql;
+      PGPASSWORD="$$TIMESCALE_PASSWORD" psql -v ON_ERROR_STOP=1 -h timescaledb -U "$$TIMESCALE_USER" -d "$$TIMESCALE_DATABASE" -f /migrations/003-etl-accepted-outbox.sql
+    volumes:
+      - ./infra/timescale/003-etl-accepted-outbox.sql:/migrations/003-etl-accepted-outbox.sql:ro
+
+  etl-accepted-relay:
+    build:
+      context: .
+      dockerfile: infra/etl-accepted-relay/Dockerfile
+    container_name: hurc_etl_accepted_relay
+    restart: unless-stopped
+    profiles: ["phase2", "phase3", "phase4"]
+    environment:
+      KAFKA_BROKERS: ${KAFKA_BROKERS:-redpanda:9092}
+      TIMESCALE_DATABASE_URL: ${TIMESCALE_DATABASE_URL:-postgresql://postgres:change-me@timescaledb:5432/hurc_telemetry}
+      ETL_ACCEPTED_TOPIC: ${ETL_ACCEPTED_TOPIC:-iot.telemetry.accepted}
+      ETL_ACCEPTED_RELAY_BATCH_SIZE: ${ETL_ACCEPTED_RELAY_BATCH_SIZE:-500}
+      ETL_ACCEPTED_RELAY_POLL_SECONDS: ${ETL_ACCEPTED_RELAY_POLL_SECONDS:-1}
+      ETL_ACCEPTED_RELAY_LOCK_SECONDS: ${ETL_ACCEPTED_RELAY_LOCK_SECONDS:-300}
+      ETL_ACCEPTED_RELAY_MAX_ATTEMPTS: ${ETL_ACCEPTED_RELAY_MAX_ATTEMPTS:-20}
+    depends_on:
+      timescale-sink:
+        condition: service_healthy
+      etl-topic-init:
+        condition: service_completed_successfully
+    networks: [backend-net]
+
+networks:
+  backend-net:
