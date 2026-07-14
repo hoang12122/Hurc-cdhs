@@ -7,7 +7,6 @@ sys.path.insert(0, str(Path(__file__).parent))
 
 from contract import ContractError, normalize_event
 
-
 NOW = datetime(2026, 7, 13, 10, 0, 0, tzinfo=timezone.utc)
 
 
@@ -48,14 +47,24 @@ class TelemetryContractTests(unittest.TestCase):
         second = normalize_event(valid_event(), now=NOW)
         self.assertEqual(first["event_checksum"], second["event_checksum"])
 
-    def test_checksum_ignores_transport_metadata_during_replay(self):
+    def test_checksum_ignores_mutable_transport_metadata_during_replay(self):
         original = valid_event()
         replayed = valid_event()
         replayed["_ingestedAt"] = "2026-07-13T10:15:00Z"
         replayed["_curatedAt"] = "2026-07-13T10:16:00Z"
+        replayed["_replay"] = {"requestId": "replay-1", "replayedAt": "2026-07-13T10:17:00Z"}
         first = normalize_event(original, now=NOW)
         second = normalize_event(replayed, now=NOW + timedelta(minutes=20))
         self.assertEqual(first["event_checksum"], second["event_checksum"])
+
+    def test_checksum_changes_when_canonical_topic_identity_changes(self):
+        original = valid_event()
+        moved = valid_event()
+        moved["asset"]["station"] = "OPH"
+        moved["_mqttTopic"] = "hurc/uat/L1/OPH/PSD/PSD-01/telemetry"
+        first = normalize_event(original, now=NOW)
+        second = normalize_event(moved, now=NOW)
+        self.assertNotEqual(first["event_checksum"], second["event_checksum"])
 
     def test_marks_event_beyond_watermark_as_late(self):
         event = valid_event()
@@ -66,10 +75,24 @@ class TelemetryContractTests(unittest.TestCase):
         self.assertIn("LATE_EVENT", result["quality_flags"])
         self.assertEqual(result["quality_score"], 95)
 
-    def test_rejects_asset_topic_mismatch(self):
+    def test_rejects_asset_id_topic_mismatch(self):
         event = valid_event()
         event["asset"]["assetId"] = "PSD-02"
         with self.assertRaisesRegex(ContractError, "does not match MQTT topic") as context:
+            normalize_event(event, now=NOW)
+        self.assertEqual(context.exception.code, "ASSET_TOPIC_MISMATCH")
+
+    def test_rejects_asset_dimension_topic_mismatch(self):
+        event = valid_event()
+        event["asset"]["station"] = "OPH"
+        with self.assertRaisesRegex(ContractError, "asset.station") as context:
+            normalize_event(event, now=NOW)
+        self.assertEqual(context.exception.code, "ASSET_TOPIC_MISMATCH")
+
+    def test_rejects_source_environment_topic_mismatch(self):
+        event = valid_event()
+        event["source"]["environment"] = "production"
+        with self.assertRaisesRegex(ContractError, "source.environment") as context:
             normalize_event(event, now=NOW)
         self.assertEqual(context.exception.code, "ASSET_TOPIC_MISMATCH")
 
