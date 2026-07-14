@@ -2,8 +2,13 @@ services:
   app:
     environment:
       ETL_NORMALIZER_URL: ${ETL_NORMALIZER_URL:-http://etl-normalizer:8082}
+      ETL_TIMESCALE_SINK_URL: ${ETL_TIMESCALE_SINK_URL:-http://timescale-sink:8083}
       CLICKHOUSE_USER: ${CLICKHOUSE_USER:-hurc}
       CLICKHOUSE_PASSWORD: ${CLICKHOUSE_PASSWORD:-change-this-clickhouse-password}
+
+  iot-ingestor:
+    environment:
+      DATA_PLATFORM_PHASE: ${DATA_PLATFORM_PHASE:-0}
 
   outbox-topic-init:
     image: ${REDPANDA_IMAGE:-docker.redpanda.com/redpandadata/redpanda:v26.1.12}
@@ -87,13 +92,15 @@ services:
     entrypoint: ["/bin/sh", "-c"]
     command: >-
       until pg_isready -h timescaledb -U "$$TIMESCALE_USER" -d "$$TIMESCALE_DATABASE"; do sleep 2; done;
-      PGPASSWORD="$$TIMESCALE_PASSWORD" psql -v ON_ERROR_STOP=1 -h timescaledb -U "$$TIMESCALE_USER" -d "$$TIMESCALE_DATABASE" -f /migrations/001-init.sql
+      PGPASSWORD="$$TIMESCALE_PASSWORD" psql -v ON_ERROR_STOP=1 -h timescaledb -U "$$TIMESCALE_USER" -d "$$TIMESCALE_DATABASE" -f /migrations/001-init.sql;
+      PGPASSWORD="$$TIMESCALE_PASSWORD" psql -v ON_ERROR_STOP=1 -h timescaledb -U "$$TIMESCALE_USER" -d "$$TIMESCALE_DATABASE" -f /migrations/002-etl-canonical.sql
     environment:
       TIMESCALE_USER: ${TIMESCALE_USER:-postgres}
       TIMESCALE_PASSWORD: ${TIMESCALE_PASSWORD:-change-me}
       TIMESCALE_DATABASE: ${TIMESCALE_DATABASE:-hurc_telemetry}
     volumes:
       - ./infra/timescale/001-init.sql:/migrations/001-init.sql:ro
+      - ./infra/timescale/002-etl-canonical.sql:/migrations/002-etl-canonical.sql:ro
     depends_on:
       timescaledb:
         condition: service_healthy
@@ -109,15 +116,19 @@ services:
     profiles: ["phase2", "phase3", "phase4"]
     environment:
       KAFKA_BROKERS: ${KAFKA_BROKERS:-redpanda:9092}
+      SCHEMA_REGISTRY_URL: ${SCHEMA_REGISTRY_URL:-http://redpanda:8081}
       TIMESCALE_DATABASE_URL: ${TIMESCALE_DATABASE_URL:-postgresql://postgres:change-me@timescaledb:5432/hurc_telemetry}
-      ETL_RAW_TOPIC: ${ETL_RAW_TOPIC:-iot.telemetry.raw}
+      ETL_SOURCE_TOPICS: ${ETL_SOURCE_TOPICS:-iot.telemetry.raw,iot.telemetry.replay}
       ETL_NORMALIZED_TOPIC: ${ETL_NORMALIZED_TOPIC:-iot.telemetry.normalized}
       ETL_DEAD_LETTER_TOPIC: ${ETL_DEAD_LETTER_TOPIC:-iot.telemetry.dead-letter}
-      ETL_CONSUMER_GROUP: ${ETL_CONSUMER_GROUP:-hurc-etl-normalizer-v1}
-      ETL_COMMIT_BATCH_SIZE: ${ETL_COMMIT_BATCH_SIZE:-100}
-      ETL_COMMIT_INTERVAL_SECONDS: ${ETL_COMMIT_INTERVAL_SECONDS:-2}
+      ETL_CONSUMER_GROUP: ${ETL_CONSUMER_GROUP:-hurc-etl-normalizer-v2}
+      ETL_COMMIT_BATCH_SIZE: ${ETL_COMMIT_BATCH_SIZE:-500}
       ETL_MAX_FUTURE_SECONDS: ${ETL_MAX_FUTURE_SECONDS:-300}
       ETL_MAX_CLOCK_SKEW_MS: ${ETL_MAX_CLOCK_SKEW_MS:-120000}
+      ETL_WATERMARK_DELAY_SECONDS: ${ETL_WATERMARK_DELAY_SECONDS:-300}
+      ETL_MAX_CONSUMER_LAG: ${ETL_MAX_CONSUMER_LAG:-10000}
+      ETL_STALE_AFTER_SECONDS: ${ETL_STALE_AFTER_SECONDS:-120}
+      ETL_SCHEMA_REGISTRY_REQUIRED: ${ETL_SCHEMA_REGISTRY_REQUIRED:-false}
       EVENT_MAX_PAYLOAD_BYTES: ${EVENT_MAX_PAYLOAD_BYTES:-524288}
       HEALTH_PORT: 8082
     depends_on:
@@ -128,7 +139,37 @@ services:
       timescale-etl-init:
         condition: service_completed_successfully
     healthcheck:
-      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8082/health', timeout=3)"]
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8082/ready', timeout=3)"]
+      interval: 15s
+      timeout: 5s
+      retries: 15
+    networks:
+      - backend-net
+
+  timescale-sink:
+    build:
+      context: .
+      dockerfile: infra/timescale-sink/Dockerfile
+    container_name: hurc_timescale_sink
+    restart: unless-stopped
+    profiles: ["phase2", "phase3", "phase4"]
+    environment:
+      APP_COMMIT_SHA: ${APP_COMMIT_SHA:-unknown}
+      KAFKA_BROKERS: ${KAFKA_BROKERS:-redpanda:9092}
+      TIMESCALE_DATABASE_URL: ${TIMESCALE_DATABASE_URL:-postgresql://postgres:change-me@timescaledb:5432/hurc_telemetry}
+      ETL_NORMALIZED_TOPIC: ${ETL_NORMALIZED_TOPIC:-iot.telemetry.normalized}
+      ETL_TIMESCALE_SINK_GROUP: ${ETL_TIMESCALE_SINK_GROUP:-hurc-timescale-sink-v1}
+      ETL_SINK_BATCH_SIZE: ${ETL_SINK_BATCH_SIZE:-500}
+      ETL_MAX_CONSUMER_LAG: ${ETL_MAX_CONSUMER_LAG:-10000}
+      ETL_STALE_AFTER_SECONDS: ${ETL_STALE_AFTER_SECONDS:-120}
+      HEALTH_PORT: 8083
+    depends_on:
+      etl-normalizer:
+        condition: service_healthy
+      timescale-etl-init:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8083/ready', timeout=3)"]
       interval: 15s
       timeout: 5s
       retries: 15
