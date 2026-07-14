@@ -25,6 +25,8 @@ jobs:
       TIMESCALE_IMAGE: ${{ vars.TIMESCALE_IMAGE }}
       IOT_INGESTOR_IMAGE: ${{ vars.IOT_INGESTOR_IMAGE }}
       ETL_NORMALIZER_IMAGE: ${{ vars.ETL_NORMALIZER_IMAGE }}
+      ETL_TIMESCALE_SINK_IMAGE: ${{ vars.ETL_TIMESCALE_SINK_IMAGE }}
+      ETL_REPLAY_WORKER_IMAGE: ${{ vars.ETL_REPLAY_WORKER_IMAGE }}
       REDPANDA_IMAGE: ${{ vars.REDPANDA_IMAGE }}
       REDPANDA_CONNECT_IMAGE: ${{ vars.REDPANDA_CONNECT_IMAGE }}
       MINIO_IMAGE: ${{ vars.MINIO_IMAGE }}
@@ -42,6 +44,10 @@ jobs:
       CLICKHOUSE_NODE_COUNT: ${{ vars.CLICKHOUSE_NODE_COUNT }}
       OUTBOX_MIGRATION_APPLIED: ${{ vars.OUTBOX_MIGRATION_APPLIED }}
       ETL_SCHEMA_CONTRACT_VALIDATED: ${{ vars.ETL_SCHEMA_CONTRACT_VALIDATED }}
+      ETL_SCHEMA_REGISTRY_REQUIRED: ${{ vars.ETL_SCHEMA_REGISTRY_REQUIRED }}
+      ETL_CANONICAL_INGRESS_VERIFIED: ${{ vars.ETL_CANONICAL_INGRESS_VERIFIED }}
+      ETL_EFFECTIVELY_ONCE_TESTED: ${{ vars.ETL_EFFECTIVELY_ONCE_TESTED }}
+      ETL_LATE_DATA_POLICY_APPROVED: ${{ vars.ETL_LATE_DATA_POLICY_APPROVED }}
       ETL_REPLAY_TESTED: ${{ vars.ETL_REPLAY_TESTED }}
       ETL_DATA_QUALITY_SLO_APPROVED: ${{ vars.ETL_DATA_QUALITY_SLO_APPROVED }}
       MLFLOW_BACKEND_STORE_URI: ${{ secrets.MLFLOW_BACKEND_STORE_URI }}
@@ -82,6 +88,16 @@ jobs:
         run: |
           npm run platform:config
           npm run db:validate:all
+
+      - name: Verify canonical ETL architecture
+        run: node scripts/check-etl-architecture.mjs
+
+      - name: Verify ETL Python syntax
+        run: >-
+          python3 -m py_compile
+          infra/etl-normalizer/contract.py infra/etl-normalizer/registry.py infra/etl-normalizer/main.py
+          infra/timescale-sink/store.py infra/timescale-sink/main.py infra/etl-replay-worker/main.py
+          infra/iot-ingestor/entrypoint.py
 
       - name: Verify ETL contract invariants
         run: python3 -m unittest infra/etl-normalizer/test_contract.py
