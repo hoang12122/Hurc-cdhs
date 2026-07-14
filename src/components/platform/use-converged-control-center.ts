@@ -20,10 +20,33 @@ export interface PlatformStatus {
     received: number;
     normalized: number;
     invalid: number;
+    lateEvents: number;
     qualityWarnings: number;
     publishFailures: number;
     commits: number;
+    consumerLag: number;
+    lastBatchSize: number;
+    lastBatchLatencyMs: number;
+    schemaRegistered: boolean;
+    contractChecksum: string | null;
     lastProcessedAt: string | null;
+    sink: {
+      received: number;
+      inserted: number;
+      duplicates: number;
+      conflicts: number;
+      invalid: number;
+      commits: number;
+      consumerLag: number;
+      lastProcessedAt: string | null;
+    } | null;
+    replay: {
+      activeRequestId: string | null;
+      completed: number;
+      failed: number;
+      replayed: number;
+      lastCompletedAt: string | null;
+    } | null;
   } | null;
   readiness: {
     ready: boolean;
