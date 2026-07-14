@@ -25,6 +25,8 @@ on:
       - 'src/components/ui/operational-list-loading.tsx'
       - 'src/lib/actions/dnf.actions.ts'
       - 'src/lib/actions/hazard.actions.ts'
+      - 'src/lib/auth-enforcer.ts'
+      - 'src/lib/services/user/roles.ts'
       - 'src/lib/services/data-exchange/**'
       - 'src/scripts/test-data-exchange.ts'
   push:
@@ -50,6 +52,8 @@ on:
       - 'src/components/ui/operational-list-loading.tsx'
       - 'src/lib/actions/dnf.actions.ts'
       - 'src/lib/actions/hazard.actions.ts'
+      - 'src/lib/auth-enforcer.ts'
+      - 'src/lib/services/user/roles.ts'
       - 'src/lib/services/data-exchange/**'
       - 'src/scripts/test-data-exchange.ts'
 
