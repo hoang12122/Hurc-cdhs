@@ -1,8 +1,8 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, CheckCircle2, ImagePlus, Play, Plus, RefreshCw, Trash2 } from 'lucide-react';
+import { ArrowLeft, CheckCircle2, ImagePlus, Play, Plus, RefreshCw, ShieldCheck, Trash2 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -34,6 +34,7 @@ interface Sample {
 interface TrainingJob {
   id: string;
   status: string;
+  approval?: string;
   metrics?: Record<string, number>;
   error?: string;
 }
@@ -60,7 +61,6 @@ export function VisionTrainingStudio() {
   const [epochs, setEpochs] = useState(50);
   const [message, setMessage] = useState('');
   const [busy, setBusy] = useState(false);
-  const imageRef = useRef<HTMLImageElement | null>(null);
   const startRef = useRef<{ x: number; y: number } | null>(null);
 
   const dataset = useMemo(() => datasets.find(item => item.id === datasetId) ?? null, [datasetId, datasets]);
@@ -81,8 +81,7 @@ export function VisionTrainingStudio() {
     if (!job || !['QUEUED', 'RUNNING'].includes(job.status)) return;
     const timer = window.setInterval(async () => {
       try {
-        const current = await api<TrainingJob>(`training/jobs/${job.id}`);
-        setJob(current);
+        setJob(await api<TrainingJob>(`training/jobs/${job.id}`));
       } catch { /* keep last known state */ }
     }, 5_000);
     return () => window.clearInterval(timer);
@@ -115,7 +114,7 @@ export function VisionTrainingStudio() {
     setSample(null);
   };
 
-  const pointer = (event: React.PointerEvent<HTMLDivElement>) => {
+  const pointer = (event: ReactPointerEvent<HTMLDivElement>) => {
     const rect = event.currentTarget.getBoundingClientRect();
     return {
       x: Math.min(1, Math.max(0, (event.clientX - rect.left) / rect.width)),
@@ -123,7 +122,7 @@ export function VisionTrainingStudio() {
     };
   };
 
-  const finishBox = (event: React.PointerEvent<HTMLDivElement>) => {
+  const finishBox = (event: ReactPointerEvent<HTMLDivElement>) => {
     const start = startRef.current;
     startRef.current = null;
     if (!start) return;
@@ -134,12 +133,8 @@ export function VisionTrainingStudio() {
     const height = Math.abs(end.y - start.y);
     if (width < 0.01 || height < 0.01) return;
     setBoxes(current => [...current, {
-      id: crypto.randomUUID(),
-      classId: selectedClass,
-      x: left + width / 2,
-      y: top + height / 2,
-      width,
-      height,
+      id: crypto.randomUUID(), classId: selectedClass,
+      x: left + width / 2, y: top + height / 2, width, height,
     }]);
   };
 
@@ -152,8 +147,7 @@ export function VisionTrainingStudio() {
     form.append('annotations', JSON.stringify(boxes.map(({ classId, x, y, width, height }) => ({ classId, x, y, width, height }))));
     setBusy(true);
     try {
-      const created = await api<Sample>(`datasets/${dataset.id}/samples`, { method: 'POST', body: form });
-      setSample(created);
+      setSample(await api<Sample>(`datasets/${dataset.id}/samples`, { method: 'POST', body: form }));
       setMessage('Ảnh đã vào hàng đợi duyệt; chưa được dùng để huấn luyện.');
     } catch (error) {
       setMessage(error instanceof Error ? error.message : 'Tải mẫu thất bại.');
@@ -164,10 +158,10 @@ export function VisionTrainingStudio() {
     if (!sample) return;
     setBusy(true);
     try {
-      const approved = await api<Sample>(`samples/${sample.id}/approve`, {
-        method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ note: 'Đã kiểm tra ảnh và bounding box trên giao diện.' }),
-      });
-      setSample(approved);
+      setSample(await api<Sample>(`samples/${sample.id}/approve`, {
+        method: 'POST', headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ note: 'Đã kiểm tra ảnh và bounding box trên giao diện.' }),
+      }));
       setMessage('Mẫu đã được phê duyệt cho dataset.');
     } catch (error) {
       setMessage(error instanceof Error ? error.message : 'Duyệt mẫu thất bại.');
@@ -178,14 +172,27 @@ export function VisionTrainingStudio() {
     if (!dataset) return setMessage('Chọn dataset trước khi huấn luyện.');
     setBusy(true);
     try {
-      const created = await api<TrainingJob>('training/jobs', {
+      setJob(await api<TrainingJob>('training/jobs', {
         method: 'POST', headers: { 'content-type': 'application/json' },
         body: JSON.stringify({ datasetId: dataset.id, baseModel: 'yolo11n.pt', epochs, imageSize: 640, batchSize: 8 }),
-      });
-      setJob(created);
+      }));
       setMessage('Job đã được xếp hàng. Model hoàn thành vẫn phải qua phê duyệt trước triển khai.');
     } catch (error) {
       setMessage(error instanceof Error ? error.message : 'Không thể khởi chạy huấn luyện.');
+    } finally { setBusy(false); }
+  };
+
+  const approveModel = async () => {
+    if (!job || job.status !== 'SUCCEEDED_REVIEW_REQUIRED') return;
+    setBusy(true);
+    try {
+      setJob(await api<TrainingJob>(`training/jobs/${job.id}/approve`, {
+        method: 'POST', headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ note: 'Đã xem xét metric; model được duyệt nhưng chưa được triển khai.' }),
+      }));
+      setMessage('Model đã được duyệt ở trạng thái APPROVED_NOT_DEPLOYED. Cần canary và phê duyệt phát hành riêng.');
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : 'Phê duyệt model thất bại.');
     } finally { setBusy(false); }
   };
 
@@ -214,14 +221,14 @@ export function VisionTrainingStudio() {
             <Input type="file" accept="image/jpeg,image/png,image/webp" onChange={event => selectImage(event.target.files?.[0] ?? null)} />
             <div className="grid gap-3 sm:grid-cols-2"><select className="h-10 rounded-md border bg-white px-3" value={selectedClass} onChange={event => setSelectedClass(Number(event.target.value))}>{dataset?.classes.map((item, index) => <option key={item} value={index}>{item}</option>)}</select><select className="h-10 rounded-md border bg-white px-3" value={split} onChange={event => setSplit(event.target.value as typeof split)}><option value="train">Train</option><option value="val">Validation</option><option value="test">Test</option></select></div>
             {imageUrl && <div className="overflow-auto rounded-xl border bg-slate-900 p-2"><div className="relative inline-block max-w-full select-none" onPointerDown={event => { startRef.current = pointer(event); event.currentTarget.setPointerCapture(event.pointerId); }} onPointerUp={finishBox}>
-              {/* eslint-disable-next-line @next/next/no-img-element */}<img ref={imageRef} src={imageUrl} alt="Ảnh gắn nhãn" className="max-h-[520px] max-w-full" draggable={false} />
+              {/* eslint-disable-next-line @next/next/no-img-element */}<img src={imageUrl} alt="Ảnh gắn nhãn" className="max-h-[520px] max-w-full" draggable={false} />
               <div className="absolute inset-0 cursor-crosshair">{boxes.map(box => <div key={box.id} className="absolute border-2 border-red-500 bg-red-500/10" style={{ left: `${(box.x - box.width / 2) * 100}%`, top: `${(box.y - box.height / 2) * 100}%`, width: `${box.width * 100}%`, height: `${box.height * 100}%` }}><span className="bg-red-600 px-1 text-xs text-white">{dataset?.classes[box.classId]}</span></div>)}</div>
             </div></div>}
             <div className="flex flex-wrap gap-2"><Button variant="outline" onClick={() => setBoxes([])}><Trash2 className="mr-2 h-4 w-4" />Xóa box</Button><Button onClick={() => void uploadSample()} disabled={busy || !file || boxes.length === 0}><ImagePlus className="mr-2 h-4 w-4" />Gửi mẫu</Button>{sample?.status === 'PENDING_REVIEW' && <Button onClick={() => void approveSample()} disabled={busy}><CheckCircle2 className="mr-2 h-4 w-4" />Duyệt mẫu</Button>}</div>
           </CardContent></Card>
         </section>
 
-        <Card><CardHeader><CardTitle>3. Huấn luyện có kiểm soát</CardTitle><CardDescription>Chỉ chạy khi mỗi lớp đủ mẫu đã duyệt và có dữ liệu validation. Model không tự triển khai.</CardDescription></CardHeader><CardContent className="grid gap-4 md:grid-cols-[180px_auto_1fr] md:items-end"><div><Label>Epochs</Label><Input type="number" min={1} max={200} value={epochs} onChange={event => setEpochs(Number(event.target.value))} /></div><Button onClick={() => void startTraining()} disabled={busy || !dataset}><Play className="mr-2 h-4 w-4" />Bắt đầu training</Button><div className="rounded-xl border p-3 text-sm">{job ? <><div className="flex items-center gap-2"><Badge>{job.status}</Badge><span>{job.id}</span><RefreshCw className="h-4 w-4" /></div>{job.error && <div className="mt-2 text-red-600">{job.error}</div>}</> : 'Chưa có job đang theo dõi.'}</div></CardContent></Card>
+        <Card><CardHeader><CardTitle>3. Huấn luyện có kiểm soát</CardTitle><CardDescription>Chỉ chạy khi mỗi lớp đủ mẫu đã duyệt và có dữ liệu validation. Model không tự triển khai.</CardDescription></CardHeader><CardContent className="grid gap-4 md:grid-cols-[180px_auto_1fr] md:items-end"><div><Label>Epochs</Label><Input type="number" min={1} max={200} value={epochs} onChange={event => setEpochs(Number(event.target.value))} /></div><Button onClick={() => void startTraining()} disabled={busy || !dataset}><Play className="mr-2 h-4 w-4" />Bắt đầu training</Button><div className="rounded-xl border p-3 text-sm">{job ? <><div className="flex flex-wrap items-center gap-2"><Badge>{job.status}</Badge><span>{job.id}</span>{['QUEUED', 'RUNNING'].includes(job.status) && <RefreshCw className="h-4 w-4 animate-spin" />}{job.status === 'SUCCEEDED_REVIEW_REQUIRED' && <Button size="sm" onClick={() => void approveModel()} disabled={busy}><ShieldCheck className="mr-2 h-4 w-4" />Duyệt model</Button>}</div>{job.metrics && <div className="mt-2 text-xs text-slate-500">{Object.entries(job.metrics).slice(0, 6).map(([key, value]) => `${key}: ${value.toFixed(4)}`).join(' · ')}</div>}{job.error && <div className="mt-2 text-red-600">{job.error}</div>}</> : 'Chưa có job đang theo dõi.'}</div></CardContent></Card>
       </div>
     </main>
   );
