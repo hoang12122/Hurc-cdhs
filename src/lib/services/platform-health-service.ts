@@ -16,43 +16,60 @@ export interface PlatformComponentHealth {
   checkedAt: string;
 }
 
+export interface EtlSinkHealth {
+  received: number;
+  inserted: number;
+  duplicates: number;
+  conflicts: number;
+  invalid: number;
+  commits: number;
+  consumerLag: number;
+  lastProcessedAt: string | null;
+}
+
+export interface EtlReplayHealth {
+  activeRequestId: string | null;
+  completed: number;
+  failed: number;
+  replayed: number;
+  lastCompletedAt: string | null;
+}
+
 export interface EtlHealthSummary {
   received: number;
   normalized: number;
   invalid: number;
+  lateEvents: number;
   qualityWarnings: number;
   publishFailures: number;
   commits: number;
+  consumerLag: number;
+  lastBatchSize: number;
+  lastBatchLatencyMs: number;
+  schemaRegistered: boolean;
+  contractChecksum: string | null;
   lastProcessedAt: string | null;
+  sink: EtlSinkHealth | null;
+  replay: EtlReplayHealth | null;
 }
 
 export interface PlatformHealthOverview {
   phase: number;
   status: ComponentHealthStatus;
   components: PlatformComponentHealth[];
-  outbox: {
-    pending: number;
-    retrying: number;
-    oldestPendingSeconds: number | null;
-  } | null;
+  outbox: { pending: number; retrying: number; oldestPendingSeconds: number | null } | null;
   etl: EtlHealthSummary | null;
   readiness: PlatformProductionReadiness;
   checkedAt: string;
 }
 
-type OutboxHealthRow = {
-  pending: bigint;
-  retrying: bigint;
-  oldest_seconds: number | string | null;
-};
-
-type EtlHealthPayload = Partial<EtlHealthSummary> & {
-  status?: string;
-  lastError?: string | null;
-};
+type OutboxHealthRow = { pending: bigint; retrying: bigint; oldest_seconds: number | string | null };
+type HealthPayload = Record<string, unknown> & { status?: string; lastError?: string | null };
+type HealthResult<T> = { component: PlatformComponentHealth; stats: T | null };
 
 const nowIso = () => new Date().toISOString();
 const numberValue = (value: unknown) => Number.isFinite(Number(value)) ? Number(value) : 0;
+const textValue = (value: unknown) => typeof value === 'string' && value ? value : null;
 
 async function checkTcp(id: string, name: string, phase: number, urlValue: string): Promise<PlatformComponentHealth> {
   const started = Date.now();
@@ -108,56 +125,91 @@ function disabled(id: string, name: string, phase: number): PlatformComponentHea
   return { id, name, phase, status: 'DISABLED', latencyMs: null, detail: `Requires phase ${phase}`, checkedAt: nowIso() };
 }
 
-async function checkEtlNormalizer(): Promise<{ component: PlatformComponentHealth; stats: EtlHealthSummary | null }> {
-  if (CONVERGED_PLATFORM_CONFIG.phase < 2) {
-    return { component: disabled('etl-normalizer', 'ETL Normalizer', 2), stats: null };
-  }
+async function readServiceHealth<T>(
+  id: string,
+  name: string,
+  url: string,
+  map: (payload: HealthPayload) => T,
+  detail: (stats: T) => string,
+): Promise<HealthResult<T>> {
+  if (CONVERGED_PLATFORM_CONFIG.phase < 2) return { component: disabled(id, name, 2), stats: null };
   const started = Date.now();
   try {
-    const response = await fetch(`${CONVERGED_PLATFORM_CONFIG.endpoints.etlNormalizerUrl}/health`, {
-      cache: 'no-store',
-      signal: AbortSignal.timeout(3000),
-    });
-    const payload = await response.json() as EtlHealthPayload;
-    if (!response.ok || payload.status !== 'healthy') {
-      throw new Error(payload.lastError || `HTTP ${response.status}`);
-    }
-    const stats: EtlHealthSummary = {
-      received: numberValue(payload.received),
-      normalized: numberValue(payload.normalized),
-      invalid: numberValue(payload.invalid),
-      qualityWarnings: numberValue(payload.qualityWarnings),
-      publishFailures: numberValue(payload.publishFailures),
-      commits: numberValue(payload.commits),
-      lastProcessedAt: typeof payload.lastProcessedAt === 'string' ? payload.lastProcessedAt : null,
-    };
-    const detail = `Normalized ${stats.normalized}/${stats.received}; invalid ${stats.invalid}; warnings ${stats.qualityWarnings}`;
+    const response = await fetch(`${url}/health`, { cache: 'no-store', signal: AbortSignal.timeout(3000) });
+    const payload = await response.json() as HealthPayload;
+    if (!response.ok || payload.status !== 'healthy') throw new Error(textValue(payload.lastError) || `HTTP ${response.status}`);
+    const stats = map(payload);
     return {
-      component: { id: 'etl-normalizer', name: 'ETL Normalizer', phase: 2, status: 'HEALTHY', latencyMs: Date.now() - started, detail, checkedAt: nowIso() },
+      component: { id, name, phase: 2, status: 'HEALTHY', latencyMs: Date.now() - started, detail: detail(stats), checkedAt: nowIso() },
       stats,
     };
   } catch (error) {
     return {
-      component: { id: 'etl-normalizer', name: 'ETL Normalizer', phase: 2, status: 'DEGRADED', latencyMs: Date.now() - started, detail: error instanceof Error ? error.message : 'unreachable', checkedAt: nowIso() },
+      component: { id, name, phase: 2, status: 'DEGRADED', latencyMs: Date.now() - started, detail: error instanceof Error ? error.message : 'unreachable', checkedAt: nowIso() },
       stats: null,
     };
   }
 }
 
+function checkEtlNormalizer(): Promise<HealthResult<Omit<EtlHealthSummary, 'sink' | 'replay'>>> {
+  return readServiceHealth(
+    'etl-normalizer',
+    'ETL Normalizer',
+    CONVERGED_PLATFORM_CONFIG.endpoints.etlNormalizerUrl,
+    payload => ({
+      received: numberValue(payload.received), normalized: numberValue(payload.normalized),
+      invalid: numberValue(payload.invalid), lateEvents: numberValue(payload.lateEvents),
+      qualityWarnings: numberValue(payload.qualityWarnings), publishFailures: numberValue(payload.publishFailures),
+      commits: numberValue(payload.commits), consumerLag: numberValue(payload.consumerLag),
+      lastBatchSize: numberValue(payload.lastBatchSize), lastBatchLatencyMs: numberValue(payload.lastBatchLatencyMs),
+      schemaRegistered: payload.schemaRegistered === true, contractChecksum: textValue(payload.contractChecksum),
+      lastProcessedAt: textValue(payload.lastProcessedAt),
+    }),
+    stats => `Normalized ${stats.normalized}/${stats.received}; lag ${stats.consumerLag}; late ${stats.lateEvents}`,
+  );
+}
+
+function checkEtlSink(): Promise<HealthResult<EtlSinkHealth>> {
+  return readServiceHealth(
+    'etl-timescale-sink',
+    'ETL Timescale Sink',
+    CONVERGED_PLATFORM_CONFIG.endpoints.etlTimescaleSinkUrl,
+    payload => ({
+      received: numberValue(payload.received), inserted: numberValue(payload.inserted),
+      duplicates: numberValue(payload.duplicates), conflicts: numberValue(payload.conflicts),
+      invalid: numberValue(payload.invalid), commits: numberValue(payload.commits),
+      consumerLag: numberValue(payload.consumerLag), lastProcessedAt: textValue(payload.lastProcessedAt),
+    }),
+    stats => `Inserted ${stats.inserted}; duplicates ${stats.duplicates}; conflicts ${stats.conflicts}; lag ${stats.consumerLag}`,
+  );
+}
+
+function checkEtlReplay(): Promise<HealthResult<EtlReplayHealth>> {
+  return readServiceHealth(
+    'etl-replay-worker',
+    'ETL Replay Worker',
+    CONVERGED_PLATFORM_CONFIG.endpoints.etlReplayWorkerUrl,
+    payload => ({
+      activeRequestId: textValue(payload.activeRequestId), completed: numberValue(payload.completed),
+      failed: numberValue(payload.failed), replayed: numberValue(payload.replayed),
+      lastCompletedAt: textValue(payload.lastCompletedAt),
+    }),
+    stats => `Replayed ${stats.replayed}; completed ${stats.completed}; failed ${stats.failed}`,
+  );
+}
+
 async function loadOutboxHealth() {
   try {
     const rows = await opsDb.$queryRaw`
-      SELECT
-        COUNT(*) FILTER (WHERE published_at IS NULL) AS pending,
+      SELECT COUNT(*) FILTER (WHERE published_at IS NULL) AS pending,
         COUNT(*) FILTER (WHERE published_at IS NULL AND attempt_count > 0) AS retrying,
         EXTRACT(EPOCH FROM (NOW() - MIN(created_at) FILTER (WHERE published_at IS NULL))) AS oldest_seconds
       FROM ops_outbox_events
     ` as OutboxHealthRow[];
     const row = rows[0];
     return {
-      pending: Number(row?.pending ?? 0),
-      retrying: Number(row?.retrying ?? 0),
-      oldestPendingSeconds: row?.oldest_seconds === null || row?.oldest_seconds === undefined ? null : Math.round(Number(row.oldest_seconds)),
+      pending: Number(row?.pending ?? 0), retrying: Number(row?.retrying ?? 0),
+      oldestPendingSeconds: row?.oldest_seconds == null ? null : Math.round(Number(row.oldest_seconds)),
     };
   } catch {
     return null;
@@ -166,45 +218,27 @@ async function loadOutboxHealth() {
 
 export async function getPlatformHealthOverview(): Promise<PlatformHealthOverview> {
   const phase = CONVERGED_PLATFORM_CONFIG.phase;
-  const checks: Array<Promise<PlatformComponentHealth>> = [];
-  const etlCheck = checkEtlNormalizer();
+  const normalizerCheck = checkEtlNormalizer();
+  const sinkCheck = checkEtlSink();
+  const replayCheck = checkEtlReplay();
+  const checks: Array<Promise<PlatformComponentHealth>> = [
+    phase >= 1 ? checkTcp('mqtt', 'MQTT Broker', 1, CONVERGED_PLATFORM_CONFIG.endpoints.mqttUrl) : Promise.resolve(disabled('mqtt', 'MQTT Broker', 1)),
+    checkTimescale(),
+    phase >= 2 ? checkHttp('schema-registry', 'Redpanda / Schema Registry', 2, `${CONVERGED_PLATFORM_CONFIG.endpoints.schemaRegistryUrl}/subjects`) : Promise.resolve(disabled('schema-registry', 'Redpanda / Schema Registry', 2)),
+    normalizerCheck.then(result => result.component), sinkCheck.then(result => result.component), replayCheck.then(result => result.component),
+    phase >= 2 ? checkHttp('minio', 'MinIO Bronze / Silver', 2, `${CONVERGED_PLATFORM_CONFIG.endpoints.minioUrl}/minio/health/live`) : Promise.resolve(disabled('minio', 'MinIO Bronze / Silver', 2)),
+    phase >= 2 ? checkHttp('clickhouse', 'ClickHouse Silver / Gold', 2, `${CONVERGED_PLATFORM_CONFIG.endpoints.clickhouseUrl}/ping`) : Promise.resolve(disabled('clickhouse', 'ClickHouse Silver / Gold', 2)),
+    phase >= 3 ? checkHttp('mlflow', 'MLflow Registry', 3, `${CONVERGED_PLATFORM_CONFIG.endpoints.mlflowUrl}/health`) : Promise.resolve(disabled('mlflow', 'MLflow Registry', 3)),
+    phase >= 4 ? checkHttp('besu', 'Besu Ledger', 4, CONVERGED_PLATFORM_CONFIG.endpoints.besuRpcUrl, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'eth_blockNumber', params: [] }) }) : Promise.resolve(disabled('besu', 'Besu Ledger', 4)),
+    phase >= 4 ? checkHttp('evidence-ledger', 'Evidence Ledger Gateway', 4, `${CONVERGED_PLATFORM_CONFIG.endpoints.ledgerGatewayUrl}/health`) : Promise.resolve(disabled('evidence-ledger', 'Evidence Ledger Gateway', 4)),
+  ];
 
-  checks.push(phase >= 1
-    ? checkTcp('mqtt', 'MQTT Broker', 1, CONVERGED_PLATFORM_CONFIG.endpoints.mqttUrl)
-    : Promise.resolve(disabled('mqtt', 'MQTT Broker', 1)));
-  checks.push(checkTimescale());
-  checks.push(phase >= 2
-    ? checkHttp('schema-registry', 'Redpanda / Schema Registry', 2, `${CONVERGED_PLATFORM_CONFIG.endpoints.schemaRegistryUrl}/subjects`)
-    : Promise.resolve(disabled('schema-registry', 'Redpanda / Schema Registry', 2)));
-  checks.push(etlCheck.then(result => result.component));
-  checks.push(phase >= 2
-    ? checkHttp('minio', 'MinIO Bronze / Silver', 2, `${CONVERGED_PLATFORM_CONFIG.endpoints.minioUrl}/minio/health/live`)
-    : Promise.resolve(disabled('minio', 'MinIO Bronze / Silver', 2)));
-  checks.push(phase >= 2
-    ? checkHttp('clickhouse', 'ClickHouse Silver / Gold', 2, `${CONVERGED_PLATFORM_CONFIG.endpoints.clickhouseUrl}/ping`)
-    : Promise.resolve(disabled('clickhouse', 'ClickHouse Silver / Gold', 2)));
-  checks.push(phase >= 3
-    ? checkHttp('mlflow', 'MLflow Registry', 3, `${CONVERGED_PLATFORM_CONFIG.endpoints.mlflowUrl}/health`)
-    : Promise.resolve(disabled('mlflow', 'MLflow Registry', 3)));
-  checks.push(phase >= 4
-    ? checkHttp('besu', 'Besu Ledger', 4, CONVERGED_PLATFORM_CONFIG.endpoints.besuRpcUrl, {
-      method: 'POST',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'eth_blockNumber', params: [] }),
-    })
-    : Promise.resolve(disabled('besu', 'Besu Ledger', 4)));
-  checks.push(phase >= 4
-    ? checkHttp('evidence-ledger', 'Evidence Ledger Gateway', 4, `${CONVERGED_PLATFORM_CONFIG.endpoints.ledgerGatewayUrl}/health`)
-    : Promise.resolve(disabled('evidence-ledger', 'Evidence Ledger Gateway', 4)));
-
-  const [components, outbox, etl] = await Promise.all([
-    Promise.all(checks),
-    loadOutboxHealth(),
-    etlCheck.then(result => result.stats),
+  const [components, outbox, normalizer, sink, replay] = await Promise.all([
+    Promise.all(checks), loadOutboxHealth(), normalizerCheck.then(result => result.stats),
+    sinkCheck.then(result => result.stats), replayCheck.then(result => result.stats),
   ]);
   const enabled = components.filter(item => item.status !== 'DISABLED');
   const status: ComponentHealthStatus = enabled.some(item => item.status === 'DEGRADED') ? 'DEGRADED' : 'HEALTHY';
-  const readiness = evaluatePlatformProductionReadiness();
-
-  return { phase, status, components, outbox, etl, readiness, checkedAt: nowIso() };
+  const etl = normalizer ? { ...normalizer, sink, replay } : null;
+  return { phase, status, components, outbox, etl, readiness: evaluatePlatformProductionReadiness(), checkedAt: nowIso() };
 }
