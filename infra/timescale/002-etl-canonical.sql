@@ -83,6 +83,17 @@ CREATE TABLE IF NOT EXISTS etl_checkpoint (
   PRIMARY KEY (pipeline_name, source_topic, partition_id)
 );
 
+DELETE FROM etl_data_quality_event older
+USING etl_data_quality_event newer
+WHERE older.id < newer.id
+  AND older.topic = newer.topic
+  AND older.partition_id IS NOT DISTINCT FROM newer.partition_id
+  AND older.offset_id IS NOT DISTINCT FROM newer.offset_id
+  AND older.code = newer.code;
+
+CREATE UNIQUE INDEX IF NOT EXISTS etl_quality_source_code_uq
+  ON etl_data_quality_event (topic, partition_id, offset_id, code);
+
 CREATE OR REPLACE VIEW etl_quality_daily AS
 SELECT
   date_trunc('day', observed_at) AS day,
