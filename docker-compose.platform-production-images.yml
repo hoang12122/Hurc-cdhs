@@ -7,6 +7,14 @@ services:
     image: ${ETL_NORMALIZER_IMAGE:-replace-with-etl-normalizer-digest}
     pull_policy: always
 
+  timescale-sink:
+    image: ${ETL_TIMESCALE_SINK_IMAGE:-replace-with-etl-timescale-sink-digest}
+    pull_policy: always
+
+  etl-replay-worker:
+    image: ${ETL_REPLAY_WORKER_IMAGE:-replace-with-etl-replay-worker-digest}
+    pull_policy: always
+
   outbox-relay:
     image: ${OUTBOX_RELAY_IMAGE:-replace-with-outbox-relay-digest}
     pull_policy: always
