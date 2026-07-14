@@ -16,6 +16,10 @@ function productionEvidence() {
     MINIO_MC_IMAGE: 'minio/mc:RELEASE.2025-05-21T01-59-54Z',
     OUTBOX_MIGRATION_APPLIED: 'true',
     ETL_SCHEMA_CONTRACT_VALIDATED: 'true',
+    ETL_SCHEMA_REGISTRY_REQUIRED: 'true',
+    ETL_CANONICAL_INGRESS_VERIFIED: 'true',
+    ETL_EFFECTIVELY_ONCE_TESTED: 'true',
+    ETL_LATE_DATA_POLICY_APPROVED: 'true',
     ETL_REPLAY_TESTED: 'true',
     ETL_DATA_QUALITY_SLO_APPROVED: 'true',
     MLFLOW_BACKEND_STORE_URI: 'postgresql://mlflow:secret@postgres/metrics',
@@ -52,6 +56,10 @@ function main() {
   assert.ok(unsafe.issues.some(issue => issue.code === 'MQTT_ANONYMOUS'));
   assert.ok(unsafe.issues.some(issue => issue.code === 'KAFKA_QUORUM'));
   assert.ok(unsafe.issues.some(issue => issue.code === 'ETL_SCHEMA_CONTRACT'));
+  assert.ok(unsafe.issues.some(issue => issue.code === 'ETL_SCHEMA_REGISTRY'));
+  assert.ok(unsafe.issues.some(issue => issue.code === 'ETL_CANONICAL_INGRESS'));
+  assert.ok(unsafe.issues.some(issue => issue.code === 'ETL_EFFECTIVELY_ONCE'));
+  assert.ok(unsafe.issues.some(issue => issue.code === 'ETL_LATE_DATA'));
   assert.ok(unsafe.issues.some(issue => issue.code === 'ETL_REPLAY'));
   assert.ok(unsafe.issues.some(issue => issue.code === 'ETL_DATA_QUALITY_SLO'));
   assert.ok(unsafe.issues.some(issue => issue.code === 'MLFLOW_SQLITE'));
@@ -60,6 +68,15 @@ function main() {
   assert.ok(unsafe.issues.some(issue => issue.code === 'ATTESTATION_COMMIT'));
   assert.ok(unsafe.issues.some(issue => issue.code === 'SECURITY_REVIEW'));
   assert.ok(unsafe.score < 50);
+
+  const missingEffectivelyOnce = evaluatePlatformProductionReadiness({
+    ...productionEvidence(),
+    ETL_EFFECTIVELY_ONCE_TESTED: 'false',
+    APP_COMMIT_SHA: 'commit-approved',
+    PLATFORM_ATTESTATION_COMMIT_SHA: 'commit-approved',
+  });
+  assert.equal(missingEffectivelyOnce.ready, false);
+  assert.ok(missingEffectivelyOnce.issues.some(issue => issue.code === 'ETL_EFFECTIVELY_ONCE'));
 
   const mismatched = evaluatePlatformProductionReadiness({
     ...productionEvidence(),
