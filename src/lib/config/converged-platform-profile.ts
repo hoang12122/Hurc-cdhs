@@ -23,6 +23,7 @@ export interface ConvergedPlatformConfig {
     etlNormalizerUrl: string;
     etlTimescaleSinkUrl: string;
     etlReplayWorkerUrl: string;
+    etlAcceptedRelayUrl: string;
     mlflowUrl: string;
     besuRpcUrl: string;
     ledgerGatewayUrl: string;
@@ -103,7 +104,7 @@ export function resolveConvergedPlatformConfig(
   const evidenceLedger = phase >= 4 && booleanValue(env.EVIDENCE_LEDGER_ENABLED, true);
 
   return {
-    version: '2026-07-14.1',
+    version: '2026-07-14.2',
     phase,
     environment: nodeEnv ?? 'development',
     features: { iot, eventBackbone, lakehouse, mlops, evidenceLedger },
@@ -117,6 +118,7 @@ export function resolveConvergedPlatformConfig(
       etlNormalizerUrl: env.ETL_NORMALIZER_URL ?? 'http://etl-normalizer:8082',
       etlTimescaleSinkUrl: env.ETL_TIMESCALE_SINK_URL ?? 'http://timescale-sink:8083',
       etlReplayWorkerUrl: env.ETL_REPLAY_WORKER_URL ?? 'http://etl-replay-worker:8084',
+      etlAcceptedRelayUrl: env.ETL_ACCEPTED_RELAY_URL ?? 'http://etl-accepted-relay:8085',
       mlflowUrl: env.MLFLOW_TRACKING_URI ?? 'http://mlflow:5000',
       besuRpcUrl: env.BESU_RPC_URL ?? 'http://besu:8545',
       ledgerGatewayUrl: env.LEDGER_GATEWAY_URL ?? 'http://evidence-ledger:8787',
