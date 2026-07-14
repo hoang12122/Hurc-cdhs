@@ -96,7 +96,9 @@ jobs:
         run: >-
           python3 -m py_compile
           infra/etl-normalizer/contract.py infra/etl-normalizer/registry.py infra/etl-normalizer/main.py
-          infra/timescale-sink/store.py infra/timescale-sink/main.py infra/etl-replay-worker/main.py
+          infra/timescale-sink/store.py infra/timescale-sink/main.py
+          infra/etl-replay-worker/config.py infra/etl-replay-worker/control.py
+          infra/etl-replay-worker/replay.py infra/etl-replay-worker/main.py
           infra/iot-ingestor/entrypoint.py
 
       - name: Verify ETL contract invariants
