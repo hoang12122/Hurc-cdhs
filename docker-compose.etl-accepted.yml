@@ -1,4 +1,8 @@
 services:
+  app:
+    environment:
+      ETL_ACCEPTED_RELAY_URL: ${ETL_ACCEPTED_RELAY_URL:-http://etl-accepted-relay:8085}
+
   etl-topic-init:
     command: ["topic", "create", "iot.telemetry.normalized", "iot.telemetry.replay", "iot.telemetry.accepted", "--partitions", "6", "--replicas", "1", "--if-not-exists", "-X", "brokers=redpanda:9092"]
 
