@@ -35,11 +35,18 @@ services:
       ETL_ACCEPTED_RELAY_POLL_SECONDS: ${ETL_ACCEPTED_RELAY_POLL_SECONDS:-1}
       ETL_ACCEPTED_RELAY_LOCK_SECONDS: ${ETL_ACCEPTED_RELAY_LOCK_SECONDS:-300}
       ETL_ACCEPTED_RELAY_MAX_ATTEMPTS: ${ETL_ACCEPTED_RELAY_MAX_ATTEMPTS:-20}
+      ETL_ACCEPTED_RELAY_MAX_PENDING: ${ETL_ACCEPTED_RELAY_MAX_PENDING:-10000}
+      HEALTH_PORT: 8085
     depends_on:
       timescale-sink:
         condition: service_healthy
       etl-topic-init:
         condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8085/ready', timeout=3)"]
+      interval: 15s
+      timeout: 5s
+      retries: 15
     networks: [backend-net]
 
 networks:
