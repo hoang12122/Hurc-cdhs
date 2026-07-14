@@ -3,6 +3,7 @@ services:
     environment:
       ETL_NORMALIZER_URL: ${ETL_NORMALIZER_URL:-http://etl-normalizer:8082}
       ETL_TIMESCALE_SINK_URL: ${ETL_TIMESCALE_SINK_URL:-http://timescale-sink:8083}
+      ETL_REPLAY_WORKER_URL: ${ETL_REPLAY_WORKER_URL:-http://etl-replay-worker:8084}
       CLICKHOUSE_USER: ${CLICKHOUSE_USER:-hurc}
       CLICKHOUSE_PASSWORD: ${CLICKHOUSE_PASSWORD:-change-this-clickhouse-password}
 
@@ -170,6 +171,36 @@ services:
         condition: service_completed_successfully
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8083/ready', timeout=3)"]
+      interval: 15s
+      timeout: 5s
+      retries: 15
+    networks:
+      - backend-net
+
+  etl-replay-worker:
+    build:
+      context: .
+      dockerfile: infra/etl-replay-worker/Dockerfile
+    container_name: hurc_etl_replay_worker
+    restart: unless-stopped
+    profiles: ["phase2", "phase3", "phase4"]
+    environment:
+      KAFKA_BROKERS: ${KAFKA_BROKERS:-redpanda:9092}
+      TIMESCALE_DATABASE_URL: ${TIMESCALE_DATABASE_URL:-postgresql://postgres:change-me@timescaledb:5432/hurc_telemetry}
+      ETL_REPLAY_ALLOWED_SOURCES: ${ETL_REPLAY_ALLOWED_SOURCES:-iot.telemetry.raw}
+      ETL_REPLAY_ALLOWED_TARGETS: ${ETL_REPLAY_ALLOWED_TARGETS:-iot.telemetry.replay}
+      ETL_REPLAY_POLL_SECONDS: ${ETL_REPLAY_POLL_SECONDS:-10}
+      ETL_REPLAY_BATCH_SIZE: ${ETL_REPLAY_BATCH_SIZE:-500}
+      HEALTH_PORT: 8084
+    depends_on:
+      redpanda:
+        condition: service_healthy
+      etl-topic-init:
+        condition: service_completed_successfully
+      timescale-etl-init:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8084/ready', timeout=3)"]
       interval: 15s
       timeout: 5s
       retries: 15
