@@ -27,6 +27,7 @@ jobs:
       ETL_NORMALIZER_IMAGE: ${{ vars.ETL_NORMALIZER_IMAGE }}
       ETL_TIMESCALE_SINK_IMAGE: ${{ vars.ETL_TIMESCALE_SINK_IMAGE }}
       ETL_REPLAY_WORKER_IMAGE: ${{ vars.ETL_REPLAY_WORKER_IMAGE }}
+      ETL_ACCEPTED_RELAY_IMAGE: ${{ vars.ETL_ACCEPTED_RELAY_IMAGE }}
       REDPANDA_IMAGE: ${{ vars.REDPANDA_IMAGE }}
       REDPANDA_CONNECT_IMAGE: ${{ vars.REDPANDA_CONNECT_IMAGE }}
       MINIO_IMAGE: ${{ vars.MINIO_IMAGE }}
@@ -99,6 +100,7 @@ jobs:
           infra/timescale-sink/store.py infra/timescale-sink/main.py
           infra/etl-replay-worker/config.py infra/etl-replay-worker/control.py
           infra/etl-replay-worker/replay.py infra/etl-replay-worker/main.py
+          infra/etl-accepted-relay/main.py
           infra/iot-ingestor/entrypoint.py
 
       - name: Verify ETL contract invariants
