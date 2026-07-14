@@ -18,8 +18,9 @@ CREATE INDEX IF NOT EXISTS telemetry_quality_time_idx
 CREATE INDEX IF NOT EXISTS telemetry_late_time_idx
   ON telemetry_event (occurred_at DESC)
   WHERE late_event = TRUE;
-CREATE UNIQUE INDEX IF NOT EXISTS telemetry_source_offset_idx
-  ON telemetry_event (source_topic, source_partition, source_offset)
+DROP INDEX IF EXISTS telemetry_source_offset_idx;
+CREATE INDEX telemetry_source_offset_idx
+  ON telemetry_event (source_topic, source_partition, source_offset, occurred_at DESC)
   WHERE source_topic IS NOT NULL
     AND source_partition IS NOT NULL
     AND source_offset IS NOT NULL;
