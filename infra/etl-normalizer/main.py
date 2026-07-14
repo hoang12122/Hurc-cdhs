@@ -1,4 +1,3 @@
-import hashlib
 import json
 import os
 import threading
@@ -9,14 +8,18 @@ from pathlib import Path
 
 import psycopg2
 from kafka import KafkaConsumer, KafkaProducer
+from psycopg2.extras import execute_values
 
 from contract import ContractError, normalize_event
+from registry import contract_checksum, register_schema_contract
 
 KAFKA_BROKERS = [value.strip() for value in os.getenv("KAFKA_BROKERS", "redpanda:9092").split(",") if value.strip()]
-RAW_TOPIC = os.getenv("ETL_RAW_TOPIC", "iot.telemetry.raw")
+RAW_TOPICS = [value.strip() for value in os.getenv(
+    "ETL_SOURCE_TOPICS", "iot.telemetry.raw,iot.telemetry.replay"
+).split(",") if value.strip()]
 NORMALIZED_TOPIC = os.getenv("ETL_NORMALIZED_TOPIC", "iot.telemetry.normalized")
 DEAD_LETTER_TOPIC = os.getenv("ETL_DEAD_LETTER_TOPIC", "iot.telemetry.dead-letter")
-CONSUMER_GROUP = os.getenv("ETL_CONSUMER_GROUP", "hurc-etl-normalizer-v1")
+CONSUMER_GROUP = os.getenv("ETL_CONSUMER_GROUP", "hurc-etl-normalizer-v2")
 DATABASE_URL = os.getenv(
     "TIMESCALE_DATABASE_URL",
     "postgresql://postgres:change-me@timescaledb:5432/hurc_telemetry",
@@ -25,18 +28,29 @@ HEALTH_PORT = int(os.getenv("HEALTH_PORT", "8082"))
 MAX_PAYLOAD_BYTES = min(2 * 1024 * 1024, max(16 * 1024, int(os.getenv("EVENT_MAX_PAYLOAD_BYTES", str(512 * 1024)))))
 MAX_FUTURE_SECONDS = min(3600, max(0, int(os.getenv("ETL_MAX_FUTURE_SECONDS", "300"))))
 MAX_CLOCK_SKEW_MS = min(3_600_000, max(1000, int(os.getenv("ETL_MAX_CLOCK_SKEW_MS", "120000"))))
-COMMIT_BATCH_SIZE = min(1000, max(1, int(os.getenv("ETL_COMMIT_BATCH_SIZE", "100"))))
-COMMIT_INTERVAL_SECONDS = min(30.0, max(0.2, float(os.getenv("ETL_COMMIT_INTERVAL_SECONDS", "2"))))
+WATERMARK_DELAY_SECONDS = min(86400, max(0, int(os.getenv("ETL_WATERMARK_DELAY_SECONDS", "300"))))
+MAX_BATCH_SIZE = min(2000, max(1, int(os.getenv("ETL_COMMIT_BATCH_SIZE", "500"))))
+MAX_CONSUMER_LAG = max(0, int(os.getenv("ETL_MAX_CONSUMER_LAG", "10000")))
+STALE_AFTER_SECONDS = max(10, int(os.getenv("ETL_STALE_AFTER_SECONDS", "120")))
 CONTRACT_PATH = Path(os.getenv("ETL_CONTRACT_PATH", "/app/contracts/telemetry-v1.schema.json"))
+SCHEMA_REGISTRY_URL = os.getenv("SCHEMA_REGISTRY_URL", "http://redpanda:8081")
+SCHEMA_SUBJECT = os.getenv("ETL_SCHEMA_SUBJECT", "hurc.telemetry-value")
+SCHEMA_REQUIRED = os.getenv("ETL_SCHEMA_REGISTRY_REQUIRED", "false").lower() == "true"
 
 STATS = {
     "status": "starting",
     "received": 0,
     "normalized": 0,
     "invalid": 0,
+    "lateEvents": 0,
     "qualityWarnings": 0,
     "publishFailures": 0,
     "commits": 0,
+    "consumerLag": 0,
+    "lastBatchSize": 0,
+    "lastBatchLatencyMs": 0,
+    "schemaRegistered": False,
+    "contractChecksum": None,
     "lastProcessedAt": None,
     "lastError": None,
 }
@@ -53,6 +67,11 @@ def increment(key, amount=1):
         STATS[key] += amount
 
 
+def snapshot():
+    with STATS_LOCK:
+        return dict(STATS)
+
+
 def utc_now_iso():
     return datetime.now(timezone.utc).isoformat()
 
@@ -60,63 +79,67 @@ def utc_now_iso():
 class DataQualityStore:
     def __init__(self):
         self.connection = None
-        self.lock = threading.Lock()
 
     def connect(self):
         if self.connection is not None and not self.connection.closed:
             return
         self.connection = psycopg2.connect(DATABASE_URL)
-        self.connection.autocommit = True
+        self.connection.autocommit = False
 
     def register_contract(self):
-        if not CONTRACT_PATH.exists():
-            return
-        content = CONTRACT_PATH.read_bytes()
-        checksum = hashlib.sha256(content).hexdigest()
+        checksum = contract_checksum(CONTRACT_PATH)
         self.connect()
-        with self.connection.cursor() as cursor:
-            cursor.execute(
-                """
-                INSERT INTO etl_schema_registry(schema_name, schema_version, contract_sha256, status)
-                VALUES ('telemetry', '1.0.0', %s, 'ACTIVE')
-                ON CONFLICT (schema_name, schema_version)
-                DO UPDATE SET contract_sha256 = EXCLUDED.contract_sha256,
-                              status = EXCLUDED.status,
-                              registered_at = NOW()
-                """,
-                (checksum,),
-            )
+        with self.connection:
+            with self.connection.cursor() as cursor:
+                cursor.execute(
+                    """
+                    INSERT INTO etl_schema_registry(schema_name, schema_version, contract_sha256, status)
+                    VALUES ('telemetry', '1.0.0', %s, 'ACTIVE')
+                    ON CONFLICT (schema_name, schema_version)
+                    DO UPDATE SET contract_sha256 = EXCLUDED.contract_sha256,
+                                  status = EXCLUDED.status,
+                                  registered_at = NOW()
+                    """,
+                    (checksum,),
+                )
+        return checksum
 
-    def record(self, message, code, severity, detail, event_id=None):
-        with self.lock:
-            try:
-                self.connect()
-                excerpt = message.value[:65536].decode("utf-8", errors="replace")
+    def record_many(self, records):
+        if not records:
+            return
+        self.connect()
+        values = []
+        for message, code, severity, detail, event_id in records:
+            values.append((
+                event_id,
+                message.topic,
+                message.partition,
+                message.offset,
+                code[:80],
+                severity,
+                detail[:2000],
+                len(message.value),
+                message.value[:65536].decode("utf-8", errors="replace"),
+            ))
+        try:
+            with self.connection:
                 with self.connection.cursor() as cursor:
-                    cursor.execute(
+                    execute_values(
+                        cursor,
                         """
                         INSERT INTO etl_data_quality_event(
                           event_id, topic, partition_id, offset_id, code,
                           severity, detail, payload_size, payload_excerpt
-                        ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+                        ) VALUES %s
+                        ON CONFLICT (topic, partition_id, offset_id, code) DO NOTHING
                         """,
-                        (
-                            event_id,
-                            message.topic,
-                            message.partition,
-                            message.offset,
-                            code[:80],
-                            severity,
-                            detail[:2000],
-                            len(message.value),
-                            excerpt,
-                        ),
+                        values,
                     )
-            except Exception as error:
-                if self.connection is not None:
-                    self.connection.close()
-                self.connection = None
-                update_stats(lastError=f"quality-store: {error}")
+        except Exception:
+            if self.connection is not None:
+                self.connection.close()
+            self.connection = None
+            raise
 
 
 QUALITY_STORE = DataQualityStore()
@@ -126,10 +149,11 @@ def create_producer():
     return KafkaProducer(
         bootstrap_servers=KAFKA_BROKERS,
         acks="all",
-        retries=10,
+        retries=20,
         linger_ms=20,
         compression_type="gzip",
-        max_in_flight_requests_per_connection=1,
+        enable_idempotence=True,
+        max_in_flight_requests_per_connection=5,
         value_serializer=lambda value: json.dumps(value, ensure_ascii=False, separators=(",", ":")).encode("utf-8"),
         key_serializer=lambda value: str(value).encode("utf-8"),
     )
@@ -137,12 +161,13 @@ def create_producer():
 
 def create_consumer():
     return KafkaConsumer(
-        RAW_TOPIC,
+        *RAW_TOPICS,
         bootstrap_servers=KAFKA_BROKERS,
         group_id=CONSUMER_GROUP,
         enable_auto_commit=False,
         auto_offset_reset="earliest",
-        max_poll_records=500,
+        isolation_level="read_committed",
+        max_poll_records=MAX_BATCH_SIZE,
         session_timeout_ms=30000,
         max_poll_interval_ms=300000,
         consumer_timeout_ms=1000,
@@ -151,8 +176,7 @@ def create_consumer():
 
 def decode_event(message):
     try:
-        decoded = message.value.decode("utf-8")
-        event = json.loads(decoded)
+        event = json.loads(message.value.decode("utf-8"))
     except (UnicodeDecodeError, json.JSONDecodeError) as error:
         raise ContractError("INVALID_JSON", "raw message must be UTF-8 JSON") from error
     if not isinstance(event, dict):
@@ -165,22 +189,14 @@ def dead_letter_envelope(message, code, detail, event=None):
     return {
         "eventId": str(event_id or f"{message.topic}:{message.partition}:{message.offset}"),
         "failedAt": utc_now_iso(),
-        "source": {
-            "topic": message.topic,
-            "partition": message.partition,
-            "offset": message.offset,
-        },
-        "failure": {
-            "code": code,
-            "detail": detail[:2000],
-        },
+        "source": {"topic": message.topic, "partition": message.partition, "offset": message.offset},
+        "failure": {"code": code, "detail": detail[:2000]},
         "payloadSize": len(message.value),
         "payloadExcerpt": message.value[:65536].decode("utf-8", errors="replace"),
     }
 
 
-def process_message(producer, message):
-    increment("received")
+def prepare_message(message):
     event = None
     try:
         event = decode_event(message)
@@ -189,35 +205,74 @@ def process_message(producer, message):
             max_payload_bytes=MAX_PAYLOAD_BYTES,
             max_future_seconds=MAX_FUTURE_SECONDS,
             max_clock_skew_ms=MAX_CLOCK_SKEW_MS,
+            watermark_delay_seconds=WATERMARK_DELAY_SECONDS,
         )
-        producer.send(
-            NORMALIZED_TOPIC,
-            key=normalized["event_id"],
-            value=normalized,
-        ).get(timeout=15)
-        increment("normalized")
+        normalized["source_topic"] = message.topic
+        normalized["source_partition"] = message.partition
+        normalized["source_offset"] = message.offset
+        records = []
         if normalized["quality_flags"] or normalized["quality_score"] < 80:
-            increment("qualityWarnings")
-            QUALITY_STORE.record(
+            records.append((
                 message,
                 "QUALITY_WARNING",
                 "WARNING",
                 ",".join(normalized["quality_flags"]) or normalized["quality_status"],
                 normalized["event_id"],
-            )
-        update_stats(status="healthy", lastProcessedAt=utc_now_iso(), lastError=None)
-        return True
+            ))
+        return NORMALIZED_TOPIC, normalized["event_id"], normalized, records, normalized["late_event"] == 1
     except ContractError as error:
         envelope = dead_letter_envelope(message, error.code, str(error), event)
-        producer.send(DEAD_LETTER_TOPIC, key=envelope["eventId"], value=envelope).get(timeout=15)
-        increment("invalid")
-        QUALITY_STORE.record(message, error.code, "ERROR", str(error), envelope["eventId"])
-        update_stats(status="healthy", lastProcessedAt=utc_now_iso(), lastError=None)
-        return True
-    except Exception as error:
-        increment("publishFailures")
-        update_stats(status="degraded", lastError=str(error)[:2000])
-        return False
+        record = (message, error.code, "ERROR", str(error), envelope["eventId"])
+        return DEAD_LETTER_TOPIC, envelope["eventId"], envelope, [record], False
+
+
+def calculate_lag(consumer):
+    assignments = consumer.assignment()
+    if not assignments:
+        return 0
+    end_offsets = consumer.end_offsets(assignments)
+    return sum(max(0, end_offsets[item] - consumer.position(item)) for item in assignments)
+
+
+def process_batch(producer, consumer, messages):
+    started = time.monotonic()
+    futures = []
+    quality_records = []
+    normalized_count = 0
+    invalid_count = 0
+    late_count = 0
+    warning_count = 0
+
+    for message in messages:
+        topic, key, value, records, late = prepare_message(message)
+        futures.append(producer.send(topic, key=key, value=value))
+        quality_records.extend(records)
+        if topic == NORMALIZED_TOPIC:
+            normalized_count += 1
+            late_count += 1 if late else 0
+            warning_count += 1 if records else 0
+        else:
+            invalid_count += 1
+
+    for future in futures:
+        future.get(timeout=30)
+    QUALITY_STORE.record_many(quality_records)
+    consumer.commit()
+
+    increment("received", len(messages))
+    increment("normalized", normalized_count)
+    increment("invalid", invalid_count)
+    increment("lateEvents", late_count)
+    increment("qualityWarnings", warning_count)
+    increment("commits", 1)
+    update_stats(
+        status="healthy",
+        consumerLag=calculate_lag(consumer),
+        lastBatchSize=len(messages),
+        lastBatchLatencyMs=round((time.monotonic() - started) * 1000),
+        lastProcessedAt=utc_now_iso(),
+        lastError=None,
+    )
 
 
 def processing_loop():
@@ -225,31 +280,29 @@ def processing_loop():
         producer = None
         consumer = None
         try:
-            QUALITY_STORE.register_contract()
+            checksum = QUALITY_STORE.register_contract()
+            registry = register_schema_contract(
+                CONTRACT_PATH,
+                SCHEMA_REGISTRY_URL,
+                SCHEMA_SUBJECT,
+                required=SCHEMA_REQUIRED,
+            )
+            update_stats(
+                schemaRegistered=registry["registered"],
+                contractChecksum=checksum,
+                lastError=registry.get("reason"),
+            )
             producer = create_producer()
             consumer = create_consumer()
-            pending = 0
-            last_commit = time.monotonic()
-            update_stats(status="healthy", lastError=None)
+            update_stats(status="healthy")
             while True:
-                records = consumer.poll(timeout_ms=1000, max_records=500)
-                for messages in records.values():
-                    for message in messages:
-                        if not process_message(producer, message):
-                            raise RuntimeError("message was not durably published")
-                        pending += 1
-                        elapsed = time.monotonic() - last_commit
-                        if pending >= COMMIT_BATCH_SIZE or elapsed >= COMMIT_INTERVAL_SECONDS:
-                            consumer.commit()
-                            increment("commits")
-                            pending = 0
-                            last_commit = time.monotonic()
-                if pending and time.monotonic() - last_commit >= COMMIT_INTERVAL_SECONDS:
-                    consumer.commit()
-                    increment("commits")
-                    pending = 0
-                    last_commit = time.monotonic()
+                polled = consumer.poll(timeout_ms=1000, max_records=MAX_BATCH_SIZE)
+                messages = [message for batch in polled.values() for message in batch]
+                update_stats(consumerLag=calculate_lag(consumer))
+                if messages:
+                    process_batch(producer, consumer, messages)
         except Exception as error:
+            increment("publishFailures")
             update_stats(status="degraded", lastError=str(error)[:2000])
             time.sleep(5)
         finally:
@@ -260,18 +313,57 @@ def processing_loop():
                 producer.close(timeout=10)
 
 
+def is_ready(state):
+    if state["status"] != "healthy" or state["consumerLag"] > MAX_CONSUMER_LAG:
+        return False
+    if SCHEMA_REQUIRED and not state["schemaRegistered"]:
+        return False
+    last_processed = state.get("lastProcessedAt")
+    if state["received"] == 0 or not last_processed:
+        return True
+    try:
+        last = datetime.fromisoformat(last_processed.replace("Z", "+00:00"))
+        return (datetime.now(timezone.utc) - last).total_seconds() <= STALE_AFTER_SECONDS
+    except (TypeError, ValueError):
+        return False
+
+
+def metrics_text(state):
+    metrics = {
+        "received": "hurc_etl_received_total",
+        "normalized": "hurc_etl_normalized_total",
+        "invalid": "hurc_etl_invalid_total",
+        "lateEvents": "hurc_etl_late_events_total",
+        "qualityWarnings": "hurc_etl_quality_warnings_total",
+        "publishFailures": "hurc_etl_publish_failures_total",
+        "commits": "hurc_etl_commits_total",
+        "consumerLag": "hurc_etl_consumer_lag",
+        "lastBatchSize": "hurc_etl_last_batch_size",
+        "lastBatchLatencyMs": "hurc_etl_last_batch_latency_ms",
+    }
+    lines = [f"{metric} {int(state[key])}" for key, metric in metrics.items()]
+    lines.append(f"hurc_etl_ready {1 if is_ready(state) else 0}")
+    lines.append(f"hurc_etl_schema_registered {1 if state['schemaRegistered'] else 0}")
+    return "\n".join(lines) + "\n"
+
+
 class HealthHandler(BaseHTTPRequestHandler):
     def do_GET(self):
-        if self.path not in ("/health", "/ready"):
+        state = snapshot()
+        if self.path == "/metrics":
+            body = metrics_text(state).encode("utf-8")
+            status_code = 200
+            content_type = "text/plain; version=0.0.4"
+        elif self.path in ("/health", "/ready"):
+            body = json.dumps(state).encode("utf-8")
+            status_code = 200 if self.path == "/health" or is_ready(state) else 503
+            content_type = "application/json"
+        else:
             self.send_response(404)
             self.end_headers()
             return
-        with STATS_LOCK:
-            snapshot = dict(STATS)
-        body = json.dumps(snapshot).encode("utf-8")
-        status_code = 200 if snapshot["status"] == "healthy" else 503
         self.send_response(status_code)
-        self.send_header("content-type", "application/json")
+        self.send_header("content-type", content_type)
         self.send_header("content-length", str(len(body)))
         self.end_headers()
         self.wfile.write(body)
