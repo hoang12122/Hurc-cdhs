@@ -80,15 +80,23 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '20.12.2'
-          cache: npm
-          cache-dependency-path: package-lock.json
+
+      # The repository intentionally has no committed package-lock.json.
+      # Cache npm's download store using package.json as the invalidation key.
+      - name: Cache npm download artifacts
+        uses: actions/cache@v4
+        with:
+          path: ~/.npm
+          key: npm-${{ runner.os }}-node-20.12.2-${{ hashFiles('package.json') }}
+          restore-keys: |
+            npm-${{ runner.os }}-node-20.12.2-
 
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
 
       - name: Install Node dependencies
-        run: npm ci --include=dev --ignore-scripts --no-audit --fund=false
+        run: npm install --include=dev --ignore-scripts --no-audit --fund=false --package-lock=false --prefer-offline
 
       - name: Validate Compose overlays
         run: npm run platform:config
