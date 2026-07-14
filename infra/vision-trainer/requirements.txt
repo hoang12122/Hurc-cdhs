@@ -1,7 +1,7 @@
 fastapi==0.116.1
 uvicorn[standard]==0.35.0
-python-multipart==0.0.20
-Pillow==11.3.0
+python-multipart==0.0.31
+Pillow==12.2.0
 PyYAML==6.0.2
 ultralytics==8.3.203
-mlflow==3.5.1
+mlflow==3.11.1
