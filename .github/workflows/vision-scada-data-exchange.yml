@@ -26,7 +26,7 @@ on:
       - 'src/lib/actions/dnf.actions.ts'
       - 'src/lib/actions/hazard.actions.ts'
       - 'src/lib/auth-enforcer.ts'
-      - 'src/lib/services/user/roles.ts'
+      - 'src/lib/services/ou-scope-service.ts'
       - 'src/lib/services/data-exchange/**'
       - 'src/scripts/test-data-exchange.ts'
   push:
@@ -53,7 +53,7 @@ on:
       - 'src/lib/actions/dnf.actions.ts'
       - 'src/lib/actions/hazard.actions.ts'
       - 'src/lib/auth-enforcer.ts'
-      - 'src/lib/services/user/roles.ts'
+      - 'src/lib/services/ou-scope-service.ts'
       - 'src/lib/services/data-exchange/**'
       - 'src/scripts/test-data-exchange.ts'
 
