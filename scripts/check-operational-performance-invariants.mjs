@@ -8,6 +8,7 @@ const failures = [];
 const dnfAction = read('src/lib/actions/dnf.actions.ts');
 const hazardAction = read('src/lib/actions/hazard.actions.ts');
 const authEnforcer = read('src/lib/auth-enforcer.ts');
+const authService = read('src/lib/services/auth-service.ts');
 const ouScope = read('src/lib/services/ou-scope-service.ts');
 const workflow = read('.github/workflows/vision-scada-data-exchange.yml');
 
@@ -28,6 +29,11 @@ if (authEnforcer.includes("import { hasPermission }")) {
   failures.push('requirePermission must not trigger a second session lookup through hasPermission.');
 }
 requireText(authEnforcer, "user.permissions?.includes(permission)", 'Permission checks must use the already authenticated user snapshot.');
+requireText(authService, 'return currentUser.permissions?.includes(permission) || false;', 'Client permission checks must reuse the merged session permission snapshot.');
+if (authService.includes("jsonDb.getCollection<any>('roles')")) {
+  failures.push('checkPermission must not reload the fallback role collection after getSessionUser merged permissions.');
+}
+
 requireText(ouScope, 'select: { id: true }', 'OU scope must query only user IDs on the database path.');
 requireText(ouScope, 'where: { ouId: { in: scopeOuIds } }', 'OU scope must push OU filtering into the database query.');
 
