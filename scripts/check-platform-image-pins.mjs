@@ -8,6 +8,7 @@ const composeFiles = [
   'docker-compose.yml',
   'docker-compose.platform.yml',
   'docker-compose.platform-enhancements.yml',
+  'docker-compose.etl-accepted.yml',
   'docker-compose.platform-production-images.yml',
 ];
 const args = ['compose'];
