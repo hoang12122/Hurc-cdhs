@@ -16,6 +16,7 @@ from fastapi import FastAPI
 from pymodbus.client import ModbusTcpClient
 
 CONFIG_PATH = Path(os.getenv("SCADA_CONFIG_PATH", "/config/scada.yaml"))
+ENABLED = os.getenv("SCADA_GATEWAY_ENABLED", "false").lower() == "true"
 HEALTH_PORT = int(os.getenv("HEALTH_PORT", "8091"))
 MAX_SOURCES = min(100, max(1, int(os.getenv("SCADA_MAX_SOURCES", "20"))))
 MAX_POINTS_PER_SOURCE = min(5000, max(1, int(os.getenv("SCADA_MAX_POINTS_PER_SOURCE", "500"))))
@@ -24,7 +25,8 @@ LOCK = threading.RLock()
 app = FastAPI(title="HURC Read-only SCADA Gateway", version="1.0.0")
 
 STATS = {
-    "status": "starting",
+    "status": "disabled" if not ENABLED else "starting",
+    "enabled": ENABLED,
     "readOnly": True,
     "sources": {},
     "published": 0,
@@ -154,6 +156,8 @@ def event_for(source, point, reading):
 
 class Publisher:
     def __init__(self):
+        if not ENABLED:
+            raise RuntimeError("SCADA gateway is disabled")
         self.client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2, client_id=str(GATEWAY.get("id") or "hurc-scada-gateway"))
         username = MQTT_CONFIG.get("username")
         if username:
@@ -186,7 +190,7 @@ class Publisher:
             STATS["lastError"] = None
 
 
-PUBLISHER = Publisher()
+PUBLISHER = Publisher() if ENABLED else None
 
 
 def read_rest(source, point, client):
@@ -212,13 +216,19 @@ def decode_registers(registers, point):
     words = list(registers)
     if word_order == "little":
         words.reverse()
-    raw = b"".join(int(word).to_bytes(2, byte_order=byte_order, signed=False) for word in words)
-    formats = {"uint16": ">H", "int16": ">h", "uint32": ">I", "int32": ">i", "float32": ">f", "float64": ">d"}
+    raw = b"".join(int(word).to_bytes(2, byteorder=byte_order, signed=False) for word in words)
+    prefixes = {"big": ">", "little": "<"}
+    prefix = prefixes.get(byte_order)
+    if not prefix:
+        raise ValueError(f"unsupported byte_order {byte_order}")
+    formats = {"uint16": "H", "int16": "h", "uint32": "I", "int32": "i", "float32": "f", "float64": "d"}
     fmt = formats.get(data_type)
     if not fmt:
         raise ValueError(f"unsupported Modbus data_type {data_type}")
-    expected = struct.calcsize(fmt)
-    return struct.unpack(fmt, raw[:expected])[0]
+    expected = struct.calcsize(prefix + fmt)
+    if len(raw) < expected:
+        raise ValueError(f"Modbus point requires {expected} bytes but received {len(raw)}")
+    return struct.unpack(prefix + fmt, raw[:expected])[0]
 
 
 def modbus_address(tag):
@@ -248,6 +258,8 @@ def read_modbus(source, point, client):
 
 
 def source_loop(source):
+    if not ENABLED or PUBLISHER is None:
+        return
     source_id = str(source.get("id") or uuid.uuid4())
     protocol = str(source.get("protocol") or "").lower()
     interval = max(1.0, float(source.get("poll_interval_seconds") or GATEWAY.get("publish_interval_seconds") or 5))
@@ -274,8 +286,7 @@ def source_loop(source):
                         reading = read_rest(source, point, client)
                     elif protocol == "opcua":
                         node = client.get_node(str(point["tag"]))
-                        value = node.read_value()
-                        reading = {"value": value, "timestamp": now_iso(), "quality": "good"}
+                        reading = {"value": node.read_value(), "timestamp": now_iso(), "quality": "good"}
                     else:
                         reading = read_modbus(source, point, client)
                     PUBLISHER.publish(source, point, reading)
@@ -302,6 +313,8 @@ def source_loop(source):
 
 @app.on_event("startup")
 def startup():
+    if not ENABLED:
+        return
     for source in CONFIG.get("sources") or []:
         threading.Thread(target=source_loop, args=(source,), daemon=True).start()
 
@@ -315,6 +328,7 @@ def health():
 @app.get("/capabilities")
 def capabilities():
     return {
+        "enabled": ENABLED,
         "mode": "read-only",
         "nativeProtocols": ["opcua", "modbus_tcp", "rest"],
         "vendorBridge": ["F-SCADA REST API", "vendor gateway to REST/MQTT"],
