@@ -105,7 +105,7 @@ export async function getDnfsPaginated(params: {
         data: dnfs,
         metadata: {
             total,
-            pages: Math.ceil(total / pagination.pageSize),
+            pages: Math.max(1, Math.ceil(total / pagination.pageSize)),
             currentPage: pagination.page,
             pageSize: pagination.pageSize,
         }
