@@ -83,6 +83,31 @@ CREATE TABLE IF NOT EXISTS etl_checkpoint (
   PRIMARY KEY (pipeline_name, source_topic, partition_id)
 );
 
+-- Canonical serving layers consume only events accepted by the identity sink.
+-- The row is written in the same transaction as telemetry_event and is relayed
+-- at-least-once to Kafka. event_id is the immutable idempotency key.
+CREATE TABLE IF NOT EXISTS etl_accepted_event_outbox (
+  event_id TEXT PRIMARY KEY,
+  event_checksum CHAR(64) NOT NULL,
+  payload JSONB NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  available_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  published_at TIMESTAMPTZ,
+  kafka_partition INTEGER,
+  kafka_offset BIGINT,
+  attempt_count INTEGER NOT NULL DEFAULT 0,
+  last_error TEXT,
+  locked_by TEXT,
+  locked_at TIMESTAMPTZ
+);
+
+CREATE INDEX IF NOT EXISTS etl_accepted_outbox_pending_idx
+  ON etl_accepted_event_outbox (available_at, created_at)
+  WHERE published_at IS NULL;
+CREATE INDEX IF NOT EXISTS etl_accepted_outbox_lock_idx
+  ON etl_accepted_event_outbox (locked_at)
+  WHERE published_at IS NULL AND locked_at IS NOT NULL;
+
 ALTER TABLE etl_replay_request
   ADD COLUMN IF NOT EXISTS worker_id TEXT,
   ADD COLUMN IF NOT EXISTS heartbeat_at TIMESTAMPTZ,
