@@ -1,0 +1,69 @@
+services:
+  app:
+    environment:
+      SCADA_GATEWAY_URL: ${SCADA_GATEWAY_URL:-http://scada-gateway:8091}
+      VISION_TRAINER_URL: ${VISION_TRAINER_URL:-http://vision-trainer:8090}
+
+  scada-gateway:
+    build:
+      context: .
+      dockerfile: infra/scada-gateway/Dockerfile
+    container_name: hurc_scada_gateway
+    restart: unless-stopped
+    profiles: ["phase1", "phase2", "phase3", "phase4"]
+    environment:
+      SCADA_CONFIG_PATH: /config/scada.yaml
+      SCADA_GATEWAY_ENABLED: ${SCADA_GATEWAY_ENABLED:-false}
+      SCADA_MAX_SOURCES: ${SCADA_MAX_SOURCES:-20}
+      SCADA_MAX_POINTS_PER_SOURCE: ${SCADA_MAX_POINTS_PER_SOURCE:-500}
+      HEALTH_PORT: 8091
+    volumes:
+      - ${SCADA_CONFIG_FILE:-./infra/scada-gateway/config.example.yaml}:/config/scada.yaml:ro
+    depends_on:
+      mqtt:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8091/health', timeout=3)"]
+      interval: 15s
+      timeout: 5s
+      retries: 15
+    networks:
+      - backend-net
+
+  vision-trainer:
+    build:
+      context: .
+      dockerfile: infra/vision-trainer/Dockerfile
+    container_name: hurc_vision_trainer
+    restart: unless-stopped
+    profiles: ["phase3", "phase4"]
+    environment:
+      VISION_DATA_ROOT: /data
+      VISION_MODEL_ROOT: /models
+      VISION_TRAINER_TOKEN: ${VISION_TRAINER_TOKEN:-replace-with-at-least-24-random-characters}
+      VISION_TRAINING_ENABLED: ${VISION_TRAINING_ENABLED:-false}
+      VISION_MAX_UPLOAD_BYTES: ${VISION_MAX_UPLOAD_BYTES:-12582912}
+      VISION_MIN_APPROVED_PER_CLASS: ${VISION_MIN_APPROVED_PER_CLASS:-20}
+      VISION_MAX_EPOCHS: ${VISION_MAX_EPOCHS:-200}
+      VISION_ALLOWED_BASE_MODELS: ${VISION_ALLOWED_BASE_MODELS:-yolo11n.pt,yolo11s.pt,yolo11m.pt}
+      MLFLOW_TRACKING_URI: ${MLFLOW_TRACKING_URI:-http://mlflow:5000}
+    volumes:
+      - vision_training_data:/data
+      - vision_training_models:/models
+    depends_on:
+      mlflow:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8090/health', timeout=3)"]
+      interval: 20s
+      timeout: 5s
+      retries: 20
+    networks:
+      - backend-net
+
+volumes:
+  vision_training_data:
+  vision_training_models:
+
+networks:
+  backend-net:
