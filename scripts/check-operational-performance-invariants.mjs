@@ -37,9 +37,19 @@ if (authService.includes("jsonDb.getCollection<any>('roles')")) {
 requireText(ouScope, 'select: { id: true }', 'OU scope must query only user IDs on the database path.');
 requireText(ouScope, 'where: { ouId: { in: scopeOuIds } }', 'OU scope must push OU filtering into the database query.');
 
-requireText(workflow, 'cache: npm', 'Workflow must use the npm dependency cache.');
-requireText(workflow, 'npm ci', 'Workflow must use reproducible npm ci installation.');
+requireText(workflow, 'uses: actions/cache@v4', 'Workflow must cache npm download artifacts without requiring a lockfile.');
+requireText(workflow, "hashFiles('package.json')", 'Workflow cache must invalidate when package.json changes.');
+requireText(workflow, 'npm install --include=dev --ignore-scripts', 'Workflow must use the approved lockfile-free dependency bootstrap.');
+requireText(workflow, '--package-lock=false', 'Workflow must not generate an ephemeral package-lock.json.');
+requireText(workflow, '--prefer-offline', 'Workflow must prefer the restored npm cache.');
 requireText(workflow, 'cancel-in-progress: true', 'Workflow must cancel superseded runs.');
+
+if (workflow.includes('cache-dependency-path: package-lock.json')) {
+  failures.push('Workflow must not reference a package-lock.json that is intentionally absent.');
+}
+if (workflow.includes('npm ci')) {
+  failures.push('Workflow must not use npm ci until a reviewed package-lock.json is committed.');
+}
 
 for (const path of [
   'src/app/(app)/dnf/loading.tsx',
@@ -54,4 +64,4 @@ if (failures.length) {
   process.exit(1);
 }
 
-console.log('[operational-performance] PASS: scoped pagination, auth reuse, targeted OU queries, CI cache and route loading are enforced.');
+console.log('[operational-performance] PASS: scoped pagination, auth reuse, targeted OU queries, lockfile-free CI cache and route loading are enforced.');
