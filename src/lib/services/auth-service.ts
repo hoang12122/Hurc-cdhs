@@ -1,13 +1,6 @@
 import { cookies } from 'next/headers';
 import { type User, ROLE_SUPER_ADMIN } from '../constants';
-import { jsonDb } from '../db/json-db';
 import { getInternalUserById, getInternalRoles } from './user-service';
-import { dbProvider } from './db-wrapper';
-
-/**
- * AUTH SERVICE — Pure JSON (No Prisma)
- * Refactored for Phase 4: Standardized Keys & Atomic JSON operations.
- */
 
 const SESSION_COOKIE_NAME = 'hurc_crm_session';
 let SESSION_SECRET = process.env.SESSION_SECRET;
@@ -15,10 +8,9 @@ let SESSION_SECRET = process.env.SESSION_SECRET;
 if (!SESSION_SECRET) {
     if (process.env.NODE_ENV === 'production') {
         throw new Error("FATAL SECURITY ERROR: SESSION_SECRET is not set in production environment.");
-    } else {
-        console.warn("WARNING: Using insecure fallback SESSION_SECRET for development.");
-        SESSION_SECRET = 'fallback-secret-for-dev-only-v2';
     }
+    console.warn("WARNING: Using insecure fallback SESSION_SECRET for development.");
+    SESSION_SECRET = 'fallback-secret-for-dev-only-v2';
 }
 
 function verifySession(signedData: string): string | null {
@@ -28,17 +20,17 @@ function verifySession(signedData: string): string | null {
         console.warn("[AUTH-SERVICE] verifySession failed: cookie value split length is not 2. Value length:", signedData?.length);
         return null;
     }
-    
+
     const [data, signature] = parts;
     if (!data || !signature) {
         console.warn("[AUTH-SERVICE] verifySession failed: data or signature missing.");
         return null;
     }
-    
+
     const hmac = crypto.createHmac('sha256', SESSION_SECRET);
     hmac.update(data);
     const expectedSig = hmac.digest('hex');
-    
+
     try {
         const a = Buffer.from(signature);
         const b = Buffer.from(expectedSig);
@@ -46,8 +38,9 @@ function verifySession(signedData: string): string | null {
             return data;
         }
         console.warn("[AUTH-SERVICE] verifySession failed: signatures do not match.");
-    } catch (e: any) {
-        console.error("[AUTH-SERVICE] verifySession error in timingSafeEqual:", e.message);
+    } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        console.error("[AUTH-SERVICE] verifySession error in timingSafeEqual:", message);
     }
     return null;
 }
@@ -68,7 +61,6 @@ export async function getSessionUser(): Promise<User | null> {
             return null;
         }
 
-        // Backward compatibility: old cookies are just userId, new ones are userId:activeSessionId
         let userId = verifiedData;
         let activeSessionId: string | null = null;
         if (verifiedData.includes(':')) {
@@ -88,15 +80,13 @@ export async function getSessionUser(): Promise<User | null> {
             return null;
         }
 
-        // Single Session Enforcement: Check if session ID has been superseded
         if (activeSessionId && dbUser.activeSessionId && dbUser.activeSessionId !== activeSessionId) {
             console.warn(`[AUTH-SERVICE] Concurrent session superseded for user ${dbUser.email}. DB: ${dbUser.activeSessionId}, Cookie: ${activeSessionId}`);
             return null;
         }
 
-        // Fetch roles using getInternalRoles() which handles ONLINE (authDb) and OFFLINE (jsonDb) modes
         const roles: any[] = await getInternalRoles();
-        const userRole = roles.find((r: any) => r.id === dbUser.role || r.name === dbUser.role);
+        const userRole = roles.find((role: any) => role.id === dbUser.role || role.name === dbUser.role);
         const rolePermissions = userRole?.permissions || [];
 
         return {
@@ -108,7 +98,9 @@ export async function getSessionUser(): Promise<User | null> {
             department: dbUser.department,
             isVerified: dbUser.isVerified ?? true,
             mustChangePassword: dbUser.mustChangePassword ?? false,
-            passwordLastChangedAt: typeof dbUser.passwordLastChangedAt === 'string' ? dbUser.passwordLastChangedAt : (dbUser.passwordLastChangedAt as any)?.toISOString?.() || new Date().toISOString(),
+            passwordLastChangedAt: typeof dbUser.passwordLastChangedAt === 'string'
+                ? dbUser.passwordLastChangedAt
+                : (dbUser.passwordLastChangedAt as any)?.toISOString?.() || new Date().toISOString(),
             permissions: Array.from(new Set([
                 ...rolePermissions,
                 ...(dbUser.permissions || [])
@@ -116,26 +108,16 @@ export async function getSessionUser(): Promise<User | null> {
             activeSessionId: dbUser.activeSessionId,
             ouId: dbUser.ouId || null,
         };
-    } catch (e: any) {
-        console.error("[AUTH-SERVICE] getSessionUser error:", e.stack || e.message || e);
+    } catch (error) {
+        const message = error instanceof Error ? error.stack || error.message : String(error);
+        console.error("[AUTH-SERVICE] getSessionUser error:", message);
         return null;
     }
 }
 
 export async function checkPermission(permission: string): Promise<boolean> {
-  const currentUser = await getSessionUser();
-  if (!currentUser) return false;
-  
-  if (currentUser.role === ROLE_SUPER_ADMIN) {
-    return true;
-  }
-  
-  if (currentUser.permissions?.includes(permission)) {
-    return true;
-  }
-
-  // Atomic JSON Fallback for Roles
-  const jsonRoles = await jsonDb.getCollection<any>('roles');
-  const jsonRoleData = jsonRoles.find((r: any) => r.id === currentUser.role || r.name === currentUser.role);
-  return jsonRoleData?.permissions?.includes(permission) || false;
+    const currentUser = await getSessionUser();
+    if (!currentUser) return false;
+    if (currentUser.role === ROLE_SUPER_ADMIN) return true;
+    return currentUser.permissions?.includes(permission) || false;
 }
