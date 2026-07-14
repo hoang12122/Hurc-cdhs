@@ -23,6 +23,14 @@ services:
     image: ${OUTBOX_RELAY_IMAGE:-replace-with-outbox-relay-digest}
     pull_policy: always
 
+  scada-gateway:
+    image: ${SCADA_GATEWAY_IMAGE:-replace-with-scada-gateway-digest}
+    pull_policy: always
+
+  vision-trainer:
+    image: ${VISION_TRAINER_IMAGE:-replace-with-vision-trainer-digest}
+    pull_policy: always
+
   evidence-ledger:
     image: ${EVIDENCE_LEDGER_IMAGE:-replace-with-evidence-ledger-digest}
     pull_policy: always
