@@ -52,24 +52,44 @@ export async function getHazardRecordsPaginated(params: HazardPaginationParams) 
     const currentUser = await requireAuth();
     const pagination = normalizePagination(params.page, params.pageSize);
     const whereClause: Record<string, unknown> = { isArchived: false };
+    const andFilters: Record<string, unknown>[] = [];
 
     const creatorIds = await scopedCreatorIds(currentUser);
     if (creatorIds) whereClause.createdById = { in: creatorIds };
 
     if (params.status) whereClause.status = params.status;
     if (params.statuses?.length) whereClause.status = { in: params.statuses };
-    if (params.priority) whereClause.priority = params.priority;
     if (params.riskLevel) whereClause.riskLevelId = params.riskLevel;
-    if (params.riskLevels?.length) whereClause.riskLevelId = { in: params.riskLevels };
+
+    if (params.riskLevels?.length) {
+        const concreteRiskLevels = params.riskLevels.filter(level => level !== 'none');
+        const includeUnassessed = params.riskLevels.includes('none');
+        if (includeUnassessed && concreteRiskLevels.length) {
+            andFilters.push({
+                OR: [
+                    { riskLevelId: { in: concreteRiskLevels } },
+                    { riskLevelId: null },
+                ],
+            });
+        } else if (includeUnassessed) {
+            whereClause.riskLevelId = null;
+        } else {
+            whereClause.riskLevelId = { in: concreteRiskLevels };
+        }
+    }
 
     const searchTerm = params.searchTerm?.trim();
     if (searchTerm) {
-        whereClause.OR = [
-            { id: { contains: searchTerm, mode: 'insensitive' } },
-            { description: { contains: searchTerm, mode: 'insensitive' } },
-            { systemGroup: { contains: searchTerm, mode: 'insensitive' } }
-        ];
+        andFilters.push({
+            OR: [
+                { id: { contains: searchTerm, mode: 'insensitive' } },
+                { description: { contains: searchTerm, mode: 'insensitive' } },
+                { systemGroup: { contains: searchTerm, mode: 'insensitive' } }
+            ],
+        });
     }
+
+    if (andFilters.length) whereClause.AND = andFilters;
 
     if (params.startDate || params.endDate) {
         const dateRange: { gte?: Date; lte?: Date } = {};
@@ -88,7 +108,7 @@ export async function getHazardRecordsPaginated(params: HazardPaginationParams) 
         data: records as unknown as HazardRecord[],
         metadata: {
             total,
-            pages: Math.ceil(total / pagination.pageSize),
+            pages: Math.max(1, Math.ceil(total / pagination.pageSize)),
             currentPage: pagination.page,
             pageSize: pagination.pageSize,
         }
