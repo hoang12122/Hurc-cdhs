@@ -32,6 +32,16 @@ requireText('docker-compose.platform-enhancements.yml', compose, [
   ['replay lease configuration', /ETL_REPLAY_LEASE_SECONDS/],
 ]);
 
+const acceptedCompose = read('docker-compose.etl-accepted.yml');
+requireText('docker-compose.etl-accepted.yml', acceptedCompose, [
+  ['accepted Kafka topic', /iot\.telemetry\.accepted/],
+  ['accepted relay service', /^  etl-accepted-relay:/m],
+  ['accepted outbox migration', /003-etl-accepted-outbox\.sql/],
+  ['accepted ClickHouse source migration', /004-etl-accepted-source\.sql/],
+  ['accepted relay readiness check', /8085\/ready/],
+  ['bounded accepted backlog', /ETL_ACCEPTED_RELAY_MAX_PENDING/],
+]);
+
 const legacyEntrypoint = read('infra/iot-ingestor/entrypoint.py');
 requireText('infra/iot-ingestor/entrypoint.py', legacyEntrypoint, [
   ['Phase 2 canonical cutoff', /if phase < 2:/],
@@ -68,6 +78,22 @@ requireText('infra/timescale-sink/store.py', store, [
   ['single database transaction', /with self\.connection:/],
 ]);
 
+const acceptedMigration = read('infra/timescale/003-etl-accepted-outbox.sql');
+requireText('infra/timescale/003-etl-accepted-outbox.sql', acceptedMigration, [
+  ['accepted outbox trigger function', /enqueue_accepted_telemetry_event/],
+  ['after insert trigger', /AFTER INSERT ON telemetry_event/],
+  ['idempotent outbox conflict handling', /ON CONFLICT \(event_id\) DO NOTHING/],
+]);
+
+const acceptedRelay = read('infra/etl-accepted-relay/main.py');
+requireText('infra/etl-accepted-relay/main.py', acceptedRelay, [
+  ['row-level relay claim', /FOR UPDATE SKIP LOCKED/],
+  ['idempotent Kafka producer', /enable_idempotence=True/],
+  ['accepted topic default', /iot\.telemetry\.accepted/],
+  ['retry exhaustion readiness', /state\["exhausted"\] == 0/],
+  ['backlog readiness threshold', /MAX_PENDING/],
+]);
+
 const replayControl = read('infra/etl-replay-worker/control.py');
 requireText('infra/etl-replay-worker/control.py', replayControl, [
   ['dual-control approval', /approved_by <> requested_by/],
@@ -101,6 +127,7 @@ requireText('infra/timescale/002-etl-canonical.sql', migration, [
   ['pipeline run table', /CREATE TABLE IF NOT EXISTS etl_pipeline_run/],
   ['lineage table', /CREATE TABLE IF NOT EXISTS etl_lineage_event/],
   ['checkpoint table', /CREATE TABLE IF NOT EXISTS etl_checkpoint/],
+  ['accepted event outbox', /CREATE TABLE IF NOT EXISTS etl_accepted_event_outbox/],
   ['replay lease columns', /ADD COLUMN IF NOT EXISTS heartbeat_at/],
   ['replay audit table', /CREATE TABLE IF NOT EXISTS etl_replay_audit/],
   ['idempotent quality index', /etl_quality_source_code_uq/],
@@ -111,6 +138,18 @@ requireText('infra/clickhouse/002-etl-medallion.sql', clickhouse, [
   ['late data fields', /late_event UInt8/],
   ['source offset lineage', /source_offset Int64/],
   ['quality aggregation', /telemetry_quality_hourly/],
+]);
+
+const acceptedClickHouse = read('infra/clickhouse/004-etl-accepted-source.sql');
+requireText('infra/clickhouse/004-etl-accepted-source.sql', acceptedClickHouse, [
+  ['accepted topic source', /kafka_topic_list = 'iot\.telemetry\.accepted'/],
+  ['accepted consumer group', /hurc-clickhouse-accepted-v1/],
+]);
+
+const curated = read('infra/redpanda-connect/curated-pipeline.yaml');
+requireText('infra/redpanda-connect/curated-pipeline.yaml', curated, [
+  ['accepted curated input', /iot\.telemetry\.accepted/],
+  ['accepted curated consumer group', /hurc-curated-accepted-v1/],
 ]);
 
 const latestState = read('infra/clickhouse/003-etl-latest-state.sql');
@@ -130,6 +169,7 @@ requireText('docker-compose.platform-production-images.yml', productionImages, [
   ['immutable normalizer image contract', /ETL_NORMALIZER_IMAGE/],
   ['immutable Timescale sink image contract', /ETL_TIMESCALE_SINK_IMAGE/],
   ['immutable replay worker image contract', /ETL_REPLAY_WORKER_IMAGE/],
+  ['immutable accepted relay image contract', /ETL_ACCEPTED_RELAY_IMAGE/],
 ]);
 
 if (failures.length > 0) {
@@ -138,4 +178,4 @@ if (failures.length > 0) {
   process.exit(1);
 }
 
-console.log('[etl-architecture] PASS: canonical ETL invariants are present.');
+console.log('[etl-architecture] PASS: canonical identity-accepted ETL invariants are present.');
