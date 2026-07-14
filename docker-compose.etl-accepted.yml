@@ -11,6 +11,15 @@ services:
     volumes:
       - ./infra/timescale/003-etl-accepted-outbox.sql:/migrations/003-etl-accepted-outbox.sql:ro
 
+  clickhouse-etl-init:
+    command: >-
+      until clickhouse-client --host clickhouse --user "$$CLICKHOUSE_USER" --password "$$CLICKHOUSE_PASSWORD" --query "SELECT 1"; do sleep 2; done;
+      clickhouse-client --host clickhouse --user "$$CLICKHOUSE_USER" --password "$$CLICKHOUSE_PASSWORD" --multiquery < /migrations/002-etl-medallion.sql;
+      clickhouse-client --host clickhouse --user "$$CLICKHOUSE_USER" --password "$$CLICKHOUSE_PASSWORD" --multiquery < /migrations/003-etl-latest-state.sql;
+      clickhouse-client --host clickhouse --user "$$CLICKHOUSE_USER" --password "$$CLICKHOUSE_PASSWORD" --multiquery < /migrations/004-etl-accepted-source.sql
+    volumes:
+      - ./infra/clickhouse/004-etl-accepted-source.sql:/migrations/004-etl-accepted-source.sql:ro
+
   etl-accepted-relay:
     build:
       context: .
