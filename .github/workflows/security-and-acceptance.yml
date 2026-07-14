@@ -84,6 +84,16 @@ jobs:
       - name: Converged platform compose validation
         run: node scripts/run-build-phase.js "Converged platform compose validation" -- npm run platform:config
 
+      - name: ETL architecture invariant checks
+        run: node scripts/run-build-phase.js "ETL architecture invariant checks" -- node scripts/check-etl-architecture.mjs
+
+      - name: ETL Python syntax checks
+        run: >-
+          node scripts/run-build-phase.js "ETL Python syntax checks" -- python3 -m py_compile
+          infra/etl-normalizer/contract.py infra/etl-normalizer/registry.py infra/etl-normalizer/main.py
+          infra/timescale-sink/store.py infra/timescale-sink/main.py infra/etl-replay-worker/main.py
+          infra/iot-ingestor/entrypoint.py
+
       - name: ETL contract invariant checks
         run: node scripts/run-build-phase.js "ETL contract invariant checks" -- python3 -m unittest infra/etl-normalizer/test_contract.py
 
