@@ -65,7 +65,7 @@ class ReplayPolicyTests(unittest.TestCase):
     def test_rejects_invalid_time_window(self):
         timestamp = datetime(2026, 7, 1, tzinfo=timezone.utc)
         with self.assertRaisesRegex(ValueError, "earlier than"):
-            validate_request(self.request(from_=timestamp, to=timestamp))
+            validate_request(self.request(**{"from": timestamp, "to": timestamp}))
 
     def test_resumes_from_persisted_checkpoints_and_frozen_ends(self):
         partitions = [TopicPartition("iot.telemetry.raw", 0), TopicPartition("iot.telemetry.raw", 1)]
