@@ -5,23 +5,10 @@ from datetime import datetime, timezone
 import psycopg2
 from psycopg2.extras import Json, execute_values
 
-
 REQUIRED_FIELDS = {
-    "event_id",
-    "event_type",
-    "schema_version",
-    "occurred_at",
-    "processed_at",
-    "environment",
-    "line_code",
-    "station_code",
-    "subsystem",
-    "asset_id",
-    "quality_score",
-    "event_checksum",
-    "payload_json",
-    "raw_event",
-    "ingest_version",
+    "event_id", "event_type", "schema_version", "occurred_at", "processed_at",
+    "environment", "line_code", "station_code", "subsystem", "asset_id",
+    "quality_score", "event_checksum", "payload_json", "raw_event", "ingest_version",
 }
 
 
@@ -38,9 +25,15 @@ def validate_normalized_event(event):
 
 
 def _json_value(value):
-    if isinstance(value, str):
-        return Json(json.loads(value))
-    return Json(value)
+    return Json(json.loads(value)) if isinstance(value, str) else Json(value)
+
+
+def _source(message, event):
+    return (
+        str(event.get("source_topic") or message.topic),
+        int(event.get("source_partition", message.partition)),
+        int(event.get("source_offset", message.offset)),
+    )
 
 
 class TimescaleBatchStore:
@@ -97,10 +90,14 @@ class TimescaleBatchStore:
         self.connect()
         prepared = []
         invalid = []
+        checkpoint_by_source = {}
         for message in messages:
+            checkpoint_by_source[(message.topic, message.partition)] = max(
+                checkpoint_by_source.get((message.topic, message.partition), -1),
+                message.offset + 1,
+            )
             try:
-                event = validate_normalized_event(json.loads(message.value.decode("utf-8")))
-                prepared.append((message, event))
+                prepared.append((message, validate_normalized_event(json.loads(message.value.decode("utf-8")))))
             except Exception as error:
                 invalid.append((message, str(error)))
 
@@ -111,71 +108,86 @@ class TimescaleBatchStore:
         inserted = []
         duplicates = []
         conflicts = []
+        identity_inserts = []
+        identity_updates = []
+        lineage_rows = []
         now = datetime.now(timezone.utc)
 
         try:
             with self.connection:
                 with self.connection.cursor() as cursor:
                     existing = self._existing_identities(cursor, by_event_id.keys())
-                    new_identities = []
-                    lineage_rows = []
-                    checkpoint_by_partition = {}
 
                     for event_id, items in by_event_id.items():
-                        canonical_checksum = str(items[0][1]["event_checksum"])
                         known_checksum = existing.get(event_id)
-                        for message, event in items:
-                            source_topic = str(event.get("source_topic") or message.topic)
-                            source_partition = int(event.get("source_partition", message.partition))
-                            source_offset = int(event.get("source_offset", message.offset))
-                            checkpoint_by_partition[message.partition] = max(
-                                checkpoint_by_partition.get(message.partition, -1), message.offset + 1
-                            )
-                            lineage_rows.append((
-                                source_topic,
-                                source_partition,
-                                source_offset,
-                                event_id,
-                                str(event["event_checksum"]),
-                                "timescale",
-                                self.run_id,
-                            ))
-
-                            if str(event["event_checksum"]) != canonical_checksum:
+                        checksums = {str(event["event_checksum"]) for _message, event in items}
+                        if known_checksum is None and len(checksums) > 1:
+                            for message, event in items:
                                 conflicts.append((message, event, "different checksums in the same batch"))
-                            elif known_checksum is not None and known_checksum != canonical_checksum:
-                                conflicts.append((message, event, "eventId already exists with a different checksum"))
-                            elif known_checksum == canonical_checksum or len(items) > 1 and items.index((message, event)) > 0:
-                                duplicates.append((message, event))
-                            else:
-                                inserted.append((message, event))
+                                topic, partition, offset = _source(message, event)
+                                lineage_rows.append((topic, partition, offset, event_id, event["event_checksum"], "timescale-quarantine", self.run_id))
+                            continue
 
-                        if known_checksum is None and not any(item[1]["event_id"] == event_id for item in conflicts):
+                        if known_checksum is None:
                             first_message, first_event = items[0]
-                            new_identities.append((
-                                event_id,
-                                canonical_checksum,
-                                str(first_event.get("source_topic") or first_message.topic),
-                                int(first_event.get("source_partition", first_message.partition)),
-                                int(first_event.get("source_offset", first_message.offset)),
+                            inserted.append((first_message, first_event))
+                            duplicates.extend(items[1:])
+                            topic, partition, offset = _source(first_message, first_event)
+                            identity_inserts.append((
+                                event_id, first_event["event_checksum"], topic, partition, offset, len(items), 0,
                             ))
+                        else:
+                            conflict_count = 0
+                            for message, event in items:
+                                if str(event["event_checksum"]) == known_checksum:
+                                    duplicates.append((message, event))
+                                else:
+                                    conflicts.append((message, event, "eventId already exists with a different checksum"))
+                                    conflict_count += 1
+                            identity_updates.append((len(items), conflict_count, event_id))
 
-                    if new_identities:
+                    classification = {}
+                    for message, event in inserted:
+                        classification[(event["event_id"],) + _source(message, event)] = "timescale"
+                    for message, event in duplicates:
+                        classification[(event["event_id"],) + _source(message, event)] = "timescale-duplicate"
+                    for message, event, _detail in conflicts:
+                        classification[(event["event_id"],) + _source(message, event)] = "timescale-quarantine"
+                    for message, event in prepared:
+                        topic, partition, offset = _source(message, event)
+                        target = classification.get((event["event_id"], topic, partition, offset), "timescale-quarantine")
+                        lineage_rows.append((topic, partition, offset, event["event_id"], event["event_checksum"], target, self.run_id))
+
+                    if identity_inserts:
                         execute_values(
                             cursor,
                             """
                             INSERT INTO etl_event_identity(
                               event_id, event_checksum, first_source_topic,
-                              first_source_partition, first_source_offset
+                              first_source_partition, first_source_offset, seen_count, conflict_count
                             ) VALUES %s
                             ON CONFLICT (event_id) DO NOTHING
                             """,
-                            new_identities,
+                            identity_inserts,
+                        )
+                    if identity_updates:
+                        execute_values(
+                            cursor,
+                            """
+                            UPDATE etl_event_identity AS identity SET
+                              seen_count = identity.seen_count + values.seen_count,
+                              conflict_count = identity.conflict_count + values.conflict_count,
+                              last_seen_at = NOW()
+                            FROM (VALUES %s) AS values(seen_count, conflict_count, event_id)
+                            WHERE identity.event_id = values.event_id
+                            """,
+                            identity_updates,
                         )
 
                     if inserted:
                         rows = []
-                        for _message, event in inserted:
+                        for message, event in inserted:
+                            topic, partition, offset = _source(message, event)
                             rows.append((
                                 event["event_id"], event["event_type"], event["schema_version"],
                                 event["occurred_at"], event.get("ingested_at"), event["processed_at"],
@@ -188,9 +200,7 @@ class TimescaleBatchStore:
                                 event["event_checksum"], int(event.get("payload_bytes", 0)),
                                 int(event.get("processing_latency_ms", 0)), int(event.get("event_age_ms", 0)),
                                 bool(event.get("late_event", 0)), int(event.get("lateness_ms", 0)),
-                                str(event.get("source_topic") or _message.topic),
-                                int(event.get("source_partition", _message.partition)),
-                                int(event.get("source_offset", _message.offset)), int(event["ingest_version"]),
+                                topic, partition, offset, int(event["ingest_version"]),
                             ))
                         execute_values(
                             cursor,
@@ -219,19 +229,20 @@ class TimescaleBatchStore:
                             INSERT INTO etl_lineage_event(
                               source_topic, source_partition, source_offset,
                               event_id, event_checksum, target_name, run_id
-                            ) VALUES %s
-                            ON CONFLICT DO NOTHING
+                            ) VALUES %s ON CONFLICT DO NOTHING
                             """,
                             lineage_rows,
                         )
 
-                    quality_rows = []
-                    for message, detail in invalid:
-                        quality_rows.append((None, message.topic, message.partition, message.offset,
-                                             "INVALID_NORMALIZED_EVENT", "ERROR", detail, len(message.value)))
-                    for message, event, detail in conflicts:
-                        quality_rows.append((event["event_id"], message.topic, message.partition, message.offset,
-                                             "EVENT_ID_COLLISION", "ERROR", detail, len(message.value)))
+                    quality_rows = [
+                        (None, message.topic, message.partition, message.offset,
+                         "INVALID_NORMALIZED_EVENT", "ERROR", detail, len(message.value))
+                        for message, detail in invalid
+                    ] + [
+                        (event["event_id"], message.topic, message.partition, message.offset,
+                         "EVENT_ID_COLLISION", "ERROR", detail, len(message.value))
+                        for message, event, detail in conflicts
+                    ]
                     if quality_rows:
                         execute_values(
                             cursor,
@@ -240,11 +251,12 @@ class TimescaleBatchStore:
                               event_id, topic, partition_id, offset_id, code,
                               severity, detail, payload_size
                             ) VALUES %s
+                            ON CONFLICT (topic, partition_id, offset_id, code) DO NOTHING
                             """,
                             quality_rows,
                         )
 
-                    for partition, offset in checkpoint_by_partition.items():
+                    for (topic, partition), offset in checkpoint_by_source.items():
                         cursor.execute(
                             """
                             INSERT INTO etl_checkpoint(
@@ -255,7 +267,7 @@ class TimescaleBatchStore:
                               etl_checkpoint.committed_offset, EXCLUDED.committed_offset
                             ), updated_at = NOW()
                             """,
-                            (messages[0].topic, partition, offset),
+                            (topic, partition, offset),
                         )
 
                     cursor.execute(
@@ -274,7 +286,7 @@ class TimescaleBatchStore:
                         (
                             len(messages), len(inserted), len(duplicates), len(conflicts), len(invalid),
                             sum(1 for _message, event in inserted if bool(event.get("late_event", 0))),
-                            Json({str(partition): offset for partition, offset in checkpoint_by_partition.items()}),
+                            Json({f"{topic}:{partition}": offset for (topic, partition), offset in checkpoint_by_source.items()}),
                             self.run_id,
                         ),
                     )
