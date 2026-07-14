@@ -78,6 +78,27 @@ function main() {
   assert.equal(missingEffectivelyOnce.ready, false);
   assert.ok(missingEffectivelyOnce.issues.some(issue => issue.code === 'ETL_EFFECTIVELY_ONCE'));
 
+  const activeScadaWithoutReview = evaluatePlatformProductionReadiness({
+    ...productionEvidence(),
+    SCADA_GATEWAY_ENABLED: 'true',
+    APP_COMMIT_SHA: 'commit-approved',
+    PLATFORM_ATTESTATION_COMMIT_SHA: 'commit-approved',
+  });
+  assert.equal(activeScadaWithoutReview.ready, false);
+  assert.ok(activeScadaWithoutReview.issues.some(issue => issue.code === 'SCADA_READ_ONLY'));
+  assert.ok(activeScadaWithoutReview.issues.some(issue => issue.code === 'SCADA_SECURITY_REVIEW'));
+
+  const activeVisionWithoutReview = evaluatePlatformProductionReadiness({
+    ...productionEvidence(),
+    VISION_TRAINING_ENABLED: 'true',
+    VISION_MODEL_ACTIVE: 'true',
+    APP_COMMIT_SHA: 'commit-approved',
+    PLATFORM_ATTESTATION_COMMIT_SHA: 'commit-approved',
+  });
+  assert.equal(activeVisionWithoutReview.ready, false);
+  assert.ok(activeVisionWithoutReview.issues.some(issue => issue.code === 'VISION_DATASET_REVIEW'));
+  assert.ok(activeVisionWithoutReview.issues.some(issue => issue.code === 'VISION_MODEL_VALIDATION'));
+
   const mismatched = evaluatePlatformProductionReadiness({
     ...productionEvidence(),
     APP_COMMIT_SHA: 'commit-a',
