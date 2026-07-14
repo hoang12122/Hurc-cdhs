@@ -4,12 +4,12 @@ import signal
 import threading
 import time
 import uuid
+from datetime import datetime, timezone
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 from kafka import KafkaConsumer
 
 from store import TimescaleBatchStore
-
 
 BROKERS = [item.strip() for item in os.getenv("KAFKA_BROKERS", "redpanda:9092").split(",") if item.strip()]
 TOPIC = os.getenv("ETL_NORMALIZED_TOPIC", "iot.telemetry.normalized")
@@ -87,8 +87,11 @@ def is_ready(state):
     if state["received"] == 0 or not last_processed:
         return True
     try:
-        elapsed = time.time() - time.mktime(time.strptime(last_processed[:19], "%Y-%m-%dT%H:%M:%S"))
-        return elapsed <= STALE_SECONDS
+        parsed = datetime.fromisoformat(str(last_processed).replace("Z", "+00:00"))
+        if parsed.tzinfo is None:
+            parsed = parsed.replace(tzinfo=timezone.utc)
+        elapsed = (datetime.now(timezone.utc) - parsed.astimezone(timezone.utc)).total_seconds()
+        return 0 <= elapsed <= STALE_SECONDS
     except (TypeError, ValueError):
         return False
 
@@ -171,8 +174,10 @@ def main():
     signal.signal(signal.SIGINT, stop)
     threading.Thread(target=processing_loop, daemon=True).start()
     server = ThreadingHTTPServer(("0.0.0.0", HEALTH_PORT), HealthHandler)
+    server.timeout = 1
     while not STOP_EVENT.is_set():
         server.handle_request()
+    server.server_close()
 
 
 if __name__ == "__main__":
