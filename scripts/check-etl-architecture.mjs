@@ -28,6 +28,8 @@ requireText('docker-compose.platform-enhancements.yml', compose, [
   ['normalizer readiness check', /8082\/ready/],
   ['sink readiness check', /8083\/ready/],
   ['replay readiness check', /8084\/ready/],
+  ['bounded replay size', /ETL_REPLAY_MAX_RECORDS/],
+  ['replay lease configuration', /ETL_REPLAY_LEASE_SECONDS/],
 ]);
 
 const legacyEntrypoint = read('infra/iot-ingestor/entrypoint.py');
@@ -50,26 +52,47 @@ requireText('infra/etl-normalizer/main.py', normalizer, [
 const contract = read('infra/etl-normalizer/contract.py');
 requireText('infra/etl-normalizer/contract.py', contract, [
   ['stable replay checksum', /if not str\(key\)\.startswith\("_"\)/],
+  ['topic identity in checksum', /stable_event\["_mqttTopic"\]/],
   ['watermark policy', /watermark_delay_seconds/],
   ['late event flag', /"late_event"/],
-  ['lateness metric', /"lateness_ms"/],
+  ['dimension integrity', /require_dimension_match/],
 ]);
 
 const store = read('infra/timescale-sink/store.py');
 requireText('infra/timescale-sink/store.py', store, [
   ['event identity lookup', /etl_event_identity/],
+  ['cross-replica identity lock', /pg_advisory_xact_lock/],
   ['checksum collision quarantine', /EVENT_ID_COLLISION/],
   ['lineage storage', /etl_lineage_event/],
   ['checkpoint storage', /etl_checkpoint/],
   ['single database transaction', /with self\.connection:/],
 ]);
 
-const replay = read('infra/etl-replay-worker/main.py');
-requireText('infra/etl-replay-worker/main.py', replay, [
-  ['human-approved replay only', /status = 'APPROVED' AND approved_by IS NOT NULL/],
+const replayControl = read('infra/etl-replay-worker/control.py');
+requireText('infra/etl-replay-worker/control.py', replayControl, [
+  ['dual-control approval', /approved_by <> requested_by/],
+  ['row-level claim lock', /FOR UPDATE SKIP LOCKED/],
+  ['lease heartbeat', /heartbeat_at/],
+  ['durable checkpoints', /checkpoint_offsets/],
+  ['frozen source bounds', /source_end_offsets/],
+  ['replay audit', /etl_replay_audit/],
+]);
+
+const replayExecutor = read('infra/etl-replay-worker/replay.py');
+requireText('infra/etl-replay-worker/replay.py', replayExecutor, [
   ['source allowlist', /ALLOWED_SOURCE_TOPICS/],
   ['target allowlist', /ALLOWED_TARGET_TOPICS/],
   ['read-committed replay', /isolation_level="read_committed"/],
+  ['bounded replay count', /MAX_RECORDS/],
+  ['checkpoint persistence', /control\.progress/],
+  ['source expiration detection', /REPLAY_SOURCE_EXPIRED/],
+]);
+
+const replayMain = read('infra/etl-replay-worker/main.py');
+requireText('infra/etl-replay-worker/main.py', replayMain, [
+  ['graceful lease release', /control\.release/],
+  ['modular executor', /execute_replay/],
+  ['lease recovery metric', /leaseRecoveries/],
 ]);
 
 const migration = read('infra/timescale/002-etl-canonical.sql');
@@ -78,6 +101,8 @@ requireText('infra/timescale/002-etl-canonical.sql', migration, [
   ['pipeline run table', /CREATE TABLE IF NOT EXISTS etl_pipeline_run/],
   ['lineage table', /CREATE TABLE IF NOT EXISTS etl_lineage_event/],
   ['checkpoint table', /CREATE TABLE IF NOT EXISTS etl_checkpoint/],
+  ['replay lease columns', /ADD COLUMN IF NOT EXISTS heartbeat_at/],
+  ['replay audit table', /CREATE TABLE IF NOT EXISTS etl_replay_audit/],
   ['idempotent quality index', /etl_quality_source_code_uq/],
 ]);
 
@@ -93,6 +118,11 @@ requireText('infra/clickhouse/003-etl-latest-state.sql', latestState, [
   ['latest state view', /telemetry_asset_latest/],
   ['event-time ordering', /tuple\(occurred_at, ingest_version\)/],
   ['maximum event time', /max\(occurred_at\) AS last_seen_at/],
+]);
+
+const replayDockerfile = read('infra/etl-replay-worker/Dockerfile');
+requireText('infra/etl-replay-worker/Dockerfile', replayDockerfile, [
+  ['modular replay package', /config\.py.*control\.py.*replay\.py.*main\.py/],
 ]);
 
 const productionImages = read('docker-compose.platform-production-images.yml');
