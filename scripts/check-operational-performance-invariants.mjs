@@ -7,6 +7,8 @@ const failures = [];
 
 const dnfAction = read('src/lib/actions/dnf.actions.ts');
 const hazardAction = read('src/lib/actions/hazard.actions.ts');
+const authEnforcer = read('src/lib/auth-enforcer.ts');
+const roleService = read('src/lib/services/user/roles.ts');
 const workflow = read('.github/workflows/vision-scada-data-exchange.yml');
 
 const requireText = (content, text, message) => {
@@ -21,6 +23,13 @@ requireText(hazardAction, 'pages: Math.max(1, Math.ceil(total / pagination.pageS
 if (dnfAction.includes('total: filtered.length') || hazardAction.includes('total: filtered.length')) {
   failures.push('Post-pagination application filtering must not define pagination totals.');
 }
+
+if (authEnforcer.includes("import { hasPermission }")) {
+  failures.push('requirePermission must not trigger a second session lookup through hasPermission.');
+}
+requireText(authEnforcer, "user.permissions?.includes(permission)", 'Permission checks must use the already authenticated user snapshot.');
+requireText(roleService, 'CACHE_KEYS.ROLES', 'Role reference data must use the existing bounded cache.');
+requireText(roleService, 'cache.invalidate(CACHE_KEYS.ROLES)', 'Role mutations must invalidate the role cache.');
 
 requireText(workflow, 'cache: npm', 'Workflow must use the npm dependency cache.');
 requireText(workflow, 'npm ci', 'Workflow must use reproducible npm ci installation.');
@@ -39,4 +48,4 @@ if (failures.length) {
   process.exit(1);
 }
 
-console.log('[operational-performance] PASS: scoped pagination, CI cache and route loading are enforced.');
+console.log('[operational-performance] PASS: scoped pagination, auth reuse, CI cache and route loading are enforced.');
