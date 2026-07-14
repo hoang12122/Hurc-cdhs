@@ -1,11 +1,25 @@
 import sys
 import unittest
+from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
+from types import ModuleType
 
 sys.path.insert(0, str(Path(__file__).parent))
 
-from kafka import TopicPartition
+
+@dataclass(frozen=True)
+class TopicPartition:
+    topic: str
+    partition: int
+
+
+fake_kafka = ModuleType("kafka")
+fake_kafka.TopicPartition = TopicPartition
+fake_kafka.KafkaConsumer = object
+fake_kafka.KafkaProducer = object
+sys.modules["kafka"] = fake_kafka
+
 from replay import resolve_bounds, validate_request
 
 
@@ -28,11 +42,10 @@ class FakeConsumer:
         return {item: self.ends[item.partition] for item in partitions}
 
     def offsets_for_times(self, requests):
-        result = {}
-        for item, timestamp in requests.items():
-            configured = self.timestamp_offsets.get((item.partition, timestamp))
-            result[item] = configured
-        return result
+        return {
+            item: self.timestamp_offsets.get((item.partition, timestamp))
+            for item, timestamp in requests.items()
+        }
 
 
 class ReplayPolicyTests(unittest.TestCase):
@@ -70,11 +83,14 @@ class ReplayPolicyTests(unittest.TestCase):
     def test_resumes_from_persisted_checkpoints_and_frozen_ends(self):
         partitions = [TopicPartition("iot.telemetry.raw", 0), TopicPartition("iot.telemetry.raw", 1)]
         consumer = FakeConsumer({0: 10, 1: 20}, {0: 100, 1: 200})
-        request = self.request(
-            checkpoints={"0": 50, "1": 70},
-            endOffsets={"0": 90, "1": 150},
+        starts, ends = resolve_bounds(
+            consumer,
+            self.request(
+                checkpoints={"0": 50, "1": 70},
+                endOffsets={"0": 90, "1": 150},
+            ),
+            partitions,
         )
-        starts, ends = resolve_bounds(consumer, request, partitions)
         self.assertEqual(starts[partitions[0]], 50)
         self.assertEqual(starts[partitions[1]], 70)
         self.assertEqual(ends[partitions[0]], 90)
