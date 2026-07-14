@@ -72,6 +72,18 @@ export function evaluatePlatformProductionReadiness(
       message: 'Chưa có bằng chứng cưỡng chế danh tính thiết bị.',
       remediation: 'Bật IOT_DEVICE_IDENTITY_ENFORCED=true sau khi ACL và device registry được nghiệm thu.',
     });
+    if (truthy(env.SCADA_GATEWAY_ENABLED)) {
+      add(issues, !truthy(env.SCADA_READ_ONLY_VALIDATED), {
+        code: 'SCADA_READ_ONLY', severity: 'BLOCKER', area: 'IOT',
+        message: 'SCADA Gateway đang bật nhưng chưa có bằng chứng chỉ đọc.',
+        remediation: 'Xác minh tài khoản, adapter và network path không có quyền write/command rồi đặt SCADA_READ_ONLY_VALIDATED=true.',
+      });
+      add(issues, !truthy(env.SCADA_SECURITY_REVIEW_APPROVED), {
+        code: 'SCADA_SECURITY_REVIEW', severity: 'BLOCKER', area: 'IOT',
+        message: 'SCADA Gateway đang bật nhưng chưa được phê duyệt an toàn thông tin.',
+        remediation: 'Hoàn thành network segmentation, allowlist, TLS/VPN, secret review và kiểm thử reconnect trước khi phê duyệt.',
+      });
+    }
   }
 
   if (phase >= 2) {
@@ -153,6 +165,20 @@ export function evaluatePlatformProductionReadiness(
       message: 'Chưa bật workflow phê duyệt model.',
       remediation: 'Bật approval, signature, canary, drift monitor và rollback model.',
     });
+    if (truthy(env.VISION_TRAINING_ENABLED)) {
+      add(issues, !truthy(env.VISION_DATASET_REVIEW_APPROVED), {
+        code: 'VISION_DATASET_REVIEW', severity: 'BLOCKER', area: 'MLOPS',
+        message: 'Vision training đang bật nhưng dataset chưa được phê duyệt.',
+        remediation: 'Kiểm tra nhãn, split leakage, class balance, provenance và đặt VISION_DATASET_REVIEW_APPROVED=true.',
+      });
+    }
+    if (truthy(env.VISION_MODEL_ACTIVE)) {
+      add(issues, !truthy(env.VISION_MODEL_VALIDATION_APPROVED), {
+        code: 'VISION_MODEL_VALIDATION', severity: 'BLOCKER', area: 'MLOPS',
+        message: 'Model thị giác đang hoạt động nhưng chưa có biên bản validation.',
+        remediation: 'Phê duyệt precision/recall/mAP, false negative, latency, shadow/canary và rollback trước khi kích hoạt.',
+      });
+    }
   }
 
   if (phase >= 4) {
