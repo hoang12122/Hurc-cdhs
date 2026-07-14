@@ -17,6 +17,9 @@ const requireText = (content, text, message) => {
 requireText(scadaConfig, 'read_only: true', 'SCADA example must be explicitly read-only.');
 requireText(scadaRuntime, 'gateway.read_only=true', 'SCADA runtime must fail closed when read_only is not true.');
 requireText(scadaRuntime, 'contains prohibited write configuration', 'SCADA runtime must reject write or command configuration.');
+requireText(scadaRuntime, 'SCADA_GATEWAY_ENABLED", "false"', 'SCADA runtime must default disabled.');
+requireText(scadaRuntime, 'PUBLISHER = Publisher() if ENABLED else None', 'Disabled SCADA must not create an MQTT publisher.');
+requireText(scadaRuntime, 'if not ENABLED:', 'Disabled SCADA must not start source loops.');
 requireText(scadaRuntime, '"writeCommands": False', 'SCADA capabilities must declare write commands disabled.');
 requireText(visionRuntime, 'VISION_TRAINING_ENABLED', 'Vision training must have an explicit enable switch.');
 requireText(visionRuntime, 'PENDING_REVIEW', 'Vision samples must enter a review state.');
