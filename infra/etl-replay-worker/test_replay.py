@@ -75,6 +75,10 @@ class ReplayPolicyTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "source topic is not allowed"):
             validate_request(self.request(source="other.raw"))
 
+    def test_rejects_unapproved_target_topic(self):
+        with self.assertRaisesRegex(ValueError, "target topic is not allowed"):
+            validate_request(self.request(target="other.replay"))
+
     def test_rejects_invalid_time_window(self):
         timestamp = datetime(2026, 7, 1, tzinfo=timezone.utc)
         with self.assertRaisesRegex(ValueError, "earlier than"):
