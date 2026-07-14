@@ -53,9 +53,17 @@ def canonical_json(value):
     return json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
 
 
+def stable_event_checksum(event):
+    stable_event = {
+        key: value
+        for key, value in event.items()
+        if not str(key).startswith("_")
+    }
+    return hashlib.sha256(canonical_json(stable_event).encode("utf-8")).hexdigest()
+
+
 def bounded_text(value, max_length):
-    text = str(value or "").strip()
-    return text[:max_length]
+    return str(value or "").strip()[:max_length]
 
 
 def optional_integer(value, field_name):
@@ -90,6 +98,7 @@ def normalize_event(
     max_payload_bytes=512 * 1024,
     max_future_seconds=300,
     max_clock_skew_ms=120_000,
+    watermark_delay_seconds=300,
 ):
     if not isinstance(event, dict):
         raise ContractError("INVALID_ROOT", "event root must be a JSON object")
@@ -170,10 +179,12 @@ def normalize_event(
     elif quality_status == "unknown":
         score -= 10
 
-    raw_event = canonical_json(event)
-    event_checksum = hashlib.sha256(raw_event.encode("utf-8")).hexdigest()
-    processing_latency_ms = max(0, int((processed_at - ingested_at).total_seconds() * 1000))
     event_age_ms = int((processed_at - occurred_at).total_seconds() * 1000)
+    lateness_ms = max(0, event_age_ms - max(0, watermark_delay_seconds) * 1000)
+    late_event = lateness_ms > 0
+    if late_event:
+        flags.append("LATE_EVENT")
+        score -= 5
 
     return {
         "event_id": event_id,
@@ -195,11 +206,13 @@ def normalize_event(
         "duplicate": 1 if duplicate else 0,
         "trace_id": trace_id,
         "payload_json": payload_json,
-        "raw_event": raw_event,
-        "event_checksum": event_checksum,
+        "raw_event": canonical_json(event),
+        "event_checksum": stable_event_checksum(event),
         "payload_bytes": payload_bytes,
-        "processing_latency_ms": processing_latency_ms,
+        "processing_latency_ms": max(0, int((processed_at - ingested_at).total_seconds() * 1000)),
         "event_age_ms": event_age_ms,
+        "late_event": 1 if late_event else 0,
+        "lateness_ms": lateness_ms,
         "anomaly_score": anomaly_score,
         "ingest_version": int(processed_at.timestamp() * 1_000_000),
     }
