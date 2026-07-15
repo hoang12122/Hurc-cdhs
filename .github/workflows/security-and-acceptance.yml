@@ -161,5 +161,23 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: build-phase-logs-${{ github.run_id }}
-          path: build-phase-logs/
-          if-no-files-found: warn
+          path: .build-logs/
+          if-no-files-found: ignore
+
+  codeql-analysis:
+    name: CodeQL Static Security Analysis
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v4
+        with:
+          languages: javascript-typescript
+          build-mode: none
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v4
