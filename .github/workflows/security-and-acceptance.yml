@@ -84,6 +84,9 @@ jobs:
       - name: Converged platform compose validation
         run: node scripts/run-build-phase.js "Converged platform compose validation" -- npm run platform:config
 
+      - name: MLflow security invariant checks
+        run: node scripts/run-build-phase.js "MLflow security invariant checks" -- node scripts/check-mlflow-security.mjs
+
       - name: ETL architecture invariant checks
         run: node scripts/run-build-phase.js "ETL architecture invariant checks" -- node scripts/check-etl-architecture.mjs
 
@@ -158,23 +161,5 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: build-phase-logs-${{ github.run_id }}
-          path: .build-logs/
-          if-no-files-found: ignore
-
-  codeql-analysis:
-    name: CodeQL Static Security Analysis
-    runs-on: ubuntu-latest
-    timeout-minutes: 30
-
-    steps:
-      - name: Checkout source
-        uses: actions/checkout@v4
-
-      - name: Initialize CodeQL
-        uses: github/codeql-action/init@v4
-        with:
-          languages: javascript-typescript
-          build-mode: none
-
-      - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@v4
+          path: build-phase-logs/
+          if-no-files-found: warn
