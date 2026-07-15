@@ -1,7 +1,6 @@
 import crypto from 'node:crypto';
 import {
     askAI as askBaseAI,
-    askWithRAG as askBaseRAG,
     agentChat as baseAgentChat,
     askPersonalized as baseAskPersonalized,
 } from "../ai";
@@ -24,6 +23,7 @@ import {
 } from "./control-plane";
 import { persistProductionGovernanceAudit } from './governance-audit-store';
 import { executeWithRuntimeGuard, getAiRuntimeGuardStatus } from './runtime-guard';
+import { runSecureRagPipeline } from './secure-rag-hooks';
 
 /**
  * CENTRAL AI MANAGER — GOVERNED LOCAL-ONLY CONTROL PLANE
@@ -234,11 +234,22 @@ export async function askWithRAG(query: string, options: ManagerOptions = {}) {
     const context = await safePrepare('askWithRAG', query, options);
     const response = await executeWithRuntimeGuard(
         context,
-        () => askBaseRAG(context.prompt, {
-            ...options,
+        () => runSecureRagPipeline(context, {
+            collection: options.collection,
+            forceIntent: options.forceIntent,
+            user: options.user,
+            userId: options.userId,
             systemPrompt: context.systemPrompt,
+            retrievalTimeoutMs: options.retrievalTimeoutMs,
+            generationTimeoutMs: options.generationTimeoutMs,
+            maxEvidenceChars: options.maxEvidenceChars,
+            maxEvidenceItems: options.maxEvidenceItems,
         }),
     );
+
+    if (response.security.acceptedEvidence > 0 && !context.groundingContext) {
+        context.groundingContext = `[SECURE_RAG_EVIDENCE count=${response.security.acceptedEvidence}; collection=${response.security.resolvedCollection}]`;
+    }
 
     return {
         ...response,
