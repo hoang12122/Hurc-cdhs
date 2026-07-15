@@ -96,12 +96,53 @@ jobs:
           bash scripts/smoke-deploy.sh core
 
       - name: 🔵 Start AI Services (Tiered Deploy - Optional)
+        id: ai_start
+        continue-on-error: true
+        timeout-minutes: 12
+        shell: bash
         run: |
-          docker compose --profile ai up -d
+          set -o pipefail
+          mkdir -p ai-ci-logs
+          docker compose --profile ai up -d 2>&1 | tee ai-ci-logs/compose-up.log
+          docker compose --profile ai ps -a 2>&1 | tee ai-ci-logs/compose-ps-after-start.log
 
       - name: 🧪 Run AI Smoke Test Gate (Optional Verification)
+        id: ai_smoke
+        if: steps.ai_start.outcome == 'success'
+        continue-on-error: true
+        timeout-minutes: 8
+        shell: bash
         run: |
-          bash scripts/smoke-deploy.sh ai
+          set -o pipefail
+          mkdir -p ai-ci-logs
+          bash scripts/smoke-deploy.sh ai 2>&1 | tee ai-ci-logs/smoke-ai.log
+
+      - name: 🧾 Collect AI Runtime Diagnostics
+        if: always()
+        shell: bash
+        run: |
+          mkdir -p ai-ci-logs
+          docker compose --profile ai ps -a > ai-ci-logs/compose-ps-final.log 2>&1 || true
+          docker compose --profile ai logs --no-color --tail 500 > ai-ci-logs/compose-ai.log 2>&1 || true
+          {
+            echo "ai_start_outcome=${{ steps.ai_start.outcome }}"
+            echo "ai_smoke_outcome=${{ steps.ai_smoke.outcome }}"
+            echo "docker_version=$(docker --version 2>/dev/null || true)"
+            echo "compose_version=$(docker compose version 2>/dev/null || true)"
+          } > ai-ci-logs/outcomes.txt
+
+          if [ "${{ steps.ai_start.outcome }}" != "success" ] || [ "${{ steps.ai_smoke.outcome }}" = "failure" ]; then
+            echo "::warning::Optional AI runtime verification did not pass. Core build remains valid; inspect the ai-runtime-diagnostics artifact."
+          fi
+
+      - name: 📤 Upload AI Runtime Diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ai-runtime-diagnostics-${{ github.run_id }}
+          path: ai-ci-logs/
+          if-no-files-found: warn
+          retention-days: 14
 
       - name: 🛑 Tear Down Services
         if: always()
@@ -109,7 +150,9 @@ jobs:
           docker compose --profile core --profile ai down -v
 
       - name: 📄 Archive Audit Certificate
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: deployment-certificate
           path: audit_reports/*.md
+          if-no-files-found: warn
