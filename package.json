@@ -33,6 +33,7 @@
     "test:platform-profiles": "npx tsx src/scripts/test-converged-platform.ts",
     "test:digital-twin-health": "npx tsx src/scripts/test-digital-twin-health.ts",
     "test:platform-readiness": "npx tsx src/scripts/test-platform-production-readiness.ts",
+    "test:secure-rag-hooks": "npx tsx src/scripts/test-secure-rag-hooks.ts",
     "test:guard": "node scripts/test-guard.js",
     "platform:config": "node scripts/platform-compose.mjs config",
     "platform:phase1:up": "node scripts/platform-compose.mjs up 1",
