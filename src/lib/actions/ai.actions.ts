@@ -189,17 +189,51 @@ export async function logAiAction(action: string, details: string, level: any = 
 }
 
 export async function askCopilot(query: string) {
-    await requirePermission('ai:use');
+    const user = await requirePermission('ai:use');
+    if (!checkRateLimit(`maintenance_copilot:${user.id}`, 12, 60_000)) {
+        return {
+            answer: 'Bạn đang gửi yêu cầu quá nhanh. Vui lòng thử lại sau một lát.',
+            confidence: 0,
+            engine: 'Secure RAG Rate Guard',
+            sources: [],
+        };
+    }
+
+    try {
+        const rag = await askWithRAG(query, {
+            role: 'TECHNICAL_ANALYST',
+            collection: 'hurc-maintenance',
+            forceIntent: 'document_rag',
+            user: user.id,
+            userId: user.id,
+            systemPrompt: 'Bạn là trợ lý bảo trì HURC1. Chỉ trả lời từ dữ liệu kỹ thuật được truy xuất, có nguồn và trong phạm vi bảo trì được cấp phép.',
+            maxEvidenceChars: 16_000,
+            maxEvidenceItems: 10,
+        });
+        const acceptedEvidence = rag.security?.acceptedEvidence ?? 0;
+        return {
+            answer: rag.response,
+            confidence: rag.security?.blocked ? 0 : Math.min(0.95, 0.55 + acceptedEvidence * 0.05),
+            engine: 'NemoClaw/Nemotron + TrustGraph Secure RAG',
+            sources: rag.sources ?? [],
+            security: rag.security,
+            governance: rag.governance,
+        };
+    } catch (secureError) {
+        console.warn('Secure Maintenance RAG unavailable, trying offline fallback:', secureError);
+    }
+
     try {
         const script = path.join(process.cwd(), 'src', 'lib', 'ai', 'rag_engine.py');
         const { stdout, stderr } = await execPromise('python', [script, JSON.stringify({ query })], {
             timeout: PYTHON_TIMEOUT_MS, maxBuffer: 2 * 1024 * 1024
         });
-        if (stderr && !stdout) throw new Error('AI engine returned an error');
-        return JSON.parse(stdout);
+        if (stderr && !stdout) throw new Error('Offline RAG engine returned an error');
+        const fallback = JSON.parse(stdout);
+        return { ...fallback, engine: `${fallback.engine || 'Offline RAG'} (degraded fallback)` };
     } catch (error) {
         console.error('askCopilot failed:', error);
-        return { answer: 'AI Engine Offline.', error: 'AI engine unavailable' };
+        return { answer: 'AI Engine Offline.', error: 'AI engine unavailable', confidence: 0, sources: [] };
     }
 }
 
