@@ -51,6 +51,7 @@ const useProductionImages = deploymentMode === 'production'
 const composeFiles = [
   'docker-compose.yml',
   'docker-compose.platform.yml',
+  'docker-compose.mlflow-security.yml',
   'docker-compose.platform-enhancements.yml',
   'docker-compose.etl-accepted.yml',
   'docker-compose.vision-scada.yml',
@@ -89,6 +90,7 @@ console.log(`[platform-compose] docker ${args.join(' ')}`);
 console.log(`[platform-compose] PLATFORM_DEPLOYMENT_MODE=${deploymentMode}`);
 if (action === 'up') console.log(`[platform-compose] DATA_PLATFORM_PHASE=${phase}`);
 if (useProductionImages) console.log('[platform-compose] immutable production image override enabled');
+console.log('[platform-compose] MLflow security override enabled');
 
 const result = spawnSync('docker', args, {
   cwd: process.cwd(),
