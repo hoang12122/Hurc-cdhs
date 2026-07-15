@@ -201,7 +201,7 @@ export async function askCopilot(query: string) {
 
     try {
         const rag = await askWithRAG(query, {
-            role: 'TECHNICAL_ANALYST',
+            role: 'ASSET_MANAGER',
             collection: 'hurc-maintenance',
             forceIntent: 'document_rag',
             user: user.id,
