@@ -1,0 +1,16 @@
+services:
+  mlflow:
+    image: ${MLFLOW_IMAGE:-ghcr.io/mlflow/mlflow:v3.14.0}
+    environment:
+      MLFLOW_SERVER_ENABLE_JOB_EXECUTION: "false"
+      PYTHONDONTWRITEBYTECODE: "1"
+      HOME: /tmp/mlflow-home
+      XDG_CACHE_HOME: /tmp/.cache
+    read_only: true
+    tmpfs:
+      - /tmp:size=256m,mode=1777
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    pids_limit: 256
