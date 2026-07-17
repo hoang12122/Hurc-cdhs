@@ -37,7 +37,11 @@ if (authService.includes("jsonDb.getCollection<any>('roles')")) {
 requireText(ouScope, 'select: { id: true }', 'OU scope must query only user IDs on the database path.');
 requireText(ouScope, 'where: { ouId: { in: scopeOuIds } }', 'OU scope must push OU filtering into the database query.');
 
-requireText(workflow, 'uses: actions/cache@v4', 'Workflow must cache npm download artifacts without requiring a lockfile.');
+const cacheActionMatch = workflow.match(/uses:\s*actions\/cache@v(\d+)\b/);
+if (!cacheActionMatch || Number(cacheActionMatch[1]) < 4) {
+  failures.push('Workflow must use a supported actions/cache version for npm download artifacts.');
+}
+requireText(workflow, 'path: ~/.npm', 'Workflow must cache the npm download directory.');
 requireText(workflow, "hashFiles('package.json')", 'Workflow cache must invalidate when package.json changes.');
 requireText(workflow, 'npm install --include=dev --ignore-scripts', 'Workflow must use the approved lockfile-free dependency bootstrap.');
 requireText(workflow, '--package-lock=false', 'Workflow must not generate an ephemeral package-lock.json.');
