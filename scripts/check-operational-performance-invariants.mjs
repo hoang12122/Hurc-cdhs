@@ -41,9 +41,15 @@ requireText(workflow, 'uses: actions/cache@v4', 'Workflow must cache npm downloa
 requireText(workflow, "hashFiles('package.json')", 'Workflow cache must invalidate when package.json changes.');
 requireText(workflow, 'npm install --include=dev --ignore-scripts', 'Workflow must use the approved lockfile-free dependency bootstrap.');
 requireText(workflow, '--package-lock=false', 'Workflow must not generate an ephemeral package-lock.json.');
-requireText(workflow, '--prefer-offline', 'Workflow must prefer the restored npm cache.');
+requireText(workflow, 'persist-credentials: false', 'Workflow checkout must not persist GitHub credentials.');
 requireText(workflow, 'cancel-in-progress: true', 'Workflow must cancel superseded runs.');
 
+if (workflow.includes('restore-keys:')) {
+  failures.push('Workflow must not restore npm metadata from an older package.json dependency graph.');
+}
+if (workflow.includes('--prefer-offline')) {
+  failures.push('Workflow must not prefer stale npm registry metadata after security dependency pins change.');
+}
 if (workflow.includes('cache-dependency-path: package-lock.json')) {
   failures.push('Workflow must not reference a package-lock.json that is intentionally absent.');
 }
@@ -64,4 +70,4 @@ if (failures.length) {
   process.exit(1);
 }
 
-console.log('[operational-performance] PASS: scoped pagination, auth reuse, targeted OU queries, lockfile-free CI cache and route loading are enforced.');
+console.log('[operational-performance] PASS: scoped pagination, auth reuse, targeted OU queries, exact npm cache metadata and route loading are enforced.');
