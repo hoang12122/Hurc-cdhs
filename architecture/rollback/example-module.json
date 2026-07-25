@@ -1,0 +1,29 @@
+{
+  "schemaVersion": 1,
+  "moduleId": "example-module",
+  "status": "template",
+  "stableRef": "main",
+  "featureFlag": "exampleModuleBackboneV1",
+  "rollbackAction": "disable-feature-flag-and-route-to-legacy",
+  "dataStrategy": "no-schema-change",
+  "rollbackOwner": "architecture-team",
+  "maximumRollbackMinutes": 15,
+  "mandatoryTriggers": [
+    "authorization-regression",
+    "data-integrity-mismatch",
+    "critical-error-rate-threshold",
+    "unbounded-latency-regression"
+  ],
+  "preconditions": [
+    "legacy path remains deployable",
+    "feature flag is remotely controllable",
+    "observability dashboard is active"
+  ],
+  "evidenceRequired": [
+    "rollback timestamp",
+    "operator identity",
+    "reason",
+    "before and after metrics",
+    "data reconciliation result"
+  ]
+}
