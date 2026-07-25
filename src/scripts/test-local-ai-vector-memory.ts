@@ -4,7 +4,6 @@ import {
   isLocalAiHostname,
 } from '../lib/services/ai/local-endpoint-policy';
 import {
-  buildLocalSemanticVector,
   localSemanticSimilarity,
   selectWithMmr,
 } from '../lib/services/ai/local-vector';
@@ -46,13 +45,12 @@ function testSemanticVector(): void {
 
 function testMmrDiversity(): void {
   const candidates = [
-    { item: 'rail-primary', relevance: 0.95, vector: buildLocalSemanticVector('khuyết tật ray Ba Son') },
-    { item: 'rail-duplicate', relevance: 0.92, vector: buildLocalSemanticVector('hư hỏng ray tại ga Ba Son') },
-    { item: 'maintenance-diverse', relevance: 0.82, vector: buildLocalSemanticVector('kế hoạch bảo trì PSD và kiểm tra dây đai') },
+    { item: 'rail-primary', relevance: 0.95, vector: [1, 0, 0] },
+    { item: 'rail-duplicate', relevance: 0.92, vector: [0.999, 0.001, 0] },
+    { item: 'maintenance-diverse', relevance: 0.82, vector: [0, 1, 0] },
   ];
   const selected = selectWithMmr(candidates, 2, 0.72).map(candidate => candidate.item);
-  assert.equal(selected[0], 'rail-primary');
-  assert.ok(selected.includes('maintenance-diverse'), `MMR did not diversify: ${selected.join(', ')}`);
+  assert.deepEqual(selected, ['rail-primary', 'maintenance-diverse']);
 }
 
 function main(): void {
