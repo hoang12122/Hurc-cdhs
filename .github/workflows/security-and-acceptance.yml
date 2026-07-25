@@ -94,6 +94,9 @@ jobs:
       - name: Local vector memory invariant checks
         run: node scripts/run-build-phase.js "Local vector memory invariant checks" -- npm run test:local-ai-vector-memory
 
+      - name: Signed model registry integrity proof
+        run: node scripts/run-build-phase.js "Signed model registry integrity proof" -- npm run test:model-registry
+
       - name: Local AI Python syntax checks
         run: >-
           node scripts/run-build-phase.js "Local AI Python syntax checks" -- python3 -m py_compile
