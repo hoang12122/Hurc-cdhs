@@ -20,7 +20,7 @@ export interface ChatCompletionTool {
   function: {
     name: string;
     description?: string;
-    parameters?: Record<string, unknown>;
+    parameters?: unknown;
   };
 }
 
