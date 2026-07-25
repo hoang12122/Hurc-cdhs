@@ -1,0 +1,116 @@
+name: Private Security Regression
+
+on:
+  workflow_dispatch:
+  schedule:
+    # Monday 03:10 Asia/Ho_Chi_Minh (Sunday 20:10 UTC).
+    - cron: '10 20 * * 0'
+  pull_request:
+    branches: [main]
+    paths:
+      - '.github/workflows/private-security-regression.yml'
+      - 'scripts/check-local-ai-only.mjs'
+      - 'scripts/production-dependency-audit.js'
+      - 'src/lib/services/ai/**'
+      - 'src/lib/services/agent-memory/**'
+      - 'src/scripts/test-ai-governance.ts'
+      - 'src/scripts/test-secure-rag-hooks.ts'
+      - 'src/scripts/test-local-ai-vector-memory.ts'
+      - 'infra/ai-server/**'
+      - 'package.json'
+
+concurrency:
+  group: private-security-regression-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  CI: 'true'
+  NEXT_TELEMETRY_DISABLED: '1'
+  AI_RUNTIME_PROFILE: STANDARD
+  AI_ASSURANCE_PROFILE: STANDARD
+  DATA_PLATFORM_PHASE: '0'
+
+jobs:
+  non-destructive-security-regression:
+    name: Local AI, RAG, Memory and Dependency Regression
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+
+    steps:
+      - name: Checkout source without persisted credentials
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.12.2'
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies without lifecycle scripts
+        run: npm install --include=dev --ignore-scripts --no-audit --fund=false --package-lock=false
+
+      - name: Verify local-only AI sovereignty
+        run: npm run security:local-ai-only
+
+      - name: Verify Secure RAG injection and DLP controls
+        run: npm run test:secure-rag-hooks
+
+      - name: Verify local vector and long-term memory ranking
+        run: npm run test:local-ai-vector-memory
+
+      - name: Verify governed AI invariants
+        run: npm run test:ai-governance
+
+      - name: Compile local AI Python services
+        run: python3 -m py_compile infra/ai-server/main.py infra/ai-server/transcribe.py
+
+      - name: Validate private platform configuration
+        run: npm run platform:config
+
+      - name: Static type check
+        run: npm run typecheck
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Audit production dependencies
+        run: node scripts/production-dependency-audit.js
+        env:
+          PRODUCTION_AUDIT_FAIL_LEVELS: high,critical
+
+      - name: Write regression evidence
+        if: always()
+        shell: bash
+        run: |
+          mkdir -p security-regression-evidence
+          {
+            echo '# Private Security Regression Evidence'
+            echo
+            echo "- Repository: $GITHUB_REPOSITORY"
+            echo "- Commit: $GITHUB_SHA"
+            echo "- Run: $GITHUB_RUN_ID"
+            echo "- Trigger: $GITHUB_EVENT_NAME"
+            echo "- UTC time: $(date -u +'%Y-%m-%dT%H:%M:%SZ')"
+            echo
+            echo 'This workflow performs non-destructive source, configuration, RAG, memory and dependency checks only.'
+            echo 'It does not deploy the application, expose ports, attack external systems or modify operational data.'
+          } > security-regression-evidence/report.md
+
+      - name: Upload regression evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: private-security-regression-${{ github.run_id }}
+          path: security-regression-evidence/
+          if-no-files-found: error
+          retention-days: 30
