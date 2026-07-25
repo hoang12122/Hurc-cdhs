@@ -12,5 +12,5 @@ psutil>=6,<8
 ultralytics==8.3.203
 opencv-python-headless>=4.10,<5
 # This is the fully local open-source Whisper runtime, not a public AI API client.
-openai-whisper>=20240930
+openai-whisper>=20250625
 scikit-learn>=1.6,<2
