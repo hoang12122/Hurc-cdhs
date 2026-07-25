@@ -88,6 +88,9 @@ jobs:
       - name: Core workflow logic audit
         run: node scripts/run-build-phase.js "Core workflow logic audit" -- node scripts/audit-core-workflow-logic.js
 
+      - name: Day-one architecture backbone invariants
+        run: node scripts/run-build-phase.js "Day-one architecture backbone invariants" -- npm run test:architecture-backbone
+
       - name: Local AI sovereignty invariant checks
         run: node scripts/run-build-phase.js "Local AI sovereignty invariant checks" -- npm run security:local-ai-only
 
