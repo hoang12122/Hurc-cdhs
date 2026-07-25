@@ -10,14 +10,20 @@
       "legacyPath": "src/app/(app)/example-module",
       "targetFrontendPath": "frontend/features/example-module",
       "targetBackendPath": "backend/services/example-module",
-      "state": "legacy",
-      "publicContract": "pending",
+      "state": "isolated",
+      "publicContract": "backend/contracts/example-module/v1.ts",
       "featureFlag": "exampleModuleBackboneV1",
       "rollbackManifest": "architecture/rollback/example-module.json",
       "characterizationTests": [
+        "scripts/test-example-module-migration-contract.mjs",
         "src/components/example-module/use-example-module-workflow.ts"
       ],
-      "notes": "Registry seed only; no production cutover is claimed."
+      "cutover": {
+        "enabled": false,
+        "trafficPercent": 0,
+        "approvalRequired": true
+      },
+      "notes": "Pilot isolated behind a published contract. Legacy route remains authoritative; no shadow, canary or production cutover is claimed."
     }
   ]
 }
