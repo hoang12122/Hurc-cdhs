@@ -1,8 +1,17 @@
+export interface ChatToolCall {
+  id: string;
+  type?: 'function';
+  function: {
+    name: string;
+    arguments: string;
+  };
+}
+
 export interface ChatMessage {
   role: 'system' | 'user' | 'assistant' | 'tool';
   content: string | null;
   name?: string;
-  tool_calls?: unknown[];
+  tool_calls?: ChatToolCall[];
   tool_call_id?: string;
 }
 
@@ -11,7 +20,7 @@ export interface ChatCompletionTool {
   function: {
     name: string;
     description?: string;
-    parameters?: unknown;
+    parameters?: Record<string, unknown>;
   };
 }
 
