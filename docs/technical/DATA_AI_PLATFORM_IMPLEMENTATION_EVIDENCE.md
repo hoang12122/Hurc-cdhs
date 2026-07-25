@@ -9,10 +9,10 @@ The repository now contains an executable phased platform composition in `docker
 
 | Capability | Implemented runtime component | Evidence path | Current maturity |
 |---|---|---|---|
-| Durable backend broker | Redpanda/Kafka-compatible broker | `docker-compose.platform.yml`, `redpanda`, `redpanda-init` | single-node development/acceptance baseline |
-| Retry and dead-letter | dedicated raw and dead-letter topics, replay worker policy | `infra/etl-replay-worker`, `infra/redpanda-connect`, CI ETL tests | executable policy baseline |
-| MQTT/IoT gateway | Mosquitto and IoT ingestor | `infra/mqtt`, `infra/iot-ingestor` | local gateway baseline; production mTLS/PKI still required |
-| Device identity | topic scope, credentials/TLS environment and ingestion checks | `infra/iot-ingestor`, target architecture | application baseline; certificate lifecycle remains infrastructure work |
+| Durable backend broker | Redpanda/Kafka-compatible broker | `docker-compose.platform.yml`, `redpanda`, `redpanda-init` | production baseline declared in code; deployment certification still external |
+| Retry and dead-letter | dedicated raw, retry and dead-letter topics, replay worker policy | `infra/etl-replay-worker`, `infra/redpanda-connect`, CI ETL tests | executable policy baseline |
+| MQTT/IoT gateway | Mosquitto and IoT ingestor | `infra/mqtt`, `infra/iot-ingestor` | production mTLS/PKI baseline in code; real CA deployment still required |
+| Device identity | certificate-derived identity, ACL, CRL and ingestion checks | `infra/iot-ingestor`, target architecture, production resilience policy | application and configuration baseline |
 | Time-series telemetry | TimescaleDB with initialization schema | `infra/timescale/001-init.sql` | executable local store |
 | Raw data lake | private MinIO buckets `hurc-raw`, `hurc-curated`, `hurc-models`, `hurc-evidence` | `docker-compose.platform.yml` | executable object-storage zones |
 | OLAP analytics | ClickHouse and initialization schema | `infra/clickhouse/001-init.sql` | executable local OLAP store |
@@ -20,7 +20,7 @@ The repository now contains an executable phased platform composition in `docker
 | Feature pipeline | normalized telemetry and derived stream outputs | ETL contracts and AI architecture documents | baseline; online feature store is not yet claimed |
 | Experiment registry | MLflow local service | `docker-compose.platform.yml`, `scripts/check-mlflow-security.mjs` | executable local experiment tracking |
 | Signed model registry | Ed25519 manifest and SHA-256 artifact verification | `scripts/model-registry-*.mjs` | executable integrity and tamper-rejection proof |
-| Permissioned evidence | Besu development node and evidence gateway | `infra/evidence-ledger`, `docker-compose.platform.yml` | development proof; consortium network governance remains required |
+| Permissioned evidence | Besu development node and evidence gateway | `infra/evidence-ledger`, `docker-compose.platform.yml` | governance baseline in code; real consortium activation still required |
 
 ## 2. Event durability, retry and dead-letter model
 
@@ -47,7 +47,7 @@ Safety invariants:
 - consumers acknowledge only after durable processing;
 - malformed payloads are quarantined rather than silently discarded.
 
-The current Redpanda development profile uses one replica. Production durability requires at least three broker nodes, replication factor three, minimum in-sync replicas, authenticated clients and tested backup/restore.
+The repository now defines a production broker baseline with at least three nodes, replication factor three, minimum in-sync replica requirements, retry topics and dead-letter topics. This is source-code and configuration evidence only. Production certification still requires three independently hosted broker machines or failure domains, real storage, authenticated clients, tested quorum loss handling and signed failover results.
 
 ## 3. MQTT gateway and device identity
 
@@ -60,6 +60,8 @@ device identity = unique device ID + certificate/public key + approved topic ACL
 ```
 
 Required lifecycle states are `provisioned`, `active`, `suspended`, `revoked` and `retired`. Each certificate must map to one device identity. Wildcard publishing across stations or subsystems is prohibited. Device secrets and private keys must reside in secure hardware or the gateway trust store, never in source control.
+
+The repository defines mTLS, TLS 1.3, certificate-derived identity, CRL checking, offline-root and issuing-CA separation, renewal and revocation rules. This proves the intended PKI contract, not the existence of a live CA service or hardware-protected device key. Certification requires an operational CA, real certificate issuance and revocation evidence, protected trust stores and certificate-rotation records.
 
 ## 4. Time-series, lakehouse and OLAP separation
 
@@ -128,6 +130,8 @@ npm run test:model-registry
 
 The test creates an ephemeral key pair, signs a deterministic artifact, verifies it, modifies the artifact and proves that verification fails.
 
+The repository also defines a KMS/HSM production contract requiring non-exportable signing keys, private endpoints, audit logs and quorum approval. This is not evidence that a real KMS or HSM is already provisioned. Production certification requires actual key attestation, operator separation, recovery procedures and signed audit records.
+
 ## 8. Permissioned evidence ledger
 
 The ledger stores only hashes and minimum provenance. Large files, telemetry and personal data remain off-chain.
@@ -140,7 +144,7 @@ canonical evidence
 → transaction ID stored in operational database
 ```
 
-The current Besu profile is a local development proof. A genuine inter-organizational permissioned ledger requires independent validator identities, consortium governance, membership onboarding/revocation, private-key custody, endorsement policy, backup and legal approval. The repository does not claim those external governance conditions are already complete.
+The repository defines a permissioned-ledger governance baseline with at least three organizations, multiple validator identities, endorsement requirements, onboarding and revocation controls. A genuine inter-organizational deployment still requires independent legal entities or departments operating separate validator nodes, approved consortium rules, real key custody, signed membership decisions, backup and recovery evidence, and legal approval. The repository does not claim those external governance conditions are already complete.
 
 ## 9. CI/CD security evidence
 
@@ -149,6 +153,7 @@ Security and acceptance CI verifies:
 - local-only AI policy;
 - Secure RAG and vector-memory invariants;
 - signed model-registry integrity and tamper rejection;
+- production resilience policy invariants;
 - platform Compose validity;
 - MLflow security invariants;
 - ETL architecture, Python syntax, contracts and replay policy;
@@ -159,6 +164,55 @@ Security and acceptance CI verifies:
 
 The scheduled private regression workflow runs non-destructive checks without deploying, exposing ports, scanning external systems or modifying operational data.
 
-## 10. Honest assurance boundary
+## 10. Assurance classification
 
-The repository provides executable local baselines and CI evidence. It does not prove unlimited scale, zero vulnerabilities or full production readiness. Production acceptance additionally requires load tests, failover drills, multi-node replication, mTLS/PKI, firewall egress controls, secret management, backups, recovery objectives and organization-approved operating procedures.
+### 10.1 Production baseline in source code
+
+The repository may be described as having a production baseline only when the following are present and checked by CI:
+
+- cluster topology and replication requirements;
+- mTLS/PKI policy and certificate lifecycle;
+- KMS/HSM signing contract;
+- object-lock and immutable-backup requirements;
+- backup/restore and failover acceptance criteria;
+- default-deny egress policy;
+- permissioned-ledger governance rules;
+- executable invariant checks preventing silent policy regression.
+
+This classification means the design intent, configuration contracts, validation scripts and acceptance criteria exist in version-controlled source code.
+
+### 10.2 Production deployment certification
+
+Production deployment certification is a separate operational decision and must not be inferred from passing CI. Certification requires all of the following external evidence:
+
+1. three independent machines, nodes or failure domains actually hosting the broker cluster;
+2. replication, quorum and storage verified under controlled node-loss testing;
+3. a real CA/PKI service with issuance, renewal, revocation and certificate inventory records;
+4. a real KMS or HSM with non-exportable keys, attestation, audit logs and separated operator roles;
+5. an enforced firewall or Kubernetes NetworkPolicy implementing default-deny egress and approved destination allowlists;
+6. an off-site backup target separated from the primary failure domain, with immutable retention or object-lock enabled;
+7. a completed backup restore test meeting approved RPO and RTO;
+8. a completed failover drill showing service recovery, consumer resumption and no unaccounted data loss;
+9. a signed failover and recovery drill record identifying date, scope, participants, test evidence, deviations, corrective actions and approving authorities;
+10. approved consortium governance, independent validator operators and signed membership/endorsement decisions for the permissioned ledger.
+
+Until these records exist and are approved, the correct statement is:
+
+> The source code contains a production baseline and executable invariant checks; the environment has not yet received production deployment certification.
+
+## 11. Mandatory certification record
+
+The certification package must retain, at minimum:
+
+- physical or virtual node inventory and failure-domain map;
+- CA hierarchy and certificate lifecycle report;
+- KMS/HSM attestation and key-custody matrix;
+- firewall or NetworkPolicy export;
+- backup topology, off-site destination and retention evidence;
+- restore test report with RPO/RTO measurements;
+- failover drill report and raw logs;
+- data-loss reconciliation results;
+- outstanding corrective actions;
+- signatures from system owner, security representative, operations representative and approving authority.
+
+CI artifacts may be attached to this package as supporting evidence, but they cannot replace operational signatures or infrastructure test results.
