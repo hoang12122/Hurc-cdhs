@@ -1,14 +1,16 @@
-transformers
-torch
-accelerate
-fastapi
-uvicorn
-pydantic
-huggingface_hub
-bitsandbytes
-pillow
-psutil
-ultralytics
-opencv-python-headless
-openai-whisper
-scikit-learn
+# Local/offline AI runtime. Dependabot maintains these bounds.
+transformers>=4.48,<5
+# Torch wheel selection is deployment-hardware specific; keep within supported major.
+torch>=2.5,<3
+accelerate>=1.2,<2
+fastapi==0.116.1
+uvicorn[standard]==0.35.0
+pydantic>=2.10,<3
+bitsandbytes>=0.45,<1
+Pillow==12.2.0
+psutil>=6,<8
+ultralytics==8.3.203
+opencv-python-headless>=4.10,<5
+# This is the fully local open-source Whisper runtime, not a public AI API client.
+openai-whisper>=20240930
+scikit-learn>=1.6,<2

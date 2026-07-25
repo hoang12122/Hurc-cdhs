@@ -7,6 +7,7 @@ import {
   sha256,
   type AiExpertRole,
 } from '../ai/control-plane';
+import { buildLocalSemanticVector, selectWithMmr } from '../ai/local-vector';
 import {
   loadOfflineActiveMemories,
   loadOfflineQuarantinedMemories,
@@ -25,6 +26,7 @@ import type {
 } from './types';
 
 const DEFAULT_ROLE: AiExpertRole = 'TECHNICAL_ANALYST';
+const MMR_LAMBDA = 0.78;
 
 async function loadActiveMemories(): Promise<AgentMemory[]> {
   return IS_DATABASE_OFFLINE
@@ -61,9 +63,10 @@ export async function retrieveMemories(
     const includeProvisional = options.includeProvisional
       ?? profile.includeProvisional;
     const now = Date.now();
+    const queryVector = buildLocalSemanticVector(normalizedQuery);
     const memories = await loadActiveMemories();
 
-    const relevant = memories
+    const candidates = memories
       .filter(memory => memory.userId === userId)
       .filter(memory => memory.namespace === namespace)
       .filter(memory => memory.verificationStatus === 'verified'
@@ -73,6 +76,11 @@ export async function retrieveMemories(
         || new Date(memory.expiresAt).getTime() > now)
       .map(memory => {
         const text = `${memory.topic}\n${memory.context}`;
+        const vector = buildLocalSemanticVector(text);
+        const semantic = vector.reduce(
+          (sum, value, index) => sum + value * queryVector[index],
+          0,
+        );
         const lexical = lexicalSimilarity(normalizedQuery, text);
         const entity = entityOverlap(normalizedQuery, text);
         const ageDays = Math.max(
@@ -81,17 +89,27 @@ export async function retrieveMemories(
             / 86_400_000,
         );
         const recency = Math.exp(-ageDays / 120);
-        const score = lexical * 0.45
-          + entity * 0.25
-          + memory.confidence * 0.18
-          + (memory.importance / 10) * 0.08
+        const score = lexical * 0.28
+          + Math.max(0, semantic) * 0.30
+          + entity * 0.20
+          + memory.confidence * 0.12
+          + (memory.importance / 10) * 0.06
           + recency * 0.04;
-        return { memory, score };
+        return {
+          item: { memory, score, semantic: Math.max(0, semantic) },
+          relevance: score,
+          vector,
+        };
       })
-      .filter(item => item.score >= profile.relevanceThreshold)
-      .sort((a, b) => b.score - a.score
-        || b.memory.confidence - a.memory.confidence)
-      .slice(0, clamp(limit, 1, 10));
+      .filter(candidate => candidate.item.score >= profile.relevanceThreshold)
+      .sort((left, right) => right.relevance - left.relevance
+        || right.item.memory.confidence - left.item.memory.confidence);
+
+    const relevant = selectWithMmr(
+      candidates,
+      clamp(limit, 1, 10),
+      MMR_LAMBDA,
+    ).map(candidate => candidate.item);
 
     await safeAudit({
       requestId: `memread-${sha256(`${namespace}:${normalizedQuery}`).slice(0, 20)}`,
@@ -103,18 +121,18 @@ export async function retrieveMemories(
       riskLevel: 'low',
       riskScore: 5,
       fingerprint: sha256(`${namespace}:${normalizedQuery}`),
-      summary: `Retrieved ${relevant.length} governed memories using ${AI_GOVERNANCE_CONFIG.assuranceProfile} assurance`,
+      summary: `Retrieved ${relevant.length} governed memories using lexical, entity, local-vector and MMR ranking`,
       decision: 'allow',
       confidence: relevant.length > 0 ? relevant[0].memory.confidence : 0,
     });
 
     if (relevant.length === 0) return '';
     return '\n[NGỮ CẢNH QUÁ KHỨ ĐÃ QUA MEMORY FIREWALL]:\n'
-      + relevant.map(({ memory, score }) => {
+      + relevant.map(({ memory, score, semantic }) => {
         const status = memory.verificationStatus === 'verified'
           ? 'ĐÃ XÁC MINH'
           : 'TẠM THỜI';
-        return `- [${status}; confidence=${memory.confidence.toFixed(2)}; relevance=${score.toFixed(2)}; source=${memory.sourceType}] ${memory.topic}: ${memory.context}`;
+        return `- [${status}; confidence=${memory.confidence.toFixed(2)}; relevance=${score.toFixed(2)}; vector=${semantic.toFixed(2)}; source=${memory.sourceType}] ${memory.topic}: ${memory.context}`;
       }).join('\n');
   } catch (error) {
     console.warn(

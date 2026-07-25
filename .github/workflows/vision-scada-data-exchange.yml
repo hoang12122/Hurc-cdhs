@@ -76,27 +76,28 @@ jobs:
     timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
 
       - uses: actions/setup-node@v4
         with:
           node-version: '20.12.2'
 
       # The repository intentionally has no committed package-lock.json.
-      # Cache npm's download store using package.json as the invalidation key.
+      # Reuse only an exact package.json cache key. Do not restore metadata from
+      # an older dependency graph, because security pins may have changed.
       - name: Cache npm download artifacts
         uses: actions/cache@v4
         with:
           path: ~/.npm
           key: npm-${{ runner.os }}-node-20.12.2-${{ hashFiles('package.json') }}
-          restore-keys: |
-            npm-${{ runner.os }}-node-20.12.2-
 
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
 
       - name: Install Node dependencies
-        run: npm install --include=dev --ignore-scripts --no-audit --fund=false --package-lock=false --prefer-offline
+        run: npm install --include=dev --ignore-scripts --no-audit --fund=false --package-lock=false
 
       - name: Validate Compose overlays
         run: npm run platform:config

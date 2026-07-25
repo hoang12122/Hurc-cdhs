@@ -1,44 +1,50 @@
 import os
-import whisper
 import tempfile
+from pathlib import Path
+
+import whisper
+
 
 class WhisperEngine:
-    def __init__(self, model_size="base"):
-        self.model_size = model_size
+    def __init__(self, model_path: str | None = None):
+        configured = model_path or os.getenv("LOCAL_WHISPER_MODEL_PATH", "/models/whisper/base.pt")
+        self.model_path = Path(configured).expanduser().resolve()
         self.model = None
 
     def load_model(self):
-        if self.model is None:
-            print(f"🎙️ [WHISPER] Loading offline Whisper model: {self.model_size}...")
-            # Load model vào RAM/VRAM
-            self.model = whisper.load_model(self.model_size)
-            print("🎙️ [WHISPER] Model loaded successfully.")
+        if self.model is not None:
+            return
+        if not self.model_path.exists() or not self.model_path.is_file():
+            raise RuntimeError("Approved local Whisper model is not mounted.")
+        print("[WHISPER] Loading governed local model...")
+        # Passing an existing checkpoint path prevents runtime download.
+        self.model = whisper.load_model(str(self.model_path))
 
     def transcribe_audio(self, audio_bytes: bytes) -> str:
-        """
-        Nhận dạng giọng nói (ưu tiên tiếng Việt) và chuyển đổi thành văn bản.
-        """
         if self.model is None:
             self.load_model()
-            
-        # Whisper yêu cầu file trên disk, nên ta tạo file tạm
-        with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as tmp:
-            tmp.write(audio_bytes)
-            tmp_path = tmp.name
+
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".audio") as temporary:
+            temporary.write(audio_bytes)
+            temporary_path = temporary.name
 
         try:
-            print("🎙️ [WHISPER] Starting transcription...")
-            # language='vi' giúp cải thiện độ chính xác cho tiếng Việt
-            result = self.model.transcribe(tmp_path, language="vi", fp16=False)
-            text = result["text"].strip()
-            print(f"🎙️ [WHISPER] Result: {text}")
-            return text
+            result = self.model.transcribe(
+                temporary_path,
+                language="vi",
+                fp16=False,
+                verbose=False,
+            )
+            return str(result.get("text", "")).strip()
         finally:
-            if os.path.exists(tmp_path):
-                os.remove(tmp_path)
+            try:
+                os.remove(temporary_path)
+            except FileNotFoundError:
+                pass
 
-# Khởi tạo instance toàn cục để dùng lại model trong quá trình chạy server
-engine = WhisperEngine(model_size="base")
+
+engine = WhisperEngine()
+
 
 def transcribe(audio_bytes: bytes) -> str:
     return engine.transcribe_audio(audio_bytes)

@@ -10,9 +10,12 @@ on:
       - main
       - feature/**
 
+concurrency:
+  group: security-acceptance-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 permissions:
   contents: read
-  security-events: write
   actions: read
 
 jobs:
@@ -20,6 +23,9 @@ jobs:
     name: Security, Typecheck, AI Governance, Learning, ETL, Platform Profiles, Twin, Lint, Build, Smoke Test and Dependency Audit
     runs-on: ubuntu-latest
     timeout-minutes: 35
+    permissions:
+      contents: read
+      actions: read
     env:
       AI_RUNTIME_PROFILE: STANDARD
       AI_ASSURANCE_PROFILE: STANDARD
@@ -30,6 +36,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 2
+          persist-credentials: false
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -80,6 +87,17 @@ jobs:
 
       - name: Core workflow logic audit
         run: node scripts/run-build-phase.js "Core workflow logic audit" -- node scripts/audit-core-workflow-logic.js
+
+      - name: Local AI sovereignty invariant checks
+        run: node scripts/run-build-phase.js "Local AI sovereignty invariant checks" -- npm run security:local-ai-only
+
+      - name: Local vector memory invariant checks
+        run: node scripts/run-build-phase.js "Local vector memory invariant checks" -- npm run test:local-ai-vector-memory
+
+      - name: Local AI Python syntax checks
+        run: >-
+          node scripts/run-build-phase.js "Local AI Python syntax checks" -- python3 -m py_compile
+          infra/ai-server/main.py infra/ai-server/transcribe.py
 
       - name: Converged platform compose validation
         run: node scripts/run-build-phase.js "Converged platform compose validation" -- npm run platform:config
@@ -162,16 +180,23 @@ jobs:
         with:
           name: build-phase-logs-${{ github.run_id }}
           path: .build-logs/
-          if-no-files-found: ignore
+          include-hidden-files: true
+          if-no-files-found: error
 
   codeql-analysis:
     name: CodeQL Static Security Analysis
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    permissions:
+      contents: read
+      actions: read
+      security-events: write
 
     steps:
       - name: Checkout source
         uses: actions/checkout@v4
+        with:
+          persist-credentials: false
 
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v4
