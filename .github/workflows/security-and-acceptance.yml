@@ -180,7 +180,8 @@ jobs:
         with:
           name: build-phase-logs-${{ github.run_id }}
           path: .build-logs/
-          if-no-files-found: ignore
+          include-hidden-files: true
+          if-no-files-found: error
 
   codeql-analysis:
     name: CodeQL Static Security Analysis
