@@ -1,0 +1,95 @@
+version: 1
+
+pki:
+  root_ca:
+    offline: true
+    validity_days: 3650
+  issuing_ca:
+    validity_days: 730
+    rotation_overlap_days: 30
+  device_certificate:
+    validity_days: 90
+    renewal_before_days: 21
+    identity_source: subject_alt_name_uri
+    revocation:
+      crl_required: true
+      ocsp_required_when_supported: true
+      publish_interval_minutes: 15
+    enrollment:
+      approval_required: true
+      bootstrap_token_single_use: true
+      hardware_identity_binding: required
+
+signing_keys:
+  provider: ${SIGNING_KEY_PROVIDER:-pkcs11}
+  allowed_providers: [pkcs11, vault-transit, cloud-kms-private-endpoint]
+  private_key_exportable: false
+  quorum_approval: 2
+  rotation_days: 180
+  audit_every_operation: true
+
+object_storage:
+  versioning_required: true
+  object_lock_mode: COMPLIANCE
+  default_retention_days: 2555
+  legal_hold_supported: true
+  delete_requires_dual_approval: true
+  replication_targets_minimum: 2
+
+backup_restore:
+  rpo_minutes: 15
+  rto_minutes: 120
+  encrypted: true
+  immutable_copy_required: true
+  offsite_copy_required: true
+  restore_test_frequency_days: 30
+  retention:
+    daily: 35
+    weekly: 12
+    monthly: 24
+
+failover:
+  broker_node_loss_tolerance: 1
+  quarterly_drill_required: true
+  evidence_artifact_required: true
+  success_criteria:
+    - quorum_maintained
+    - producers_continue_or_retry
+    - consumers_resume_without_data_loss
+    - dead_letter_replay_verified
+    - recovery_times_within_rto
+
+network:
+  default_egress_policy: deny
+  dns_allowlist_required: true
+  public_ai_endpoints_allowed: false
+  internet_model_download_allowed: false
+  permitted_destinations:
+    - internal-pki
+    - internal-kms
+    - internal-observability
+    - approved-os-mirror
+
+consortium_ledger:
+  organizations_minimum: 3
+  validator_nodes_minimum: 4
+  endorsement_policy: 2-of-3-organizations
+  membership_service_required: true
+  certificate_revocation_required: true
+  governance:
+    member_admission_vote: two-thirds
+    member_removal_vote: two-thirds
+    smart_contract_upgrade_vote: two-thirds
+    emergency_pause_vote: two-thirds
+    evidence_schema_change_control: required
+    conflict_of_interest_declaration: required
+  data_policy:
+    off_chain_payload: true
+    on_chain_fields:
+      - evidence_hash
+      - merkle_root
+      - schema_version
+      - signer_identity
+      - organization_id
+      - timestamp
+      - retention_class
