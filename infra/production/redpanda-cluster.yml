@@ -1,0 +1,75 @@
+services:
+  redpanda-0:
+    image: ${REDPANDA_IMAGE:-docker.redpanda.com/redpandadata/redpanda:v26.1.12}
+    command:
+      - redpanda
+      - start
+      - --node-id=0
+      - --smp=2
+      - --memory=2G
+      - --reserve-memory=0M
+      - --kafka-addr=internal://0.0.0.0:9092
+      - --advertise-kafka-addr=internal://redpanda-0:9092
+      - --rpc-addr=0.0.0.0:33145
+      - --advertise-rpc-addr=redpanda-0:33145
+      - --seed-servers=redpanda-0:33145,redpanda-1:33145,redpanda-2:33145
+    volumes:
+      - redpanda-0-data:/var/lib/redpanda/data
+    networks: [data-backend]
+
+  redpanda-1:
+    image: ${REDPANDA_IMAGE:-docker.redpanda.com/redpandadata/redpanda:v26.1.12}
+    command:
+      - redpanda
+      - start
+      - --node-id=1
+      - --smp=2
+      - --memory=2G
+      - --reserve-memory=0M
+      - --kafka-addr=internal://0.0.0.0:9092
+      - --advertise-kafka-addr=internal://redpanda-1:9092
+      - --rpc-addr=0.0.0.0:33145
+      - --advertise-rpc-addr=redpanda-1:33145
+      - --seed-servers=redpanda-0:33145,redpanda-1:33145,redpanda-2:33145
+    volumes:
+      - redpanda-1-data:/var/lib/redpanda/data
+    networks: [data-backend]
+
+  redpanda-2:
+    image: ${REDPANDA_IMAGE:-docker.redpanda.com/redpandadata/redpanda:v26.1.12}
+    command:
+      - redpanda
+      - start
+      - --node-id=2
+      - --smp=2
+      - --memory=2G
+      - --reserve-memory=0M
+      - --kafka-addr=internal://0.0.0.0:9092
+      - --advertise-kafka-addr=internal://redpanda-2:9092
+      - --rpc-addr=0.0.0.0:33145
+      - --advertise-rpc-addr=redpanda-2:33145
+      - --seed-servers=redpanda-0:33145,redpanda-1:33145,redpanda-2:33145
+    volumes:
+      - redpanda-2-data:/var/lib/redpanda/data
+    networks: [data-backend]
+
+  redpanda-init:
+    image: ${REDPANDA_IMAGE:-docker.redpanda.com/redpandadata/redpanda:v26.1.12}
+    entrypoint: ["/bin/bash", "-ec"]
+    command: |
+      rpk cluster config set default_topic_replications 3 -X brokers=redpanda-0:9092,redpanda-1:9092,redpanda-2:9092
+      rpk cluster config set minimum_topic_replications 3 -X brokers=redpanda-0:9092,redpanda-1:9092,redpanda-2:9092
+      for topic in iot.telemetry.raw iot.telemetry.retry iot.telemetry.dead-letter model.events evidence.events; do
+        rpk topic create "$topic" --partitions 6 --replicas 3 --if-not-exists -X brokers=redpanda-0:9092,redpanda-1:9092,redpanda-2:9092
+      done
+    depends_on: [redpanda-0, redpanda-1, redpanda-2]
+    networks: [data-backend]
+
+networks:
+  data-backend:
+    internal: true
+
+volumes:
+  redpanda-0-data:
+  redpanda-1-data:
+  redpanda-2-data:
