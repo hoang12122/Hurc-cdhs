@@ -94,6 +94,9 @@ jobs:
       - name: Safe module migration and rollback invariants
         run: node scripts/run-build-phase.js "Safe module migration and rollback invariants" -- npm run test:safe-module-migration
 
+      - name: Example module isolated migration contract proof
+        run: node scripts/run-build-phase.js "Example module isolated migration contract proof" -- npm run test:example-module-migration
+
       - name: Local AI sovereignty invariant checks
         run: node scripts/run-build-phase.js "Local AI sovereignty invariant checks" -- npm run security:local-ai-only
 
