@@ -1,328 +1,243 @@
 /**
- * NemoClaw Client — OpenAI-Compatible REST Client
- * 
- * Connects to the NemoClaw gateway (OpenShell) which routes inference
- * to configured providers (NVIDIA Nemotron, OpenAI, Anthropic, Gemini, Ollama).
- * 
- * Uses OpenAI Chat Completions API format for maximum compatibility.
- * Each user gets an isolated session via session-id.
+ * NemoClaw local inference client.
+ *
+ * The wire format is OpenAI-compatible, but the endpoint and model policy are
+ * strictly private/local. Public AI providers and Internet endpoints are
+ * rejected before any request is sent.
  */
 
 import { AI_CONFIG, getActiveLLMModel } from '../config/ai-config';
-import { STRICT_CONSTRAINT } from './ai/anti-hallucination';
+import { assertLocalAiEndpoint, normalizeLocalAiBaseUrl } from './ai/local-endpoint-policy';
+import { buildPrecisionSystemPrompt } from './nemoclaw-prompt';
+import {
+  NemoClawError,
+  type ChatCompletionRequest,
+  type ChatCompletionResponse,
+  type ChatMessage,
+  type NemoClawHealthStatus,
+} from './nemoclaw-types';
 
-const NEMOCLAW_API_URL = process.env.NEMOCLAW_API_URL || process.env.LLM_ENDPOINT || 'http://ollama:11434'; // Đảm bảo đồng bộ với Docker Compose
-const NEMOCLAW_API_KEY = process.env.NEMOCLAW_API_KEY || '';
-const NEMOCLAW_MODEL = process.env.NEMOCLAW_MODEL || AI_CONFIG.LLM.STABLE_MODEL;
+const RAW_API_URL = process.env.NEMOCLAW_API_URL
+  || process.env.LLM_ENDPOINT
+  || 'http://ollama:11434';
+const API_KEY = process.env.NEMOCLAW_API_KEY || '';
+const DEFAULT_MODEL = process.env.NEMOCLAW_MODEL || AI_CONFIG.LLM.STABLE_MODEL;
+const MAX_MESSAGES = 64;
+const MAX_HISTORY_MESSAGES = 24;
+const MAX_MESSAGE_CHARS = 32_000;
+const MAX_TOTAL_PROMPT_CHARS = 120_000;
+const MAX_OUTPUT_TOKENS = 4_096;
 
-interface ChatMessage {
-    role: 'system' | 'user' | 'assistant' | 'tool';
-    content: string | null;
-    name?: string;
-    tool_calls?: any[];
-    tool_call_id?: string;
+function clamp(value: number, minimum: number, maximum: number): number {
+  return Math.min(maximum, Math.max(minimum, value));
 }
 
-interface ChatCompletionTool {
-    type: 'function';
-    function: {
-        name: string;
-        description?: string;
-        parameters?: any;
+function getAllowedModels(): Set<string> {
+  const configured = (process.env.LOCAL_LLM_ALLOWED_MODELS || '')
+    .split(',')
+    .map(value => value.trim())
+    .filter(Boolean);
+  return new Set([
+    AI_CONFIG.LLM.STABLE_MODEL,
+    AI_CONFIG.LLM.EXPERIMENTAL_MODEL,
+    AI_CONFIG.LLM.GRANITE_DENSE,
+    DEFAULT_MODEL,
+    ...configured,
+  ]);
+}
+
+function assertAllowedModel(model: string): string {
+  const normalized = model.trim();
+  if (!normalized || normalized.length > 160 || !getAllowedModels().has(normalized)) {
+    throw new NemoClawError(`LOCAL_MODEL_NOT_ALLOWED: ${normalized || '(empty)'}`, 400);
+  }
+  return normalized;
+}
+
+function normalizeMessages(messages: ChatMessage[]): ChatMessage[] {
+  if (!Array.isArray(messages) || messages.length === 0 || messages.length > MAX_MESSAGES) {
+    throw new NemoClawError(`INVALID_MESSAGE_COUNT: expected 1-${MAX_MESSAGES}`, 400);
+  }
+
+  let totalChars = 0;
+  return messages.map(message => {
+    const content = message.content === null ? null : String(message.content).slice(0, MAX_MESSAGE_CHARS);
+    totalChars += content?.length ?? 0;
+    if (totalChars > MAX_TOTAL_PROMPT_CHARS) {
+      throw new NemoClawError('PROMPT_TOO_LARGE', 413);
+    }
+    return {
+      ...message,
+      content,
+      name: message.name?.replace(/[^a-zA-Z0-9_-]/g, '').slice(0, 64),
+      tool_call_id: message.tool_call_id?.slice(0, 160),
     };
+  });
 }
 
-interface ChatCompletionRequest {
-    model?: string;
-    messages: ChatMessage[];
-    tools?: ChatCompletionTool[];
-    tool_choice?: 'auto' | 'none' | { type: 'function', function: { name: string } };
-    temperature?: number;
-    max_tokens?: number;
-    stream?: boolean;
-    user?: string; // Per-user session isolation
-}
-
-interface ChatCompletionChoice {
-    index: number;
-    message: ChatMessage;
-    finish_reason: string;
-}
-
-interface ChatCompletionResponse {
-    id: string;
-    object: string;
-    created: number;
-    model: string;
-    choices: ChatCompletionChoice[];
-    usage?: {
-        prompt_tokens: number;
-        completion_tokens: number;
-        total_tokens: number;
-    };
-}
-
-interface NemoClawHealthStatus {
-    available: boolean;
-    gateway: string;
-    model: string;
-    latencyMs?: number;
-    error?: string;
-    isDockerIssue?: boolean;
+function normalizeBaseUrl(rawUrl: string): string {
+  const localUrl = normalizeLocalAiBaseUrl(rawUrl, 'NemoClaw endpoint');
+  return localUrl
+    .replace(/\/v1\/chat\/completions$/i, '')
+    .replace(/\/v1$/i, '');
 }
 
 class NemoClawClient {
-    private baseUrl: string;
-    private apiKey: string;
-    private model: string;
-    private _lastHealthCheck: NemoClawHealthStatus | null = null;
-    private _healthCheckExpiry = 0;
+  private readonly baseUrl: string;
+  private readonly apiKey: string;
+  private readonly model: string;
+  private lastHealthCheck: NemoClawHealthStatus | null = null;
+  private healthCheckExpiry = 0;
 
-    constructor() {
-        // Nếu API_URL đã chứa path /v1/..., ta bóc tách lấy base
-        let rawUrl = NEMOCLAW_API_URL.replace(/\/$/, '');
-        if (rawUrl.includes('/v1/chat/completions')) {
-            this.baseUrl = rawUrl.split('/v1/chat/completions')[0];
-        } else if (rawUrl.includes('/v1')) {
-            this.baseUrl = rawUrl.split('/v1')[0];
-        } else {
-            this.baseUrl = rawUrl;
-        }
-        
-        this.apiKey = NEMOCLAW_API_KEY;
-        this.model = NEMOCLAW_MODEL;
+  constructor() {
+    this.baseUrl = normalizeBaseUrl(RAW_API_URL);
+    this.apiKey = API_KEY;
+    this.model = assertAllowedModel(DEFAULT_MODEL);
+  }
+
+  async chatCompletion(request: ChatCompletionRequest): Promise<ChatCompletionResponse> {
+    const url = `${this.baseUrl}/v1/chat/completions`;
+    assertLocalAiEndpoint(url, 'NemoClaw chat endpoint');
+
+    const body: Record<string, unknown> = {
+      model: assertAllowedModel(request.model || getActiveLLMModel()),
+      messages: normalizeMessages(request.messages),
+      temperature: clamp(Number(request.temperature ?? 0.3), 0, 1),
+      max_tokens: clamp(Number(request.max_tokens ?? 2_048), 1, MAX_OUTPUT_TOKENS),
+      stream: false,
+    };
+    if (request.tools) body.tools = request.tools.slice(0, 32);
+    if (request.tool_choice) body.tool_choice = request.tool_choice;
+    if (request.user) body.user = request.user.replace(/[^a-zA-Z0-9_.@-]/g, '_').slice(0, 128);
+
+    try {
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(this.apiKey ? { Authorization: `Bearer ${this.apiKey}` } : {}),
+        },
+        body: JSON.stringify(body),
+        redirect: 'error',
+        signal: AbortSignal.timeout(90_000),
+      });
+
+      if (!response.ok) {
+        await response.body?.cancel().catch(() => undefined);
+        throw new NemoClawError(`NemoClaw returned HTTP ${response.status}`, response.status);
+      }
+
+      const result = await response.json() as ChatCompletionResponse;
+      if (!Array.isArray(result.choices) || result.choices.length === 0) {
+        throw new NemoClawError('INVALID_LOCAL_AI_RESPONSE', 502);
+      }
+      return result;
+    } catch (error: any) {
+      if (error instanceof NemoClawError) throw error;
+      if (error?.name === 'AbortError'
+        || error?.name === 'TimeoutError'
+        || error?.cause?.code === 'ECONNREFUSED'
+        || error?.message?.includes('fetch failed')) {
+        throw new NemoClawError(
+          'NEMOCLAW_SERVER_UNREACHABLE: Dịch vụ AI local chưa khởi động hoặc bị gián đoạn.',
+          503,
+        );
+      }
+      throw new NemoClawError('LOCAL_AI_REQUEST_FAILED', 502);
     }
+  }
 
-    /**
-     * Send a chat completion request to NemoClaw gateway
-     */
-    async chatCompletion(request: ChatCompletionRequest): Promise<ChatCompletionResponse> {
-        const url = `${this.baseUrl}/v1/chat/completions`;
-        
-        const body: any = {
-            model: request.model || getActiveLLMModel(),
-            messages: request.messages,
-            temperature: request.temperature ?? 0.3, // Lower temp = more precise
-            max_tokens: request.max_tokens ?? 2048,
-            stream: false,
-        };
+  async ask(prompt: string, options: {
+    systemPrompt?: string;
+    userId?: string;
+    history?: ChatMessage[];
+    temperature?: number;
+    maxTokens?: number;
+  } = {}): Promise<{ content: string; model: string; usage?: unknown }> {
+    const messages: ChatMessage[] = [];
+    if (options.systemPrompt) messages.push({ role: 'system', content: options.systemPrompt });
+    if (options.history?.length) messages.push(...options.history.slice(-MAX_HISTORY_MESSAGES));
+    messages.push({ role: 'user', content: prompt });
 
-        if (request.tools) {
-            body.tools = request.tools;
-        }
-
-        if (request.tool_choice) {
-            body.tool_choice = request.tool_choice;
-        }
-
-        if (request.user) {
-            body.user = request.user;
-        }
-
-        try {
-            const response = await fetch(url, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    ...(this.apiKey ? { 'Authorization': `Bearer ${this.apiKey}` } : {}),
-                },
-                body: JSON.stringify(body),
-                signal: AbortSignal.timeout(90000), // Tăng timeout lên 90s cho Gemma-4 31B
-            });
-
-            if (!response.ok) {
-                const errorText = await response.text().catch(() => '');
-                throw new NemoClawError(
-                    `NemoClaw API error (${response.status}): ${errorText.substring(0, 200)}`,
-                    response.status
-                );
-            }
-
-            return response.json();
-        } catch (error: any) {
-            // DETECT NATIVE SERVER DOWN / CONNECTION REFUSED
-            if (error.name === 'AbortError' || error.cause?.code === 'ECONNREFUSED' || error.message?.includes('fetch failed')) {
-                throw new NemoClawError(
-                    'NEMOCLAW_SERVER_UNREACHABLE: Dịch vụ AI Local (Native Spine) chưa khởi động hoặc bị gián đoạn.',
-                    503
-                );
-            }
-            throw error;
-        }
+    const result = await this.chatCompletion({
+      messages,
+      user: options.userId,
+      temperature: options.temperature,
+      max_tokens: options.maxTokens,
+    });
+    const content = result.choices[0]?.message?.content;
+    if (typeof content !== 'string' || !content.trim()) {
+      throw new NemoClawError('EMPTY_LOCAL_AI_RESPONSE', 502);
     }
+    return { content: content.trim(), model: result.model, usage: result.usage };
+  }
 
-    /**
-     * Simple ask — builds messages array from prompt + optional system prompt
-     */
-    async ask(prompt: string, options: {
-        systemPrompt?: string;
-        userId?: string;
-        history?: ChatMessage[];
-        temperature?: number;
-        maxTokens?: number;
-    } = {}): Promise<{ content: string; model: string; usage?: any }> {
-        const messages: ChatMessage[] = [];
+  async askPersonalized(prompt: string, options: {
+    userContext: string;
+    userId: string;
+    history?: ChatMessage[];
+    temperature?: number;
+  }): Promise<{ content: string; model: string; source: string }> {
+    const result = await this.ask(prompt, {
+      systemPrompt: buildPrecisionSystemPrompt(options.userContext),
+      userId: options.userId,
+      history: options.history,
+      temperature: options.temperature ?? 0.2,
+    });
+    return { content: result.content, model: result.model, source: 'nemoclaw-local' };
+  }
 
-        // System prompt for precision and structure
-        if (options.systemPrompt) {
-            messages.push({ role: 'system', content: options.systemPrompt });
-        }
+  async healthCheck(): Promise<NemoClawHealthStatus> {
+    const now = Date.now();
+    if (this.lastHealthCheck && now < this.healthCheckExpiry) return this.lastHealthCheck;
 
-        // Conversation history
-        if (options.history?.length) {
-            messages.push(...options.history);
-        }
-
-        // Current user message
-        messages.push({ role: 'user', content: prompt });
-
-        const result = await this.chatCompletion({
-            messages,
-            user: options.userId,
-            temperature: options.temperature,
-            max_tokens: options.maxTokens,
-        });
-
-        const choice = result.choices?.[0];
-        if (!choice) {
-            throw new NemoClawError('Empty response from NemoClaw', 0);
-        }
-
-        return {
-            content: (choice.message.content || '').trim(),
-            model: result.model,
-            usage: result.usage,
-        };
+    const started = now;
+    try {
+      const url = `${this.baseUrl}/v1/models`;
+      assertLocalAiEndpoint(url, 'NemoClaw health endpoint');
+      const response = await fetch(url, {
+        headers: this.apiKey ? { Authorization: `Bearer ${this.apiKey}` } : {},
+        redirect: 'error',
+        signal: AbortSignal.timeout(5_000),
+      });
+      this.lastHealthCheck = {
+        available: response.ok,
+        gateway: this.baseUrl,
+        model: this.model,
+        latencyMs: Date.now() - started,
+        ...(!response.ok ? { error: `HTTP ${response.status}` } : {}),
+      };
+    } catch (error: any) {
+      const isDockerIssue = error?.cause?.code === 'ECONNREFUSED' || error?.message?.includes('fetch failed');
+      this.lastHealthCheck = {
+        available: false,
+        gateway: this.baseUrl,
+        model: this.model,
+        isDockerIssue,
+        error: isDockerIssue ? 'HURC1_DOCKER_DOWN' : 'LOCAL_ENDPOINT_UNAVAILABLE',
+      };
     }
+    this.healthCheckExpiry = Date.now() + 15_000;
+    return this.lastHealthCheck;
+  }
 
-    /**
-     * Personalized ask — injects user context into system prompt
-     */
-    async askPersonalized(prompt: string, options: {
-        userContext: string;    // Pre-built CRM context for this user
-        userId: string;
-        history?: ChatMessage[];
-        temperature?: number;
-    } = {} as any): Promise<{ content: string; model: string; source: string }> {
-        const systemPrompt = buildPrecisionSystemPrompt(options.userContext);
-
-        const result = await this.ask(prompt, {
-            systemPrompt,
-            userId: options.userId,
-            history: options.history,
-            temperature: options.temperature ?? 0.2, // Very precise for personalized
-        });
-
-        return {
-            content: result.content,
-            model: result.model,
-            source: 'nemoclaw',
-        };
-    }
-
-    /**
-     * Health check — cached for 30 seconds
-     */
-    async healthCheck(): Promise<NemoClawHealthStatus> {
-        const now = Date.now();
-        if (this._lastHealthCheck && now < this._healthCheckExpiry) {
-            return this._lastHealthCheck;
-        }
-
-        const startTime = now;
-        try {
-            // Try models endpoint first (standard OpenAI-compatible check)
-            const response = await fetch(`${this.baseUrl}/v1/models`, {
-                method: 'GET',
-                headers: this.apiKey ? { 'Authorization': `Bearer ${this.apiKey}` } : {},
-                signal: AbortSignal.timeout(5000),
-            });
-
-            const latencyMs = Date.now() - startTime;
-
-            if (response.ok) {
-                this._lastHealthCheck = {
-                    available: true,
-                    gateway: this.baseUrl,
-                    model: this.model,
-                    latencyMs,
-                };
-            } else {
-                this._lastHealthCheck = {
-                    available: false,
-                    gateway: this.baseUrl,
-                    model: this.model,
-                    latencyMs,
-                    error: `HTTP ${response.status}`,
-                };
-            }
-        } catch (error: any) {
-            const isDockerIssue = error.cause?.code === 'ECONNREFUSED' || error.message?.includes('fetch failed');
-            this._lastHealthCheck = {
-                available: false,
-                gateway: this.baseUrl,
-                model: this.model,
-                isDockerIssue,
-                error: isDockerIssue ? 'HURC1_DOCKER_DOWN' : (error instanceof Error ? error.message : 'Connection failed'),
-            };
-        }
-
-        this._healthCheckExpiry = Date.now() + 15_000;
-        return this._lastHealthCheck;
-    }
-
-    /**
-     * Check if NemoClaw gateway is reachable
-     */
-    async isAvailable(): Promise<boolean> {
-        const health = await this.healthCheck();
-        return health.available;
-    }
+  async isAvailable(): Promise<boolean> {
+    return (await this.healthCheck()).available;
+  }
 }
 
-// ============ PRECISION SYSTEM PROMPT ============
-
-function buildPrecisionSystemPrompt(userContext: string): string {
-    return `Bạn là trợ lý AI chuyên gia của hệ thống CRM quản lý bảo trì Metro HURC1.
-
-## QUY TẮC BẮT BUỘC
-1. Trả lời CHÍNH XÁC vấn đề được hỏi. KHÔNG lan man, KHÔNG thêm thông tin không liên quan.
-2. Nếu câu hỏi về dữ liệu cụ thể (DNF, Hazard, Inspection), trả lời dựa trên dữ liệu thực có trong hệ thống.
-3. Nếu không đủ dữ liệu để trả lời chính xác, nói rõ "Không có đủ dữ liệu" thay vì đoán.
-4. Định dạng câu trả lời có cấu trúc: dùng bullet points, bảng, hoặc numbered lists.
-5. Giữ câu trả lời ngắn gọn, súc tích. Tối đa 5-7 điểm chính.
-6. Khi phân tích, luôn đưa ra kết luận rõ ràng.
-
-## THÔNG TIN NGƯỜI DÙNG HIỆN TẠI
-${userContext}
-
-## ĐỊNH DẠNG TRẢ LỜI
-- Câu hỏi về số liệu → Trả lời bằng số cụ thể + bảng
-- Câu hỏi về quy trình → Trả lời bằng bước 1-2-3
-- Câu hỏi phân tích → Trả lời: Vấn đề → Nguyên nhân → Đề xuất
-- Câu hỏi có/không → Trả lời thẳng Có/Không trước, giải thích ngắn sau
-
-${STRICT_CONSTRAINT}`;
-}
-
-// ============ ERROR CLASS ============
-
-export class NemoClawError extends Error {
-    constructor(message: string, public statusCode: number) {
-        super(message);
-        this.name = 'NemoClawError';
-    }
-}
-
-// ============ SINGLETON ============
-
-let _instance: NemoClawClient | null = null;
+let instance: NemoClawClient | null = null;
 
 export function getNemoClawClient(): NemoClawClient {
-    if (!_instance) {
-        _instance = new NemoClawClient();
-    }
-    return _instance;
+  if (!instance) instance = new NemoClawClient();
+  return instance;
 }
 
-export type { ChatMessage, ChatCompletionResponse, NemoClawHealthStatus, ChatCompletionRequest, ChatCompletionTool };
+export { NemoClawError } from './nemoclaw-types';
+export type {
+  ChatCompletionRequest,
+  ChatCompletionResponse,
+  ChatCompletionTool,
+  ChatMessage,
+  NemoClawHealthStatus,
+} from './nemoclaw-types';
