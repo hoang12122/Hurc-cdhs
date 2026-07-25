@@ -200,19 +200,52 @@ Until these records exist and are approved, the correct statement is:
 
 > The source code contains a production baseline and executable invariant checks; the environment has not yet received production deployment certification.
 
-## 11. Mandatory certification record
+## 11. Mandatory certification records
+
+The complete mandatory certification dossier, security commitment, impact assessment, acceptance gates and signed drill-minute requirements are defined in:
+
+`docs/technical/PRODUCTION_CERTIFICATION_RECORDS_AND_SECURITY_COMMITMENT.md`
 
 The certification package must retain, at minimum:
 
+- system scope and certification boundary;
+- logical/physical architecture and data-flow diagrams;
 - physical or virtual node inventory and failure-domain map;
-- CA hierarchy and certificate lifecycle report;
+- broker replication, quorum and reconciliation evidence;
+- CA hierarchy, certificate inventory and lifecycle report;
+- device enrollment, ACL and revocation evidence;
 - KMS/HSM attestation and key-custody matrix;
-- firewall or NetworkPolicy export;
+- firewall or NetworkPolicy export and negative-test results;
+- object-lock, retention, legal-hold and replication records;
 - backup topology, off-site destination and retention evidence;
 - restore test report with RPO/RTO measurements;
-- failover drill report and raw logs;
-- data-loss reconciliation results;
-- outstanding corrective actions;
+- failover drill report, raw logs and data-loss reconciliation;
+- vulnerability, dependency and approved security-validation reports;
+- secrets, privileged-access and separation-of-duties review;
+- monitoring, alerting, incident-response and rollback evidence;
+- AI/model release dossier, signed manifest and dataset provenance;
+- privacy/data-protection and legal-impact assessment where applicable;
+- consortium charter, validator ownership and signed governance decisions;
+- operational runbooks and training attendance;
+- change/release approval, residual-risk acceptance and final certification record;
 - signatures from system owner, security representative, operations representative and approving authority.
 
-CI artifacts may be attached to this package as supporting evidence, but they cannot replace operational signatures or infrastructure test results.
+## 12. CI artifacts are supporting evidence only
+
+CI artifacts may include workflow logs, build logs, test reports, CodeQL output, dependency audits, Compose validation, model-registry tamper tests and resilience invariant reports. They establish traceability to a source revision and show that selected software checks executed.
+
+They do not replace or independently prove:
+
+- real independent infrastructure or failure-domain separation;
+- actual runtime enforcement of PKI, KMS/HSM, firewall or NetworkPolicy;
+- off-site immutable backups;
+- executed restore and failover drills;
+- production data reconciliation;
+- legal, privacy, security or consortium approval;
+- signed acceptance by accountable authorities.
+
+## 13. Security commitment and impact
+
+Production promotion is subject to the security commitment in the certification dossier. In particular, production keys remain outside source control and CI, device/service identities are attributable and revocable, network egress is default-deny, evidence payloads remain off-chain, backup is encrypted and immutable, and material findings must be resolved or explicitly accepted by the accountable risk owner.
+
+The certification decision must assess confidentiality, integrity, availability and safety, privacy/legal obligations, business/service continuity, supply-chain exposure and residual risk. A successful merge or CI run cannot implicitly accept a high or critical operational or security risk.
