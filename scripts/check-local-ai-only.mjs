@@ -13,6 +13,9 @@ const endpointVariables = {
   TRUSTGRAPH_API_URL: 'http://trustgraph-api:8088',
   YOLO_ENDPOINT: 'http://yolo-service:5005/detect',
 };
+const negativeFixtureFiles = new Set([
+  'src/scripts/test-local-ai-vector-memory.ts',
+]);
 
 function isPrivateIpv4(hostname) {
   const octets = hostname.split('.').map(Number);
@@ -81,6 +84,7 @@ if (!runtimeOnly) {
       const extension = path.extname(entry.name);
       if (!allowedExtensions.has(extension) && entry.name !== 'Dockerfile') continue;
       const relative = path.relative(root, fullPath).split(path.sep).join('/');
+      if (negativeFixtureFiles.has(relative)) continue;
       const content = fs.readFileSync(fullPath, 'utf8');
       for (const marker of forbiddenMarkers) {
         if (content.includes(marker)) violations.push(`${relative}: forbidden public AI marker ${marker}`);
@@ -100,6 +104,11 @@ if (!runtimeOnly) {
   ];
   for (const control of requiredOfflineControls) {
     if (!aiServer.includes(control)) violations.push(`infra/ai-server/main.py: missing offline control ${control}`);
+  }
+
+  const transcribe = fs.readFileSync(path.join(root, 'infra/ai-server/transcribe.py'), 'utf8');
+  for (const control of ['LOCAL_WHISPER_MODEL_PATH', 'whisper.load_model(str(self.model_path))']) {
+    if (!transcribe.includes(control)) violations.push(`infra/ai-server/transcribe.py: missing offline control ${control}`);
   }
 }
 
