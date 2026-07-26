@@ -1,7 +1,7 @@
-fastapi==0.116.1
-uvicorn[standard]==0.35.0
-python-multipart==0.0.31
-Pillow==12.2.0
-PyYAML==6.0.2
-ultralytics==8.3.203
+fastapi==0.140.0
+uvicorn[standard]==0.51.0
+python-multipart==0.0.32
+Pillow==12.3.0
+PyYAML==6.0.3
+ultralytics==8.4.106
 mlflow==3.14.0
