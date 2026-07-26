@@ -51,6 +51,20 @@ if (!process.exitCode) {
         fail(`non-legacy module ${module.id} requires characterization tests`);
       }
     }
+
+    if (module.state === 'shadow') {
+      if (!module.shadow || module.shadow.enabled !== true) fail(`shadow module ${module.id} requires shadow.enabled=true`);
+      if (module.shadow.userTrafficPercent !== 0) fail(`shadow module ${module.id} must keep user traffic at 0%`);
+      if (!Array.isArray(module.shadow.comparisonMetrics) || module.shadow.comparisonMetrics.length === 0) {
+        fail(`shadow module ${module.id} requires comparison metrics`);
+      }
+      if (module.cutover?.enabled === true) fail(`shadow module ${module.id} must not enable cutover`);
+    }
+
+    if (['canary', 'migrated', 'retired'].includes(module.state)) {
+      if (module.ciGateStatus !== 'success') fail(`${module.state} module ${module.id} requires ciGateStatus=success`);
+      if (!module.approvedBy) fail(`${module.state} module ${module.id} requires approvedBy`);
+    }
   }
 }
 
