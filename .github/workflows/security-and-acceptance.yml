@@ -103,8 +103,8 @@ jobs:
       - name: Local vector memory invariant checks
         run: node scripts/run-build-phase.js "Local vector memory invariant checks" -- npm run test:local-ai-vector-memory
 
-      - name: Signed model registry integrity proof
-        run: node scripts/run-build-phase.js "Signed model registry integrity proof" -- npm run test:model-registry
+      - name: Phase 1 model supply-chain proof
+        run: node scripts/run-build-phase.js "Phase 1 model supply-chain proof" -- npm run test:model-supply-chain
 
       - name: Production resilience and consortium governance invariants
         run: node scripts/run-build-phase.js "Production resilience and consortium governance invariants" -- npm run test:production-resilience
