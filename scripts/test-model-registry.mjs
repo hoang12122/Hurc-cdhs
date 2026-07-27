@@ -5,10 +5,29 @@ import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 
-function run(script, args, expected = 0) {
+function runSuccess(script, args) {
   const result = spawnSync(process.execPath, [script, ...args], { encoding: 'utf8' });
-  if (result.status !== expected) {
+  if (result.error) {
+    throw new Error(`${script} failed to start: ${result.error.message}`);
+  }
+  if (result.status !== 0) {
     throw new Error(`${script} exited ${result.status}; stdout=${result.stdout}; stderr=${result.stderr}`);
+  }
+  return result;
+}
+
+function runExpectedRejection(script, args, expectedMessage) {
+  const result = spawnSync(process.execPath, [script, ...args], { encoding: 'utf8' });
+  if (result.error) {
+    throw new Error(`${script} failed to start during rejection proof: ${result.error.message}`);
+  }
+  if (result.status === 0) {
+    throw new Error(`${script} unexpectedly accepted a tampered artifact; stdout=${result.stdout}; stderr=${result.stderr}`);
+  }
+
+  const output = `${result.stdout ?? ''}\n${result.stderr ?? ''}`;
+  if (!output.includes(expectedMessage)) {
+    throw new Error(`${script} rejected for an unexpected reason; expected=${expectedMessage}; status=${result.status}; output=${output}`);
   }
   return result;
 }
@@ -37,13 +56,18 @@ const { privateKey, publicKey } = generateKeyPairSync('ed25519');
 await writeFile(privateKeyPath, privateKey.export({ type: 'pkcs8', format: 'pem' }), { mode: 0o600 });
 await writeFile(publicKeyPath, publicKey.export({ type: 'spki', format: 'pem' }));
 
-run('scripts/model-registry-sign.mjs', [manifest, privateKeyPath]);
-run('scripts/model-registry-verify.mjs', [manifest, publicKeyPath]);
+runSuccess('scripts/model-registry-sign.mjs', [manifest, privateKeyPath]);
+runSuccess('scripts/model-registry-verify.mjs', [manifest, publicKeyPath]);
 
 const signed = JSON.parse(await readFile(manifest, 'utf8'));
 if (signed.signature?.algorithm !== 'Ed25519') throw new Error('Expected Ed25519 signature');
 if (!/^[a-f0-9]{64}$/.test(signed.models[0].sha256)) throw new Error('Expected SHA-256 checksum');
 
 await writeFile(artifact, 'tampered-artifact\n');
-run('scripts/model-registry-verify.mjs', [manifest, publicKeyPath], 1);
-console.log('Signed model registry proof passed, including tamper rejection');
+runExpectedRejection(
+  'scripts/model-registry-verify.mjs',
+  [manifest, publicKeyPath],
+  'Checksum mismatch for demo-anomaly-model@1.0.0'
+);
+
+console.log('Signed model registry proof passed, including explicit checksum tamper rejection');
