@@ -10,7 +10,7 @@
       "legacyPath": "src/app/(app)/example-module",
       "targetFrontendPath": "frontend/features/example-module",
       "targetBackendPath": "backend/services/example-module",
-      "state": "isolated",
+      "state": "shadow",
       "publicContract": "backend/contracts/example-module/v1.ts",
       "featureFlag": "exampleModuleBackboneV1",
       "rollbackManifest": "architecture/rollback/example-module.json",
@@ -18,12 +18,33 @@
         "scripts/test-example-module-migration-contract.mjs",
         "src/components/example-module/use-example-module-workflow.ts"
       ],
+      "shadow": {
+        "enabled": true,
+        "userTrafficPercent": 0,
+        "legacySourceOfTruth": true,
+        "comparisonOnly": true,
+        "comparisonMetrics": [
+          "result_equivalence",
+          "validation_equivalence",
+          "error_code_equivalence",
+          "latency_delta_ms"
+        ]
+      },
       "cutover": {
         "enabled": false,
         "trafficPercent": 0,
         "approvalRequired": true
       },
-      "notes": "Pilot isolated behind a published contract. Legacy route remains authoritative; no shadow, canary or production cutover is claimed."
+      "ciEvidence": {
+        "headSha": "c6f25d78fd310421fc371aea5d76b72a202e869b",
+        "securityAndAcceptance": "success",
+        "ironclad": "success",
+        "dockerAcceptance": "success",
+        "privateSecurityRegression": "success",
+        "visionScadaDataExchange": "success",
+        "codeql": "success"
+      },
+      "notes": "Zero-traffic shadow comparison enabled after all principal CI gates succeeded. Legacy route remains authoritative; no user cutover or canary traffic is enabled."
     }
   ]
 }
