@@ -10,7 +10,7 @@ bitsandbytes>=0.45,<1
 Pillow==12.3.0
 psutil>=6,<8
 ultralytics==8.3.203
-opencv-python-headless>=4.10,<5
+opencv-python-headless>=5.0.0.93,<6
 # This is the fully local open-source Whisper runtime, not a public AI API client.
 openai-whisper>=20250625
 scikit-learn>=1.6,<2
