@@ -38,6 +38,7 @@
     "test:model-registry": "node scripts/test-model-registry.mjs",
     "model-registry:sign": "node scripts/model-registry-sign.mjs",
     "model-registry:verify": "node scripts/model-registry-verify.mjs",
+    "test:ai-egress-controls": "node scripts/test-ai-egress-controls.mjs",
     "test:production-resilience": "node scripts/check-production-resilience-baseline.mjs",
     "test:architecture-backbone": "node scripts/check-architecture-backbone.mjs",
     "test:safe-module-migration": "node scripts/check-safe-module-migration.mjs",
