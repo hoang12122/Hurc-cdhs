@@ -88,11 +88,26 @@ jobs:
       - name: Core workflow logic audit
         run: node scripts/run-build-phase.js "Core workflow logic audit" -- node scripts/audit-core-workflow-logic.js
 
+      - name: Day-one architecture backbone invariants
+        run: node scripts/run-build-phase.js "Day-one architecture backbone invariants" -- npm run test:architecture-backbone
+
+      - name: Safe module migration and rollback invariants
+        run: node scripts/run-build-phase.js "Safe module migration and rollback invariants" -- npm run test:safe-module-migration
+
+      - name: Example module isolated migration contract proof
+        run: node scripts/run-build-phase.js "Example module isolated migration contract proof" -- npm run test:example-module-migration
+
       - name: Local AI sovereignty invariant checks
         run: node scripts/run-build-phase.js "Local AI sovereignty invariant checks" -- npm run security:local-ai-only
 
       - name: Local vector memory invariant checks
         run: node scripts/run-build-phase.js "Local vector memory invariant checks" -- npm run test:local-ai-vector-memory
+
+      - name: Signed model registry integrity proof
+        run: node scripts/run-build-phase.js "Signed model registry integrity proof" -- npm run test:model-registry
+
+      - name: Production resilience and consortium governance invariants
+        run: node scripts/run-build-phase.js "Production resilience and consortium governance invariants" -- npm run test:production-resilience
 
       - name: Local AI Python syntax checks
         run: >-

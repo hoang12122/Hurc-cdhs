@@ -1,7 +1,7 @@
 # AI algorithms, vectors, long-term memory and security evidence
 
 **Document code:** HURC-CDHS-AI-EVIDENCE-01  
-**Scope:** local AI, Secure RAG, vector mapping, governed memory, CI/CD and security controls  
+**Scope:** local AI, Secure RAG, vector mapping, governed memory, training, model registry, CI/CD and security controls  
 **Assurance principle:** evidence from source code and executable tests; no claim is based only on a prompt or design intention.
 
 ## 1. Executive conclusion
@@ -12,8 +12,10 @@ The software uses a governed hybrid architecture:
 2. **TrustGraph GraphRAG and DocumentRAG** retrieve graph and document evidence in parallel.
 3. **Secure RAG hooks** enforce collection scope, prompt-injection filtering, bounded context, provenance and output DLP.
 4. **Governed long-term memory** stores only scoped memories with checksum, confidence, verification state, expiry and provenance.
-5. **Local semantic vectors** now supplement lexical and entity matching without calling a public embedding API.
-6. **Human approval remains mandatory** for actions that change data or operational state.
+5. **Local semantic vectors** supplement lexical and entity matching without calling a public embedding API.
+6. **Governed training** requires versioned data, reproducible feature definitions, evaluation gates and human approval.
+7. **Signed local model registry** uses SHA-256 artifact checksums and Ed25519 manifest signatures before promotion.
+8. **Human approval remains mandatory** for actions that change data, models or operational state.
 
 ## 2. Algorithm inventory and source evidence
 
@@ -32,6 +34,10 @@ The software uses a governed hybrid architecture:
 | Memory retrieval | Hybrid lexical + local vector + entity + confidence + importance + recency ranking | `src/lib/services/agent-memory/retrieval.ts` |
 | Result diversity | Maximal Marginal Relevance (MMR) removes near-duplicate memories | `src/lib/services/ai/local-vector.ts` |
 | Local-only enforcement | Private-host endpoint validation, model allowlist, offline model loading and CI source scan | `src/lib/services/ai/local-endpoint-policy.ts`, `scripts/check-local-ai-only.mjs` |
+| Model artifact integrity | SHA-256 checksum for every artifact | `scripts/model-registry-sign.mjs`, `scripts/model-registry-verify.mjs` |
+| Release authorization | Ed25519 signature over canonical registry manifest | `scripts/model-registry-sign.mjs`, `scripts/model-registry-verify.mjs` |
+| Tamper rejection | executable positive and negative test | `scripts/test-model-registry.mjs` |
+| Stream feature reproducibility | schema-versioned normalization, replay and deterministic feature definitions | `infra/etl-normalizer`, `infra/etl-replay-worker` |
 
 ## 3. Vector usage and mathematical proof
 
@@ -139,9 +145,74 @@ The Secure RAG pipeline executes four non-optional stages:
 
 Graph evidence receives trust weight `1.00`; document evidence receives `0.86`. A source-provided similarity score is bounded to `[0,1]` before being added to the trust weight.
 
-## 5. Local-only AI proof
+## 5. Governed learning and training proof
 
-The intended runtime is now enforced, not merely documented:
+The system does not permit uncontrolled self-training from its own answers. The accepted lifecycle is:
+
+```text
+verified source data
+→ immutable raw copy
+→ versioned curated dataset
+→ deterministic train/validation/test split
+→ fixed training configuration and random seed
+→ experiment tracking
+→ metric and robustness evaluation
+→ human approval
+→ signed model registry
+→ staged deployment
+→ drift monitoring and rollback
+```
+
+For a supervised model with observations `(x_i, y_i)`, the optimization target must be explicitly recorded. For classification, a common objective is cross entropy:
+
+```text
+L = -(1/N) × Σ_i Σ_c y_i,c log(p_i,c)
+```
+
+For regression, a common baseline is mean squared error:
+
+```text
+MSE = (1/N) × Σ_i (y_i - ŷ_i)²
+```
+
+The repository does not claim a model is optimal merely because it minimizes training loss. Acceptance must compare against a fixed baseline on held-out data and include operational metrics such as precision, recall, false-alarm rate, latency and calibration. A candidate is promoted only when it meets the approved threshold and passes security, data-leakage and robustness checks.
+
+Training/inference skew is controlled by requiring the same feature definition, unit, time window, missing-value policy and schema version in both paths. Stream-derived rolling features use reproducible formulas such as:
+
+```text
+mean_t = (1 / |W_t|) × Σ x_i
+variance_t = (1 / |W_t|) × Σ (x_i - mean_t)²
+z_t = (x_t - mean_t) / max(std_t, epsilon)
+```
+
+## 6. Signed model registry proof
+
+For artifact bytes `B`:
+
+```text
+artifact_digest = SHA-256(B)
+```
+
+The canonical manifest is signed with Ed25519:
+
+```text
+signature = Ed25519.Sign(private_key, canonical_manifest_without_signature)
+```
+
+Deployment authorization requires both:
+
+```text
+Ed25519.Verify(public_key, canonical_manifest, signature) = true
+SHA-256(local_artifact) = manifest.sha256
+```
+
+This provides independent detection of artifact tampering and unauthorized manifest replacement. `scripts/test-model-registry.mjs` creates an ephemeral Ed25519 key pair, signs an artifact, verifies it, then modifies the artifact and proves verification fails.
+
+Lifecycle states are `candidate`, `approved`, `deprecated` and `revoked`. Production loaders must reject `candidate` and `revoked` records. Signing private keys are not stored in the repository.
+
+## 7. Local-only AI proof
+
+The intended runtime is enforced, not merely documented:
 
 - public AI SDK dependencies are rejected by CI;
 - public AI API-key names and known public AI hosts are rejected in `src/` and `infra/`;
@@ -155,13 +226,14 @@ The intended runtime is now enforced, not merely documented:
 
 The phrase “OpenAI-compatible” refers only to an internal JSON wire format. It does not authorize an OpenAI service or public endpoint.
 
-## 6. Critical weaknesses found and remediation
+## 8. Critical weaknesses found and remediation
 
-| Severity | Weakness found | Impact | Remediation in this change |
+| Severity | Weakness found | Impact | Remediation |
 |---|---|---|---|
 | Critical | User-supplied `model_id` was passed to model loading | arbitrary repository/path selection and unintended download | local alias-to-path allowlist |
 | Critical | `trust_remote_code=True` was enabled | model repository code could execute during load | forced `trust_remote_code=False` |
 | Critical | Runtime model download was possible | data-sovereignty breach and supply-chain exposure | offline environment plus `local_files_only=True` |
+| High | Model artifacts lacked signed release authorization | unauthorized or modified model could be promoted | Ed25519 signed manifest and SHA-256 verification |
 | High | AI endpoints were not strictly validated | accidental routing to public AI services | private-host policy and startup/CI gate |
 | High | Image/audio uploads were unbounded | memory exhaustion and decompression-bomb risk | byte, MIME and pixel limits |
 | High | Internal exception text was returned to clients | information disclosure | generic external errors; internal logging only |
@@ -171,38 +243,46 @@ The phrase “OpenAI-compatible” refers only to an internal JSON wire format. 
 | Medium | Generated scratch verifier was tracked | repository noise and misleading evidence | removed and replaced by executable CI tests |
 | Medium | Workflow granted `security-events: write` globally | excess token privilege | permission moved only to CodeQL job |
 
-## 7. Executable verification
+## 9. Executable verification
 
 ```bash
 npm run security:local-ai-only
 npm run test:local-ai-vector-memory
 npm run test:secure-rag-hooks
 npm run test:ai-governance
+npm run test:model-registry
+npm run platform:config
+node scripts/check-mlflow-security.mjs
+node scripts/check-etl-architecture.mjs
+python3 -m unittest infra/etl-normalizer/test_contract.py
+python3 -m unittest infra/etl-replay-worker/test_replay.py
 npm run typecheck
 npm run lint
 npm run build
 python3 -m py_compile infra/ai-server/main.py infra/ai-server/transcribe.py
 ```
 
-The Security and Acceptance workflow runs these checks automatically for pull requests to `main`.
+The Security and Acceptance workflow runs these checks automatically for pull requests to `main`. CodeQL, dependency audit, production build and scheduled private security regression provide separate evidence layers.
 
-## 8. Pentest and continuous-improvement boundary
+## 10. Pentest and continuous-improvement boundary
 
 Permitted recurring tests are non-destructive and run against isolated CI or private staging:
 
 - static analysis and CodeQL;
 - dependency and container scanning;
 - prompt-injection and output-DLP regression tests;
+- model-registry signature/checksum tamper tests;
 - malformed request, size-boundary and file-type tests;
 - authorization/scope tests across collection and namespace boundaries;
 - RAG retrieval timeout and degraded-mode tests.
 
 The system must not autonomously exploit production, expose a service to the Internet, modify operational data or learn directly from unverified AI output. Findings become reviewed issues/PRs, and deployment remains subject to human approval and passing gates.
 
-## 9. Remaining limitations and next controlled phase
+## 11. Remaining limitations and next controlled phase
 
 1. The deterministic local vector improves recall but is not a trained Vietnamese embedding. TrustGraph local embeddings remain the preferred semantic layer.
-2. Model files require an internal signed-model registry, checksum manifest and offline promotion procedure.
+2. The signed registry baseline is executable, but production startup must make verification mandatory and keys should be held in HSM/KMS or an offline signer.
 3. Network-level egress denial must also be enforced by host firewall/container policy; application checks are defense in depth, not a replacement.
 4. Long-term memory should next add explicit episodic, semantic, decision and task memory types, with human review for durable operational facts.
-5. Destructive repository cleanup must follow a retention manifest so audit evidence is not removed accidentally.
+5. Production MLOps still requires dataset retention policy, model SBOM, malware scanning, drift thresholds and rollback drills.
+6. Destructive repository cleanup must follow a retention manifest so audit evidence is not removed accidentally.
