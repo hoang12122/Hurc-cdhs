@@ -100,6 +100,9 @@ jobs:
       - name: Local AI sovereignty invariant checks
         run: node scripts/run-build-phase.js "Local AI sovereignty invariant checks" -- npm run security:local-ai-only
 
+      - name: Phase 2 AI egress deny-by-default proof
+        run: node scripts/run-build-phase.js "Phase 2 AI egress deny-by-default proof" -- npm run test:ai-egress-controls
+
       - name: Local vector memory invariant checks
         run: node scripts/run-build-phase.js "Local vector memory invariant checks" -- npm run test:local-ai-vector-memory
 
