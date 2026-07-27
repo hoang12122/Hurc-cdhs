@@ -39,7 +39,7 @@ async function main() {
 
   manifest.schemaVersion = manifest.schemaVersion || '1.0.0';
   manifest.generatedAt = new Date().toISOString();
-  manifest.signature = undefined;
+  delete manifest.signature;
   const payload = stableStringify(manifest);
   const privateKey = createPrivateKey(await readFile(privateKeyPath));
   const signature = sign(null, Buffer.from(payload), privateKey).toString('base64');
