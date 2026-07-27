@@ -103,6 +103,9 @@ jobs:
       - name: Local vector memory invariant checks
         run: node scripts/run-build-phase.js "Local vector memory invariant checks" -- npm run test:local-ai-vector-memory
 
+      - name: Phase 3 governed memory proof
+        run: node scripts/run-build-phase.js "Phase 3 governed memory proof" -- npm run test:governed-memory
+
       - name: Signed model registry integrity proof
         run: node scripts/run-build-phase.js "Signed model registry integrity proof" -- npm run test:model-registry
 
