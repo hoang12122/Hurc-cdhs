@@ -2,18 +2,11 @@
 import { createHash, createPrivateKey, sign } from 'node:crypto';
 import { readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
+import { stableStringify, validateRegistry } from './model-registry-contract.mjs';
 
-function stableStringify(value) {
-  if (Array.isArray(value)) return `[${value.map(stableStringify).join(',')}]`;
-  if (value && typeof value === 'object') {
-    return `{${Object.keys(value).sort().map((key) => `${JSON.stringify(key)}:${stableStringify(value[key])}`).join(',')}}`;
-  }
-  return JSON.stringify(value);
-}
-
-async function sha256File(filePath) {
+async function fileDigest(filePath, algorithm) {
   const data = await readFile(filePath);
-  return createHash('sha256').update(data).digest('hex');
+  return createHash(algorithm).update(data).digest('hex');
 }
 
 async function main() {
@@ -23,29 +16,26 @@ async function main() {
   }
 
   const manifest = JSON.parse(await readFile(manifestPath, 'utf8'));
-  if (!Array.isArray(manifest.models) || manifest.models.length === 0) {
-    throw new Error('Manifest must contain a non-empty models array');
-  }
+  validateRegistry(manifest, { requireChecksums: false });
 
   const baseDir = path.dirname(path.resolve(manifestPath));
   for (const model of manifest.models) {
-    if (!model.id || !model.version || !model.artifactPath) {
-      throw new Error('Each model requires id, version and artifactPath');
-    }
     const artifact = path.resolve(baseDir, model.artifactPath);
-    model.sha256 = await sha256File(artifact);
-    model.algorithm = 'SHA-256';
+    model.sha256 = await fileDigest(artifact, 'sha256');
+    model.sha512 = await fileDigest(artifact, 'sha512');
+    model.checksumAlgorithms = ['SHA-256', 'SHA-512'];
   }
 
-  manifest.schemaVersion = manifest.schemaVersion || '1.0.0';
+  manifest.schemaVersion = '2.0.0';
   manifest.generatedAt = new Date().toISOString();
   delete manifest.signature;
+  validateRegistry(manifest);
   const payload = stableStringify(manifest);
   const privateKey = createPrivateKey(await readFile(privateKeyPath));
   const signature = sign(null, Buffer.from(payload), privateKey).toString('base64');
   manifest.signature = { algorithm: 'Ed25519', value: signature };
   await writeFile(outputPath, `${JSON.stringify(manifest, null, 2)}\n`, { mode: 0o600 });
-  console.log(`Signed ${manifest.models.length} model record(s) -> ${outputPath}`);
+  console.log(`Signed ${manifest.models.length} model record(s) with SHA-256/SHA-512 -> ${outputPath}`);
 }
 
 main().catch((error) => {
