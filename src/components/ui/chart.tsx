@@ -1,39 +1,16 @@
-
 "use client"
 
 import * as React from "react"
 import * as RechartsPrimitive from "recharts"
 
 import { cn } from "@/lib/utils"
-
-// Format: { THEME_NAME: CSS_SELECTOR }
-const THEMES = { light: "", dark: ".dark" } as const
-
-export type ChartConfig = {
-  [k in string]: {
-    label?: React.ReactNode
-    icon?: React.ComponentType
-  } & (
-    | { color?: string; theme?: never }
-    | { color?: never; theme: Record<keyof typeof THEMES, string> }
-  )
-}
-
-type ChartContextProps = {
-  config: ChartConfig
-}
-
-const ChartContext = React.createContext<ChartContextProps | null>(null)
-
-function useChart() {
-  const context = React.useContext(ChartContext)
-
-  if (!context) {
-    throw new Error("useChart must be used within a <ChartContainer />")
-  }
-
-  return context
-}
+import {
+  ChartContext,
+  type ChartConfig,
+  getPayloadConfigFromPayload,
+  useChart,
+} from "./chart-shared"
+import { ChartStyle, IndicatorNode, LegendColorBox } from "./chart-style"
 
 const ChartContainer = React.forwardRef<
   HTMLDivElement,
@@ -67,47 +44,6 @@ const ChartContainer = React.forwardRef<
   )
 })
 ChartContainer.displayName = "Chart"
-
-const ChartStyle = ({ id, config }: { id: string; config: ChartConfig }) => {
-  const colorConfig = Object.entries(config).filter(
-    ([, config]) => config.theme || config.color
-  )
-
-  if (!colorConfig.length) {
-    return null
-  }
-
-  // Simple sanitizer to prevent CSS injection via color values
-  const sanitizeColor = (color: string) => {
-    if (!color) return ""
-    // Only allow valid CSS color characters: hex, rgb, rgba, hsl, hsla, names, and vars
-    // Remove anything that could break out of the style rule or execute scripts
-    return color.replace(/[;{}()]/g, "")
-  }
-
-  return (
-    <style
-      dangerouslySetInnerHTML={{
-        __html: Object.entries(THEMES)
-          .map(
-            ([theme, prefix]) => `
-${prefix} [data-chart=${id}] {
-${colorConfig
-  .map(([key, itemConfig]) => {
-    const color =
-      itemConfig.theme?.[theme as keyof typeof itemConfig.theme] ||
-      itemConfig.color
-    return color ? `  --color-${key}: ${sanitizeColor(color)};` : null
-  })
-  .join("\n")}
-}
-`
-          )
-          .join("\n"),
-      }}
-    />
-  )
-}
 
 const ChartTooltip = RechartsPrimitive.Tooltip
 
@@ -143,9 +79,7 @@ const ChartTooltipContent = React.forwardRef<
     const { config } = useChart()
 
     const tooltipLabel = React.useMemo(() => {
-      if (hideLabel || !payload?.length) {
-        return null
-      }
+      if (hideLabel || !payload?.length) return null
 
       const [item] = payload
       const key = `${labelKey || item.dataKey || item.name || "value"}`
@@ -163,11 +97,9 @@ const ChartTooltipContent = React.forwardRef<
         )
       }
 
-      if (!value) {
-        return null
-      }
-
-      return <div className={cn("font-medium", labelClassName)}>{value}</div>
+      return value ? (
+        <div className={cn("font-medium", labelClassName)}>{value}</div>
+      ) : null
     }, [
       label,
       labelFormatter,
@@ -178,9 +110,7 @@ const ChartTooltipContent = React.forwardRef<
       labelKey,
     ])
 
-    if (!active || !payload?.length) {
-      return null
-    }
+    if (!active || !payload?.length) return null
 
     const nestLabel = payload.length === 1 && indicator !== "dot"
 
@@ -215,7 +145,11 @@ const ChartTooltipContent = React.forwardRef<
                       <itemConfig.icon />
                     ) : (
                       !hideIndicator && (
-                        <IndicatorNode indicator={indicator} indicatorColor={indicatorColor} nestLabel={nestLabel} />
+                        <IndicatorNode
+                          indicator={indicator}
+                          indicatorColor={indicatorColor}
+                          nestLabel={nestLabel}
+                        />
                       )
                     )}
                     <div
@@ -264,9 +198,7 @@ const ChartLegendContent = React.forwardRef<
   ) => {
     const { config } = useChart()
 
-    if (!payload?.length) {
-      return null
-    }
+    if (!payload?.length) return null
 
     return (
       <div
@@ -284,9 +216,7 @@ const ChartLegendContent = React.forwardRef<
           return (
             <div
               key={item.value}
-              className={cn(
-                "flex items-center gap-1.5 [&>svg]:h-3 [&>svg]:w-3 [&>svg]:text-muted-foreground"
-              )}
+              className="flex items-center gap-1.5 [&>svg]:h-3 [&>svg]:w-3 [&>svg]:text-muted-foreground"
             >
               {itemConfig?.icon && !hideIcon ? (
                 <itemConfig.icon />
@@ -303,81 +233,7 @@ const ChartLegendContent = React.forwardRef<
 )
 ChartLegendContent.displayName = "ChartLegend"
 
-// Helper to extract item config from a payload.
-function getPayloadConfigFromPayload(
-  config: ChartConfig,
-  payload: unknown,
-  key: string
-) {
-  if (typeof payload !== "object" || payload === null) {
-    return undefined
-  }
-
-  const payloadPayload =
-    "payload" in payload &&
-    typeof payload.payload === "object" &&
-    payload.payload !== null
-      ? payload.payload
-      : undefined
-
-  let configLabelKey: string = key
-
-  if (
-    key in payload &&
-    typeof payload[key as keyof typeof payload] === "string"
-  ) {
-    configLabelKey = payload[key as keyof typeof payload] as string
-  } else if (
-    payloadPayload &&
-    key in payloadPayload &&
-    typeof payloadPayload[key as keyof typeof payloadPayload] === "string"
-  ) {
-    configLabelKey = payloadPayload[
-      key as keyof typeof payloadPayload
-    ] as string
-  }
-
-  return configLabelKey in config
-    ? config[configLabelKey]
-    : config[key as keyof typeof config]
-}
-
-const IndicatorNode = ({ indicator, indicatorColor, nestLabel }: any) => {
-    const ref = React.useRef<HTMLDivElement>(null);
-    React.useEffect(() => {
-        if (ref.current && indicatorColor) {
-            ref.current.style.setProperty("--color-bg", indicatorColor);
-            ref.current.style.setProperty("--color-border", indicatorColor);
-        }
-    }, [indicatorColor]);
-
-    return (
-        <div
-            ref={ref}
-            className={cn(
-                "shrink-0 rounded-[2px] border-[--color-border] bg-[--color-bg]",
-                {
-                    "h-2.5 w-2.5": indicator === "dot",
-                    "w-1": indicator === "line",
-                    "w-0 border-[1.5px] border-dashed bg-transparent": indicator === "dashed",
-                    "my-0.5": nestLabel && indicator === "dashed",
-                }
-            )}
-        />
-    );
-};
-
-const LegendColorBox = ({ color }: { color: string | undefined }) => {
-    const ref = React.useRef<HTMLDivElement>(null);
-    React.useEffect(() => {
-        if (ref.current && color) {
-            ref.current.style.backgroundColor = color;
-        }
-    }, [color]);
-    
-    return <div ref={ref} className="h-2 w-2 shrink-0 rounded-[2px]" />;
-};
-
+export type { ChartConfig }
 export {
   ChartContainer,
   ChartTooltip,

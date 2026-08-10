@@ -36,6 +36,8 @@
     "test:secure-rag-hooks": "npx tsx src/scripts/test-secure-rag-hooks.ts",
     "test:local-ai-vector-memory": "npx tsx src/scripts/test-local-ai-vector-memory.ts",
     "test:model-registry": "node scripts/test-model-registry.mjs",
+    "test:governed-memory": "node scripts/test-governed-memory.mjs",
+    "test:phase-integration": "node scripts/test-phase-integration.mjs",
     "model-registry:sign": "node scripts/model-registry-sign.mjs",
     "model-registry:verify": "node scripts/model-registry-verify.mjs",
     "test:production-resilience": "node scripts/check-production-resilience-baseline.mjs",
