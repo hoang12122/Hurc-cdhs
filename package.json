@@ -123,7 +123,7 @@
     "uuid": "^14.0.0",
     "winston": "^3.19.0",
     "winston-loki": "^6.1.4",
-    "zod": "^3.23.8"
+    "zod": "^4.4.3"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.1",
