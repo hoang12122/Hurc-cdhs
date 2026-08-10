@@ -68,45 +68,72 @@ const ChartContainer = React.forwardRef<
 })
 ChartContainer.displayName = "Chart"
 
-const ChartStyle = ({ id, config }: { id: string; config: ChartConfig }) => {
-  const colorConfig = Object.entries(config).filter(
-    ([, config]) => config.theme || config.color
-  )
+const SAFE_COLOR_PATTERNS = [
+  /^#[0-9a-fA-F]{3,8}$/,
+  /^(?:rgb|rgba|hsl|hsla)\(\s*[0-9.%+\-,\s]+\)$/,
+  /^var\(--[A-Za-z0-9_-]+\)$/,
+  /^[A-Za-z]+$/,
+]
 
-  if (!colorConfig.length) {
+function sanitizeCssIdentifier(value: string) {
+  return value.replace(/[^A-Za-z0-9_-]/g, "")
+}
+
+function sanitizeColor(color: string | undefined) {
+  if (!color) return undefined
+  const value = color.trim()
+  return SAFE_COLOR_PATTERNS.some((pattern) => pattern.test(value))
+    ? value
+    : undefined
+}
+
+const ChartStyle = ({ id, config }: { id: string; config: ChartConfig }) => {
+  const styleRef = React.useRef<HTMLStyleElement>(null)
+  const safeId = React.useMemo(() => sanitizeCssIdentifier(id), [id])
+
+  const cssText = React.useMemo(() => {
+    const colorConfig = Object.entries(config).filter(
+      ([, itemConfig]) => itemConfig.theme || itemConfig.color
+    )
+
+    if (!colorConfig.length || !safeId) {
+      return ""
+    }
+
+    return Object.entries(THEMES)
+      .map(([theme, prefix]) => {
+        const declarations = colorConfig
+          .map(([key, itemConfig]) => {
+            const rawColor =
+              itemConfig.theme?.[theme as keyof typeof itemConfig.theme] ||
+              itemConfig.color
+            const color = sanitizeColor(rawColor)
+            const safeKey = sanitizeCssIdentifier(key)
+
+            if (!color || !safeKey) return null
+            return `  --color-${safeKey}: ${color};`
+          })
+          .filter(Boolean)
+          .join("\n")
+
+        if (!declarations) return ""
+        return `${prefix} [data-chart="${safeId}"] {\n${declarations}\n}`
+      })
+      .filter(Boolean)
+      .join("\n")
+  }, [config, safeId])
+
+  React.useEffect(() => {
+    if (styleRef.current) {
+      styleRef.current.textContent = cssText
+    }
+  }, [cssText])
+
+  if (!cssText) {
     return null
   }
 
-  // Simple sanitizer to prevent CSS injection via color values
-  const sanitizeColor = (color: string) => {
-    if (!color) return ""
-    // Only allow valid CSS color characters: hex, rgb, rgba, hsl, hsla, names, and vars
-    // Remove anything that could break out of the style rule or execute scripts
-    return color.replace(/[;{}()]/g, "")
-  }
-
-  return (
-    <style
-      dangerouslySetInnerHTML={{
-        __html: Object.entries(THEMES)
-          .map(
-            ([theme, prefix]) => `
-${prefix} [data-chart=${id}] {
-${colorConfig
-  .map(([key, itemConfig]) => {
-    const color =
-      itemConfig.theme?.[theme as keyof typeof itemConfig.theme] ||
-      itemConfig.color
-    return color ? `  --color-${key}: ${sanitizeColor(color)};` : null
-  })
-  .join("\n")}
-}
-`
-          )
-          .join("\n"),
-      }}
-    />
-  )
+  return <style ref={styleRef} />
 }
 
 const ChartTooltip = RechartsPrimitive.Tooltip
@@ -303,7 +330,6 @@ const ChartLegendContent = React.forwardRef<
 )
 ChartLegendContent.displayName = "ChartLegend"
 
-// Helper to extract item config from a payload.
 function getPayloadConfigFromPayload(
   config: ChartConfig,
   payload: unknown,
@@ -343,40 +369,44 @@ function getPayloadConfigFromPayload(
 }
 
 const IndicatorNode = ({ indicator, indicatorColor, nestLabel }: any) => {
-    const ref = React.useRef<HTMLDivElement>(null);
-    React.useEffect(() => {
-        if (ref.current && indicatorColor) {
-            ref.current.style.setProperty("--color-bg", indicatorColor);
-            ref.current.style.setProperty("--color-border", indicatorColor);
-        }
-    }, [indicatorColor]);
+  const ref = React.useRef<HTMLDivElement>(null)
 
-    return (
-        <div
-            ref={ref}
-            className={cn(
-                "shrink-0 rounded-[2px] border-[--color-border] bg-[--color-bg]",
-                {
-                    "h-2.5 w-2.5": indicator === "dot",
-                    "w-1": indicator === "line",
-                    "w-0 border-[1.5px] border-dashed bg-transparent": indicator === "dashed",
-                    "my-0.5": nestLabel && indicator === "dashed",
-                }
-            )}
-        />
-    );
-};
+  React.useEffect(() => {
+    const color = sanitizeColor(indicatorColor)
+    if (ref.current && color) {
+      ref.current.style.setProperty("--color-bg", color)
+      ref.current.style.setProperty("--color-border", color)
+    }
+  }, [indicatorColor])
+
+  return (
+    <div
+      ref={ref}
+      className={cn(
+        "shrink-0 rounded-[2px] border-[--color-border] bg-[--color-bg]",
+        {
+          "h-2.5 w-2.5": indicator === "dot",
+          "w-1": indicator === "line",
+          "w-0 border-[1.5px] border-dashed bg-transparent": indicator === "dashed",
+          "my-0.5": nestLabel && indicator === "dashed",
+        }
+      )}
+    />
+  )
+}
 
 const LegendColorBox = ({ color }: { color: string | undefined }) => {
-    const ref = React.useRef<HTMLDivElement>(null);
-    React.useEffect(() => {
-        if (ref.current && color) {
-            ref.current.style.backgroundColor = color;
-        }
-    }, [color]);
-    
-    return <div ref={ref} className="h-2 w-2 shrink-0 rounded-[2px]" />;
-};
+  const ref = React.useRef<HTMLDivElement>(null)
+
+  React.useEffect(() => {
+    const safeColor = sanitizeColor(color)
+    if (ref.current && safeColor) {
+      ref.current.style.backgroundColor = safeColor
+    }
+  }, [color])
+
+  return <div ref={ref} className="h-2 w-2 shrink-0 rounded-[2px]" />
+}
 
 export {
   ChartContainer,
