@@ -155,6 +155,7 @@ services:
       timeout: 5s
       retries: 5
     networks:
+      - ai-private-net
       - backend-net
 
   ollama:
@@ -164,8 +165,12 @@ services:
     profiles: ["ai"]
     expose:
       - "11434"
+    environment:
+      OLLAMA_MODELS: /models
+      HURC_MODEL_SOURCE: internal-preloaded-only
     volumes:
       - ./data/ollama:/root/.ollama
+      - ./models/approved:/models:ro
     healthcheck:
       test: ["CMD", "ollama", "list"]
       interval: 15s
@@ -173,22 +178,7 @@ services:
       retries: 10
       start_period: 120s
     networks:
-      - backend-net
-
-  ollama-pull-model:
-    image: ollama/ollama:latest
-    container_name: hurc_ollama_pull
-    profiles: ["ai"]
-    depends_on:
-      ollama:
-        condition: service_healthy
-    environment:
-      - OLLAMA_HOST=hurc_ollama:11434
-    volumes:
-      - ./data/ollama:/root/.ollama
-    entrypoint: /bin/sh
-    command: -c "ollama pull gemma:2b"
-    networks:
+      - ai-private-net
       - backend-net
 
   loki:
@@ -216,3 +206,9 @@ networks:
     driver: bridge
   frontend-net:
     driver: bridge
+  ai-private-net:
+    driver: bridge
+    internal: true
+    ipam:
+      config:
+        - subnet: 172.30.0.0/24
