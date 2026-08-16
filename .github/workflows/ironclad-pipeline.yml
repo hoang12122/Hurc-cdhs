@@ -13,10 +13,10 @@ jobs:
     
     steps:
       - name: 📥 Checkout Code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: 🟢 Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version-file: '.nvmrc'
 
@@ -137,7 +137,7 @@ jobs:
 
       - name: 📤 Upload AI Runtime Diagnostics
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: ai-runtime-diagnostics-${{ github.run_id }}
           path: ai-ci-logs/
@@ -151,7 +151,7 @@ jobs:
 
       - name: 📄 Archive Audit Certificate
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: deployment-certificate
           path: audit_reports/*.md
