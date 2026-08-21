@@ -53,6 +53,7 @@ if (packageVersion && imageVersion && compareVersion(packageVersion, imageVersio
 
 requireText(platformRunner, "'docker-compose.mlflow-security.yml'", 'Platform compose must load the MLflow security override.');
 requireText(securityOverride, 'MLFLOW_SERVER_ENABLE_JOB_EXECUTION: "false"', 'MLflow job execution must be explicitly disabled.');
+requireText(securityOverride, 'MLFLOW_SERVER_ALLOWED_HOSTS: "mlflow:5000,hurc_mlflow:5000,localhost:*,127.0.0.1:*"', 'MLflow must allow only the expected internal and loopback Host headers.');
 requireText(securityOverride, 'read_only: true', 'MLflow container root filesystem must be read-only.');
 requireText(securityOverride, 'no-new-privileges:true', 'MLflow container must enable no-new-privileges.');
 requireText(securityOverride, 'cap_drop:', 'MLflow container must drop Linux capabilities.');

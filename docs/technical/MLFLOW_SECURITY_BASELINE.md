@@ -12,8 +12,8 @@ The Python client and server image must use the same MLflow version and must not
 
 The reviewed baseline in this repository is:
 
-- Python client: `mlflow==3.14.0`;
-- Server image: `ghcr.io/mlflow/mlflow:v3.14.0`.
+- Python client: `mlflow==3.15.1`;
+- Server image: `ghcr.io/mlflow/mlflow:v3.15.1`.
 
 This version is newer than the fixes referenced for archive path traversal, model-serving command injection and FastAPI authentication bypass issues.
 
@@ -25,7 +25,13 @@ The MLflow host port must remain bound to loopback:
 127.0.0.1:${MLFLOW_HOST_PORT:-5000}:5000
 ```
 
-MLflow must not be published on `0.0.0.0` at the host boundary. Containers that require tracking access communicate through the private `backend-net` network.
+The MLflow Host allowlist must remain restricted to the Compose service name, the fixed container name and loopback health-check hosts:
+
+```yaml
+MLFLOW_SERVER_ALLOWED_HOSTS: "mlflow:5000,hurc_mlflow:5000,localhost:*,127.0.0.1:*"
+```
+
+Do not replace this allowlist with `*`. MLflow must not be published on `0.0.0.0` at the host boundary. Containers that require tracking access communicate through the private `backend-net` network.
 
 For remote access, place MLflow behind an approved reverse proxy or identity-aware gateway. Do not expose the container port directly to an external network.
 
