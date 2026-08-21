@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - '.github/workflows/vision-trainer-pr68-one-off.yml'
+      - 'infra/vision-trainer/**'
 
 permissions:
   contents: read
