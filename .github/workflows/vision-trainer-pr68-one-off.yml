@@ -100,9 +100,9 @@ jobs:
             case "${status}" in
               SUCCEEDED_REVIEW_REQUIRED)
                 echo "Training smoke succeeded: ${job_json}"
-                curl --fail --silent --show-error -X POST \
-                  -H 'Content-Type: application/json' -d '{}' \
-                  http://127.0.0.1:5001/api/2.0/mlflow/experiments/search >/dev/null
+                curl --fail --silent --show-error --get \
+                  --data-urlencode 'experiment_name=hurc-vision-defect-detection' \
+                  http://127.0.0.1:5001/api/2.0/mlflow/experiments/get-by-name >/dev/null
                 exit 0
                 ;;
               FAILED)
