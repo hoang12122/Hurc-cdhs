@@ -12,8 +12,8 @@ The Python client and server image must use the same MLflow version and must not
 
 The reviewed baseline in this repository is:
 
-- Python client: `mlflow==3.14.0`;
-- Server image: `ghcr.io/mlflow/mlflow:v3.14.0`.
+- Python client: `mlflow==3.15.1`;
+- Server image: `ghcr.io/mlflow/mlflow:v3.15.1`.
 
 This version is newer than the fixes referenced for archive path traversal, model-serving command injection and FastAPI authentication bypass issues.
 
