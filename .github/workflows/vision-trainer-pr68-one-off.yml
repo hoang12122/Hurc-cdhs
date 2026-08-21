@@ -23,7 +23,8 @@ jobs:
       - name: Start MLflow and vision-trainer
         run: |
           docker network create vision-pr68
-          docker run -d --name mlflow-pr68 --network vision-pr68 -p 5001:5000 \
+          docker run -d --name mlflow-pr68 --network vision-pr68 --network-alias mlflow -p 5001:5000 \
+            -e MLFLOW_SERVER_ALLOWED_HOSTS='mlflow:5000,mlflow-pr68:5000,localhost:*,127.0.0.1:*' \
             ghcr.io/mlflow/mlflow:v3.15.1 \
             mlflow server --host 0.0.0.0 --port 5000 \
             --backend-store-uri sqlite:////tmp/mlflow.db \
@@ -34,7 +35,7 @@ jobs:
             -e VISION_MIN_APPROVED_PER_CLASS=1 \
             -e VISION_MAX_EPOCHS=1 \
             -e VISION_ALLOWED_BASE_MODELS=yolo11n.pt \
-            -e MLFLOW_TRACKING_URI=http://mlflow-pr68:5000 \
+            -e MLFLOW_TRACKING_URI=http://mlflow:5000 \
             hurc-vision-trainer:pr68
 
       - name: Wait for service health
