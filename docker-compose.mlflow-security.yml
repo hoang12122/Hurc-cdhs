@@ -3,6 +3,7 @@ services:
     image: ${MLFLOW_IMAGE:-ghcr.io/mlflow/mlflow:v3.15.1}
     environment:
       MLFLOW_SERVER_ENABLE_JOB_EXECUTION: "false"
+      MLFLOW_SERVER_ALLOWED_HOSTS: "mlflow:5000,hurc_mlflow:5000,localhost:*,127.0.0.1:*"
       PYTHONDONTWRITEBYTECODE: "1"
       HOME: /tmp/mlflow-home
       XDG_CACHE_HOME: /tmp/.cache
