@@ -1,5 +1,6 @@
 import json
 import os
+import re
 import threading
 import uuid
 from datetime import datetime, timezone
@@ -47,6 +48,11 @@ class ReviewDecision(BaseModel):
 
 def now_iso():
     return datetime.now(timezone.utc).isoformat()
+
+
+def normalize_mlflow_metric_name(value: str):
+    normalized = re.sub(r"[^A-Za-z0-9_. /:-]", "_", value)
+    return normalized or "metric"
 
 
 def default_state():
@@ -177,7 +183,7 @@ def run_training(job_id: str):
             )
             best_path = Path(result.save_dir) / "weights" / "best.pt"
             mlflow.log_artifact(str(best_path), artifact_path="model")
-            metrics = {key: float(value) for key, value in getattr(result, "results_dict", {}).items() if isinstance(value, (int, float))}
+            metrics = {normalize_mlflow_metric_name(key): float(value) for key, value in getattr(result, "results_dict", {}).items() if isinstance(value, (int, float))}
             if metrics:
                 mlflow.log_metrics(metrics)
         with LOCK:
