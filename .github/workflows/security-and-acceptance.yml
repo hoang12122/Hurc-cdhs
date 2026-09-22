@@ -109,6 +109,9 @@ jobs:
       - name: Phases 1-2-3 integrated runtime proof
         run: node scripts/run-build-phase.js "Phases 1-2-3 integrated runtime proof" -- npm run test:phase-integration
 
+      - name: FRACAS phase-gated workflow proof
+        run: node scripts/run-build-phase.js "FRACAS phase-gated workflow proof" -- npm run test:fracas-flow
+
       - name: Signed model registry integrity proof
         run: node scripts/run-build-phase.js "Signed model registry integrity proof" -- npm run test:model-registry
 
