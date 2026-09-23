@@ -6,7 +6,7 @@ accelerate>=1.2,<2
 fastapi==0.116.1
 uvicorn[standard]==0.35.0
 pydantic>=2.10,<3
-bitsandbytes>=0.45,<1
+bitsandbytes>=0.50.0,<1
 Pillow==12.3.0
 psutil>=6,<8
 ultralytics==8.3.203
